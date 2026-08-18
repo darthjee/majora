@@ -116,7 +116,7 @@ describe('CharacterHelper', function() {
       const element = CharacterHelper.render(character, '#/games/demo/pcs');
       const overlay = findElement(element, (child) => child.type === ActionsOverlay);
 
-      expect(overlay.props.infoBarItems).toEqual(InfoBarRules.build(character));
+      expect(overlay.props.overlayItems.infoBarItems).toEqual(InfoBarRules.build(character));
     });
   });
 });

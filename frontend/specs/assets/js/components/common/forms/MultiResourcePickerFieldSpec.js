@@ -5,16 +5,19 @@ import RemovableBadge from '../../../../../../assets/js/components/common/badges
 import { findElement } from './support.js';
 
 describe('MultiResourcePickerField', function() {
-  const buildProps = (overrides = {}) => ({
-    resource: 'source',
-    maxEntries: 4,
-    value: [],
-    onChange: jasmine.createSpy('onChange'),
-    label: 'Sources',
-    searchPlaceholder: 'Search sources...',
-    removeLabel: 'Remove',
-    ...overrides,
-  });
+  const buildProps = (overrides = {}) => {
+    const { picker, ...rest } = overrides;
+
+    return {
+      picker: { resource: 'source', maxEntries: 4, ...picker },
+      value: [],
+      onChange: jasmine.createSpy('onChange'),
+      label: 'Sources',
+      searchPlaceholder: 'Search sources...',
+      removeLabel: 'Remove',
+      ...rest,
+    };
+  };
 
   it('renders the label', function() {
     const element = MultiResourcePickerField(buildProps());
@@ -76,7 +79,8 @@ describe('MultiResourcePickerField', function() {
       const values = ['elf', 'orc'];
       const translateOption = (value) => value.toUpperCase();
       const element = MultiResourcePickerField(buildProps({
-        resource: undefined, maxEntries: undefined, values, translateOption, label: 'Races',
+        picker: { resource: undefined, maxEntries: undefined, values, translateOption },
+        label: 'Races',
       }));
       const search = findElement(element, (node) => node.type === ResourcePickerSearch);
 
@@ -88,7 +92,9 @@ describe('MultiResourcePickerField', function() {
       const onChange = jasmine.createSpy('onChange');
       const values = ['elf', 'orc'];
       const translateOption = (value) => value.toUpperCase();
-      const element = MultiResourcePickerField(buildProps({ onChange, values, translateOption, value: [] }));
+      const element = MultiResourcePickerField(buildProps({
+        onChange, picker: { values, translateOption }, value: [],
+      }));
       const search = findElement(element, (node) => node.type === ResourcePickerSearch);
 
       search.props.onSelect({ id: 'elf', name: 'ELF' });

@@ -38,10 +38,9 @@ describe('GameDocument give-document modal (issue #1005)', function() {
   it('is shown once the give-document button handler is invoked', function() {
     let capturedOnGiveDocumentClick;
     spyOn(DocumentDetailHelper, 'render').and.callFake((
-      document, backHref, editHref, canUploadPhoto, onUploadClick, onFileUploadClick,
-      gameSlug, onSelectPhoto, onGiveDocumentClick,
+      document, backHref, editHref, canUploadPhoto, gameSlug, handlers,
     ) => {
-      capturedOnGiveDocumentClick = onGiveDocumentClick;
+      capturedOnGiveDocumentClick = handlers.onGiveDocumentClick;
       return null;
     });
     let capturedShow;

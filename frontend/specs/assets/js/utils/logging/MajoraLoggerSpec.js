@@ -7,6 +7,9 @@ const MODULE_PATH = '../../../../../assets/js/utils/logging/MajoraLogger.js';
  * @returns {Promise<Function>} The freshly-loaded `MajoraLogger` class.
  */
 async function freshMajoraLogger() {
+  // MODULE_PATH is a fixed local constant; only the cache-busting query
+  // string (?spec=...) is dynamic, and it never comes from external/user input.
+  // eslint-disable-next-line no-unsanitized/method
   const loaded = await import(`${MODULE_PATH}?spec=${Date.now()}-${Math.random()}`);
   return loaded.default;
 }

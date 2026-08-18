@@ -90,14 +90,14 @@ describe('GameFaction', function() {
     let capturedCanUploadPhoto;
     let capturedOnUploadClick;
     spyOn(FactionDetailHelper, 'render').and.callFake((
-      faction, backHref, editHref, canEdit, canUploadPhoto, onUploadClick,
+      faction, backHref, editHref, canEdit, canUploadPhoto, gameSlug, refreshToken, handlers,
     ) => {
       capturedFaction = faction;
       capturedBackHref = backHref;
       capturedEditHref = editHref;
       capturedCanEdit = canEdit;
       capturedCanUploadPhoto = canUploadPhoto;
-      capturedOnUploadClick = onUploadClick;
+      capturedOnUploadClick = handlers.onUploadClick;
       return null;
     });
 
@@ -131,9 +131,9 @@ describe('GameFaction', function() {
   it('opens the upload modal via the onUploadClick handler passed to FactionDetailHelper', function() {
     let capturedOnUploadClick;
     spyOn(FactionDetailHelper, 'render').and.callFake((
-      faction, backHref, editHref, canEdit, canUploadPhoto, onUploadClick,
+      faction, backHref, editHref, canEdit, canUploadPhoto, gameSlug, refreshToken, handlers,
     ) => {
-      capturedOnUploadClick = onUploadClick;
+      capturedOnUploadClick = handlers.onUploadClick;
       return null;
     });
 

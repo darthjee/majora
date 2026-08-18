@@ -73,9 +73,9 @@ describe('GameFaction recruit modal (issue #943)', function() {
   it('passes onRecruitClick to FactionDetailHelper, opening the recruit modal', function() {
     let capturedOnRecruitClick;
     spyOn(FactionDetailHelper, 'render').and.callFake((
-      faction, backHref, editHref, canEdit, canUploadPhoto, onUploadClick, gameSlug, refreshToken, onRecruitClick,
+      faction, backHref, editHref, canEdit, canUploadPhoto, gameSlug, refreshToken, handlers,
     ) => {
-      capturedOnRecruitClick = onRecruitClick;
+      capturedOnRecruitClick = handlers.onRecruitClick;
       return null;
     });
     let capturedShow;

@@ -14,20 +14,24 @@ export default class PreviewSectionHelper {
    *
    * @param {object[]} items - List of items to preview.
    * @param {string} title - Section heading.
-   * @param {string} seeAllHref - Hash href for the "See all" card.
-   * @param {string} icon - Bootstrap icon class name (see `Icons.js`) for the "See all" card.
+   * @param {object} seeAllCard - Data for the "See all" card.
+   * @param {string} seeAllCard.href - Hash href for the "See all" card.
+   * @param {string} seeAllCard.icon - Bootstrap icon class name (see `Icons.js`) for the "See
+   *   all" card.
    * @param {number} maxItems - Maximum number of items shown before the "See all" card.
    * @param {Function} renderItem - Function `(item) => ReactElement` called for each sliced item.
    * @param {string} [emptyText] - Muted paragraph shown above the row when `items` is empty.
-   * @param {boolean} loading - Whether the caller's fetch is still in flight.
-   * @param {number} total - Total item count (from pagination metadata), shown in the title.
-   * @param {boolean} collapsed - Whether the section body is currently hidden.
+   * @param {object} sectionState - State driving the section's collapse behavior.
+   * @param {boolean} sectionState.loading - Whether the caller's fetch is still in flight.
+   * @param {number} sectionState.total - Total item count (from pagination metadata), shown in
+   *   the title.
+   * @param {boolean} sectionState.collapsed - Whether the section body is currently hidden.
    * @param {Function} onToggle - Click handler for the heading, toggling `collapsed`.
    * @returns {React.ReactElement} Preview section element.
    */
-  static render(
-    items, title, seeAllHref, icon, maxItems, renderItem, emptyText, loading, total, collapsed, onToggle,
-  ) {
+  static render(items, title, seeAllCard, maxItems, renderItem, emptyText, sectionState, onToggle) {
+    const { href: seeAllHref, icon } = seeAllCard;
+    const { loading, total, collapsed } = sectionState;
     const preview = items.slice(0, maxItems);
     const seeAllText = Translator.t('character_preview_section.see_all').replace('{{title}}', title);
     const countText = loading ? 'loading' : total;

@@ -119,7 +119,7 @@ describe('CharacterHelper slain/revive rendering', function() {
       const element = CharacterHelper.render(c, '#/games/demo/npcs', { onOpenSlainModal });
       const overlay = findElement(element, (child) => child.type === ActionsOverlay);
 
-      overlay.props.secondaryButtons[0].onClick();
+      overlay.props.overlayItems.secondaryButtons[0].onClick();
 
       expect(onOpenSlainModal).toHaveBeenCalled();
     });
@@ -130,7 +130,7 @@ describe('CharacterHelper slain/revive rendering', function() {
       const element = CharacterHelper.render(c, '#/games/demo/npcs', { onOpenPublicSlainModal });
       const overlay = findElement(element, (child) => child.type === ActionsOverlay);
 
-      overlay.props.secondaryButtons[1].onClick();
+      overlay.props.overlayItems.secondaryButtons[1].onClick();
 
       expect(onOpenPublicSlainModal).toHaveBeenCalled();
     });
@@ -140,7 +140,7 @@ describe('CharacterHelper slain/revive rendering', function() {
       const element = CharacterHelper.render(c, '#/games/demo/npcs');
       const overlay = findElement(element, (child) => child.type === ActionsOverlay);
 
-      expect(overlay.props.secondaryButtons).toEqual([]);
+      expect(overlay.props.overlayItems.secondaryButtons).toEqual([]);
     });
   });
 });
