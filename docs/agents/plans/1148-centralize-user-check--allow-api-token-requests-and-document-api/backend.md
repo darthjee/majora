@@ -92,3 +92,14 @@ phrased as "look at consolidating," not a hard requirement.
   which case add/update tests for that specific view only.
 - If Step 3's consolidation isn't clean, skip it and note here which call sites were left
   untouched and why.
+- Step 3: `games/views/common.py:require_authenticated` and
+  `permissions/endpoint.py:EndpointPermission.check`'s inline unauthenticated check had
+  identical logic and an identical `Response(...)` shape, so they were consolidated into a
+  single `common.auth_checks.unauthenticated_response` helper (new `backend/common/` module,
+  following the same "small, cross-cutting, no-model app" precedent `common/query_filters.py`
+  already established) that both now call.
+  `games/serializers/_request_context_mixin.py`'s `_user()` was left untouched: it returns the
+  raw `request.user` (or `None`) for serializers to build boolean `is_*` flags from
+  (`games/serializers/base_access.py`), not a `Response`, so forcing it into the same helper
+  would mean changing its return type/contract for no shared behavior — the "awkward shared
+  abstraction" case the plan calls out.

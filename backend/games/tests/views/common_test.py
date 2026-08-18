@@ -6,6 +6,7 @@ from django.test import TestCase
 from rest_framework.request import Request
 from rest_framework.test import APIRequestFactory
 
+from common.auth_checks import UNAUTHENTICATED_RESPONSE_DATA
 from games.models import Game
 from games.serializers import (
     GameAccessSerializer,
@@ -15,7 +16,6 @@ from games.serializers import (
 )
 from games.tests.factories import GameFactory, PlayerFactory, UserFactory
 from games.views.common import (
-    UNAUTHENTICATED_RESPONSE_DATA,
     access_response,
     detail_or_update,
     paginated_list_response,
