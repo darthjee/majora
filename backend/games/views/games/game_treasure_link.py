@@ -1,11 +1,9 @@
 """View for linking an existing catalog treasure to a game — DM/superuser only."""
 
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-
-from accounts.authentication import CookieTokenAuthentication
 
 from ...models import Game, GameTreasure
 from ...serializers import GameTreasureLinkSerializer, TreasureDetailSerializer
@@ -13,7 +11,6 @@ from ..common import check_game_edit, validate_with_hidden_field
 
 
 @api_view(['POST'])
-@authentication_classes([CookieTokenAuthentication])
 # AllowAny: authorization for this whole endpoint is enforced inline via
 # EndpointPermission.check(), so unauthenticated/non-DM callers get the app's own
 # 401/403 payload instead of DRF's default.

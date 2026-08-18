@@ -3,11 +3,9 @@
 from django.db.models import Exists, IntegerField, OuterRef, Subquery
 from django.db.models.functions import Coalesce
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-
-from accounts.authentication import CookieTokenAuthentication
 
 from ...models import Game, GameTreasure, Treasure
 from ...serializers import (
@@ -21,7 +19,6 @@ from ._treasure_filters import filter_by_max_value, filter_by_min_value, filter_
 
 
 @api_view(['GET', 'POST'])
-@authentication_classes([CookieTokenAuthentication])
 # AllowAny: GET is intentionally public; POST authorization is enforced inline
 # inside _create_game_treasure via EndpointPermission.check().
 @permission_classes([AllowAny])

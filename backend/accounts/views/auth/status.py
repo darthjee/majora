@@ -1,10 +1,10 @@
 """View for the login-status endpoint."""
 
-from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
+from accounts.authentication import CookieTokenAuthentication
 from accounts.models import CacheToken, UserProfile
 
 from ._shared import _authenticate_from_session
@@ -27,11 +27,7 @@ def status(request):
 
 def _resolve_authentication(request):
     """Return a (result, session_auth) tuple, trying token then session authentication."""
-    auth = TokenAuthentication()
-    try:
-        result = auth.authenticate(request)
-    except Exception:
-        result = None
+    result = CookieTokenAuthentication().authenticate_via_header(request)
 
     if result is not None:
         return result, False

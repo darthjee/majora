@@ -1,10 +1,8 @@
 """View listing the current user's games, each with role, character, and conversation counts."""
 
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-
-from accounts.authentication import CookieTokenAuthentication
 
 from ...serializers import MyGamesItemSerializer
 from ...serializers.games.my_games._my_games_builder import MyGamesBuilder
@@ -12,7 +10,6 @@ from ..common import require_authenticated
 
 
 @api_view(['GET'])
-@authentication_classes([CookieTokenAuthentication])
 # AllowAny: authentication is enforced inline via require_authenticated, so
 # unauthenticated callers receive the UNAUTHENTICATED_RESPONSE_DATA 401 shape.
 @permission_classes([AllowAny])

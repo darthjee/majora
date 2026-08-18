@@ -1,10 +1,9 @@
 """View for the game document photo upload init endpoint."""
 
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 
-from accounts.authentication import CookieTokenAuthentication
 from permissions import EndpointPermission
 from uploads.photo_path import PhotoPathBuilder
 from uploads.upload_initiator import UploadInitiator
@@ -13,7 +12,6 @@ from ...models import Game, GameDocument, GameDocumentPhoto
 
 
 @api_view(['POST'])
-@authentication_classes([CookieTokenAuthentication])
 @permission_classes([IsAuthenticated])
 def game_document_photo_upload(request, game_slug, document_id):
     """Initialise a game document photo upload and return the upload id and token."""

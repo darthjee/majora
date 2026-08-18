@@ -1,11 +1,9 @@
 """View for retrieving or updating a treasure linked to (or exclusive to) a specific game."""
 
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-
-from accounts.authentication import CookieTokenAuthentication
 
 from ...models import Game, GameTreasure, Treasure
 from ...serializers import (
@@ -22,7 +20,6 @@ from ..common import (
 
 
 @api_view(['GET', 'PATCH'])
-@authentication_classes([CookieTokenAuthentication])
 # AllowAny: GET is intentionally public; PATCH authorization is enforced inline via
 # EndpointPermission.check() against the resolved game — distinct from, and does not
 # alter, the superuser-only `/treasures/<id>.json` endpoint.

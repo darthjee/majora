@@ -3,10 +3,9 @@
 import os
 
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 
-from accounts.authentication import CookieTokenAuthentication
 from games.views.common import require_staff
 from uploads.photo_path import PhotoPathBuilder
 from uploads.upload_initiator import UploadInitiator
@@ -16,7 +15,6 @@ from ._shared import skip_cache
 
 
 @api_view(['POST'])
-@authentication_classes([CookieTokenAuthentication])
 # AllowAny: authentication/authorisation is enforced inline via require_staff so
 # unauthenticated or non-staff callers receive a proper 401/403.
 @permission_classes([AllowAny])

@@ -1,10 +1,8 @@
 """View for the game document pages/all.json endpoint: list/create/trim — DM/superuser only."""
 
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
-
-from accounts.authentication import CookieTokenAuthentication
 
 from ...models import Game
 from ...serializers import GameDocumentPageListSerializer
@@ -14,7 +12,6 @@ from .game_document_pages_trim import game_document_pages_trim_all
 
 
 @api_view(['GET', 'POST', 'DELETE'])
-@authentication_classes([CookieTokenAuthentication])
 # AllowAny: authorization for this whole endpoint is enforced inline via
 # EndpointPermission.check()/check_game_edit(), so unauthenticated/non-DM callers get the
 # app's own 401/403 payload instead of DRF's default.

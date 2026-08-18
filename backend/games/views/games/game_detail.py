@@ -1,10 +1,8 @@
 """View for retrieving or updating a single game's detail."""
 
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
-
-from accounts.authentication import CookieTokenAuthentication
 
 from ...models import Game
 from ...serializers import GameDetailSerializer, GameUpdateSerializer
@@ -13,7 +11,6 @@ from ._shared import game_update
 
 
 @api_view(['GET', 'PATCH'])
-@authentication_classes([CookieTokenAuthentication])
 @permission_classes([AllowAny])
 def game_detail(request, game_slug):
     """Return detail for a game (GET), or update it (PATCH, dispatched by editor tier)."""

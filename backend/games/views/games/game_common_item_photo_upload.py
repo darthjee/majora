@@ -3,10 +3,9 @@
 import os
 
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 
-from accounts.authentication import CookieTokenAuthentication
 from permissions import EndpointPermission
 from uploads.photo_path import PhotoPathBuilder
 from uploads.upload_initiator import UploadInitiator
@@ -15,7 +14,6 @@ from ...models import Game, GameCommonItem, GameCommonItemPhoto
 
 
 @api_view(['POST'])
-@authentication_classes([CookieTokenAuthentication])
 @permission_classes([IsAuthenticated])
 def game_common_item_photo_upload(request, game_slug, common_item_id):
     """Initialise a game common item photo upload and return the upload id and token."""

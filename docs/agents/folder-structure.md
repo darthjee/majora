@@ -7,9 +7,10 @@
 | `backend/` | Django backend application (Python). |
 | `frontend/` | React 19 + Vite application — UI components, assets, specs, and build output. |
 | `proxy/` | PHP Tent proxy configuration (dev and prod routing rules) and custom middleware with PHPUnit tests. |
+| `crawler/` | STL-site crawler client (Node.js). Currently a bare scaffold (`package.json`, `README.md`) — no crawling logic yet; owned by the `crawler` agent. |
 | `dockerfiles/` | Dockerfiles for each service image (backend, frontend, production variants). |
 | `docker_volumes/` | Bind-mounted volumes used by Docker services (static assets, proxy cache, node_modules, etc.). |
-| `docs/` | Project documentation for agents and contributors. |
+| `docs/` | Project documentation for agents and contributors, plus `docs/guides/` — public API documentation for external/automated consumers (not agents). |
 | `bin/` | Standalone shell scripts shared across CI jobs regardless of language/runtime (`image.sh`, `deploy_frontend.sh`). |
 | `scripts/` | Standalone shell scripts for releases (`bump_version.sh`, `deploy.sh`, `render.sh`). |
 | `.circleci/` | CircleCI pipeline config (`config.yml`) and Navi cache-warmer config (`navi_config.yaml`). |
@@ -68,7 +69,7 @@
 | `issues/` | Detailed specs for open/closed issues, one file per issue. |
 | `migration/` | Temporary — tracks the app-wide migration of mutation requests onto `RequestStore`. Deleted once the last route in its checklist is migrated. |
 | `plans/` | Implementation plans for ongoing or upcoming features, one directory per issue. |
-| `architecture.md`, `flow.md`, `folder-structure.md`, `product.md`, `pagination.md`, `i18n.md`, `security-guidelines.md`, `views-organization.md`, `frontend.md`, `cache-warmer.md`, `contributing.md` | Other top-level internal reference docs — stay at the top level of `docs/agents/`; this reorg introduces only the two subfolders above, it does not regroup the rest. |
+| `architecture.md`, `flow.md`, `folder-structure.md`, `product.md`, `pagination.md`, `i18n.md`, `security-guidelines.md`, `views-organization.md`, `frontend.md`, `cache-warmer.md`, `contributing.md`, `crawler.md` | Other top-level internal reference docs — stay at the top level of `docs/agents/`; this reorg introduces only the two subfolders above, it does not regroup the rest. |
 
 ## `dockerfiles/` — Service Images
 

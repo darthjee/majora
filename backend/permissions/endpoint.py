@@ -2,10 +2,11 @@
 
 from rest_framework.response import Response
 
+from common.auth_checks import unauthenticated_response
+
 from .base import BasePermission
 from .config_store import PermissionConfigStore
 
-_UNAUTHENTICATED_RESPONSE_DATA = {'errors': {'detail': ['authentication_required']}}
 _FORBIDDEN_RESPONSE_DATA = {'errors': {'detail': ['not_allowed']}}
 
 
@@ -24,18 +25,11 @@ class EndpointPermission(BasePermission):
 
     def check(self, request, resource, type_, action):
         """Return a 401/403 error `Response` if `request.user` may not `action`, else `None`."""
-        unauthenticated = self._unauthenticated_response(request)
+        unauthenticated = unauthenticated_response(request)
         if unauthenticated:
             return unauthenticated
         if not self.allowed(resource, type_, action):
             return self._forbidden_response()
-        return None
-
-    @staticmethod
-    def _unauthenticated_response(request):
-        """Return a 401 Response if `request.user` is not authenticated, else None."""
-        if not request.user or not request.user.is_authenticated:
-            return Response(_UNAUTHENTICATED_RESPONSE_DATA, status=401)
         return None
 
     @staticmethod

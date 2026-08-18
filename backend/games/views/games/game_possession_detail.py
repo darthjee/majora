@@ -1,11 +1,10 @@
 """View for retrieving a single non-hidden possession, or updating any, in a game."""
 
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from accounts.authentication import CookieTokenAuthentication
 from permissions import EndpointPermission
 
 from ...models import Game
@@ -18,7 +17,6 @@ from ..common import validated_or_error
 
 
 @api_view(['GET', 'PATCH'])
-@authentication_classes([CookieTokenAuthentication])
 # AllowAny: GET is intentionally public (hidden possessions excluded below); PATCH
 # authorization is enforced inline via EndpointPermission.check().
 @permission_classes([AllowAny])

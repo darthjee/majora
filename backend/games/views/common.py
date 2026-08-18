@@ -3,13 +3,12 @@
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
+from common.auth_checks import unauthenticated_response
 from permissions import EndpointPermission
 
 from ..caches import AdminOrStaffCache
 from ..paginator import Paginator
 from ..serializers import HiddenFieldSerializer
-
-UNAUTHENTICATED_RESPONSE_DATA = {'errors': {'detail': ['authentication_required']}}
 
 
 def _error_codes(errors):
@@ -34,9 +33,7 @@ def check_game_edit(request, game):
 
 def require_authenticated(request):
     """Return a 401 Response if `request.user` is missing/unauthenticated, else None."""
-    if not request.user or not request.user.is_authenticated:
-        return Response(UNAUTHENTICATED_RESPONSE_DATA, status=401)
-    return None
+    return unauthenticated_response(request)
 
 
 def require_staff(request):

@@ -1,0 +1,6 @@
+{
+  "name": "majora-crawler",
+  "version": "0.1.0",
+  "private": true,
+  "description": "STL-site crawler that creates Source/StlModel links in Majora automatically."
+}

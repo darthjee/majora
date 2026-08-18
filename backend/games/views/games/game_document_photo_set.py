@@ -2,18 +2,16 @@
 
 from django.http import Http404
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from accounts.authentication import CookieTokenAuthentication
 from permissions import EndpointPermission
 
 from ...models import Game, GameDocument
 
 
 @api_view(['PATCH'])
-@authentication_classes([CookieTokenAuthentication])
 @permission_classes([IsAuthenticated])
 def game_document_photo_set(request, game_slug, document_id, photo_id):
     """Update roles on a game document's photo (e.g. mark it as the display photo)."""

@@ -1,10 +1,8 @@
 """View for the game document pages-list endpoint: list, create, and bulk-trim pages."""
 
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
-
-from accounts.authentication import CookieTokenAuthentication
 
 from ...models import Game
 from ...serializers import GameDocumentPageListSerializer
@@ -14,7 +12,6 @@ from .game_document_pages_trim import game_document_pages_trim
 
 
 @api_view(['GET', 'POST', 'DELETE'])
-@authentication_classes([CookieTokenAuthentication])
 # AllowAny: GET is intentionally public (hidden documents excluded below); POST/DELETE
 # authorization is enforced inline via EndpointPermission.check().
 @permission_classes([AllowAny])

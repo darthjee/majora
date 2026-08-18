@@ -23,15 +23,20 @@ class CookieTokenAuthentication(TokenAuthentication):
 
     def authenticate(self, request):
         """Return (user, token) if authenticated and approved, else None."""
-        result = self._authenticate_via_header(request) or self._authenticate_via_session(request)
+        result = self.authenticate_via_header(request) or self._authenticate_via_session(request)
 
         if result is None or not self._is_approved(result[0]):
             return None
 
         return result
 
-    def _authenticate_via_header(self, request):
-        """Return (user, token) via the Authorization header, or None."""
+    def authenticate_via_header(self, request):
+        """Return (user, token) via the Authorization header, or None.
+
+        Unlike `authenticate`, this does not filter out unapproved users — it is also used
+        directly by the login-status endpoint, which needs to distinguish a `pending`/`denied`
+        user's valid token from no token at all.
+        """
         try:
             return super().authenticate(request)
         except AuthenticationFailed:

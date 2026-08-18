@@ -4,11 +4,10 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db.models import Count
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from accounts.authentication import CookieTokenAuthentication
 from permissions import EndpointPermission
 
 from ...models import Game, Poll, PollVote
@@ -23,7 +22,6 @@ from ..common import validated_or_error
 
 
 @api_view(['GET', 'PUT'])
-@authentication_classes([CookieTokenAuthentication])
 # AllowAny: authorisation is enforced inline below via EndpointPermission, since GET and
 # PUT have different rules (view allows the superuser/staff bypass, voting does not) — there
 # is no public read path.

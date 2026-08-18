@@ -1,11 +1,10 @@
 """View for listing a game's polls or creating a new one."""
 
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from accounts.authentication import CookieTokenAuthentication
 from permissions import EndpointPermission
 
 from ...models import Game
@@ -14,7 +13,6 @@ from ..common import paginated_list_response, validated_or_error
 
 
 @api_view(['GET', 'POST'])
-@authentication_classes([CookieTokenAuthentication])
 # AllowAny: authorisation is enforced inline below via EndpointPermission.check(), since
 # Polls have no public read path (GET and POST share the same DM/player/admin check).
 @permission_classes([AllowAny])
