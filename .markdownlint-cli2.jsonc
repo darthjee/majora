@@ -1,0 +1,15 @@
+{
+  // Only the rules Codacy actually enforces on this repo today (see the
+  // "Occurrences" list in issue #1151) are turned on here. The full
+  // markdownlint default ruleset (~50 rules, e.g. MD013 line-length, MD060
+  // table style) surfaces many more findings than Codacy reports, so it is
+  // deliberately not enabled — that would expand scope beyond this issue.
+  "config": {
+    "default": false,
+    "MD012": true,
+    "MD022": true,
+    "MD032": true
+  },
+  "globs": ["**/*.md"],
+  "ignores": ["node_modules/**", "frontend/node_modules/**", "docker_volumes/**"]
+}
