@@ -35,10 +35,12 @@ export default class BaseCharacterPhotosHelper {
    * @param {number} pagination.perPage - Items per page.
    * @param {string} basePath - Base hash path used for pagination links.
    * @param {string} backHref - Hash path to the parent character page.
-   * @param {boolean} canUploadPhoto - Whether the current user can upload new photos.
-   * @param {boolean} canSetProfilePhoto - Whether the current user can mark a photo as the
-   *   character's profile photo.
-   * @param {boolean} canDeletePhoto - Whether the current user can permanently delete a photo.
+   * @param {object} permissions - Current user's photo permissions.
+   * @param {boolean} permissions.canUploadPhoto - Whether the current user can upload new photos.
+   * @param {boolean} permissions.canSetProfilePhoto - Whether the current user can mark a photo
+   *   as the character's profile photo.
+   * @param {boolean} permissions.canDeletePhoto - Whether the current user can permanently
+   *   delete a photo.
    * @param {string} alt - Alt text applied to each photo image.
    * @param {number|null} profilePhotoId - Id of the character's current profile photo,
    *   or null/undefined when none is set.
@@ -46,11 +48,9 @@ export default class BaseCharacterPhotosHelper {
    *   handlers.
    * @returns {React.ReactElement} Photos list with pagination.
    */
-  render(
-    photos, pagination, basePath, backHref, canUploadPhoto, canSetProfilePhoto, canDeletePhoto, alt, profilePhotoId,
-    handlers,
-  ) {
+  render(photos, pagination, basePath, backHref, permissions, alt, profilePhotoId, handlers) {
     const { i18nNamespace } = this;
+    const { canUploadPhoto, canSetProfilePhoto, canDeletePhoto } = permissions;
 
     return (
       <div className="container mt-4">

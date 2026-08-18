@@ -113,9 +113,9 @@ class UploadHandler extends RequestHandler
      */
     public function __construct(
         string $host,
-        ?HttpClientInterface $httpClient = null,
-        string $photosBasePath = '',
-        string $filesBasePath = ''
+        ?HttpClientInterface $httpClient=null,
+        string $photosBasePath='',
+        string $filesBasePath=''
     ) {
         $this->client = new BackendClient($host, $httpClient);
         $this->photosBasePath = $photosBasePath;
@@ -179,11 +179,12 @@ class UploadHandler extends RequestHandler
             return new Response(['httpCode' => 400, 'body' => 'Bad Request']);
         }
 
-        return new Response([
+        return new Response(
+            [
             'httpCode' => 200,
             'headers'  => ['Content-Type: application/json'],
             'body'     => json_encode(['file_path' => $destination]),
-        ]
+            ]
         );
     }
 
@@ -535,16 +536,19 @@ class UploadHandler extends RequestHandler
             ', filename: ' . $filename . ', mimeType: ' . $mimeType
         );
 
-        return new Response([
+        return new Response(
+            [
             'httpCode' => 422,
             'headers'  => ['Content-Type: application/json'],
-            'body'     => json_encode([
+            'body'     => json_encode(
+                [
                 'error'    => 'Unprocessable Entity',
                 'reason'   => $reason,
                 'filename' => $filename,
                 'mimeType' => $mimeType,
-            ]),
-        ]
+                ]
+            ),
+            ]
         );
     }
 }

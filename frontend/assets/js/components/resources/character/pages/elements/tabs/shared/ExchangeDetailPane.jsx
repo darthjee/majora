@@ -26,16 +26,18 @@ function renderActionError(actionError) {
  * @param {string} props.actionError - Translation key for the current action error, if any.
  * @param {string} [props.gameType] - Currency model name (e.g. `dnd`, `deadlands`) used to render
  *   the selected treasure's value. Defaults to `dnd`.
- * @param {Function} props.onQuantityChange - Called with the new quantity (number) on input change.
- * @param {Function} props.onConfirm - Called when the `Confirm` button is clicked.
- * @param {Function} props.onCancel - Called when the `Cancel` button is clicked, returning to the
- *   listing without submitting.
+ * @param {object} props.handlers - Event handlers.
+ * @param {Function} props.handlers.onQuantityChange - Called with the new quantity (number) on
+ *   input change.
+ * @param {Function} props.handlers.onConfirm - Called when the `Confirm` button is clicked.
+ * @param {Function} props.handlers.onCancel - Called when the `Cancel` button is clicked,
+ *   returning to the listing without submitting.
  * @returns {React.ReactElement} Rendered detail pane.
  */
 export default function ExchangeDetailPane({
-  selected, quantity, owned, maxQuantity, submitting, actionError, gameType = 'dnd',
-  onQuantityChange, onConfirm, onCancel,
+  selected, quantity, owned, maxQuantity, submitting, actionError, gameType = 'dnd', handlers,
 }) {
+  const { onQuantityChange, onConfirm, onCancel } = handlers;
   return (
     <div>
       <div className="d-flex align-items-center mb-3">

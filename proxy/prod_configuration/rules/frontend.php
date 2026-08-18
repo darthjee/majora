@@ -2,7 +2,8 @@
 
 use Tent\Configuration;
 
-Configuration::buildRule([
+Configuration::buildRule(
+    [
     'handler' => [
         'type' => 'static',
         'location' => $staticRoot . '/static'
@@ -16,9 +17,11 @@ Configuration::buildRule([
             'maxAgeSeconds' => 60 * 60 * 24
         ]
     ]
-]);
+    ]
+);
 
-Configuration::buildRule([
+Configuration::buildRule(
+    [
     'handler' => [
         'type' => 'static',
         'location' => $staticRoot . '/static'
@@ -36,4 +39,5 @@ Configuration::buildRule([
             'maxAgeSeconds' => 60 * 60 * 24
         ]
     ]
-]);
+    ]
+);

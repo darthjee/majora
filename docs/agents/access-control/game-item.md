@@ -31,6 +31,7 @@ endpoints instead). `PATCH` shares the same route as `GET` on the plain detail e
 `name`/`description`/`hidden` are writable — `photo` stays on its own upload endpoint.
 
 ## Fields
+
 List: `id`, `name`, `photo_path` — see [Photo path fields](common-rules.md#photo-path-fields).
 Detail adds `description`. `/all.json`/`/full.json`/create-response add `hidden`.
 

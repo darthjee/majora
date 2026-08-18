@@ -114,6 +114,7 @@ services:
     image: darthjee/tent-test:0.10.4
     volumes:
       - ./proxy/extension:/var/www/html/extension
+      - ./proxy:/var/www/html/proxy
     command: vendor/bin/phpunit --bootstrap /var/www/html/extension/tests/bootstrap.php /var/www/html/extension/tests
 
   majora_navi:
@@ -128,6 +129,16 @@ services:
       - NAVI_NAMEPACE=$NAVI_NAMEPACE
     ports:
       - 0.0.0.0:3100:3000
+
+  markdownlint:
+    container_name: majora_markdownlint
+    build:
+      context: .
+      dockerfile: dockerfiles/markdownlint/Dockerfile
+    volumes:
+      - .:/home/node/app
+      - ./docker_volumes/markdownlint_node_modules:/home/node/app/node_modules
+    command: sh -c "yarn install && yarn lint_md"
 
   majora_phpmyadmin:
     image: phpmyadmin/phpmyadmin

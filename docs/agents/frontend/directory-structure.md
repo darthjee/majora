@@ -78,4 +78,3 @@ and `common/` as needed. `utils/` (non-JSX utility classes) is untouched by the 
 
 See [Frontend i18n](i18n.md) for the translation layer (`Translator`,
 `LanguageStorage`, `LanguageEvents`, and the header language selector).
-

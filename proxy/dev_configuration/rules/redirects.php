@@ -7,7 +7,8 @@
 
 use Tent\Configuration;
 
-Configuration::buildRule([
+Configuration::buildRule(
+    [
     'handler' => [
         'type' => 'default_proxy',
         'host' => 'http://backend:8080'
@@ -22,4 +23,5 @@ Configuration::buildRule([
             'replacement' => '/#$1'
         ]
     ]
-]);
+    ]
+);

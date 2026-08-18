@@ -49,7 +49,7 @@ describe('FactionDetailHelper', function() {
       const faction = { id: 5, name: 'The Silver Hand' };
       const onUploadClick = jasmine.createSpy('onUploadClick');
       const element = FactionDetailHelper.render(
-        faction, '#/games/demo/factions', '#/games/demo/factions/5/edit', false, true, onUploadClick,
+        faction, '#/games/demo/factions', '#/games/demo/factions/5/edit', false, true, undefined, 0, { onUploadClick },
       );
 
       expect(element.props.context.canUploadPhoto).toBe(true);
@@ -110,7 +110,7 @@ describe('FactionDetailHelper', function() {
       const onRecruitClick = jasmine.createSpy('onRecruitClick');
       const element = FactionDetailHelper.render(
         faction, '#/games/demo/factions', '#/games/demo/factions/5/edit', false, true,
-        undefined, 'demo', 0, onRecruitClick,
+        'demo', 0, { onRecruitClick },
       );
 
       expect(element.props.pageActions.props.children[0].props.children.props.onClick).toBe(onRecruitClick);
@@ -119,8 +119,7 @@ describe('FactionDetailHelper', function() {
     it('merges game_slug and refreshToken into the show page layout context (issue #943)', function() {
       const faction = { id: 5, name: 'The Silver Hand' };
       const element = FactionDetailHelper.render(
-        faction, '#/games/demo/factions', '#/games/demo/factions/5/edit', false, true,
-        undefined, 'demo', 3,
+        faction, '#/games/demo/factions', '#/games/demo/factions/5/edit', false, true, 'demo', 3,
       );
 
       expect(element.props.context.game_slug).toBe('demo');

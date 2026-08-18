@@ -42,8 +42,8 @@ class CacheClearHandler extends RequestHandler
      */
     public function __construct(
         string $host,
-        ?HttpClientInterface $httpClient = null,
-        string $cachePath = ''
+        ?HttpClientInterface $httpClient=null,
+        string $cachePath=''
     ) {
         $this->client = new BackendClient($host, $httpClient);
         $this->cachePath = $cachePath;

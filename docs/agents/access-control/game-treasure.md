@@ -31,6 +31,7 @@ treasure itself or any other game it's linked to. Every treasure a game can see 
 matching `GameTreasure` row, so a missing row defaults `hidden` to `False` rather than erroring.
 
 `hidden` gates, per [Treasure](treasure.md) and [CharacterTreasure](character-treasure.md):
+
 - `GET /games/<slug>/treasures.json` — excludes hidden treasures.
 - `GET /games/<slug>/treasures/<id>.json` — `404`s for a non-editor.
 - `POST /games/<slug>/pcs\|npcs/<id>/treasures/buy.json` — `404`s when hidden for this game.
@@ -42,6 +43,7 @@ matching `GameTreasure` row, so a missing row defaults `hidden` to `False` rathe
 
 Three DM-only endpoints bypass the `hidden` gate above, all guarded by **GameEdit** (superuser,
 staff, or that game's GameMaster):
+
 - `GET /games/<slug>/npcs/<id>/treasures/all.json` — same as the regular NPC list but does not
   filter hidden held treasures, and exposes `hidden` per item.
 - `POST /games/<slug>/pcs\|npcs/<id>/treasures/buy/all.json` — mirror the regular buy endpoints
