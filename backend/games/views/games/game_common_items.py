@@ -1,10 +1,8 @@
 """View for listing a game's common items."""
 
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
-
-from accounts.authentication import CookieTokenAuthentication
 
 from ...models import Game
 from ...serializers import GameCommonItemListSerializer
@@ -13,7 +11,6 @@ from ._common_item_create import game_common_item_create
 
 
 @api_view(['GET', 'POST'])
-@authentication_classes([CookieTokenAuthentication])
 # AllowAny: GET is intentionally public; POST authorization is enforced inline via
 # EndpointPermission.check().
 @permission_classes([AllowAny])

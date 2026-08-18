@@ -1,11 +1,10 @@
 """Views for updating a single GameDocumentPage — regular and restricted twins."""
 
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from accounts.authentication import CookieTokenAuthentication
 from permissions import EndpointPermission
 
 from ...models import Game
@@ -15,7 +14,6 @@ from ._document_page_saga import archive_page
 
 
 @api_view(['PATCH'])
-@authentication_classes([CookieTokenAuthentication])
 # AllowAny: authorization is enforced inline via EndpointPermission.check(), so an
 # unauthenticated/unauthorized caller gets the app's own 401/403 payload instead of DRF's
 # default.
@@ -34,7 +32,6 @@ def game_document_page_detail(request, game_slug, document_id, page_id):
 
 
 @api_view(['PATCH'])
-@authentication_classes([CookieTokenAuthentication])
 # AllowAny: authorization for this whole endpoint is enforced inline via check_game_edit(),
 # so an unauthenticated/non-DM caller gets the app's own 401/403 payload instead of DRF's
 # default.

@@ -1,11 +1,10 @@
 """View for listing a session's messages or posting a new one."""
 
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from accounts.authentication import CookieTokenAuthentication
 from permissions import EndpointPermission
 
 from ...models import Game, GameSession
@@ -15,7 +14,6 @@ from ..common import validated_or_error
 
 
 @api_view(['GET', 'POST'])
-@authentication_classes([CookieTokenAuthentication])
 # AllowAny: authorisation is enforced inline below via EndpointPermission, since
 # both GET and POST require the requester to be a player/DM/superuser/staff (view) or a
 # player/DM (create) — there is no public read path, unlike GameSession's own detail view.

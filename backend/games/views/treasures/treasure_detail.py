@@ -1,10 +1,9 @@
 """View for retrieving or updating a single treasure's detail."""
 
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from accounts.authentication import CookieTokenAuthentication
 from permissions import EndpointPermission
 
 from ...models import GameTreasure, Treasure
@@ -13,7 +12,6 @@ from ..common import detail_or_update, validate_with_hidden_field
 
 
 @api_view(['GET', 'PATCH'])
-@authentication_classes([CookieTokenAuthentication])
 # AllowAny: GET is intentionally public; PATCH authentication/authorisation is
 # enforced inline in detail_or_update/_patch_treasure via _check_treasure_edit().
 @permission_classes([AllowAny])

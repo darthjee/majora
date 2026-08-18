@@ -1,10 +1,9 @@
 """View for listing all games or creating a new one."""
 
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from accounts.authentication import CookieTokenAuthentication
 from domains.models import Domain
 
 from ...caches import DomainGamesCache, RegisteredDomainsCache
@@ -16,7 +15,6 @@ UNRECOGNIZED_DOMAIN_RESPONSE_DATA = {'errors': {'detail': ['domain_not_recognize
 
 
 @api_view(['GET', 'POST'])
-@authentication_classes([CookieTokenAuthentication])
 # AllowAny: GET is an intentionally public listing; POST authentication is enforced
 # inline inside _create_game so that unauthenticated callers receive a proper 401.
 @permission_classes([AllowAny])

@@ -9,10 +9,9 @@ thin one-line wrappers.
 """
 
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
-from accounts.authentication import CookieTokenAuthentication
 from permissions import EndpointPermission
 
 from ...models import Game
@@ -81,7 +80,6 @@ def _build_api_view(methods, permission_class):
 
     def decorator(view):
         view = permission_classes([permission_class])(view)
-        view = authentication_classes([CookieTokenAuthentication])(view)
         return api_view(methods)(view)
 
     return decorator

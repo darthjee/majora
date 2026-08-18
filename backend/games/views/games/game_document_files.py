@@ -1,10 +1,8 @@
 """View for the game document files-list endpoint."""
 
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
-
-from accounts.authentication import CookieTokenAuthentication
 
 from ...models import Game
 from ...serializers import GameDocumentFileSerializer
@@ -12,7 +10,6 @@ from ..common import paginated_list_response
 
 
 @api_view(['GET'])
-@authentication_classes([CookieTokenAuthentication])
 # AllowAny: GET is intentionally public (hidden documents excluded below).
 @permission_classes([AllowAny])
 def game_document_files(request, game_slug, document_id):

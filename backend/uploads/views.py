@@ -2,11 +2,10 @@
 
 from django.utils import timezone
 from rest_framework import status
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from accounts.authentication import CookieTokenAuthentication
 from games.models import (
     CharacterItemPhoto,
     CharacterPhoto,
@@ -30,7 +29,6 @@ _VALID_STATUSES = {Upload.STATUS_UPLOADING, Upload.STATUS_UPLOADED}
 
 
 @api_view(['PATCH'])
-@authentication_classes([CookieTokenAuthentication])
 @permission_classes([IsAuthenticated])
 def upload_finalize(request, upload_type, upload_id):
     """Advance the upload lifecycle and optionally mark the linked object as ready."""

@@ -1,11 +1,10 @@
 """View for creating a date poll scoped to a game session."""
 
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from accounts.authentication import CookieTokenAuthentication
 from permissions import EndpointPermission
 
 from ...models import Game, GameSession
@@ -14,7 +13,6 @@ from ..common import validated_or_error
 
 
 @api_view(['POST'])
-@authentication_classes([CookieTokenAuthentication])
 # AllowAny: authorisation is enforced inline below via EndpointPermission.check(), since
 # Polls have no public read path, unlike GameSession's own detail view.
 @permission_classes([AllowAny])

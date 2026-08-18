@@ -1,10 +1,9 @@
 """View for retrieving or updating a single game session's detail."""
 
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 
-from accounts.authentication import CookieTokenAuthentication
 from permissions import EndpointPermission
 
 from ...models import Game, GameSession
@@ -13,7 +12,6 @@ from ..common import detail_or_update
 
 
 @api_view(['GET', 'PATCH'])
-@authentication_classes([CookieTokenAuthentication])
 # AllowAny: GET is intentionally public; PATCH authentication/authorisation is
 # enforced inline in detail_or_update via _check_session_edit().
 @permission_classes([AllowAny])

@@ -2,11 +2,10 @@
 
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from accounts.authentication import CookieTokenAuthentication
 from permissions import EndpointPermission
 
 from ...models import Game, Poll
@@ -15,7 +14,6 @@ from ...serializers import PollDetailSerializer
 
 
 @api_view(['PATCH'])
-@authentication_classes([CookieTokenAuthentication])
 # AllowAny: authorisation is enforced inline below via EndpointPermission.check(), since
 # closing a poll has no public path.
 @permission_classes([AllowAny])

@@ -1,11 +1,10 @@
 """View for listing a game's visible Non-Player Characters (NPCs), or creating one."""
 
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from accounts.authentication import CookieTokenAuthentication
 from permissions import EndpointPermission
 
 from ....models import Game
@@ -19,7 +18,6 @@ from .._shared import _filter_characters, _with_treasure_value
 
 
 @api_view(['GET', 'POST'])
-@authentication_classes([CookieTokenAuthentication])
 # AllowAny: GET is intentionally public; POST authorization is enforced inline
 # inside _create_npc via EndpointPermission.check().
 @permission_classes([AllowAny])

@@ -2,11 +2,10 @@
 
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from accounts.authentication import CookieTokenAuthentication
 from accounts.models import UserProfile
 from games.decorators import restricted
 from games.views.common import require_staff
@@ -16,7 +15,6 @@ from ..serializers import StaffUserListSerializer
 
 @restricted
 @api_view(['POST'])
-@authentication_classes([CookieTokenAuthentication])
 # AllowAny: authentication/authorisation is enforced inline via require_staff so
 # unauthenticated or non-staff callers receive a proper 401/403.
 @permission_classes([AllowAny])

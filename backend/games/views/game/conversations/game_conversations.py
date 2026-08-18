@@ -1,11 +1,10 @@
 """View for listing conversations shared between two players of a game."""
 
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from accounts.authentication import CookieTokenAuthentication
 from conversations.models import Conversation
 from permissions import EndpointPermission
 
@@ -15,7 +14,6 @@ from ...common import paginated_list_response
 
 
 @api_view(['GET'])
-@authentication_classes([CookieTokenAuthentication])
 # AllowAny: authorisation is enforced inline below via EndpointPermission.check(), since
 # Conversations have no public read path.
 @permission_classes([AllowAny])

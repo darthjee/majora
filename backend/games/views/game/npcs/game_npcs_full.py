@@ -1,11 +1,9 @@
 """View for creating an NPC with the full (private-field-included) field set — DM/admin only."""
 
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-
-from accounts.authentication import CookieTokenAuthentication
 
 from ....models import Game
 from ....serializers import CharacterCreateSerializer, CharacterDetailSerializer
@@ -13,7 +11,6 @@ from ...common import check_game_edit, save_or_error, validated_or_error
 
 
 @api_view(['POST'])
-@authentication_classes([CookieTokenAuthentication])
 @permission_classes([AllowAny])
 def game_npcs_full(request, game_slug):
     """Create a new NPC with the full field set for a game — DM/admin/superuser only."""

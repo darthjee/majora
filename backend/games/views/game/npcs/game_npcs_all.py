@@ -1,10 +1,8 @@
 """View for listing all NPCs (including hidden) in a game — DM/superuser only."""
 
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
-
-from accounts.authentication import CookieTokenAuthentication
 
 from ....models import Game
 from ....serializers import CharacterFullListSerializer
@@ -13,7 +11,6 @@ from .._shared import _filter_characters, _with_treasure_value
 
 
 @api_view(['GET'])
-@authentication_classes([CookieTokenAuthentication])
 @permission_classes([AllowAny])
 def game_npcs_all(request, game_slug):
     """Return all NPCs (including hidden) for a game — DM/superuser only."""

@@ -1,10 +1,8 @@
 """View for listing all treasures or creating a new one."""
 
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-
-from accounts.authentication import CookieTokenAuthentication
 
 from ...models import Game, Treasure
 from ...serializers import (
@@ -17,7 +15,6 @@ from ..games._treasure_filters import filter_by_max_value, filter_by_min_value, 
 
 
 @api_view(['GET', 'POST'])
-@authentication_classes([CookieTokenAuthentication])
 # AllowAny: GET is intentionally public; POST authentication is enforced
 # inline inside _create_treasure so unauthenticated callers receive a proper 401.
 @permission_classes([AllowAny])

@@ -1,17 +1,14 @@
 """View for listing a game faction's non-hidden characters."""
 
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
-
-from accounts.authentication import CookieTokenAuthentication
 
 from ...models import Game
 from ._faction_characters import faction_characters
 
 
 @api_view(['GET'])
-@authentication_classes([CookieTokenAuthentication])
 @permission_classes([AllowAny])
 def game_faction_characters(request, game_slug, faction_id):
     """Return a paginated list of non-hidden characters belonging to a faction.

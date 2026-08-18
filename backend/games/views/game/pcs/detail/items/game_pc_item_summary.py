@@ -1,10 +1,8 @@
 """View for the PC item quantity summary endpoint — open to everyone."""
 
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
-
-from accounts.authentication import CookieTokenAuthentication
 
 from ......decorators import regular, skip_cache
 from ......models import Game
@@ -14,7 +12,6 @@ from ...._item_summary import character_item_summary
 @regular
 @skip_cache
 @api_view(['GET'])
-@authentication_classes([CookieTokenAuthentication])
 @permission_classes([AllowAny])
 def game_pc_item_summary(request, game_slug, item_id, character_id):
     """Return how many of a GameItem a specific PC owns, as {'quantity': <int>}."""
