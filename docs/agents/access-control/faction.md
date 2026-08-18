@@ -44,6 +44,7 @@ detail serializer, since detail exposes nothing beyond the list shape): `id`, `n
 `photo_path` — see [Photo path fields](common-rules.md#photo-path-fields).
 
 **Write fields:**
+
 - Create (`POST /games/<slug>/factions.json`): `name` (required, ≤200 chars, must be unique
   within the game — a duplicate name returns `400` with code `faction_name_taken` rather than
   leaking an `IntegrityError`).

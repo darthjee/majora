@@ -22,12 +22,14 @@ data).
 ## Fields
 
 List and Show (same shape): `id`, `user`, `character`.
+
 - `user` — `null` when the `Player` has no linked account. Otherwise: `display_name`
   (`UserProfile.display_name`, never the real username) and `photo_url` (Gravatar-based).
 - `character` — `null` for a `Player` who owns no PC (e.g. the DM). Otherwise: `name`,
   `photo_url`. Resolved from the player's first (only) owned PC.
 
 ## One PC per Player
+
 `Character.player`, once set, is enforced unique at the database level — a `Player` may own at
 most one PC. NPCs/unowned PCs (`player=None`) are unaffected — only non-null `player` values are
 constrained.

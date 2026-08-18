@@ -35,7 +35,7 @@ class PrivateRequestHasher implements RequestHasher
 {
     private string $headerName;
 
-    public function __construct(string $headerName = 'X-Cache-Token')
+    public function __construct(string $headerName='X-Cache-Token')
     {
         $this->headerName = $headerName;
     }

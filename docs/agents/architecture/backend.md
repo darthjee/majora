@@ -3,6 +3,7 @@
 All Django source code lives under `backend/`. The backend owns data and business logic.
 
 ## majora_project/
+
 Django project package: `settings.py`, root `urls.py`, `wsgi.py`. Entry point for the Django application.
 
 ## games/
@@ -22,6 +23,7 @@ Authoritative sources: `backend/games/urls.py` and `backend/games/models/`.
 Account/authentication app — every `/users/*.json` and `/account/*.json` endpoint (login, logout, register, status, account management, password reset, authorization requests).
 
 Key files:
+
 - `models/` — `UserProfile`, `PasswordResetToken` (table names preserved for migration compatibility).
 - `views/auth/`, `views/password_reset/`, `views/authorization_requests/`
 - `serializers/auth/`

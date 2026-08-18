@@ -13,6 +13,7 @@ access-control implications.
 
 No dedicated endpoint — links are written exclusively as a nested `links` array inside
 `PATCH /games/<slug>.json`, gated by the same permission as the rest of that payload's fields:
+
 - Full field set (`name`+`description`+`links`) — **GameEdit**.
 - `description`+`links` only, no `name` — **GameRegularEdit** (see
   [Game](game.md#write-fields)/[common-rules](common-rules.md)).
@@ -22,6 +23,7 @@ No dedicated endpoint — links are written exclusively as a nested `links` arra
 Same shape as [CharacterLink](character-link.md#write-semantics): each entry accepts `id`
 (optional), `text`, `url`, `link_type`, and a transient `delete` flag, applied after the game's
 own scalar fields are saved.
+
 - `delete: true` — deletes the link matching `id`. `id` is required; a delete with no `id` → 400.
 - `id` present (no `delete`) — updates the link matching `id`; only present fields change.
 - `id` absent — creates a new link owned by the target game; `url` is required for a create entry

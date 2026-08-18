@@ -19,11 +19,13 @@ backend/staticfiles/
 *.log
 
 # Node
+node_modules/
 frontend/node_modules/
 frontend/dist/
 frontend/.nyc_output/
 frontend/coverage/
 docker_volumes/node_modules/
+docker_volumes/markdownlint_node_modules/
 docker_volumes/static/
 
 # Docker volumes

@@ -50,7 +50,7 @@ class ForwardedHeaderFilter
      * @return array The filtered associative array, preserving the original
      *                casing of the keys that pass the filter.
      */
-    public static function filter(array $headers, array $extraAllowed = []): array
+    public static function filter(array $headers, array $extraAllowed=[]): array
     {
         $allowed = array_map(
             'strtolower',

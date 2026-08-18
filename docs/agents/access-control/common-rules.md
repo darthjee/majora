@@ -5,6 +5,7 @@ with `is_dm=True`) always passes for anything scoped to their game — see [User
 Roles](user-roles.md).
 
 Shorthand used in the table:
+
 - **AnyPlayer** (`is_player`) — `game.players.filter(user=user).exists()`. Currently always
   `false` for real users: `Player.games` is never written by any endpoint, only touched in a
   model test

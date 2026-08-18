@@ -38,6 +38,7 @@ default](principles.md#listshow-serializer-defaults). **Show/Create-response**: 
 `description`, `option_type`, `options` (nested `id`, `option` — no vote counts/voter identities).
 
 **Vote List response** is an envelope, not a flat array: `{votes_count, users, votes}`.
+
 - `votes_count`: one entry per option, always (including zero-vote), never filtered by
   `?user_id=`. Fields: `option`, `count`.
 - `users`: distinct users backing the (`?user_id=`-filtered) `votes` below. Fields: `id`, `name`
