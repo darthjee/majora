@@ -1781,6 +1781,11 @@ eslint-plugin-jsdoc@^63.0.0:
     spdx-expression-parse "^4.0.0"
     to-valid-identifier "^1.0.0"
 
+eslint-plugin-no-unsanitized@^4.1.5:
+  version "4.1.5"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-no-unsanitized/-/eslint-plugin-no-unsanitized-4.1.5.tgz#036c7c7ac4561ff0ee34c3d126b3b6e86037641c"
+  integrity sha512-MSB4hXPVFQrI8weqzs6gzl7reP2k/qSjtCoL2vUMSDejIIq9YL1ZKvq5/ORBXab/PvfBBrWO2jWviYpL+4Ghfg==
+
 eslint-plugin-react-hooks@^7.0.1:
   version "7.1.1"
   resolved "https://registry.yarnpkg.com/eslint-plugin-react-hooks/-/eslint-plugin-react-hooks-7.1.1.tgz#e6742cad75d970c0a3f30d7d3fa80a4784f55927"
