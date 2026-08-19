@@ -29,7 +29,7 @@ A PR is considered complete when:
   - Classes/modules and methods should have clear, focused responsibilities.
   - If a class or function is taking on too many responsibilities, refactor to simplify.
   - Functions and methods should be small and do exactly one thing. If one is growing, extract parts into private helper methods or separate classes (e.g. split a `run()` that fetches, processes, reports metrics, and cleans up into one method per concern).
-  - This requirement applies primarily to source code. For specs/tests, refactor only if there is excessive duplication.
+  - This requirement applies to source code and to specs/tests alike: refactor a spec/test method when it has excessive duplication, or when it has grown long/low-cohesion by mixing multiple fixtures, scenarios, or setup blocks — e.g. extracting per-fixture helper methods out of a `setUpTestData`, or shared setup/assertion helpers out of a spec file. Short, single-purpose tests do not need to be restructured just to hit a line count.
 
 ### CI Checks
 
