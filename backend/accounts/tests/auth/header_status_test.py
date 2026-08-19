@@ -82,11 +82,70 @@ class TestHeaderStatusView:
             'logged_in': True,
             'is_superuser': False,
             'is_staff': False,
+            'settings': {'favorite_language': 'en'},
         }
         assert CacheToken.objects.filter(key=cache_token, user=user).exists()
         assert 'username' not in json.loads(response.content)
-        assert 'settings' not in json.loads(response.content)
         assert 'user_id' not in json.loads(response.content)
+
+    def test_omits_token_for_header_token_authenticated_request(self, client):
+        """Test that token-auth (Authorization header) logged-in responses omit `token`."""
+        user = UserFactory(username='alice', password=TEST_PASSWORD)
+        token = Token.objects.create(user=user)
+
+        response = client.get(
+            '/users/header_status.json',
+            HTTP_AUTHORIZATION=f'Token {token.key}',
+        )
+
+        assert response.status_code == 200
+        assert 'token' not in json.loads(response.content)
+
+    def test_includes_token_for_session_authenticated_request(self, client):
+        """Test that session-auth logged-in responses include `token` matching the session."""
+        user = UserFactory(username='alice', password=TEST_PASSWORD)
+        token = Token.objects.create(user=user)
+        session = client.session
+        session['auth_token'] = token.key
+        session.save()
+
+        response = client.get('/users/header_status.json')
+
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['token'] == token.key
+
+    def test_omits_token_for_anonymous_request(self, client):
+        """Test that the anonymous logged-out response omits `token`."""
+        response = client.get('/users/header_status.json')
+
+        assert 'token' not in json.loads(response.content)
+
+    def test_omits_token_for_pending_user(self, client):
+        """Test that a pending user's response omits `token`."""
+        user = UserFactory(username='alice', password=TEST_PASSWORD)
+        UserProfileFactory(user=user, status=UserProfile.STATUS_PENDING)
+        token = Token.objects.create(user=user)
+
+        response = client.get(
+            '/users/header_status.json',
+            HTTP_AUTHORIZATION=f'Token {token.key}',
+        )
+
+        assert 'token' not in json.loads(response.content)
+
+    def test_omits_token_for_denied_user(self, client):
+        """Test that a denied user's response omits `token`."""
+        user = UserFactory(username='alice', password=TEST_PASSWORD)
+        UserProfileFactory(user=user, status=UserProfile.STATUS_DENIED)
+        token = Token.objects.create(user=user)
+
+        response = client.get(
+            '/users/header_status.json',
+            HTTP_AUTHORIZATION=f'Token {token.key}',
+        )
+
+        assert 'token' not in json.loads(response.content)
 
     def test_returns_is_staff_and_is_superuser_true_for_staff_superuser(self, client):
         """Test that a staff/superuser reflects both flags as true."""

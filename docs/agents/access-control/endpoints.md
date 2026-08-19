@@ -31,7 +31,7 @@ These manage identity; they do not expose domain data beyond success/failure.
 | `/users/logout.json` | POST | Authenticated. Deletes the caller's `CacheToken` row alongside their DRF `Token` |
 | `/users/register.json` | POST | Anyone. New accounts always start `pending` |
 | `/users/status.json` | GET | Anyone. `{"logged_in": false}` when unauthenticated or `denied`; adds `"status": "pending"` when pending (the only case with a `status` key); otherwise the full logged-in shape (`username`, `user_id`, `is_superuser`/`is_staff`, `settings`, `cache_token`) |
-| `/users/header_status.json` | GET | Anyone. Deliberately reuses `/users/status.json`'s exact access rules and resolution logic (same `UserProfile.status` gate, same `CacheToken` minting via `get_or_create`) but returns a narrower field set — `logged_in`, `status` (pending-only), `is_superuser`, `is_staff`, `cache_token` — for `Header`'s exclusive use, omitting `username`, `user_id`, `settings`, and `token` |
+| `/users/header_status.json` | GET | Anyone. Deliberately reuses `/users/status.json`'s exact access rules and resolution logic (same `UserProfile.status` gate, same `CacheToken` minting via `get_or_create`) but returns a narrower field set — `logged_in`, `status` (pending-only), `is_superuser`, `is_staff`, `cache_token`, `token` (session-auth only, same conditional as `/users/status.json`), `settings` — for `Header`'s exclusive use, omitting only `username` and `user_id` |
 | `/staff/test-email.json` | POST | **Staff-or-superuser** |
 | `/users/recover.json` | POST | Anyone. Always `200 {'sent': True}` regardless of match/status — enumeration-safe |
 | `/users/reset-password.json` | POST | Anyone (requires valid reset token) |
