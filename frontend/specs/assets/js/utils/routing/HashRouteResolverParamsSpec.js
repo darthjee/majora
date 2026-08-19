@@ -1,9 +1,9 @@
 import HashRouteResolver from '../../../../../assets/js/utils/routing/HashRouteResolver.js';
 
 /**
- * Pagination/filter/param-extraction specs for `HashRouteResolver`, split out of
- * `HashRouteResolverSpec.js` to keep that file under the project's max-lines limit, mirroring
- * how other large configs (e.g. `documentListTypes.js`) get split out of their parent file.
+ * Pagination/filter/param-extraction specs for `HashRouteResolver`, split out of the
+ * `HashRouteResolverSpec/` folder to keep those files under the project's max-lines limit,
+ * mirroring how other large configs (e.g. `documentListTypes.js`) get split out of their parent file.
  */
 describe('HashRouteResolver params', function() {
   it('extracts pagination params only', function() {
