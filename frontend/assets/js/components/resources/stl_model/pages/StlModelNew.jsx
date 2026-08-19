@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import StlModelNewController from './controllers/StlModelNewController.js';
 import StlModelNewHelper from './helpers/StlModelNewHelper.jsx';
-import PhotoUploadModal from '../../../common/modals/PhotoUploadModal.jsx';
+import StlModelNewModals from './elements/StlModelNewModals.jsx';
 import Noop from '../../../../utils/Noop.js';
 import useFormState from '../../../../utils/useFormState.js';
 import { TYPE_VALUES } from '../stlModelEnums.js';
@@ -125,13 +125,9 @@ export default function StlModelNew() {
           onSkipPhotoUpload: handleSkipPhotoUpload,
         },
       )}
-      <PhotoUploadModal
-        show={showUploadModal}
-        deferred
-        onFileConfirmed={(file) => {
-          setPhotoFile(file);
-          setShowUploadModal(false);
-        }}
+      <StlModelNewModals
+        showUploadModal={showUploadModal}
+        setPhotoFile={setPhotoFile}
         onClose={() => setShowUploadModal(false)}
       />
     </>

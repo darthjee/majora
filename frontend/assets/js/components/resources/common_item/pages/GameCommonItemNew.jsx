@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import GameCommonItemNewController from './controllers/GameCommonItemNewController.js';
 import GameCommonItemNewHelper from './helpers/GameCommonItemNewHelper.jsx';
-import PhotoUploadModal from '../../../common/modals/PhotoUploadModal.jsx';
-import MoneyEditModal from '../../../common/modals/MoneyEditModal.jsx';
+import GameCommonItemNewModals from './elements/GameCommonItemNewModals.jsx';
 import BasePageController from '../../../common/base/controllers/BasePageController.js';
 import Noop from '../../../../utils/Noop.js';
 import getCurrentHash from '../../../../utils/routing/currentHash.js';
@@ -88,21 +87,17 @@ export default function GameCommonItemNew() {
           onSkipPhotoUpload: handleSkipPhotoUpload,
         },
       )}
-      <PhotoUploadModal
-        show={showUploadModal}
-        deferred
+      <GameCommonItemNewModals
+        showUploadModal={showUploadModal}
+        showPriceModal={showPriceModal}
+        price={fields.price}
         onFileConfirmed={(file) => {
           setPhotoFile(file);
           setShowUploadModal(false);
         }}
-        onClose={() => setShowUploadModal(false)}
-      />
-      <MoneyEditModal
-        show={showPriceModal}
-        money={fields.price}
-        context="treasure"
-        onClose={() => setShowPriceModal(false)}
-        onConfirm={(newTotal) => {
+        onUploadClose={() => setShowUploadModal(false)}
+        onPriceClose={() => setShowPriceModal(false)}
+        onPriceConfirm={(newTotal) => {
           setField('price', String(newTotal));
           setShowPriceModal(false);
         }}
