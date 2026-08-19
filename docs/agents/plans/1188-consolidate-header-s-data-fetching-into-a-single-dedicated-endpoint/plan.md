@@ -28,14 +28,20 @@ Add one new, identity-resolved, `AllowAny` backend endpoint (`GET /users/header_
 | `is_superuser` | `bool` | only in the full logged-in branch (approved, non-pending, non-denied) |
 | `is_staff` | `bool` | only in the full logged-in branch |
 | `cache_token` | `str` | only in the full logged-in branch; unconditionally re-minted (`get_or_create`) on every call, exactly like `/users/status.json` today |
+| `token` | `str` | only in the full logged-in branch, and only when resolved via session auth (`session_auth`), exactly mirroring `/users/status.json`'s existing conditional inclusion (`_shared.py`'s `_build_logged_in_status_payload`) |
+| `settings` | `{favorite_language: str}` | only in the full logged-in branch |
 
-Anonymous/denied → `{"logged_in": false}` only. Pending → `{"logged_in": false, "status": "pending"}` only (no `is_staff`/`is_superuser`/`cache_token`).
+**Amendment (post-implementation review finding)**: the original field list above omitted `token` and `settings.favorite_language`, which the *implemented* code initially dropped along with the two backend/frontend calls that depended on them. Review found this was a real regression, not a redundant call: `AuthStorage.setToken(...)` is only ever re-hydrated after a page refresh via Header's `checkStatus()` (`LoginModalController`/`RegisterController` only set it on interactive login/register, never on refresh) — some call sites (e.g. `GameNewController`) branch on `AuthStorage.getToken()` truthiness alone, so leaving it permanently `null` after a refresh would misfire even though the session itself is still valid via `CookieTokenAuthentication`'s cookie fallback. Likewise, no other code path applies the server-side `favorite_language` preference on bootstrap. Both fields are therefore added back to the endpoint's response and the two client-side calls (`AuthStorage.setToken`, `#applyLanguagePreference`) must be restored in `HeaderController#checkStatus`, sourced from this endpoint instead of `/users/status.json`.
+
+Anonymous/denied → `{"logged_in": false}` only. Pending → `{"logged_in": false, "status": "pending"}` only (no `is_staff`/`is_superuser`/`cache_token`/`token`/`settings`).
 
 **What the frontend must do with the response**, exactly preserving today's behavior (see issue's Edge cases section):
 
 - Map `logged_in`/`is_superuser`/`is_staff` → `setLoggedIn`/`setIsSuperUser`/`setIsStaff`.
 - Map `status === 'pending'` → `setPendingApproval` (same derivation `HeaderController` already does).
 - Map `cache_token` → `AuthStorage.setCacheToken(...)` — **required**, not optional (see below).
+- Map `token` (when present) → `AuthStorage.setToken(...)` — **required**, not optional (see amendment above); guard on truthiness exactly as the old `checkStatus()` did (`if (data.token) { AuthStorage.setToken(data.token); }`), since it's only present for session-authenticated requests.
+- Map `settings.favorite_language` (when present) → the same language-preference application `checkStatus()` already performs (`#applyLanguagePreference` or equivalent) — **required**, not optional.
 - Continue emitting `AuthEvents` after the fetch resolves, exactly as `checkStatus()` does today, so `recheckAuthState` and other `AuthEvents` subscribers (`RequestStore`, `AppController`, etc.) keep working.
 - Derive `canViewAs = isSuperUser || isStaff` locally — no separate fetch.
 - Catch-and-ignore network/non-OK failures, no retry/rethrow (same as `checkStatus()` today).
