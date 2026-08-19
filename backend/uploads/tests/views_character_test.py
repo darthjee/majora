@@ -8,18 +8,17 @@ from rest_framework.authtoken.models import Token
 from games.models import CharacterPhoto
 from games.tests.factories import CharacterFactory, GameFactory, PlayerFactory, UserFactory
 from uploads.models import Upload
+from uploads.tests.fixtures import UploadFinalizeFixtureMixin
 
 
-class TestUploadFinalizeCharacterPhoto(TestCase):
+class TestUploadFinalizeCharacterPhoto(UploadFinalizeFixtureMixin, TestCase):
     """Tests for PATCH /uploads/image/<upload_id>.json against a CharacterPhoto upload."""
 
     @classmethod
     def setUpTestData(cls):
         """Set up a game, a PC and NPC character, and pending photo uploads for both."""
         cls.game = GameFactory(name='Epic Quest', game_slug='epic-quest')
-        cls.dm_user = UserFactory(username='dm_user', password='secret-password')
-        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
-        cls.dm_token = Token.objects.create(user=cls.dm_user)
+        cls.dm_user, cls.dm_token = cls._create_dm(cls.game)
 
         cls.player = PlayerFactory(name='Bob')
         cls.owner = UserFactory(username='owner', password='secret-password')
@@ -30,79 +29,43 @@ class TestUploadFinalizeCharacterPhoto(TestCase):
         )
         cls.owner_token = Token.objects.create(user=cls.owner)
 
-        cls.character_upload = Upload.objects.create(
-            user=cls.owner,
-            file_path='photos/games/epic-quest/characters/1/hero_abc.jpg',
+        cls.character_upload, cls.character_photo = cls._create_character(
+            cls.owner, 1, 'hero_abc.jpg'
         )
-        cls.character_photo = CharacterPhoto.objects.create(
-            character=cls.character,
-            path='photos/games/epic-quest/characters/1/hero_abc.jpg',
-            ready=False,
-        )
-        cls.character_upload.content_object = cls.character_photo
-        cls.character_upload.save()
 
-        cls.player_of_game_user = UserFactory(
-            username='player_of_game', password='secret-password'
-        )
-        cls.player_of_game = PlayerFactory(
-            name='Pippin', user=cls.player_of_game_user, game=cls.game
-        )
-        cls.player_of_game_token = Token.objects.create(user=cls.player_of_game_user)
+        cls.player_of_game_user, cls.player_of_game_token = cls._create_player_of_game(cls.game)
 
         cls.npc = CharacterFactory(name='Gandalf', game=cls.game, npc=True)
-        cls.npc_upload = Upload.objects.create(
-            user=cls.player_of_game_user,
-            file_path='photos/games/epic-quest/characters/2/npc.jpg',
-        )
-        cls.npc_photo = CharacterPhoto.objects.create(
-            character=cls.npc,
-            path='photos/games/epic-quest/characters/2/npc.jpg',
-            ready=False,
-        )
-        cls.npc_upload.content_object = cls.npc_photo
-        cls.npc_upload.save()
+        cls.npc_upload, cls.npc_photo = cls._create_npc(cls.player_of_game_user, 2, 'npc.jpg')
 
-        cls.pc_upload_by_player_of_game = Upload.objects.create(
-            user=cls.player_of_game_user,
-            file_path='photos/games/epic-quest/characters/1/pc_other.jpg',
+        cls.pc_upload_by_player_of_game, cls.pc_photo_by_player_of_game = cls._create_character(
+            cls.player_of_game_user, 1, 'pc_other.jpg'
         )
-        cls.pc_photo_by_player_of_game = CharacterPhoto.objects.create(
-            character=cls.character,
-            path='photos/games/epic-quest/characters/1/pc_other.jpg',
-            ready=False,
-        )
-        cls.pc_upload_by_player_of_game.content_object = cls.pc_photo_by_player_of_game
-        cls.pc_upload_by_player_of_game.save()
 
-        cls.staff_user = UserFactory(
-            username='staff_user', password='secret-password', is_staff=True
-        )
-        cls.staff_token = Token.objects.create(user=cls.staff_user)
+        cls.staff_user, cls.staff_token = cls._create_staff_user()
 
-        cls.pc_upload_by_staff = Upload.objects.create(
-            user=cls.staff_user,
-            file_path='photos/games/epic-quest/characters/1/pc_staff.jpg',
+        cls.pc_upload_by_staff, cls.pc_photo_by_staff = cls._create_character(
+            cls.staff_user, 1, 'pc_staff.jpg'
         )
-        cls.pc_photo_by_staff = CharacterPhoto.objects.create(
-            character=cls.character,
-            path='photos/games/epic-quest/characters/1/pc_staff.jpg',
-            ready=False,
+        cls.npc_upload_by_staff, cls.npc_photo_by_staff = cls._create_npc(
+            cls.staff_user, 2, 'npc_staff.jpg'
         )
-        cls.pc_upload_by_staff.content_object = cls.pc_photo_by_staff
-        cls.pc_upload_by_staff.save()
 
-        cls.npc_upload_by_staff = Upload.objects.create(
-            user=cls.staff_user,
-            file_path='photos/games/epic-quest/characters/2/npc_staff.jpg',
+    @classmethod
+    def _create_character(cls, user, character_number, filename):
+        """Create a pending Upload/CharacterPhoto pair for `cls.character`, by `user`."""
+        file_path = f'photos/games/epic-quest/characters/{character_number}/{filename}'
+        return cls._create_upload_and_photo(
+            CharacterPhoto, user, file_path, character=cls.character, ready=False,
         )
-        cls.npc_photo_by_staff = CharacterPhoto.objects.create(
-            character=cls.npc,
-            path='photos/games/epic-quest/characters/2/npc_staff.jpg',
-            ready=False,
+
+    @classmethod
+    def _create_npc(cls, user, character_number, filename):
+        """Create a pending Upload/CharacterPhoto pair for `cls.npc`, by `user`."""
+        file_path = f'photos/games/epic-quest/characters/{character_number}/{filename}'
+        return cls._create_upload_and_photo(
+            CharacterPhoto, user, file_path, character=cls.npc, ready=False,
         )
-        cls.npc_upload_by_staff.content_object = cls.npc_photo_by_staff
-        cls.npc_upload_by_staff.save()
 
     def _patch(
         self, client, upload_id, payload, token=None, upload_token=None, upload_type='image',
