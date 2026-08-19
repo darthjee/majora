@@ -48,7 +48,7 @@ class SetClientIpMiddleware extends Middleware
      * This middleware takes no configurable attributes.
      *
      * @param array $attributes Unused; present to satisfy the base
-     *                           Middleware::build() contract.
+     *                          Middleware::build() contract.
      * @return SetClientIpMiddleware The constructed middleware instance.
      */
     public static function build(array $attributes): SetClientIpMiddleware
