@@ -1,6 +1,104 @@
 import RequestStore from '../../../../../../../../../assets/js/utils/requests/RequestStore.js';
 import { TestCharacterEditController, buildContext } from './support.js';
 
+/**
+ * Builds the input `fields` object for the "prevents default, resets status/errors, and
+ * submits the built fields payload" scenario, covering every writable field plus a mixed
+ * links array (an existing link, a new link, and a deleted link).
+ *
+ * @returns {object} `submitForm`'s `fields` argument.
+ */
+function buildFullSubmitFields() {
+  return {
+    name: 'Test Hero',
+    role: 'Fighter',
+    description: 'A brave hero', privateDescription: 'DM notes',
+    money: '310',
+    privateAllegiance: 'ally',
+    publicAllegiance: 'enemy',
+    publicSlain: true,
+    hidden: true,
+    incognito: true,
+    links: [
+      { id: 12, text: 'Loot table', url: 'https://example.com/loot', link_type: 'lootstudio' },
+      { text: '', url: 'https://example.com/new-link', link_type: '' },
+      { id: 7, text: 'Old', url: 'https://example.com/old', delete: true },
+    ],
+  };
+}
+
+/**
+ * Builds the expected `RequestStore.mutate` `body` for the same scenario as
+ * {@link buildFullSubmitFields}.
+ *
+ * @returns {object} Expected `RequestStore.mutate` call's `body`.
+ */
+function buildFullSubmitExpectedBody() {
+  return {
+    name: 'Test Hero',
+    role: 'Fighter',
+    public_description: 'A brave hero', private_description: 'DM notes',
+    money: 310,
+    private_allegiance: 'ally',
+    public_allegiance: 'enemy',
+    public_slain: true,
+    hidden: true,
+    incognito: true,
+    links: [
+      {
+        id: 12, text: 'Loot table', url: 'https://example.com/loot', link_type: 'lootstudio', delete: false,
+      },
+      { text: 'https://example.com/new-link', url: 'https://example.com/new-link', link_type: '', delete: false },
+      {
+        id: 7, text: 'Old', url: 'https://example.com/old', link_type: '', delete: true,
+      },
+    ],
+  };
+}
+
+/**
+ * Builds the input `fields` object for the "PATCHes the reduced fields payload with the
+ * regular (player-writable) variant" scenario (player-only NPC editor).
+ *
+ * @returns {object} `submitForm`'s `fields` argument.
+ */
+function buildReducedSubmitFields() {
+  return {
+    name: 'Grumbleknuckle',
+    role: 'Shopkeeper',
+    description: 'A brave hero', privateDescription: 'Ignored DM notes',
+    money: '999',
+    privateAllegiance: 'ally',
+    publicAllegiance: 'enemy',
+    publicSlain: true,
+    links: [
+      { id: 12, text: 'Loot table', url: 'https://example.com/loot', link_type: 'lootstudio' },
+    ],
+  };
+}
+
+/**
+ * Builds the expected `RequestStore.mutate` `body` for the same scenario as
+ * {@link buildReducedSubmitFields}.
+ *
+ * @returns {object} Expected `RequestStore.mutate` call's `body`.
+ */
+function buildReducedSubmitExpectedBody() {
+  return {
+    name: 'Grumbleknuckle',
+    role: 'Shopkeeper',
+    public_description: 'A brave hero',
+    money: 999,
+    public_allegiance: 'enemy',
+    links: [
+      {
+        id: 12, text: 'Loot table', url: 'https://example.com/loot', link_type: 'lootstudio', delete: false,
+      },
+    ],
+    public_slain: true,
+  };
+}
+
 describe('BaseCharacterEditController', function() {
   let setCharacter;
   let setLoading;
@@ -34,22 +132,7 @@ describe('BaseCharacterEditController', function() {
       try {
         await controller.submitForm(
           event, 'demo', '1',
-          {
-            name: 'Test Hero',
-            role: 'Fighter',
-            description: 'A brave hero', privateDescription: 'DM notes',
-            money: '310',
-            privateAllegiance: 'ally',
-            publicAllegiance: 'enemy',
-            publicSlain: true,
-            hidden: true,
-            incognito: true,
-            links: [
-              { id: 12, text: 'Loot table', url: 'https://example.com/loot', link_type: 'lootstudio' },
-              { text: '', url: 'https://example.com/new-link', link_type: '' },
-              { id: 7, text: 'Old', url: 'https://example.com/old', delete: true },
-            ],
-          },
+          buildFullSubmitFields(),
           { setStatus, setFieldErrors },
         );
 
@@ -63,26 +146,7 @@ describe('BaseCharacterEditController', function() {
           quantityType: 'single',
           params: { gameSlug: 'demo', id: '1' },
           variantName: 'private',
-          body: {
-            name: 'Test Hero',
-            role: 'Fighter',
-            public_description: 'A brave hero', private_description: 'DM notes',
-            money: 310,
-            private_allegiance: 'ally',
-            public_allegiance: 'enemy',
-            public_slain: true,
-            hidden: true,
-            incognito: true,
-            links: [
-              {
-                id: 12, text: 'Loot table', url: 'https://example.com/loot', link_type: 'lootstudio', delete: false,
-              },
-              { text: 'https://example.com/new-link', url: 'https://example.com/new-link', link_type: '', delete: false },
-              {
-                id: 7, text: 'Old', url: 'https://example.com/old', link_type: '', delete: true,
-              },
-            ],
-          },
+          body: buildFullSubmitExpectedBody(),
         });
       } finally {
         delete globalThis.window;
@@ -172,18 +236,7 @@ describe('BaseCharacterEditController', function() {
         try {
           await controller.submitForm(
             event, 'demo', '1',
-            {
-              name: 'Grumbleknuckle',
-              role: 'Shopkeeper',
-              description: 'A brave hero', privateDescription: 'Ignored DM notes',
-              money: '999',
-              privateAllegiance: 'ally',
-              publicAllegiance: 'enemy',
-              publicSlain: true,
-              links: [
-                { id: 12, text: 'Loot table', url: 'https://example.com/loot', link_type: 'lootstudio' },
-              ],
-            },
+            buildReducedSubmitFields(),
             { setStatus, setFieldErrors },
             false,
           );
@@ -195,19 +248,7 @@ describe('BaseCharacterEditController', function() {
             quantityType: 'single',
             params: { gameSlug: 'demo', id: '1' },
             variantName: 'regular',
-            body: {
-              name: 'Grumbleknuckle',
-              role: 'Shopkeeper',
-              public_description: 'A brave hero',
-              money: 999,
-              public_allegiance: 'enemy',
-              links: [
-                {
-                  id: 12, text: 'Loot table', url: 'https://example.com/loot', link_type: 'lootstudio', delete: false,
-                },
-              ],
-              public_slain: true,
-            },
+            body: buildReducedSubmitExpectedBody(),
           });
         } finally {
           delete globalThis.window;
