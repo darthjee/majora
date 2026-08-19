@@ -6,71 +6,39 @@ from django.test import TestCase
 from rest_framework.authtoken.models import Token
 
 from games.models import GameItemPhoto
-from games.tests.factories import GameFactory, GameItemFactory, PlayerFactory, UserFactory
+from games.tests.factories import GameFactory, GameItemFactory, UserFactory
 from uploads.models import Upload
+from uploads.tests.fixtures import UploadFinalizeFixtureMixin
 
 
-class TestUploadFinalizeGameItemPhoto(TestCase):
+class TestUploadFinalizeGameItemPhoto(UploadFinalizeFixtureMixin, TestCase):
     """Tests for PATCH /uploads/image/<upload_id>.json against a GameItemPhoto upload."""
 
     @classmethod
     def setUpTestData(cls):
         """Set up a game, a game item, and pending photo uploads by DM, player, and staff."""
         cls.game = GameFactory(name='Epic Quest', game_slug='epic-quest')
-        cls.dm_user = UserFactory(username='dm_user', password='secret-password')
-        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
-        cls.dm_token = Token.objects.create(user=cls.dm_user)
-
-        cls.player_of_game_user = UserFactory(
-            username='player_of_game', password='secret-password'
-        )
-        cls.player_of_game = PlayerFactory(
-            name='Pippin', user=cls.player_of_game_user, game=cls.game
-        )
-        cls.player_of_game_token = Token.objects.create(user=cls.player_of_game_user)
-
-        cls.staff_user = UserFactory(
-            username='staff_user', password='secret-password', is_staff=True
-        )
-        cls.staff_token = Token.objects.create(user=cls.staff_user)
+        cls.dm_user, cls.dm_token = cls._create_dm(cls.game)
+        cls.player_of_game_user, cls.player_of_game_token = cls._create_player_of_game(cls.game)
+        cls.staff_user, cls.staff_token = cls._create_staff_user()
 
         cls.game_item = GameItemFactory(game=cls.game, name='Sword of Truth')
 
-        cls.item_upload = Upload.objects.create(
-            user=cls.dm_user,
-            file_path=f'photos/games/epic-quest/items/{cls.game_item.id}/photo.jpg',
+        cls.item_upload, cls.item_photo = cls._create_item_photo(cls.dm_user, 'photo.jpg')
+        cls.item_upload_by_player_of_game, cls.item_photo_by_player_of_game = (
+            cls._create_item_photo(cls.player_of_game_user, 'photo_2.jpg')
         )
-        cls.item_photo = GameItemPhoto.objects.create(
-            game_item=cls.game_item,
-            path=f'photos/games/epic-quest/items/{cls.game_item.id}/photo.jpg',
-            ready=False,
+        cls.item_upload_by_staff, cls.item_photo_by_staff = cls._create_item_photo(
+            cls.staff_user, 'photo_3.jpg'
         )
-        cls.item_upload.content_object = cls.item_photo
-        cls.item_upload.save()
 
-        cls.item_upload_by_player_of_game = Upload.objects.create(
-            user=cls.player_of_game_user,
-            file_path=f'photos/games/epic-quest/items/{cls.game_item.id}/photo_2.jpg',
+    @classmethod
+    def _create_item_photo(cls, user, filename):
+        """Create a pending Upload/GameItemPhoto pair for `cls.game_item`, by `user`."""
+        file_path = f'photos/games/epic-quest/items/{cls.game_item.id}/{filename}'
+        return cls._create_upload_and_photo(
+            GameItemPhoto, user, file_path, game_item=cls.game_item, ready=False,
         )
-        cls.item_photo_by_player_of_game = GameItemPhoto.objects.create(
-            game_item=cls.game_item,
-            path=f'photos/games/epic-quest/items/{cls.game_item.id}/photo_2.jpg',
-            ready=False,
-        )
-        cls.item_upload_by_player_of_game.content_object = cls.item_photo_by_player_of_game
-        cls.item_upload_by_player_of_game.save()
-
-        cls.item_upload_by_staff = Upload.objects.create(
-            user=cls.staff_user,
-            file_path=f'photos/games/epic-quest/items/{cls.game_item.id}/photo_3.jpg',
-        )
-        cls.item_photo_by_staff = GameItemPhoto.objects.create(
-            game_item=cls.game_item,
-            path=f'photos/games/epic-quest/items/{cls.game_item.id}/photo_3.jpg',
-            ready=False,
-        )
-        cls.item_upload_by_staff.content_object = cls.item_photo_by_staff
-        cls.item_upload_by_staff.save()
 
     def _patch(
         self, client, upload_id, payload, token=None, upload_token=None, upload_type='image',

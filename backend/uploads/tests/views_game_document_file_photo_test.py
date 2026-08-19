@@ -6,136 +6,94 @@ from django.test import TestCase
 from rest_framework.authtoken.models import Token
 
 from games.models import GameDocumentFile, GameDocumentFilePhoto
-from games.tests.factories import GameDocumentFactory, GameFactory, PlayerFactory, UserFactory
+from games.tests.factories import GameDocumentFactory, GameFactory, UserFactory
 from uploads.models import Upload
+from uploads.tests.fixtures import UploadFinalizeFixtureMixin
 
 
-class TestUploadFinalizeGameDocumentFilePhoto(TestCase):
+class TestUploadFinalizeGameDocumentFilePhoto(UploadFinalizeFixtureMixin, TestCase):
     """Tests for PATCH /uploads/image/<upload_id>.json against a GameDocumentFilePhoto upload."""
 
     @classmethod
     def setUpTestData(cls):
         """Set up a game, a document, three linked document-file photos, and an orphaned one."""
         cls.game = GameFactory(name='Epic Quest', game_slug='epic-quest')
-        cls.dm_user = UserFactory(username='dm_user', password='secret-password')
-        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
-        cls.dm_token = Token.objects.create(user=cls.dm_user)
-
-        cls.player_of_game_user = UserFactory(
-            username='player_of_game', password='secret-password'
-        )
-        cls.player_of_game = PlayerFactory(
-            name='Pippin', user=cls.player_of_game_user, game=cls.game
-        )
-        cls.player_of_game_token = Token.objects.create(user=cls.player_of_game_user)
-
-        cls.staff_user = UserFactory(
-            username='staff_user', password='secret-password', is_staff=True
-        )
-        cls.staff_token = Token.objects.create(user=cls.staff_user)
+        cls.dm_user, cls.dm_token = cls._create_dm(cls.game)
+        cls.player_of_game_user, cls.player_of_game_token = cls._create_player_of_game(cls.game)
+        cls.staff_user, cls.staff_token = cls._create_staff_user()
 
         cls.game_document = GameDocumentFactory(game=cls.game, name='Ancient Scroll')
 
-        cls.document_file_upload = Upload.objects.create(
-            user=cls.dm_user,
-            file_path=f'files/games/epic-quest/documents/{cls.game_document.id}/file.pdf',
-            upload_type=Upload.UPLOAD_TYPE_FILE,
+        (
+            cls.document_file_upload,
+            cls.document_file,
+            cls.document_file_photo_upload,
+            cls.document_file_photo,
+        ) = cls._create_game_document_file(cls.dm_user, 'file.pdf', 'photo.jpg')
+
+        cls.document_file_2 = cls._create_document_file('file_2.pdf')
+        (
+            cls.document_file_photo_upload_by_player_of_game,
+            cls.document_file_photo_by_player_of_game,
+        ) = cls._create_document_file_photo(
+            cls.document_file_2, cls.player_of_game_user, 'photo_2.jpg'
         )
-        cls.document_file = GameDocumentFile.objects.create(
+
+        cls.document_file_3 = cls._create_document_file('file_3.pdf')
+        (
+            cls.document_file_photo_upload_by_staff,
+            cls.document_file_photo_by_staff,
+        ) = cls._create_document_file_photo(cls.document_file_3, cls.staff_user, 'photo_3.jpg')
+
+        cls.orphaned_document_file_photo_upload, cls.orphaned_document_file_photo = (
+            cls._create_upload_and_photo(
+                GameDocumentFilePhoto,
+                cls.dm_user,
+                (
+                    f'photos/games/epic-quest/documents/{cls.game_document.id}'
+                    '/files/orphaned/photo.jpg'
+                ),
+                ready=False,
+            )
+        )
+
+    @classmethod
+    def _create_game_document_file(cls, user, file_filename, photo_filename):
+        """Create a GameDocumentFile backed by a raw-file Upload, plus its photo Upload."""
+        file_upload, document_file = cls._create_upload_and_photo(
+            GameDocumentFile,
+            user,
+            f'files/games/epic-quest/documents/{cls.game_document.id}/{file_filename}',
             game_document=cls.game_document,
-            path=f'files/games/epic-quest/documents/{cls.game_document.id}/file.pdf',
             ready=False,
         )
-        cls.document_file_upload.content_object = cls.document_file
-        cls.document_file_upload.save()
+        file_upload.upload_type = Upload.UPLOAD_TYPE_FILE
+        file_upload.save()
+        photo_upload, photo = cls._create_document_file_photo(document_file, user, photo_filename)
+        return file_upload, document_file, photo_upload, photo
 
-        cls.document_file_photo_upload = Upload.objects.create(
-            user=cls.dm_user,
-            file_path=(
-                f'photos/games/epic-quest/documents/{cls.game_document.id}'
-                f'/files/{cls.document_file.id}/photo.jpg'
-            ),
-        )
-        cls.document_file_photo = GameDocumentFilePhoto.objects.create(
-            path=(
-                f'photos/games/epic-quest/documents/{cls.game_document.id}'
-                f'/files/{cls.document_file.id}/photo.jpg'
-            ),
-            ready=False,
-        )
-        cls.document_file.photo = cls.document_file_photo
-        cls.document_file.save()
-        cls.document_file_photo_upload.content_object = cls.document_file_photo
-        cls.document_file_photo_upload.save()
-
-        cls.document_file_2 = GameDocumentFile.objects.create(
+    @classmethod
+    def _create_document_file(cls, filename):
+        """Create a ready GameDocumentFile directly, without a backing raw-file Upload."""
+        return GameDocumentFile.objects.create(
             game_document=cls.game_document,
-            path=f'files/games/epic-quest/documents/{cls.game_document.id}/file_2.pdf',
+            path=f'files/games/epic-quest/documents/{cls.game_document.id}/{filename}',
             ready=True,
         )
-        cls.document_file_photo_upload_by_player_of_game = Upload.objects.create(
-            user=cls.player_of_game_user,
-            file_path=(
-                f'photos/games/epic-quest/documents/{cls.game_document.id}'
-                f'/files/{cls.document_file_2.id}/photo_2.jpg'
-            ),
-        )
-        cls.document_file_photo_by_player_of_game = GameDocumentFilePhoto.objects.create(
-            path=(
-                f'photos/games/epic-quest/documents/{cls.game_document.id}'
-                f'/files/{cls.document_file_2.id}/photo_2.jpg'
-            ),
-            ready=False,
-        )
-        cls.document_file_2.photo = cls.document_file_photo_by_player_of_game
-        cls.document_file_2.save()
-        cls.document_file_photo_upload_by_player_of_game.content_object = (
-            cls.document_file_photo_by_player_of_game
-        )
-        cls.document_file_photo_upload_by_player_of_game.save()
 
-        cls.document_file_3 = GameDocumentFile.objects.create(
-            game_document=cls.game_document,
-            path=f'files/games/epic-quest/documents/{cls.game_document.id}/file_3.pdf',
-            ready=True,
+    @classmethod
+    def _create_document_file_photo(cls, document_file, user, filename):
+        """Create a GameDocumentFilePhoto Upload and link it as `document_file`'s photo."""
+        file_path = (
+            f'photos/games/epic-quest/documents/{cls.game_document.id}'
+            f'/files/{document_file.id}/{filename}'
         )
-        cls.document_file_photo_upload_by_staff = Upload.objects.create(
-            user=cls.staff_user,
-            file_path=(
-                f'photos/games/epic-quest/documents/{cls.game_document.id}'
-                f'/files/{cls.document_file_3.id}/photo_3.jpg'
-            ),
+        upload, photo = cls._create_upload_and_photo(
+            GameDocumentFilePhoto, user, file_path, ready=False,
         )
-        cls.document_file_photo_by_staff = GameDocumentFilePhoto.objects.create(
-            path=(
-                f'photos/games/epic-quest/documents/{cls.game_document.id}'
-                f'/files/{cls.document_file_3.id}/photo_3.jpg'
-            ),
-            ready=False,
-        )
-        cls.document_file_3.photo = cls.document_file_photo_by_staff
-        cls.document_file_3.save()
-        cls.document_file_photo_upload_by_staff.content_object = cls.document_file_photo_by_staff
-        cls.document_file_photo_upload_by_staff.save()
-
-        cls.orphaned_document_file_photo = GameDocumentFilePhoto.objects.create(
-            path=(
-                f'photos/games/epic-quest/documents/{cls.game_document.id}'
-                '/files/orphaned/photo.jpg'
-            ),
-            ready=False,
-        )
-        cls.orphaned_document_file_photo_upload = Upload.objects.create(
-            user=cls.dm_user,
-            file_path=(
-                f'photos/games/epic-quest/documents/{cls.game_document.id}'
-                '/files/orphaned/photo.jpg'
-            ),
-        )
-        cls.orphaned_document_file_photo_upload.content_object = (
-            cls.orphaned_document_file_photo
-        )
-        cls.orphaned_document_file_photo_upload.save()
+        document_file.photo = photo
+        document_file.save()
+        return upload, photo
 
     def _patch(
         self, client, upload_id, payload, token=None, upload_token=None, upload_type='image',

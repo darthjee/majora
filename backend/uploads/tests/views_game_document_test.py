@@ -6,73 +6,42 @@ from django.test import TestCase
 from rest_framework.authtoken.models import Token
 
 from games.models import GameDocumentPhoto
-from games.tests.factories import GameDocumentFactory, GameFactory, PlayerFactory, UserFactory
+from games.tests.factories import GameDocumentFactory, GameFactory, UserFactory
 from uploads.models import Upload
+from uploads.tests.fixtures import UploadFinalizeFixtureMixin
 
 
-class TestUploadFinalizeGameDocumentPhoto(TestCase):
+class TestUploadFinalizeGameDocumentPhoto(UploadFinalizeFixtureMixin, TestCase):
     """Tests for PATCH /uploads/image/<upload_id>.json against a GameDocumentPhoto upload."""
 
     @classmethod
     def setUpTestData(cls):
         """Set up a game, a game document, and pending photo uploads by DM, player, staff."""
         cls.game = GameFactory(name='Epic Quest', game_slug='epic-quest')
-        cls.dm_user = UserFactory(username='dm_user', password='secret-password')
-        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
-        cls.dm_token = Token.objects.create(user=cls.dm_user)
-
-        cls.player_of_game_user = UserFactory(
-            username='player_of_game', password='secret-password'
-        )
-        cls.player_of_game = PlayerFactory(
-            name='Pippin', user=cls.player_of_game_user, game=cls.game
-        )
-        cls.player_of_game_token = Token.objects.create(user=cls.player_of_game_user)
-
-        cls.staff_user = UserFactory(
-            username='staff_user', password='secret-password', is_staff=True
-        )
-        cls.staff_token = Token.objects.create(user=cls.staff_user)
+        cls.dm_user, cls.dm_token = cls._create_dm(cls.game)
+        cls.player_of_game_user, cls.player_of_game_token = cls._create_player_of_game(cls.game)
+        cls.staff_user, cls.staff_token = cls._create_staff_user()
 
         cls.game_document = GameDocumentFactory(game=cls.game, name='Ancient Scroll')
 
-        cls.document_upload = Upload.objects.create(
-            user=cls.dm_user,
-            file_path=f'photos/games/epic-quest/documents/{cls.game_document.id}/photo.jpg',
+        cls.document_upload, cls.document_photo = cls._create_document_photo(
+            cls.dm_user, 'photo.jpg'
         )
-        cls.document_photo = GameDocumentPhoto.objects.create(
-            game_document=cls.game_document,
-            path=f'photos/games/epic-quest/documents/{cls.game_document.id}/photo.jpg',
-            ready=False,
+        (
+            cls.document_upload_by_player_of_game,
+            cls.document_photo_by_player_of_game,
+        ) = cls._create_document_photo(cls.player_of_game_user, 'photo_2.jpg')
+        cls.document_upload_by_staff, cls.document_photo_by_staff = cls._create_document_photo(
+            cls.staff_user, 'photo_3.jpg'
         )
-        cls.document_upload.content_object = cls.document_photo
-        cls.document_upload.save()
 
-        cls.document_upload_by_player_of_game = Upload.objects.create(
-            user=cls.player_of_game_user,
-            file_path=f'photos/games/epic-quest/documents/{cls.game_document.id}/photo_2.jpg',
+    @classmethod
+    def _create_document_photo(cls, user, filename):
+        """Create a pending Upload/GameDocumentPhoto pair for `cls.game_document`, by `user`."""
+        file_path = f'photos/games/epic-quest/documents/{cls.game_document.id}/{filename}'
+        return cls._create_upload_and_photo(
+            GameDocumentPhoto, user, file_path, game_document=cls.game_document, ready=False,
         )
-        cls.document_photo_by_player_of_game = GameDocumentPhoto.objects.create(
-            game_document=cls.game_document,
-            path=f'photos/games/epic-quest/documents/{cls.game_document.id}/photo_2.jpg',
-            ready=False,
-        )
-        cls.document_upload_by_player_of_game.content_object = (
-            cls.document_photo_by_player_of_game
-        )
-        cls.document_upload_by_player_of_game.save()
-
-        cls.document_upload_by_staff = Upload.objects.create(
-            user=cls.staff_user,
-            file_path=f'photos/games/epic-quest/documents/{cls.game_document.id}/photo_3.jpg',
-        )
-        cls.document_photo_by_staff = GameDocumentPhoto.objects.create(
-            game_document=cls.game_document,
-            path=f'photos/games/epic-quest/documents/{cls.game_document.id}/photo_3.jpg',
-            ready=False,
-        )
-        cls.document_upload_by_staff.content_object = cls.document_photo_by_staff
-        cls.document_upload_by_staff.save()
 
     def _patch(
         self, client, upload_id, payload, token=None, upload_token=None, upload_type='image',

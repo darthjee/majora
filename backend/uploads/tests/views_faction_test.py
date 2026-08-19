@@ -6,77 +6,41 @@ from django.test import TestCase
 from rest_framework.authtoken.models import Token
 
 from games.models import GameFactionPhoto
-from games.tests.factories import GameFactionFactory, GameFactory, PlayerFactory, UserFactory
+from games.tests.factories import GameFactionFactory, GameFactory, UserFactory
 from uploads.models import Upload
+from uploads.tests.fixtures import UploadFinalizeFixtureMixin
 
 
-class TestUploadFinalizeGameFactionPhoto(TestCase):
+class TestUploadFinalizeGameFactionPhoto(UploadFinalizeFixtureMixin, TestCase):
     """Tests for PATCH /uploads/image/<upload_id>.json against a GameFactionPhoto upload."""
 
     @classmethod
     def setUpTestData(cls):
         """Set up a game, a DM, a player of the game, a staff user, and pending photo uploads."""
         cls.game = GameFactory(name='Epic Quest', game_slug='epic-quest-faction')
-        cls.dm_user = UserFactory(username='dm_user_faction', password='secret-password')
-        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
-        cls.dm_token = Token.objects.create(user=cls.dm_user)
-
-        cls.player_of_game_user = UserFactory(
-            username='player_of_game_faction', password='secret-password',
+        cls.dm_user, cls.dm_token = cls._create_dm(cls.game, username='dm_user_faction')
+        cls.player_of_game_user, cls.player_of_game_token = cls._create_player_of_game(
+            cls.game, username='player_of_game_faction',
         )
-        PlayerFactory(name='Pippin', user=cls.player_of_game_user, game=cls.game)
-        cls.player_of_game_token = Token.objects.create(user=cls.player_of_game_user)
-
-        cls.staff_user = UserFactory(
-            username='staff_user_faction', password='secret-password', is_staff=True,
-        )
-        cls.staff_token = Token.objects.create(user=cls.staff_user)
+        cls.staff_user, cls.staff_token = cls._create_staff_user(username='staff_user_faction')
 
         cls.faction = GameFactionFactory(game=cls.game, name='The Silver Hand')
 
-        cls.upload = Upload.objects.create(
-            user=cls.dm_user,
-            file_path=f'photos/games/epic-quest-faction/factions/{cls.faction.id}/photo.jpg',
+        cls.upload, cls.photo = cls._create_faction_photo(cls.dm_user, 'photo.jpg')
+        cls.upload_by_player_of_game, cls.photo_by_player_of_game = cls._create_faction_photo(
+            cls.player_of_game_user, 'photo_2.jpg'
         )
-        cls.photo = GameFactionPhoto.objects.create(
-            faction=cls.faction,
-            path=f'photos/games/epic-quest-faction/factions/{cls.faction.id}/photo.jpg',
-            ready=False,
+        cls.upload_by_staff, cls.photo_by_staff = cls._create_faction_photo(
+            cls.staff_user, 'photo_3.jpg'
         )
-        cls.upload.content_object = cls.photo
-        cls.upload.save()
 
-        cls.upload_by_player_of_game = Upload.objects.create(
-            user=cls.player_of_game_user,
-            file_path=(
-                f'photos/games/epic-quest-faction/factions/{cls.faction.id}/photo_2.jpg'
-            ),
+    @classmethod
+    def _create_faction_photo(cls, user, filename):
+        """Create a pending Upload/GameFactionPhoto pair for `cls.faction`, by `user`."""
+        file_path = f'photos/games/epic-quest-faction/factions/{cls.faction.id}/{filename}'
+        return cls._create_upload_and_photo(
+            GameFactionPhoto, user, file_path, faction=cls.faction, ready=False,
         )
-        cls.photo_by_player_of_game = GameFactionPhoto.objects.create(
-            faction=cls.faction,
-            path=(
-                f'photos/games/epic-quest-faction/factions/{cls.faction.id}/photo_2.jpg'
-            ),
-            ready=False,
-        )
-        cls.upload_by_player_of_game.content_object = cls.photo_by_player_of_game
-        cls.upload_by_player_of_game.save()
-
-        cls.upload_by_staff = Upload.objects.create(
-            user=cls.staff_user,
-            file_path=(
-                f'photos/games/epic-quest-faction/factions/{cls.faction.id}/photo_3.jpg'
-            ),
-        )
-        cls.photo_by_staff = GameFactionPhoto.objects.create(
-            faction=cls.faction,
-            path=(
-                f'photos/games/epic-quest-faction/factions/{cls.faction.id}/photo_3.jpg'
-            ),
-            ready=False,
-        )
-        cls.upload_by_staff.content_object = cls.photo_by_staff
-        cls.upload_by_staff.save()
 
     def _patch(self, client, upload, payload, token=None, upload_token=None):
         """Issue a PATCH request to the upload finalize endpoint."""
