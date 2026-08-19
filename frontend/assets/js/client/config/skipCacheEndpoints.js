@@ -9,6 +9,7 @@ export default new Set([
   '/users/login.json',
   '/users/logout.json',
   '/users/status.json',
+  '/users/header_status.json',
   '/users/register.json',
   '/my-games.json',
   '/account/authorization_requests.json',

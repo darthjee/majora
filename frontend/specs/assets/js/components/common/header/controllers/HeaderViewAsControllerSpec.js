@@ -1,28 +1,29 @@
 import HeaderViewAsController from '../../../../../../../assets/js/components/common/header/controllers/HeaderViewAsController.js';
 
 describe('HeaderViewAsController', function() {
-  let setCanViewAs, setShowViewAsModal, accessStore, controller;
+  let setCanViewAs, setShowViewAsModal, controller;
 
   beforeEach(function() {
     setCanViewAs = jasmine.createSpy('setCanViewAs');
     setShowViewAsModal = jasmine.createSpy('setShowViewAsModal');
-    accessStore = jasmine.createSpyObj('accessStore', ['isReallyAdminOrStaff']);
-    controller = new HeaderViewAsController(setCanViewAs, setShowViewAsModal, accessStore);
+    controller = new HeaderViewAsController(setCanViewAs, setShowViewAsModal);
   });
 
   describe('#checkAvailability', function() {
-    it('sets canViewAs to true when the real identity is staff or a superuser', async function() {
-      accessStore.isReallyAdminOrStaff.and.returnValue(Promise.resolve(true));
+    it('sets canViewAs to true when the real identity is a superuser', async function() {
+      await controller.checkAvailability(true, false);
 
-      await controller.checkAvailability();
+      expect(setCanViewAs).toHaveBeenCalledWith(true);
+    });
+
+    it('sets canViewAs to true when the real identity is staff', async function() {
+      await controller.checkAvailability(false, true);
 
       expect(setCanViewAs).toHaveBeenCalledWith(true);
     });
 
     it('sets canViewAs to false when the real identity is neither staff nor a superuser', async function() {
-      accessStore.isReallyAdminOrStaff.and.returnValue(Promise.resolve(false));
-
-      await controller.checkAvailability();
+      await controller.checkAvailability(false, false);
 
       expect(setCanViewAs).toHaveBeenCalledWith(false);
     });

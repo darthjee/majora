@@ -176,18 +176,6 @@ export default class AccessStore {
   }
 
   /**
-   * Resolve (or start) the real (facade-independent) staff-or-superuser check
-   * for the current user, used to gate the header's "view as" button. Always
-   * resolves against the requester's real identity, regardless of any active
-   * facade.
-   *
-   * @returns {Promise<boolean>} Resolves to true when the user is really staff or a superuser.
-   */
-  static isReallyAdminOrStaff() {
-    return AccessStore.ensureStaffOrSuperUser();
-  }
-
-  /**
    * Synchronously read the currently cached game access, without triggering a fetch.
    *
    * @param {string} gameSlug - Game slug.
