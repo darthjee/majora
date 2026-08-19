@@ -45,8 +45,10 @@ export default class TreasuresHelper {
           basePath={state.basePath}
           loadingMessage={Translator.t('treasures_page.loading')}
           context={{ onUploadClick: handlers.onUploadClick }}
-          filtersProps={{ onQuery: handlers.onFilterQuery, onClear: handlers.onFilterClear }}
-          activeFilters={state.activeFilters}
+          filters={{
+            props: { onQuery: handlers.onFilterQuery, onClear: handlers.onFilterClear },
+            active: state.activeFilters,
+          }}
           refreshToken={state.refreshToken}
         />
         <PhotoUploadModal

@@ -27,25 +27,29 @@ export function handleTagsFieldKeyDown(event, onAdd) {
  *
  * @param {object} props - Component props.
  * @param {string} props.id - Id shared between the label's `htmlFor` and the text input.
- * @param {string} props.label - Translated field label.
- * @param {string} [props.placeholder] - Translated placeholder for the text input.
- * @param {string} props.addLabel - Translated label for the "Add" button.
  * @param {string[]} props.tags - Current pending tags, rendered as badges.
  * @param {string} props.inputValue - Current raw text input value.
- * @param {Function} props.onInputChange - Change handler for the text input.
- * @param {Function} props.onAdd - Handler invoked on both the "Add" button click and pressing
- *   Enter in the text input.
- * @param {Function} props.onRemoveTag - Handler invoked with a tag's value when its badge's
- *   remove button is clicked.
- * @param {string} props.removeTagLabel - Caller-supplied translated label for each badge's
- *   remove button `aria-label`.
  * @param {string[]} [props.errors] - Field-level error messages to display below the input.
+ * @param {object} props.handlers - Event handlers for the field.
+ * @param {Function} props.handlers.onInputChange - Change handler for the text input.
+ * @param {Function} props.handlers.onAdd - Handler invoked on both the "Add" button click and
+ *   pressing Enter in the text input.
+ * @param {Function} props.handlers.onRemoveTag - Handler invoked with a tag's value when its
+ *   badge's remove button is clicked.
+ * @param {object} props.labels - Translated labels for the field.
+ * @param {string} props.labels.label - Translated field label.
+ * @param {string} [props.labels.placeholder] - Translated placeholder for the text input.
+ * @param {string} props.labels.addLabel - Translated label for the "Add" button.
+ * @param {string} props.labels.removeTagLabel - Caller-supplied translated label for each badge's
+ *   remove button `aria-label`.
  * @returns {React.ReactElement} Tags field element.
  */
 export default function TagsField({
-  id, label, placeholder, addLabel, tags, inputValue, onInputChange, onAdd, onRemoveTag,
-  removeTagLabel, errors = [],
+  id, tags, inputValue, errors = [], handlers, labels,
 }) {
+  const { onInputChange, onAdd, onRemoveTag } = handlers;
+  const { label, placeholder, addLabel, removeTagLabel } = labels;
+
   return (
     <div className="mb-3">
       <label htmlFor={id} className="form-label">{label}</label>

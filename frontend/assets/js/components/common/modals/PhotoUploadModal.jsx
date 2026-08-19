@@ -22,28 +22,34 @@ import PhotoUploadModalHelper from './helpers/PhotoUploadModalHelper.jsx';
  *   Confirm is clicked in deferred mode.
  * @param {Function} props.onClose - Called when the modal is dismissed or cancelled.
  * @param {Function} [props.onSuccess] - Called after a successful immediate-mode upload.
- * @param {string} [props.translationPrefix] - i18n key prefix for the modal's strings (issue
- *   #726). Defaults to `photo_upload_modal`, preserving today's photo-upload behavior; the
+ * @param {object} [props.fileUploadOptions] - Options for the "file-upload variant" (issue #726),
+ *   always used together.
+ * @param {string} [props.fileUploadOptions.translationPrefix] - i18n key prefix for the modal's
+ *   strings. Defaults to `photo_upload_modal`, preserving today's photo-upload behavior; the
  *   file-upload variant passes `file_upload_modal`.
- * @param {string} [props.accept] - Value forwarded to the `<input type="file">`'s `accept`
- *   attribute (issue #726), e.g. `.pdf` for file mode. Left unset for the default photo
- *   behavior (no restriction).
- * @param {boolean} [props.showNameField] - Whether to render an optional name text input
- *   (issue #874), sent alongside the file on submit. Defaults to `false`, preserving today's
- *   photo-upload behavior; the file-upload variant passes `true`.
- * @param {boolean} [props.showPhotoField] - Whether to render an optional second file input for
- *   an image (issue #878), sent as a chained second upload after the main file upload succeeds.
- *   Defaults to `false`; the file-upload variant passes `true`.
- * @param {Function} [props.photoUploadPathBuilder] - Function taking the newly created file's id
- *   (returned by the main upload's init response) and returning the photo-upload init path
- *   (issue #878). Required when `showPhotoField` is `true` and a photo file was picked.
+ * @param {string} [props.fileUploadOptions.accept] - Value forwarded to the
+ *   `<input type="file">`'s `accept` attribute, e.g. `.pdf` for file mode. Left unset for the
+ *   default photo behavior (no restriction).
+ * @param {boolean} [props.fileUploadOptions.showNameField] - Whether to render an optional name
+ *   text input (issue #874), sent alongside the file on submit. Defaults to `false`, preserving
+ *   today's photo-upload behavior; the file-upload variant passes `true`.
+ * @param {boolean} [props.fileUploadOptions.showPhotoField] - Whether to render an optional
+ *   second file input for an image (issue #878), sent as a chained second upload after the main
+ *   file upload succeeds. Defaults to `false`; the file-upload variant passes `true`.
+ * @param {Function} [props.fileUploadOptions.photoUploadPathBuilder] - Function taking the newly
+ *   created file's id (returned by the main upload's init response) and returning the
+ *   photo-upload init path (issue #878). Required when `showPhotoField` is `true` and a photo
+ *   file was picked.
  * @returns {React.ReactElement} Rendered photo upload modal.
  */
 export default function PhotoUploadModal({
   show, uploadPath, deferred = false, onFileConfirmed = Noop.noop, onClose, onSuccess,
-  translationPrefix = 'photo_upload_modal', accept, showNameField = false,
-  showPhotoField = false, photoUploadPathBuilder,
+  fileUploadOptions = {},
 }) {
+  const {
+    translationPrefix = 'photo_upload_modal', accept, showNameField = false,
+    showPhotoField = false, photoUploadPathBuilder,
+  } = fileUploadOptions;
   const [file, setFile] = useState(null);
   const [name, setName] = useState('');
   const [photoFile, setPhotoFile] = useState(null);

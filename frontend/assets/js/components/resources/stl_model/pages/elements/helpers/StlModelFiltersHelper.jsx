@@ -87,8 +87,7 @@ export default class StlModelFiltersHelper {
       <div className="row g-2 mb-2">
         <div className="col-md-6 col-lg-3">
           <MultiResourcePickerField
-            values={RACE_VALUES}
-            translateOption={(value) => Translator.t(`stl_model_page.race_${value}`)}
+            picker={{ values: RACE_VALUES, translateOption: (value) => Translator.t(`stl_model_page.race_${value}`) }}
             value={state.races}
             onChange={handlers.onRacesChange}
             label={Translator.t('stl_models_page.filter_race_label')}
@@ -98,8 +97,7 @@ export default class StlModelFiltersHelper {
         </div>
         <div className="col-md-6 col-lg-3">
           <MultiResourcePickerField
-            values={ROLE_VALUES}
-            translateOption={(value) => Translator.t(`stl_model_page.role_${value}`)}
+            picker={{ values: ROLE_VALUES, translateOption: (value) => Translator.t(`stl_model_page.role_${value}`) }}
             value={state.roles}
             onChange={handlers.onRolesChange}
             label={Translator.t('stl_models_page.filter_roles_label')}
@@ -109,8 +107,7 @@ export default class StlModelFiltersHelper {
         </div>
         <div className="col-md-6 col-lg-3">
           <MultiResourcePickerField
-            resource="source"
-            maxEntries={4}
+            picker={{ resource: 'source', maxEntries: 4 }}
             value={state.sources}
             onChange={handlers.onSourcesChange}
             label={Translator.t('stl_models_page.filter_source_label')}
@@ -120,8 +117,7 @@ export default class StlModelFiltersHelper {
         </div>
         <div className="col-md-6 col-lg-3">
           <MultiResourcePickerField
-            resource="collection"
-            maxEntries={4}
+            picker={{ resource: 'collection', maxEntries: 4 }}
             value={state.collections}
             onChange={handlers.onCollectionsChange}
             label={Translator.t('stl_models_page.filter_collection_label')}
@@ -139,15 +135,19 @@ export default class StlModelFiltersHelper {
         <div className="col-12 col-lg-6">
           <TagsField
             id="stl-model-filter-tags"
-            label={Translator.t('stl_models_page.filter_tags_label')}
-            placeholder={Translator.t('stl_models_page.filter_tags_placeholder')}
-            addLabel={Translator.t('stl_models_page.filter_add_tag')}
             tags={state.tags}
             inputValue={state.tagInput}
-            onInputChange={handlers.onTagInputChange}
-            onAdd={handlers.onAddTag}
-            onRemoveTag={handlers.onRemoveTag}
-            removeTagLabel={Translator.t('stl_models_page.filter_remove_tag_tooltip')}
+            handlers={{
+              onInputChange: handlers.onTagInputChange,
+              onAdd: handlers.onAddTag,
+              onRemoveTag: handlers.onRemoveTag,
+            }}
+            labels={{
+              label: Translator.t('stl_models_page.filter_tags_label'),
+              placeholder: Translator.t('stl_models_page.filter_tags_placeholder'),
+              addLabel: Translator.t('stl_models_page.filter_add_tag'),
+              removeTagLabel: Translator.t('stl_models_page.filter_remove_tag_tooltip'),
+            }}
           />
         </div>
       </div>

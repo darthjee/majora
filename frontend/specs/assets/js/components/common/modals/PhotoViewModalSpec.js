@@ -15,7 +15,7 @@ describe('PhotoViewModal', function() {
     );
 
     expect(PhotoViewModalHelper.render)
-      .toHaveBeenCalledWith(true, photo, 'Demo Game', onClose, false, false, undefined, false, undefined);
+      .toHaveBeenCalledWith(true, photo, 'Demo Game', onClose, {}, {});
   });
 
   it('threads canSetProfilePhoto, isProfilePhoto, and onSetProfilePhoto through to the helper', function() {
@@ -24,6 +24,7 @@ describe('PhotoViewModal', function() {
     const photo = { id: 1, path: 'photos/games/demo/photo.jpg' };
     const onClose = jasmine.createSpy('onClose');
     const onSetProfilePhoto = jasmine.createSpy('onSetProfilePhoto');
+    const setProfilePhoto = { canSetProfilePhoto: true, isProfilePhoto: true, onSetProfilePhoto };
 
     renderToStaticMarkup(
       React.createElement(PhotoViewModal, {
@@ -31,14 +32,12 @@ describe('PhotoViewModal', function() {
         photo,
         alt: 'Demo Game',
         onClose,
-        canSetProfilePhoto: true,
-        isProfilePhoto: true,
-        onSetProfilePhoto,
+        setProfilePhoto,
       })
     );
 
     expect(PhotoViewModalHelper.render)
-      .toHaveBeenCalledWith(true, photo, 'Demo Game', onClose, true, true, onSetProfilePhoto, false, undefined);
+      .toHaveBeenCalledWith(true, photo, 'Demo Game', onClose, setProfilePhoto, {});
   });
 
   it('threads canDelete and onDelete through to the helper', function() {
@@ -47,6 +46,7 @@ describe('PhotoViewModal', function() {
     const photo = { id: 1, path: 'photos/games/demo/photo.jpg' };
     const onClose = jasmine.createSpy('onClose');
     const onDelete = jasmine.createSpy('onDelete');
+    const deletePhoto = { canDelete: true, onDelete };
 
     renderToStaticMarkup(
       React.createElement(PhotoViewModal, {
@@ -54,12 +54,11 @@ describe('PhotoViewModal', function() {
         photo,
         alt: 'Demo Game',
         onClose,
-        canDelete: true,
-        onDelete,
+        deletePhoto,
       })
     );
 
     expect(PhotoViewModalHelper.render)
-      .toHaveBeenCalledWith(true, photo, 'Demo Game', onClose, false, false, undefined, true, onDelete);
+      .toHaveBeenCalledWith(true, photo, 'Demo Game', onClose, {}, deletePhoto);
   });
 });

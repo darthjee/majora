@@ -56,7 +56,7 @@ export default function CharacterDocument({ characterKind, ControllerClass = Cha
         photo={selectedPhoto}
         alt={document?.name}
         onClose={() => setSelectedPhoto(null)}
-        canSetProfilePhoto={false}
+        setProfilePhoto={{ canSetProfilePhoto: false }}
       />
     </>
   );

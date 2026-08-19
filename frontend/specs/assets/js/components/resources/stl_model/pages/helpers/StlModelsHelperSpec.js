@@ -75,9 +75,9 @@ describe('StlModelsHelper', function() {
       expect(listPage.props.type).toBe('stlModels');
       expect(listPage.props.basePath).toBe('#/miniatures/stl_models');
       expect(listPage.props.refreshToken).toBe(3);
-      expect(listPage.props.activeFilters).toBe(activeFilters);
-      expect(listPage.props.filtersProps.onQuery).toBe(handlers.onFilterQuery);
-      expect(listPage.props.filtersProps.onClear).toBe(handlers.onFilterClear);
+      expect(listPage.props.filters.active).toBe(activeFilters);
+      expect(listPage.props.filters.props.onQuery).toBe(handlers.onFilterQuery);
+      expect(listPage.props.filters.props.onClear).toBe(handlers.onFilterClear);
     });
   });
 });

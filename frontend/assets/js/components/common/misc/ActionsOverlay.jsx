@@ -48,16 +48,18 @@ const PHOTO_COMPONENTS = {
  * @param {boolean} [props.grayscale] - Whether to render the photo in grayscale.
  * @param {boolean} [props.dimmed] - Whether to render the photo with reduced opacity
  *   (e.g. a hidden NPC).
- * @param {{label: string, variant: string, icon: string, onClick: Function}[]} [props.secondaryButtons] - Optional
- *   secondary overlay buttons (e.g. real/public Slain-Revive), stacked at the bottom right,
- *   rendered when the primary upload button is present on the left.
- * @param {object[]} [props.infoBarItems] - Optional informational (non-interactive) items
- *   rendered in the always-visible {@link InfoBar} at the top of the overlay.
+ * @param {object} [props.overlayItems] - Optional overlay content groups.
+ * @param {{label: string, variant: string, icon: string, onClick: Function}[]} [props.overlayItems.secondaryButtons] -
+ *   Optional secondary overlay buttons (e.g. real/public Slain-Revive), stacked at the bottom
+ *   right, rendered when the primary upload button is present on the left.
+ * @param {object[]} [props.overlayItems.infoBarItems] - Optional informational (non-interactive)
+ *   items rendered in the always-visible {@link InfoBar} at the top of the overlay.
  * @returns {React.ReactElement} Rendered photo/avatar with optional upload/secondary overlay buttons.
  */
 export default function ActionsOverlay({
-  type, url, alt, canEdit, onClick, grayscale = false, dimmed = false, secondaryButtons = [], infoBarItems = [],
+  type, url, alt, canEdit, onClick, grayscale = false, dimmed = false, overlayItems = {},
 }) {
+  const { secondaryButtons = [], infoBarItems = [] } = overlayItems;
   const Photo = PHOTO_COMPONENTS[type] || CardPhoto;
   const className = `actions-overlay${grayscale ? ' photo-grayscale' : ''}${dimmed ? ' photo-hidden' : ''}`;
 

@@ -27,8 +27,8 @@ describe('PreviewSectionHelper', function() {
 
     return renderToStaticMarkup(
       PreviewSectionHelper.render(
-        items, title, seeAllHref, icon, maxItems, renderItem,
-        options.emptyText, options.loading, options.total, options.collapsed, onToggle,
+        items, title, { href: seeAllHref, icon }, maxItems, renderItem, options.emptyText,
+        { loading: options.loading, total: options.total, collapsed: options.collapsed }, onToggle,
       )
     );
   };

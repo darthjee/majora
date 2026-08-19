@@ -41,12 +41,12 @@ class ForwardedHeaderFilter
      * or $extraAllowed.
      *
      * @param array    $headers      Associative array of header name => value,
-     *                                as returned by $request->headers().
+     *                               as returned by $request->headers().
      * @param string[] $extraAllowed Additional header names allowed on top of
-     *                                the base list, for callers that need a
-     *                                few extra headers (e.g. UploadHandler's
-     *                                X-Upload-Token). Matched case-insensitively,
-     *                                same as the base list.
+     *                               the base list, for callers that need a
+     *                               few extra headers (e.g. UploadHandler's
+     *                               X-Upload-Token). Matched case-insensitively,
+     *                               same as the base list.
      * @return array The filtered associative array, preserving the original
      *                casing of the keys that pass the filter.
      */

@@ -114,7 +114,7 @@ describe('StlModelFormFieldsHelper', function() {
     it('renders the races picker in constant mode over RACE_VALUES', function() {
       const element = StlModelFormFieldsHelper.render(buildState(), buildHandlers(), 'stl-model-new');
       const pickers = findAll(element, (child) => child.type === MultiResourcePickerField);
-      const racesPicker = pickers.find((picker) => picker.props.values === RACE_VALUES);
+      const racesPicker = pickers.find((picker) => picker.props.picker.values === RACE_VALUES);
 
       expect(racesPicker).not.toBeUndefined();
       expect(racesPicker.props.value).toEqual([]);
@@ -124,7 +124,7 @@ describe('StlModelFormFieldsHelper', function() {
       const handlers = buildHandlers();
       const element = StlModelFormFieldsHelper.render(buildState(), handlers, 'stl-model-new');
       const pickers = findAll(element, (child) => child.type === MultiResourcePickerField);
-      const racesPicker = pickers.find((picker) => picker.props.values === RACE_VALUES);
+      const racesPicker = pickers.find((picker) => picker.props.picker.values === RACE_VALUES);
 
       expect(racesPicker.props.onChange).toBe(handlers.onRacesChange);
     });
@@ -134,7 +134,7 @@ describe('StlModelFormFieldsHelper', function() {
       const roles = [{ id: 'wizard', name: 'Wizard' }];
       const element = StlModelFormFieldsHelper.render(buildState({ roles }), handlers, 'stl-model-new');
       const pickers = findAll(element, (child) => child.type === MultiResourcePickerField);
-      const rolesPicker = pickers.find((picker) => picker.props.values === ROLE_VALUES);
+      const rolesPicker = pickers.find((picker) => picker.props.picker.values === ROLE_VALUES);
 
       expect(rolesPicker).not.toBeUndefined();
       expect(rolesPicker.props.value).toBe(roles);
@@ -145,11 +145,11 @@ describe('StlModelFormFieldsHelper', function() {
       spyOn(Translator, 't').and.callThrough();
       const element = StlModelFormFieldsHelper.render(buildState(), buildHandlers(), 'stl-model-new');
       const pickers = findAll(element, (child) => child.type === MultiResourcePickerField);
-      const racesPicker = pickers.find((picker) => picker.props.values === RACE_VALUES);
-      const rolesPicker = pickers.find((picker) => picker.props.values === ROLE_VALUES);
+      const racesPicker = pickers.find((picker) => picker.props.picker.values === RACE_VALUES);
+      const rolesPicker = pickers.find((picker) => picker.props.picker.values === ROLE_VALUES);
 
-      expect(racesPicker.props.translateOption('elf')).toBe(Translator.t('stl_model_page.race_elf'));
-      expect(rolesPicker.props.translateOption('wizard')).toBe(Translator.t('stl_model_page.role_wizard'));
+      expect(racesPicker.props.picker.translateOption('elf')).toBe(Translator.t('stl_model_page.race_elf'));
+      expect(rolesPicker.props.picker.translateOption('wizard')).toBe(Translator.t('stl_model_page.role_wizard'));
     });
   });
 });

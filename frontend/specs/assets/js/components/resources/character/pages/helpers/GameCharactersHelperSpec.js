@@ -107,10 +107,10 @@ describe('GameCharactersHelper', function() {
       expect(listPage.props.context.onSlainClick).toBe(handlers.onSlainClick);
       expect(listPage.props.context.onPublicSlainClick).toBe(handlers.onPublicSlainClick);
       expect(listPage.props.context.onPlayerSlainClick).toBe(handlers.onPlayerSlainClick);
-      expect(listPage.props.filtersProps.onQuery).toBe(handlers.onFilterQuery);
-      expect(listPage.props.filtersProps.onClear).toBe(handlers.onFilterClear);
-      expect(listPage.props.filtersProps.canEdit).toBe(false);
-      expect(listPage.props.onCanEditChange).toBe(handlers.onCanEditChange);
+      expect(listPage.props.filters.props.onQuery).toBe(handlers.onFilterQuery);
+      expect(listPage.props.filters.props.onClear).toBe(handlers.onFilterClear);
+      expect(listPage.props.filters.props.canEdit).toBe(false);
+      expect(listPage.props.handlers.onCanEditChange).toBe(handlers.onCanEditChange);
     });
   });
 });

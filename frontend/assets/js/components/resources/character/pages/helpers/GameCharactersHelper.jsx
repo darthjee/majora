@@ -65,12 +65,12 @@ export default class GameCharactersHelper {
             onPublicSlainClick: handlers.onPublicSlainClick,
             onPlayerSlainClick: handlers.onPlayerSlainClick,
           }}
-          filtersProps={{
-            onQuery: handlers.onFilterQuery, onClear: handlers.onFilterClear, canEdit: state.canEdit,
+          filters={{
+            props: { onQuery: handlers.onFilterQuery, onClear: handlers.onFilterClear, canEdit: state.canEdit },
+            active: state.activeFilters,
           }}
-          activeFilters={state.activeFilters}
           refreshToken={state.refreshToken}
-          onCanEditChange={handlers.onCanEditChange}
+          handlers={{ onCanEditChange: handlers.onCanEditChange }}
         />
       </>
     );

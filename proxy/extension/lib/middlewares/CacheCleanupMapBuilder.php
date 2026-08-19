@@ -34,9 +34,9 @@ class CacheCleanupMapBuilder
      * entry. The caller is responsible for avoiding unintentional overlaps.
      *
      * @param array $groups List of groups, each an associative array with:
-     *                       - 'targets': list of cache-target paths to clear.
-     *                       - 'routes':  list of trigger routes that clear
-     *                         those targets.
+     *                      - 'targets': list of cache-target paths to clear.
+     *                      - 'routes':  list of trigger routes that clear
+     *                      those targets.
      * @return array Flat map of route => targets, suitable for
      *                `CacheCleanupMiddleware`'s `custom` option.
      */
