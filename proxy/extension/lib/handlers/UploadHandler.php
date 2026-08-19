@@ -130,7 +130,7 @@ class UploadHandler extends RequestHandler
      * Builds an UploadHandler from configuration parameters.
      *
      * @param array $params Must contain 'host' (string), 'photos_path' (string) and
-     *                       'files_path' (string).
+     *                      'files_path' (string).
      * @return self
      */
     public static function build(array $params): self

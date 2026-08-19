@@ -35,6 +35,10 @@ class PrivateRequestHasher implements RequestHasher
 {
     private string $headerName;
 
+    /**
+     * @param string $headerName Header name to read the cache token from
+     *                           (defaults to `X-Cache-Token`).
+     */
     public function __construct(string $headerName='X-Cache-Token')
     {
         $this->headerName = $headerName;
@@ -61,7 +65,7 @@ class PrivateRequestHasher implements RequestHasher
      * array.
      *
      * @param array $params Options array; recognizes `headerName` (defaults
-     *                       to `X-Cache-Token` when omitted).
+     *                      to `X-Cache-Token` when omitted).
      * @return self
      */
     public static function build(array $params): self

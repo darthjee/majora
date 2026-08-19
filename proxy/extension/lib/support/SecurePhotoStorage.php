@@ -78,7 +78,7 @@ class SecurePhotoStorage
      * anyway), immediately before unlink().
      *
      * @param string $relativePath Path of the file to delete, relative to
-     *                              the base path.
+     *                             the base path.
      * @return void
      * @throws InvalidArgumentException When the resolved path would escape
      *                                   the base path.

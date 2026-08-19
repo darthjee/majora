@@ -59,7 +59,7 @@ class CacheControlMiddleware extends Middleware
      * Builds a CacheControlMiddleware instance from given attributes.
      *
      * @param array $attributes Associative array of attributes; supports
-     *                           'maxAgeSeconds' (or 'max_age_seconds').
+     *                          'maxAgeSeconds' (or 'max_age_seconds').
      * @return CacheControlMiddleware The constructed middleware instance.
      */
     public static function build(array $attributes): CacheControlMiddleware
