@@ -23,6 +23,26 @@ export default class NpcFiltersHelper {
   static render(state, handlers) {
     return (
       <div className="row g-2 align-items-end mb-4" data-testid="npc-filters">
+        {NpcFiltersHelper.#renderPublicFilters(state, handlers)}
+        {NpcFiltersHelper.#renderHiddenFilter(state, handlers)}
+        {NpcFiltersHelper.#renderPrivateFilters(state, handlers)}
+        {NpcFiltersHelper.#renderNameField(state, handlers)}
+        {NpcFiltersHelper.#renderActions(handlers)}
+      </div>
+    );
+  }
+
+  /**
+   * Renders the public Status and public Allegiance dropdowns.
+   *
+   * @param {{status: string, allegiance: string}} state - filters draft state.
+   * @param {{onStatusChange: Function, onAllegianceChange: Function}} handlers - filters event
+   *   handlers.
+   * @returns {React.ReactElement} rendered public Status/Allegiance dropdowns.
+   */
+  static #renderPublicFilters(state, handlers) {
+    return (
+      <>
         <FilterSelect
           id="npc-filter-status"
           label={Translator.t('game_npcs_page.filter_public_status_label')}
@@ -44,22 +64,45 @@ export default class NpcFiltersHelper {
             { value: 'neutral', label: Translator.t('game_npcs_page.filter_public_allegiance_neutral') },
           ]}
         />
-        {NpcFiltersHelper.#renderHiddenFilter(state, handlers)}
-        {NpcFiltersHelper.#renderPrivateFilters(state, handlers)}
-        <div className="col-auto">
-          <label htmlFor="npc-filter-name" className="form-label">
-            {Translator.t('game_npcs_page.filter_name_label')}
-          </label>
-          <input
-            id="npc-filter-name"
-            data-testid="npc-filter-name"
-            type="text"
-            className="form-control"
-            placeholder={Translator.t('game_npcs_page.filter_name_placeholder')}
-            value={state.name}
-            onChange={(event) => handlers.onNameChange(event.target.value)}
-          />
-        </div>
+      </>
+    );
+  }
+
+  /**
+   * Renders the Name text input block.
+   *
+   * @param {{name: string}} state - filters draft state.
+   * @param {{onNameChange: Function}} handlers - filters event handlers.
+   * @returns {React.ReactElement} rendered Name text input block.
+   */
+  static #renderNameField(state, handlers) {
+    return (
+      <div className="col-auto">
+        <label htmlFor="npc-filter-name" className="form-label">
+          {Translator.t('game_npcs_page.filter_name_label')}
+        </label>
+        <input
+          id="npc-filter-name"
+          data-testid="npc-filter-name"
+          type="text"
+          className="form-control"
+          placeholder={Translator.t('game_npcs_page.filter_name_placeholder')}
+          value={state.name}
+          onChange={(event) => handlers.onNameChange(event.target.value)}
+        />
+      </div>
+    );
+  }
+
+  /**
+   * Renders the Query and Clear buttons.
+   *
+   * @param {{onQuery: Function, onClear: Function}} handlers - filters event handlers.
+   * @returns {React.ReactElement} rendered Query/Clear buttons.
+   */
+  static #renderActions(handlers) {
+    return (
+      <>
         <div className="col-auto">
           <button
             type="button"
@@ -80,7 +123,7 @@ export default class NpcFiltersHelper {
             {Translator.t('game_npcs_page.filter_clear')}
           </button>
         </div>
-      </div>
+      </>
     );
   }
 
