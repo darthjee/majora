@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import CommonItemEditHelper from './helpers/CommonItemEditHelper.jsx';
 import GameCommonItemEditController from './controllers/GameCommonItemEditController.js';
-import PhotoUploadModal from '../../../common/modals/PhotoUploadModal.jsx';
-import MoneyEditModal from '../../../common/modals/MoneyEditModal.jsx';
+import GameCommonItemEditModals from './elements/GameCommonItemEditModals.jsx';
 import getCurrentHash from '../../../../utils/routing/currentHash.js';
 import useFormState from '../../../../utils/useFormState.js';
 
@@ -89,18 +88,15 @@ export default function GameCommonItemEdit({ ControllerClass = GameCommonItemEdi
           onOpenPriceModal: () => setShowPriceModal(true),
         }
       )}
-      <PhotoUploadModal
-        show={showUploadModal}
+      <GameCommonItemEditModals
+        showUploadModal={showUploadModal}
+        showPriceModal={showPriceModal}
         uploadPath={uploadPath}
-        onClose={() => setShowUploadModal(false)}
-        onSuccess={handleUploadSuccess}
-      />
-      <MoneyEditModal
-        show={showPriceModal}
-        money={fields.price}
-        context="treasure"
-        onClose={() => setShowPriceModal(false)}
-        onConfirm={(newTotal) => {
+        price={fields.price}
+        onUploadClose={() => setShowUploadModal(false)}
+        onUploadSuccess={handleUploadSuccess}
+        onPriceClose={() => setShowPriceModal(false)}
+        onPriceConfirm={(newTotal) => {
           setField('price', String(newTotal));
           setShowPriceModal(false);
         }}

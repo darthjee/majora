@@ -2,8 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import GameEditController from './controllers/GameEditController.js';
 import GameEditHelper from './helpers/GameEditHelper.jsx';
 import GameHelper from './helpers/GameHelper.jsx';
-import PhotoUploadModal from '../../../common/modals/PhotoUploadModal.jsx';
-import LinksEditModal from '../../../common/modals/LinksEditModal.jsx';
+import GameEditModals from './elements/GameEditModals.jsx';
 import getCurrentHash from '../../../../utils/routing/currentHash.js';
 import useFormState from '../../../../utils/useFormState.js';
 
@@ -102,17 +101,15 @@ export default function GameEdit({ ControllerClass = GameEditController }) {
           onOpenLinksModal: () => setShowLinksModal(true),
         },
       )}
-      <PhotoUploadModal
-        show={showUploadModal}
-        uploadPath={`/games/${gameSlug}/photo_upload.json`}
-        onClose={() => setShowUploadModal(false)}
-        onSuccess={handleUploadSuccess}
-      />
-      <LinksEditModal
-        show={showLinksModal}
+      <GameEditModals
+        showUploadModal={showUploadModal}
+        showLinksModal={showLinksModal}
+        gameSlug={gameSlug}
         links={links}
-        onClose={() => setShowLinksModal(false)}
-        onConfirm={(newLinks) => {
+        onUploadClose={() => setShowUploadModal(false)}
+        onUploadSuccess={handleUploadSuccess}
+        onLinksClose={() => setShowLinksModal(false)}
+        onLinksConfirm={(newLinks) => {
           setLinks(newLinks);
           setShowLinksModal(false);
         }}
