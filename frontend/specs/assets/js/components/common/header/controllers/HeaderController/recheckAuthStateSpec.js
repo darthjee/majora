@@ -20,22 +20,22 @@ describe('HeaderController', function() {
       viewAsController = jasmine.createSpyObj('viewAsController', ['checkAvailability']);
       viewAsController.checkAvailability.and.returnValue(Promise.resolve());
       spyOn(AuthStorage, 'getToken').and.returnValue('tok-123');
-      client.status.and.returnValue(
-        Promise.resolve({ ok: true, json: () => Promise.resolve({ logged_in: true }) })
+      client.headerStatus.and.returnValue(
+        Promise.resolve({ ok: true, json: () => Promise.resolve({ logged_in: true, is_superuser: true, is_staff: false }) })
       );
     });
 
     it('re-runs the auth status check', async function() {
       await controller.recheckAuthState(viewAsController);
 
-      expect(client.status).toHaveBeenCalledWith('tok-123');
+      expect(client.headerStatus).toHaveBeenCalledWith('tok-123');
       expect(setLoggedIn).toHaveBeenCalledWith(true);
     });
 
-    it('re-runs the view-as availability check', async function() {
+    it('re-runs the view-as availability check with the resolved admin flags', async function() {
       await controller.recheckAuthState(viewAsController);
 
-      expect(viewAsController.checkAvailability).toHaveBeenCalled();
+      expect(viewAsController.checkAvailability).toHaveBeenCalledWith(true, false);
     });
   });
 });
