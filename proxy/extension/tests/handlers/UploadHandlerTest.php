@@ -5,6 +5,7 @@ namespace Tent\RequestHandlers\Tests;
 use PHPUnit\Framework\TestCase;
 use Tent\Http\HttpClientInterface;
 use Tent\Models\ProcessingRequest;
+use Tent\Models\Response;
 use Tent\RequestHandlers\UploadHandler;
 
 /**
@@ -158,6 +159,52 @@ class UploadHandlerTest extends TestCase
         );
     }
 
+    /**
+     * Sets up $httpClient to expect exactly two consecutive request() calls
+     * (the 'uploading' PATCH followed by the 'uploaded' PATCH), each
+     * returning a 200 response — $firstBody for the first call, $secondBody
+     * for the second. When $withArgs is given, the mock also constrains the
+     * calls to those request() argument matchers via ->with(...$withArgs).
+     */
+    private function expectTwoForwardedRequests(
+        HttpClientInterface $httpClient,
+        string $firstBody,
+        string $secondBody = '{}',
+        ?array $withArgs = null
+    ): void {
+        $expectation = $httpClient->expects($this->exactly(2))->method('request');
+
+        if ($withArgs !== null) {
+            $expectation->with(...$withArgs);
+        }
+
+        $expectation->willReturnOnConsecutiveCalls(
+            ['httpCode' => 200, 'body' => $firstBody, 'headers' => []],
+            ['httpCode' => 200, 'body' => $secondBody, 'headers' => []]
+        );
+    }
+
+    /**
+     * Asserts $response is a 200, optionally also asserting the
+     * Content-Type: application/json header is present and/or that the
+     * decoded JSON body equals $expectedBody.
+     */
+    private function assertSuccessResponse(
+        Response $response,
+        ?array $expectedBody = null,
+        bool $checkContentType = false
+    ): void {
+        $this->assertSame(200, $response->httpCode());
+
+        if ($checkContentType) {
+            $this->assertContains('Content-Type: application/json', $response->headers());
+        }
+
+        if ($expectedBody !== null) {
+            $this->assertSame($expectedBody, json_decode($response->body(), true));
+        }
+    }
+
     // -------------------------------------------------------------------------
     // Tests
     // -------------------------------------------------------------------------
@@ -178,20 +225,14 @@ class UploadHandlerTest extends TestCase
             ['Authorization' => 'Bearer tok', 'X-Upload-Token' => 'up-tok']
         );
 
-        $httpClient->expects($this->exactly(2))
-            ->method('request')
-            ->willReturnOnConsecutiveCalls(
-                ['httpCode' => 200, 'body' => '{"file_path":"42/photo.jpg"}', 'headers' => []],
-                ['httpCode' => 200, 'body' => '{}', 'headers' => []]
-            );
+        $this->expectTwoForwardedRequests($httpClient, '{"file_path":"42/photo.jpg"}');
 
         $response = $handler->handleRequest($request);
 
-        $this->assertSame(200, $response->httpCode());
-        $this->assertContains('Content-Type: application/json', $response->headers());
-        $this->assertSame(
+        $this->assertSuccessResponse(
+            $response,
             ['file_path' => $this->photosDir . '/42/photo.jpg'],
-            json_decode($response->body(), true)
+            true
         );
 
         unlink($tmpFile);
@@ -214,20 +255,14 @@ class UploadHandlerTest extends TestCase
             ['Authorization' => 'Bearer tok', 'X-Upload-Token' => 'up-tok']
         );
 
-        $httpClient->expects($this->exactly(2))
-            ->method('request')
-            ->willReturnOnConsecutiveCalls(
-                ['httpCode' => 200, 'body' => '{"file_path":"99/document.pdf"}', 'headers' => []],
-                ['httpCode' => 200, 'body' => '{}', 'headers' => []]
-            );
+        $this->expectTwoForwardedRequests($httpClient, '{"file_path":"99/document.pdf"}');
 
         $response = $handler->handleRequest($request);
 
-        $this->assertSame(200, $response->httpCode());
-        $this->assertContains('Content-Type: application/json', $response->headers());
-        $this->assertSame(
+        $this->assertSuccessResponse(
+            $response,
             ['file_path' => $this->filesDir . '/99/document.pdf'],
-            json_decode($response->body(), true)
+            true
         );
 
         unlink($tmpFile);
@@ -249,22 +284,16 @@ class UploadHandlerTest extends TestCase
             ['tmp_name' => $tmpFile, 'type' => 'application/pdf', 'name' => 'document.pdf', 'size' => 20, 'error' => 0]
         );
 
-        $httpClient->expects($this->exactly(2))
-            ->method('request')
-            ->with(
-                'PATCH',
-                'http://backend:8080/uploads/file/99.json',
-                $this->anything(),
-                $this->anything()
-            )
-            ->willReturnOnConsecutiveCalls(
-                ['httpCode' => 200, 'body' => '{"file_path":"99/document.pdf"}', 'headers' => []],
-                ['httpCode' => 200, 'body' => '{}', 'headers' => []]
-            );
+        $this->expectTwoForwardedRequests(
+            $httpClient,
+            '{"file_path":"99/document.pdf"}',
+            '{}',
+            ['PATCH', 'http://backend:8080/uploads/file/99.json', $this->anything(), $this->anything()]
+        );
 
         $response = $handler->handleRequest($request);
 
-        $this->assertSame(200, $response->httpCode());
+        $this->assertSuccessResponse($response);
 
         unlink($tmpFile);
     }
@@ -284,22 +313,16 @@ class UploadHandlerTest extends TestCase
             ['tmp_name' => $tmpFile, 'type' => 'application/pdf', 'name' => 'document.pdf', 'size' => 20, 'error' => 0]
         );
 
-        $httpClient->expects($this->exactly(2))
-            ->method('request')
-            ->with(
-                'PATCH',
-                'http://backend:8080/uploads/file/99.json',
-                $this->anything(),
-                $this->anything()
-            )
-            ->willReturnOnConsecutiveCalls(
-                ['httpCode' => 200, 'body' => '{"file_path":"99/document.pdf"}', 'headers' => []],
-                ['httpCode' => 200, 'body' => '{}', 'headers' => []]
-            );
+        $this->expectTwoForwardedRequests(
+            $httpClient,
+            '{"file_path":"99/document.pdf"}',
+            '{}',
+            ['PATCH', 'http://backend:8080/uploads/file/99.json', $this->anything(), $this->anything()]
+        );
 
         $response = $handler->handleRequest($request);
 
-        $this->assertSame(200, $response->httpCode());
+        $this->assertSuccessResponse($response);
 
         unlink($tmpFile);
     }
@@ -352,26 +375,16 @@ class UploadHandlerTest extends TestCase
             'Accept-Encoding' => 'gzip',
         ];
 
-        $httpClient->expects($this->exactly(2))
-            ->method('request')
-            ->with(
-                $this->anything(),
-                $this->anything(),
-                $expectedHeaders,
-                $this->anything()
-            )
-            ->willReturnOnConsecutiveCalls(
-                ['httpCode' => 200, 'body' => '{"file_path":"7/img.png"}', 'headers' => []],
-                ['httpCode' => 200, 'body' => '{}', 'headers' => []]
-            );
+        $this->expectTwoForwardedRequests(
+            $httpClient,
+            '{"file_path":"7/img.png"}',
+            '{}',
+            [$this->anything(), $this->anything(), $expectedHeaders, $this->anything()]
+        );
 
         $response = $handler->handleRequest($request);
 
-        $this->assertSame(200, $response->httpCode());
-        $this->assertSame(
-            ['file_path' => $this->photosDir . '/7/img.png'],
-            json_decode($response->body(), true)
-        );
+        $this->assertSuccessResponse($response, ['file_path' => $this->photosDir . '/7/img.png']);
 
         unlink($tmpFile);
     }
@@ -407,26 +420,16 @@ class UploadHandlerTest extends TestCase
             'Accept-Encoding' => 'gzip',
         ];
 
-        $httpClient->expects($this->exactly(2))
-            ->method('request')
-            ->with(
-                $this->anything(),
-                $this->anything(),
-                $expectedHeaders,
-                $this->anything()
-            )
-            ->willReturnOnConsecutiveCalls(
-                ['httpCode' => 200, 'body' => '{"file_path":"7/img.png"}', 'headers' => []],
-                ['httpCode' => 200, 'body' => '{}', 'headers' => []]
-            );
+        $this->expectTwoForwardedRequests(
+            $httpClient,
+            '{"file_path":"7/img.png"}',
+            '{}',
+            [$this->anything(), $this->anything(), $expectedHeaders, $this->anything()]
+        );
 
         $response = $handler->handleRequest($request);
 
-        $this->assertSame(200, $response->httpCode());
-        $this->assertSame(
-            ['file_path' => $this->photosDir . '/7/img.png'],
-            json_decode($response->body(), true)
-        );
+        $this->assertSuccessResponse($response, ['file_path' => $this->photosDir . '/7/img.png']);
 
         unlink($tmpFile);
     }
