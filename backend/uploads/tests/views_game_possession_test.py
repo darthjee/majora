@@ -6,86 +6,46 @@ from django.test import TestCase
 from rest_framework.authtoken.models import Token
 
 from games.models import GamePossessionPhoto
-from games.tests.factories import (
-    GameFactory,
-    GamePossessionFactory,
-    PlayerFactory,
-    UserFactory,
-)
+from games.tests.factories import GameFactory, GamePossessionFactory, UserFactory
 from uploads.models import Upload
+from uploads.tests.fixtures import UploadFinalizeFixtureMixin
 
 
-class TestUploadFinalizeGamePossessionPhoto(TestCase):
+class TestUploadFinalizeGamePossessionPhoto(UploadFinalizeFixtureMixin, TestCase):
     """Tests for PATCH /uploads/image/<upload_id>.json against a GamePossessionPhoto upload."""
 
     @classmethod
     def setUpTestData(cls):
         """Set up a game, a game possession, and pending photo uploads by DM, player, staff."""
         cls.game = GameFactory(name='Epic Quest', game_slug='epic-quest')
-        cls.dm_user = UserFactory(username='dm_user', password='secret-password')
-        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
-        cls.dm_token = Token.objects.create(user=cls.dm_user)
-
-        cls.player_of_game_user = UserFactory(
-            username='player_of_game', password='secret-password'
-        )
-        cls.player_of_game = PlayerFactory(
-            name='Pippin', user=cls.player_of_game_user, game=cls.game
-        )
-        cls.player_of_game_token = Token.objects.create(user=cls.player_of_game_user)
-
-        cls.staff_user = UserFactory(
-            username='staff_user', password='secret-password', is_staff=True
-        )
-        cls.staff_token = Token.objects.create(user=cls.staff_user)
+        cls.dm_user, cls.dm_token = cls._create_dm(cls.game)
+        cls.player_of_game_user, cls.player_of_game_token = cls._create_player_of_game(cls.game)
+        cls.staff_user, cls.staff_token = cls._create_staff_user()
 
         cls.game_possession = GamePossessionFactory(game=cls.game, name='Tavern')
 
-        cls.possession_upload = Upload.objects.create(
-            user=cls.dm_user,
-            file_path=f'photos/games/epic-quest/possessions/{cls.game_possession.id}/photo.jpg',
+        cls.possession_upload, cls.possession_photo = cls._create_possession_photo(
+            cls.dm_user, 'photo.jpg'
         )
-        cls.possession_photo = GamePossessionPhoto.objects.create(
-            game_possession=cls.game_possession,
-            path=f'photos/games/epic-quest/possessions/{cls.game_possession.id}/photo.jpg',
-            ready=False,
+        (
+            cls.possession_upload_by_player_of_game,
+            cls.possession_photo_by_player_of_game,
+        ) = cls._create_possession_photo(cls.player_of_game_user, 'photo_2.jpg')
+        cls.possession_upload_by_staff, cls.possession_photo_by_staff = (
+            cls._create_possession_photo(cls.staff_user, 'photo_3.jpg')
         )
-        cls.possession_upload.content_object = cls.possession_photo
-        cls.possession_upload.save()
 
-        cls.possession_upload_by_player_of_game = Upload.objects.create(
-            user=cls.player_of_game_user,
-            file_path=(
-                f'photos/games/epic-quest/possessions/{cls.game_possession.id}/photo_2.jpg'
-            ),
-        )
-        cls.possession_photo_by_player_of_game = GamePossessionPhoto.objects.create(
+    @classmethod
+    def _create_possession_photo(cls, user, filename):
+        """Create a pending Upload/GamePossessionPhoto pair for `cls.game_possession`."""
+        file_path = f'photos/games/epic-quest/possessions/{cls.game_possession.id}/{filename}'
+        return cls._create_upload_and_photo(
+            GamePossessionPhoto,
+            user,
+            file_path,
             game_possession=cls.game_possession,
-            path=(
-                f'photos/games/epic-quest/possessions/{cls.game_possession.id}/photo_2.jpg'
-            ),
             ready=False,
         )
-        cls.possession_upload_by_player_of_game.content_object = (
-            cls.possession_photo_by_player_of_game
-        )
-        cls.possession_upload_by_player_of_game.save()
-
-        cls.possession_upload_by_staff = Upload.objects.create(
-            user=cls.staff_user,
-            file_path=(
-                f'photos/games/epic-quest/possessions/{cls.game_possession.id}/photo_3.jpg'
-            ),
-        )
-        cls.possession_photo_by_staff = GamePossessionPhoto.objects.create(
-            game_possession=cls.game_possession,
-            path=(
-                f'photos/games/epic-quest/possessions/{cls.game_possession.id}/photo_3.jpg'
-            ),
-            ready=False,
-        )
-        cls.possession_upload_by_staff.content_object = cls.possession_photo_by_staff
-        cls.possession_upload_by_staff.save()
 
     def _patch(
         self, client, upload_id, payload, token=None, upload_token=None, upload_type='image',
