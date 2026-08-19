@@ -40,6 +40,18 @@ export default class AuthClient extends BaseClient {
   }
 
   /**
+   * Fetches the header's route-independent identity fields (`loggedIn`, `isSuperUser`,
+   * `isStaff`, `pendingApproval`, `cacheToken`) in a single request.
+   *
+   * @param {string|null} token - Authentication token, if any.
+   * @param {AbortSignal} [signal] - Optional abort signal for the request.
+   * @returns {Promise<Response>} fetch response from the header-status endpoint.
+   */
+  headerStatus(token, signal) {
+    return this.getJson('/users/header_status.json', token, {}, signal);
+  }
+
+  /**
    * Requests a test email to be sent to the authenticated user.
    *
    * @param {string} token - Authentication token for the requesting user.

@@ -31,6 +31,7 @@ These manage identity; they do not expose domain data beyond success/failure.
 | `/users/logout.json` | POST | Authenticated. Deletes the caller's `CacheToken` row alongside their DRF `Token` |
 | `/users/register.json` | POST | Anyone. New accounts always start `pending` |
 | `/users/status.json` | GET | Anyone. `{"logged_in": false}` when unauthenticated or `denied`; adds `"status": "pending"` when pending (the only case with a `status` key); otherwise the full logged-in shape (`username`, `user_id`, `is_superuser`/`is_staff`, `settings`, `cache_token`) |
+| `/users/header_status.json` | GET | Anyone. Deliberately reuses `/users/status.json`'s exact access rules and resolution logic (same `UserProfile.status` gate, same `CacheToken` minting via `get_or_create`) but returns a narrower field set — `logged_in`, `status` (pending-only), `is_superuser`, `is_staff`, `cache_token`, `token` (session-auth only, same conditional as `/users/status.json`), `settings` — for `Header`'s exclusive use, omitting only `username` and `user_id` |
 | `/staff/test-email.json` | POST | **Staff-or-superuser** |
 | `/users/recover.json` | POST | Anyone. Always `200 {'sent': True}` regardless of match/status — enumeration-safe |
 | `/users/reset-password.json` | POST | Anyone (requires valid reset token) |
@@ -42,10 +43,10 @@ These manage identity; they do not expose domain data beyond success/failure.
 The project-wide default authentication class treats a resolved user whose `UserProfile.status`
 isn't `approved` as fully unauthenticated. This applies **before** every other rule in this
 document set: a `pending` or `denied` user looks anonymous everywhere, with the sole exceptions of
-`/users/login.json`, `/users/status.json`, `/users/recover.json`, and the authorization-requests
-poll endpoint below, each of which resolves the user's real status directly to implement the
-behavior described above. New registrations start `pending`; staff/superuser accounts approve or
-deny pending users via [User (Staff Management)](user.md).
+`/users/login.json`, `/users/status.json`, `/users/header_status.json`, `/users/recover.json`, and
+the authorization-requests poll endpoint below, each of which resolves the user's real status
+directly to implement the behavior described above. New registrations start `pending`;
+staff/superuser accounts approve or deny pending users via [User (Staff Management)](user.md).
 
 ## Authorization requests (device-authorize login)
 
@@ -76,7 +77,8 @@ of a `cache_token` value can never authenticate a real (mutating) backend reques
 read/write access of its own and needs no per-field role table.
 
 - **Minted**: `get_or_create(user=...)` on `/users/login.json` and unconditionally on every
-  `/users/status.json` logged-in response (not gated behind `session_auth`, unlike `token`).
+  `/users/status.json`/`/users/header_status.json` logged-in response (not gated behind
+  `session_auth`, unlike `token`).
 - **Read**: only the owning user ever sees their own `cache_token`, via the two endpoints above —
   never returned for any other user, never listed/enumerable.
 - **Invalidated**: deleted on `/users/logout.json`, alongside the `Token` row.

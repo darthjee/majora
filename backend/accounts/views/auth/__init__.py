@@ -2,6 +2,7 @@
 
 from .account import account
 from .email import test_email
+from .header_status import header_status
 from .language import language
 from .login import login
 from .logout import logout
@@ -13,6 +14,7 @@ __all__ = [
     'register',
     'logout',
     'status',
+    'header_status',
     'language',
     'test_email',
     'account',

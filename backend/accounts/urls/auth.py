@@ -9,6 +9,7 @@ urlpatterns = [
     path('users/logout.json', views.logout, name='users-logout'),
     path('users/register.json', views.register, name='users-register'),
     path('users/status.json', views.status, name='users-status'),
+    path('users/header_status.json', views.header_status, name='users-header-status'),
     path('staff/test-email.json', views.test_email, name='staff-test-email'),
     path('account/language.json', views.language, name='account-language'),
     path('account/account.json', views.account, name='account-account'),
