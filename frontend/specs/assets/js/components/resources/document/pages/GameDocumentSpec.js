@@ -89,14 +89,14 @@ describe('GameDocument', function() {
     let capturedOnFileUploadClick;
     let capturedOnGiveDocumentClick;
     spyOn(DocumentDetailHelper, 'render').and.callFake(
-      (document, backHref, editHref, canUploadPhoto, onUploadClick, onFileUploadClick, gameSlug, onSelectPhoto, onGiveDocumentClick) => {
+      (document, backHref, editHref, canUploadPhoto, gameSlug, handlers) => {
         capturedDocument = document;
         capturedBackHref = backHref;
         capturedEditHref = editHref;
         capturedCanUploadPhoto = canUploadPhoto;
-        capturedOnUploadClick = onUploadClick;
-        capturedOnFileUploadClick = onFileUploadClick;
-        capturedOnGiveDocumentClick = onGiveDocumentClick;
+        capturedOnUploadClick = handlers.onUploadClick;
+        capturedOnFileUploadClick = handlers.onFileUploadClick;
+        capturedOnGiveDocumentClick = handlers.onGiveDocumentClick;
         return null;
       },
     );
@@ -128,8 +128,8 @@ describe('GameDocument', function() {
 
   it('opens the upload modal via the onUploadClick handler passed to DocumentDetailHelper', function() {
     let capturedOnUploadClick;
-    spyOn(DocumentDetailHelper, 'render').and.callFake((document, backHref, editHref, canUploadPhoto, onUploadClick) => {
-      capturedOnUploadClick = onUploadClick;
+    spyOn(DocumentDetailHelper, 'render').and.callFake((document, backHref, editHref, canUploadPhoto, gameSlug, handlers) => {
+      capturedOnUploadClick = handlers.onUploadClick;
       return null;
     });
 
@@ -141,8 +141,8 @@ describe('GameDocument', function() {
   it('opens the file upload modal via the onFileUploadClick handler passed to DocumentDetailHelper', function() {
     let capturedOnFileUploadClick;
     spyOn(DocumentDetailHelper, 'render').and.callFake(
-      (document, backHref, editHref, canUploadPhoto, onUploadClick, onFileUploadClick) => {
-        capturedOnFileUploadClick = onFileUploadClick;
+      (document, backHref, editHref, canUploadPhoto, gameSlug, handlers) => {
+        capturedOnFileUploadClick = handlers.onFileUploadClick;
         return null;
       },
     );

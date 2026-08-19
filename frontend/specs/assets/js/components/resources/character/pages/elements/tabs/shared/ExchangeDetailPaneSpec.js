@@ -14,9 +14,11 @@ describe('ExchangeDetailPane', function() {
     owned: 0,
     submitting: false,
     actionError: '',
-    onQuantityChange: jasmine.createSpy('onQuantityChange'),
-    onConfirm: jasmine.createSpy('onConfirm'),
-    onCancel: jasmine.createSpy('onCancel'),
+    handlers: {
+      onQuantityChange: jasmine.createSpy('onQuantityChange'),
+      onConfirm: jasmine.createSpy('onConfirm'),
+      onCancel: jasmine.createSpy('onCancel'),
+    },
     ...overrides,
   });
 

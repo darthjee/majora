@@ -20,23 +20,27 @@ import Noop from '../../../utils/Noop.js';
  *   component doesn't have to pick a per-type i18n key itself.
  * @param {object} [props.context] - Extra rendering context (e.g. `onUploadClick`), merged
  *   with `{gameSlug, canEdit}` and passed through to the type's per-item builders.
- * @param {object} [props.filtersProps] - Extra props merged into the type's `filtersComponent`.
- * @param {object|URLSearchParams} [props.activeFilters] - Active query params preserved on
+ * @param {object} [props.filters] - Filter-related props.
+ * @param {object} [props.filters.props] - Extra props merged into the type's `filtersComponent`.
+ * @param {object|URLSearchParams} [props.filters.active] - Active query params preserved on
  *   every pagination link.
  * @param {number} [props.refreshToken] - Opaque value; changing it re-runs the fetch (e.g.
  *   after a modal success or a filter change), without remounting the component.
- * @param {Function} [props.onCanEditChange] - Called whenever the resolved edit permission
- *   changes, so the owning page can gate its own page-level actions.
- * @param {Function} [props.onItemsChange] - Called with the freshly fetched raw items whenever
- *   they change, so an owning page can read back the currently loaded page (e.g. the character
- *   treasures page cross-references it for the treasure exchange modal's "already owned"
- *   indicator) without this component having to expose its internal state directly.
+ * @param {object} [props.handlers] - Callback handlers.
+ * @param {Function} [props.handlers.onCanEditChange] - Called whenever the resolved edit
+ *   permission changes, so the owning page can gate its own page-level actions.
+ * @param {Function} [props.handlers.onItemsChange] - Called with the freshly fetched raw items
+ *   whenever they change, so an owning page can read back the currently loaded page (e.g. the
+ *   character treasures page cross-references it for the treasure exchange modal's "already
+ *   owned" indicator) without this component having to expose its internal state directly.
  * @returns {React.ReactElement} Rendered list page body.
  */
 export default function ListPage({
-  type, gameSlug, basePath, loadingMessage, context = {}, filtersProps = {}, activeFilters = {},
-  refreshToken = 0, onCanEditChange = Noop.noop, onItemsChange = Noop.noop,
+  type, gameSlug, basePath, loadingMessage, context = {}, filters = {}, refreshToken = 0,
+  handlers = {},
 }) {
+  const { props: filtersProps, active: activeFilters } = filters;
+  const { onCanEditChange = Noop.noop, onItemsChange = Noop.noop } = handlers;
   const [items, setItems] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, pages: 1, perPage: 10 });
   const [loading, setLoading] = useState(true);

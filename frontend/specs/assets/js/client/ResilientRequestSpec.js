@@ -10,7 +10,11 @@ import ResilienceEvents from '../../../../assets/js/utils/logging/ResilienceEven
  */
 async function flushMicrotasks(times = 5) {
   for (let i = 0; i < times; i += 1) {
-    await Promise.resolve();
+    try {
+      await Promise.resolve();
+    } catch {
+      // Promise.resolve() never rejects; this catch exists only to satisfy the linter.
+    }
   }
 }
 

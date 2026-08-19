@@ -59,7 +59,7 @@ KINDS.forEach(({ label, Component, Controller, Helper, characterKind }) => {
       const html = renderToStaticMarkup(
         Helper.render(
           [], pagination, `#/games/demo/${characterKind}/7/photos`, `#/games/demo/${characterKind}/7`,
-          true, true, false, 'Aragorn', null, handlers,
+          { canUploadPhoto: true, canSetProfilePhoto: true, canDeletePhoto: false }, 'Aragorn', null, handlers,
         )
       );
 
@@ -77,7 +77,7 @@ KINDS.forEach(({ label, Component, Controller, Helper, characterKind }) => {
       const html = renderToStaticMarkup(
         Helper.render(
           photos, pagination, `#/games/demo/${characterKind}/7/photos`, `#/games/demo/${characterKind}/7`,
-          true, true, false, 'Aragorn', 999, handlers,
+          { canUploadPhoto: true, canSetProfilePhoto: true, canDeletePhoto: false }, 'Aragorn', 999, handlers,
         )
       );
 
@@ -95,7 +95,7 @@ KINDS.forEach(({ label, Component, Controller, Helper, characterKind }) => {
       const html = renderToStaticMarkup(
         Helper.render(
           photos, pagination, `#/games/demo/${characterKind}/7/photos`, `#/games/demo/${characterKind}/7`,
-          false, false, true, 'Aragorn', null, handlers,
+          { canUploadPhoto: false, canSetProfilePhoto: false, canDeletePhoto: true }, 'Aragorn', null, handlers,
         )
       );
 
@@ -121,13 +121,13 @@ KINDS.forEach(({ label, Component, Controller, Helper, characterKind }) => {
         }
 
         let capturedCanSetProfilePhoto;
-        spyOn(Helper, 'render').and.callFake((photos, pagination, basePath, backHref, canUploadPhoto, canSetProfilePhoto) => {
-          capturedCanSetProfilePhoto = canSetProfilePhoto;
+        spyOn(Helper, 'render').and.callFake((photos, pagination, basePath, backHref, permissions) => {
+          capturedCanSetProfilePhoto = permissions.canSetProfilePhoto;
           return null;
         });
         let capturedModalCanSetProfilePhoto;
-        spyOn(PhotoViewModalHelper, 'render').and.callFake((show, photo, alt, onClose, canSetProfilePhoto) => {
-          capturedModalCanSetProfilePhoto = canSetProfilePhoto;
+        spyOn(PhotoViewModalHelper, 'render').and.callFake((show, photo, alt, onClose, setProfilePhoto) => {
+          capturedModalCanSetProfilePhoto = setProfilePhoto.canSetProfilePhoto;
           return null;
         });
 
@@ -162,18 +162,15 @@ KINDS.forEach(({ label, Component, Controller, Helper, characterKind }) => {
         let capturedCanDeletePhoto;
         let capturedOnDelete;
         spyOn(Helper, 'render').and.callFake((
-          photos, pagination, basePath, backHref, canUploadPhoto, canSetProfilePhoto, canDeletePhoto, alt,
-          profilePhotoId, handlers,
+          photos, pagination, basePath, backHref, permissions, alt, profilePhotoId, handlers,
         ) => {
-          capturedCanDeletePhoto = canDeletePhoto;
+          capturedCanDeletePhoto = permissions.canDeletePhoto;
           capturedOnDelete = handlers.onDelete;
           return null;
         });
         let capturedModalCanDelete;
-        spyOn(PhotoViewModalHelper, 'render').and.callFake((
-          show, photo, alt, onClose, canSetProfilePhoto, isProfilePhoto, onSetProfilePhoto, canDelete,
-        ) => {
-          capturedModalCanDelete = canDelete;
+        spyOn(PhotoViewModalHelper, 'render').and.callFake((show, photo, alt, onClose, setProfilePhoto, deletePhoto) => {
+          capturedModalCanDelete = deletePhoto.canDelete;
           return null;
         });
 

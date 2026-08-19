@@ -72,20 +72,23 @@ export default class StlModelNewHelper {
             <div className="col-md-6">
               <TagsField
                 id="stl-model-new-tags"
-                label={Translator.t('stl_model_new_page.tags_label')}
-                placeholder={Translator.t('stl_model_new_page.tags_input_placeholder')}
-                addLabel={Translator.t('stl_model_new_page.add_tag')}
                 tags={formState.tags}
                 inputValue={formState.tagInput}
-                onInputChange={handlers.onTagInputChange}
-                onAdd={handlers.onAddTag}
-                onRemoveTag={handlers.onRemoveTag}
-                removeTagLabel={Translator.t('stl_model_new_page.remove_tag_tooltip')}
                 errors={formState.fieldErrors.tags ?? []}
+                handlers={{
+                  onInputChange: handlers.onTagInputChange,
+                  onAdd: handlers.onAddTag,
+                  onRemoveTag: handlers.onRemoveTag,
+                }}
+                labels={{
+                  label: Translator.t('stl_model_new_page.tags_label'),
+                  placeholder: Translator.t('stl_model_new_page.tags_input_placeholder'),
+                  addLabel: Translator.t('stl_model_new_page.add_tag'),
+                  removeTagLabel: Translator.t('stl_model_new_page.remove_tag_tooltip'),
+                }}
               />
               <MultiResourcePickerField
-                resource="source"
-                maxEntries={4}
+                picker={{ resource: 'source', maxEntries: 4 }}
                 value={formState.sources}
                 onChange={handlers.onSourcesChange}
                 label={Translator.t('stl_model_new_page.sources_label')}
@@ -93,8 +96,7 @@ export default class StlModelNewHelper {
                 removeLabel={Translator.t('stl_model_new_page.remove_tag_tooltip')}
               />
               <MultiResourcePickerField
-                resource="collection"
-                maxEntries={4}
+                picker={{ resource: 'collection', maxEntries: 4 }}
                 value={formState.collections}
                 onChange={handlers.onCollectionsChange}
                 label={Translator.t('stl_model_new_page.collections_label')}

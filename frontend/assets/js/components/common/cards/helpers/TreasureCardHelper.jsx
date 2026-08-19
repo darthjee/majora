@@ -51,7 +51,7 @@ export default class TreasureCardHelper {
             alt={treasure.name}
             canEdit={canManage}
             onClick={() => onUploadClick(treasure)}
-            infoBarItems={TreasureCardHelper.buildInfoBarItems(treasure, quantity)}
+            overlayItems={{ infoBarItems: TreasureCardHelper.buildInfoBarItems(treasure, quantity) }}
           />
           <div className="card-body">
             <h6 className="card-title">

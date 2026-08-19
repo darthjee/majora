@@ -147,9 +147,11 @@ export default function CharacterDetail({
         photo={selectedPhoto}
         alt={character.name}
         onClose={() => setSelectedPhoto(null)}
-        canSetProfilePhoto={character.can_set_profile_photo}
-        isProfilePhoto={selectedPhoto?.id === character.photo_id}
-        onSetProfilePhoto={handleSetProfilePhoto}
+        setProfilePhoto={{
+          canSetProfilePhoto: character.can_set_profile_photo,
+          isProfilePhoto: selectedPhoto?.id === character.photo_id,
+          onSetProfilePhoto: handleSetProfilePhoto,
+        }}
       />
       <ProfilePhotoSetModal
         show={profilePhotoSet !== null}

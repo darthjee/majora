@@ -24,6 +24,7 @@ export default class Route {
       })
       .join('/');
 
+    // eslint-disable-next-line security/detect-non-literal-regexp, security-node/non-literal-reg-expr -- `pattern` is always built from a hardcoded, developer-authored route template (see Router#register / Router.extractParams and their callers) — never from runtime URL/hash or other user input. Static segments are pre-escaped via #escapeRegex.
     this.#regex = new RegExp(`^${pattern}/?$`);
     this.#page = page;
   }

@@ -73,10 +73,10 @@ export default function GameFaction({ ControllerClass = GameFactionController })
 
   return (
     <>
-      {FactionDetailHelper.render(
-        faction, backHref, editHref, canEdit, canUploadPhoto, () => setShowUploadModal(true),
-        gameSlug, refreshToken, () => setShowRecruitModal(true),
-      )}
+      {FactionDetailHelper.render(faction, backHref, editHref, canEdit, canUploadPhoto, gameSlug, refreshToken, {
+        onUploadClick: () => setShowUploadModal(true),
+        onRecruitClick: () => setShowRecruitModal(true),
+      })}
       <PhotoUploadModal
         show={showUploadModal}
         uploadPath={uploadPath}

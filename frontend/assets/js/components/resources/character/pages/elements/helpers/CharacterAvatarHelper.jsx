@@ -47,8 +47,10 @@ export default class CharacterAvatarHelper {
         onClick={handlers.onOpenUploadModal}
         grayscale={resolveCharacterSlain(character)}
         dimmed={!character.is_pc && Boolean(character.hidden)}
-        secondaryButtons={CharacterAvatarHelper.#buildSecondaryButtons(character, handlers)}
-        infoBarItems={InfoBarRules.build(character)}
+        overlayItems={{
+          secondaryButtons: CharacterAvatarHelper.#buildSecondaryButtons(character, handlers),
+          infoBarItems: InfoBarRules.build(character),
+        }}
       />
     );
 

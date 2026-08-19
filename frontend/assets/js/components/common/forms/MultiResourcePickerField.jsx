@@ -29,14 +29,16 @@ export function appendResourcePick(value, item) {
  * reusing the same `{id, name}`-keyed badge rendering as-is.
  *
  * @param {object} props - Component props.
- * @param {string} [props.resource] - Resource name to search (e.g. `'source'`, `'collection'`).
- *   Ignored when `values` is given.
- * @param {number} [props.maxEntries] - Maximum results fetched per search. Ignored when `values`
- *   is given.
- * @param {string[]} [props.values] - Constant list of raw `db_value`s to pick from, switching
- *   this field into constant mode.
- * @param {Function} [props.translateOption] - `(value) => label string` for each `values` entry.
- *   Required when `values` is given.
+ * @param {object} props.picker - Search configuration, in either API mode
+ *   (`resource`/`maxEntries`) or constant mode (`values`/`translateOption`).
+ * @param {string} [props.picker.resource] - Resource name to search (e.g. `'source'`,
+ *   `'collection'`). Ignored when `values` is given.
+ * @param {number} [props.picker.maxEntries] - Maximum results fetched per search. Ignored when
+ *   `values` is given.
+ * @param {string[]} [props.picker.values] - Constant list of raw `db_value`s to pick from,
+ *   switching this field into constant mode.
+ * @param {Function} [props.picker.translateOption] - `(value) => label string` for each `values`
+ *   entry. Required when `values` is given.
  * @param {{id: number|string, name: string}[]} props.value - Current selection.
  * @param {Function} props.onChange - Called with the new selection array on pick/remove.
  * @param {string} props.label - Translated field label.
@@ -45,9 +47,10 @@ export function appendResourcePick(value, item) {
  * @returns {React.ReactElement} Rendered multi resource picker field.
  */
 export default function MultiResourcePickerField({
-  resource, maxEntries, values, translateOption, value, onChange, label, searchPlaceholder,
-  removeLabel,
+  picker, value, onChange, label, searchPlaceholder, removeLabel,
 }) {
+  const { resource, maxEntries, values, translateOption } = picker;
+
   return (
     <div className="mb-3">
       <span className="form-label d-block">{label}</span>
