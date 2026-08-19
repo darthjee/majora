@@ -1,6 +1,7 @@
 import AuthClient from '../../../../client/AuthClient.js';
 import AuthEvents from '../../../../utils/auth/AuthEvents.js';
 import AuthStorage from '../../../../utils/auth/AuthStorage.js';
+import Translator from '../../../../i18n/Translator.js';
 import Noop from '../../../../utils/Noop.js';
 import HashRouteResolver from '../../../../utils/routing/HashRouteResolver.js';
 import HeaderRouteResolver from './HeaderRouteResolver.js';
@@ -115,6 +116,10 @@ export default class HeaderController {
 
       const data = await response.json();
 
+      if (data.token) {
+        AuthStorage.setToken(data.token);
+      }
+
       if (data.cache_token) {
         AuthStorage.setCacheToken(data.cache_token);
       }
@@ -127,11 +132,27 @@ export default class HeaderController {
       this.setIsStaff(isStaff);
       this.setPendingApproval?.(Boolean(data.status === 'pending'));
       AuthEvents.emit(Boolean(data.logged_in));
+      this.#applyLanguagePreference(data);
 
       return { isSuperUser, isStaff };
     } catch {
       // Ignore status check failures; default unauthenticated state remains.
       return HeaderController.#defaultAdminFlags();
+    }
+  }
+
+  /**
+   * Applies the favorite language preference from a status response, when
+   * present and different from the current translator language.
+   *
+   * @param {{settings: ({favorite_language: string}|undefined)}} data - status response payload.
+   * @returns {void}
+   */
+  #applyLanguagePreference(data) {
+    const favoriteLanguage = data.settings?.favorite_language;
+
+    if (favoriteLanguage && favoriteLanguage !== Translator.getLanguage()) {
+      Translator.setLanguage(favoriteLanguage);
     }
   }
 
