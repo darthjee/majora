@@ -11,7 +11,7 @@ import PlayerSlainConfirmController from './elements/controllers/PlayerSlainConf
 import FacadeRefresh from '../../../../utils/access/useFacadeRefresh.js';
 import resourceConfig from '../../../../utils/requests/resourceConfig.js';
 import getCurrentHash from '../../../../utils/routing/currentHash.js';
-import buildFilterQueryHash from '../../../../utils/routing/buildFilteredHref.js';
+import useFilterHandlers from './shared/hooks/useFilterHandlers.js';
 
 const PATTERN = '/games/:game_slug/npcs';
 
@@ -66,25 +66,50 @@ function usePlayerSlainTogglePair(refresh) {
 }
 
 /**
- * Game Non-Player Characters index page.
+ * Private hook bundling the NPC list photo-upload modal's `uploadTarget` state together with
+ * its success handler and its own `PhotoUploadModal` element, deriving the upload path from
+ * `resourceConfig` for the current target — kept local, rather than promoted to a shared hook,
+ * since `GameNpcNew.jsx`'s deferred-upload variant derives its path differently.
  *
- * @returns {React.ReactElement} Game NPCs page element.
+ * @param {string} gameSlug - Game slug the NPCs belong to.
+ * @param {Function} refresh - Called to re-trigger the NPC list fetch after a successful upload.
+ * @returns {{uploadTarget: object|null, setUploadTarget: Function, modal: React.ReactElement}}
+ *   `uploadTarget`/`setUploadTarget` — the NPC currently targeted by the upload modal, or
+ *   `null`; `modal` — the `PhotoUploadModal` element, already wired to this state.
  */
-export default function GameNpcs() {
+function useNpcUploadModal(gameSlug, refresh) {
+  const [uploadTarget, setUploadTarget] = useState(null);
+
+  const handleUploadSuccess = () => {
+    setUploadTarget(null);
+    refresh();
+  };
+
+  const modal = (
+    <PhotoUploadModal
+      show={uploadTarget !== null}
+      uploadPath={resourceConfig.get('POST', 'npc', 'single').regular.path({ gameSlug, id: uploadTarget?.id })}
+      onClose={() => setUploadTarget(null)}
+      onSuccess={handleUploadSuccess}
+    />
+  );
+
+  return { uploadTarget, setUploadTarget, modal };
+}
+
+/**
+ * Private hook bundling the NPC list's DM/player access state (`canEdit`/`isPlayer`/
+ * `canCreateNpc`) together with the access controller wiring (initial-load effect and facade
+ * refresh subscription).
+ *
+ * @param {string} gameSlug - Game slug the NPCs belong to.
+ * @returns {{canEdit: boolean, setCanEdit: Function, isPlayer: boolean, canCreateNpc: boolean}}
+ *   Access state, with `setCanEdit` exposed for `GameCharactersHelper`'s own detection.
+ */
+function useGameNpcsAccess(gameSlug) {
   const [canEdit, setCanEdit] = useState(false);
   const [isPlayer, setIsPlayer] = useState(false);
   const [canCreateNpc, setCanCreateNpc] = useState(false);
-  const [uploadTarget, setUploadTarget] = useState(null);
-  const [refreshToken, setRefreshToken] = useState(0);
-
-  const currentHash = getCurrentHash();
-  const gameSlug = BasePageController.extractParam(PATTERN, 'game_slug', currentHash);
-  const basePath = `#/games/${gameSlug}/npcs`;
-  const backHref = `#/games/${gameSlug}`;
-  const newHref = `#/games/${gameSlug}/npcs/new`;
-  const activeFilters = Object.fromEntries(new HashRouteResolver().getFilterParams());
-
-  const refresh = () => setRefreshToken((token) => token + 1);
 
   const accessController = useMemo(
     () => new GameNpcsAccessController(gameSlug, setIsPlayer, setCanCreateNpc),
@@ -94,55 +119,54 @@ export default function GameNpcs() {
   useEffect(() => accessController.buildEffect()(), [accessController]);
   FacadeRefresh.useFacadeRefresh(accessController);
 
-  const slain = useSlainTogglePair('private_slain', refresh);
-  const publicSlain = useSlainTogglePair('public_slain', refresh);
-  const playerSlain = usePlayerSlainTogglePair(refresh);
-
-  const handleUploadSuccess = () => {
-    setUploadTarget(null);
-    refresh();
+  return {
+    canEdit, setCanEdit, isPlayer, canCreateNpc,
   };
+}
 
-  const handleFilterQuery = (filters) => {
-    window.location.hash = buildFilterQueryHash(basePath, filters);
-    refresh();
+/**
+ * Builds the handlers object passed into {@link GameCharactersHelper#render}.
+ *
+ * @param {object} params - Handler-building params.
+ * @param {Function} params.setCanEdit - `useGameNpcsAccess()`'s `setCanEdit` setter.
+ * @param {object} params.uploadModal - `useNpcUploadModal()` result.
+ * @param {object} params.slain - `useSlainTogglePair('private_slain', refresh)` result.
+ * @param {object} params.publicSlain - `useSlainTogglePair('public_slain', refresh)` result.
+ * @param {object} params.playerSlain - `usePlayerSlainTogglePair(refresh)` result.
+ * @param {Function} params.onFilterQuery - `useFilterHandlers()`'s `onFilterQuery`.
+ * @param {Function} params.onFilterClear - `useFilterHandlers()`'s `onFilterClear`.
+ * @returns {object} Handlers object for `GameCharactersHelper.render`.
+ */
+function buildGameNpcsHandlers({
+  setCanEdit, uploadModal, slain, publicSlain, playerSlain, onFilterQuery, onFilterClear,
+}) {
+  return {
+    onCanEditChange: setCanEdit,
+    onUploadClick: uploadModal.setUploadTarget,
+    onSlainClick: slain.setTarget,
+    onPublicSlainClick: publicSlain.setTarget,
+    onPlayerSlainClick: playerSlain.setTarget,
+    onFilterQuery,
+    onFilterClear,
   };
+}
 
-  const handleFilterClear = () => {
-    window.location.hash = basePath;
-    refresh();
-  };
-
+/**
+ * Renders the three slain-confirmation modals (private, public, and player-facing) for
+ * {@link GameNpcs}.
+ *
+ * @param {object} props - Component props.
+ * @param {object} props.slain - `useSlainTogglePair('private_slain', refresh)` result.
+ * @param {object} props.publicSlain - `useSlainTogglePair('public_slain', refresh)` result.
+ * @param {object} props.playerSlain - `usePlayerSlainTogglePair(refresh)` result.
+ * @param {string} props.gameSlug - Game slug the NPCs belong to.
+ * @returns {React.ReactElement} The three slain-confirmation modals.
+ */
+function NpcSlainModals({
+  slain, publicSlain, playerSlain, gameSlug,
+}) {
   return (
     <>
-      {GameCharactersHelper.render(
-        {
-          gameSlug,
-          basePath,
-          backHref,
-          newHref,
-          canEdit,
-          canCreateNpc,
-          isPlayer,
-          refreshToken,
-          activeFilters,
-        },
-        {
-          onCanEditChange: setCanEdit,
-          onUploadClick: setUploadTarget,
-          onSlainClick: slain.setTarget,
-          onPublicSlainClick: publicSlain.setTarget,
-          onPlayerSlainClick: playerSlain.setTarget,
-          onFilterQuery: handleFilterQuery,
-          onFilterClear: handleFilterClear,
-        },
-      )}
-      <PhotoUploadModal
-        show={uploadTarget !== null}
-        uploadPath={resourceConfig.get('POST', 'npc', 'single').regular.path({ gameSlug, id: uploadTarget?.id })}
-        onClose={() => setUploadTarget(null)}
-        onSuccess={handleUploadSuccess}
-      />
       <SlainConfirmModal
         show={slain.target !== null}
         slain={slain.target?.private_slain}
@@ -165,6 +189,63 @@ export default function GameNpcs() {
         onConfirm={() => playerSlain.playerSlainController.handleConfirm(
           gameSlug, playerSlain.target, AuthStorage.getToken(),
         )}
+      />
+    </>
+  );
+}
+
+/**
+ * Game Non-Player Characters index page.
+ *
+ * @returns {React.ReactElement} Game NPCs page element.
+ */
+export default function GameNpcs() {
+  const [refreshToken, setRefreshToken] = useState(0);
+
+  const currentHash = getCurrentHash();
+  const gameSlug = BasePageController.extractParam(PATTERN, 'game_slug', currentHash);
+  const basePath = `#/games/${gameSlug}/npcs`;
+  const backHref = `#/games/${gameSlug}`;
+  const newHref = `#/games/${gameSlug}/npcs/new`;
+  const activeFilters = Object.fromEntries(new HashRouteResolver().getFilterParams());
+
+  const refresh = () => setRefreshToken((token) => token + 1);
+
+  const {
+    canEdit, setCanEdit, isPlayer, canCreateNpc,
+  } = useGameNpcsAccess(gameSlug);
+  const slain = useSlainTogglePair('private_slain', refresh);
+  const publicSlain = useSlainTogglePair('public_slain', refresh);
+  const playerSlain = usePlayerSlainTogglePair(refresh);
+  const uploadModal = useNpcUploadModal(gameSlug, refresh);
+  const { onFilterQuery, onFilterClear } = useFilterHandlers(basePath, refresh);
+
+  const handlers = buildGameNpcsHandlers({
+    setCanEdit, uploadModal, slain, publicSlain, playerSlain, onFilterQuery, onFilterClear,
+  });
+
+  return (
+    <>
+      {GameCharactersHelper.render(
+        {
+          gameSlug,
+          basePath,
+          backHref,
+          newHref,
+          canEdit,
+          canCreateNpc,
+          isPlayer,
+          refreshToken,
+          activeFilters,
+        },
+        handlers,
+      )}
+      {uploadModal.modal}
+      <NpcSlainModals
+        slain={slain}
+        publicSlain={publicSlain}
+        playerSlain={playerSlain}
+        gameSlug={gameSlug}
       />
     </>
   );
