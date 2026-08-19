@@ -46,5 +46,25 @@ describe('HeaderHelper', function() {
         expect(html).not.toContain('href="#/staff/dashboard"');
       });
     });
+
+    describe('nav dropdown group order', function() {
+      it('renders Miniatures, Admin, Game, then PC dropdowns in that fixed order', function() {
+        const html = render({
+          loggedIn: true,
+          isSuperUser: true,
+          route: { page: 'pcCharacterShow', gameSlug: 'epic-quest', characterId: '7' },
+        });
+
+        const miniaturesIndex = html.indexOf('header-miniatures-nav-dropdown');
+        const adminIndex = html.indexOf('header-admin-nav-dropdown');
+        const gameIndex = html.indexOf('header-game-nav-dropdown');
+        const pcIndex = html.indexOf('header-pc-nav-dropdown');
+
+        expect(miniaturesIndex).toBeGreaterThan(-1);
+        expect(adminIndex).toBeGreaterThan(miniaturesIndex);
+        expect(gameIndex).toBeGreaterThan(adminIndex);
+        expect(pcIndex).toBeGreaterThan(gameIndex);
+      });
+    });
   });
 });
