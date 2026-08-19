@@ -16,7 +16,7 @@
  */
 
 return [
-    // games entity family — the game's own cover photo upload. GameListSerializer
+    // Games entity family — the game's own cover photo upload. GameListSerializer
     // (used by both games.json and my-games.json) embeds photo_path, so both
     // list endpoints need to be cleared alongside the game's own detail.
     [

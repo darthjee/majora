@@ -8,7 +8,7 @@
 use Tent\Configuration;
 
 if (getenv('FRONTEND_DEV_MODE') === 'true') {
-    // Development mode: forward to the Vite server (HMR)
+    // Development mode: forward to the Vite server (HMR).
     Configuration::buildRule(
         [
         'handler' => [
@@ -27,7 +27,7 @@ if (getenv('FRONTEND_DEV_MODE') === 'true') {
         ]
     );
 } else {
-    // Production mode: serve static files from docker_volumes/static/
+    // Production mode: serve static files from docker_volumes/static/.
     Configuration::buildRule(
         [
         'handler' => [

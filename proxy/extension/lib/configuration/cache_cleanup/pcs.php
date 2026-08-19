@@ -26,7 +26,7 @@ $pcsEntityTargets = [
 ];
 
 return [
-    // pcs entity family — routes mutating a single PC.
+    // Pcs entity family — routes mutating a single PC.
     [
         'targets' => $pcsEntityTargets,
         'routes' => [

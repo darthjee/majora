@@ -17,7 +17,7 @@
  */
 
 return [
-    // items entity family — routes mutating a single GameItem.
+    // Items entity family — routes mutating a single GameItem.
     [
         'targets' => [
             '/games/:game_slug/items.json',
@@ -30,7 +30,7 @@ return [
             '/games/:game_slug/items/:item_id/photo_upload.json',
         ],
     ],
-    // pcs items — a PC's item detail/photo-upload route.
+    // Pcs items — a PC's item detail/photo-upload route.
     [
         'targets' => [
             '/games/:game_slug/pcs/:character_id/items.json',
@@ -43,7 +43,7 @@ return [
             '/games/:game_slug/pcs/:character_id/items/:item_id/photo_upload.json',
         ],
     ],
-    // pcs items acquire/remove (single and bulk) — clears the PC's items list.
+    // Pcs items acquire/remove (single and bulk) — clears the PC's items list.
     [
         'targets' => [
             '/games/:game_slug/pcs/:character_id/items.json',
@@ -56,7 +56,7 @@ return [
             '/games/:game_slug/pcs/:character_id/items/remove/all.json',
         ],
     ],
-    // npcs items — an NPC's item detail/photo-upload route.
+    // Npcs items — an NPC's item detail/photo-upload route.
     [
         'targets' => [
             '/games/:game_slug/npcs/:character_id/items.json',
@@ -69,7 +69,7 @@ return [
             '/games/:game_slug/npcs/:character_id/items/:item_id/photo_upload.json',
         ],
     ],
-    // npcs items acquire/remove (single and bulk) — clears the NPC's items list.
+    // Npcs items acquire/remove (single and bulk) — clears the NPC's items list.
     [
         'targets' => [
             '/games/:game_slug/npcs/:character_id/items.json',
