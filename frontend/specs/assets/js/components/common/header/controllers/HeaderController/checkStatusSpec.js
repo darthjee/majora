@@ -1,6 +1,5 @@
 import AuthEvents from '../../../../../../../../assets/js/utils/auth/AuthEvents.js';
 import AuthStorage from '../../../../../../../../assets/js/utils/auth/AuthStorage.js';
-import Translator from '../../../../../../../../assets/js/i18n/Translator.js';
 import { buildContext, buildHeaderController } from './support.js';
 
 describe('HeaderController', function() {
@@ -15,26 +14,22 @@ describe('HeaderController', function() {
     controller = buildController();
   });
 
-  afterEach(function() {
-    Translator.setLanguage('en');
-  });
-
   describe('#checkStatus', function() {
-    it('sets loggedIn and emits auth:changed using the status response', async function() {
+    it('sets loggedIn and emits auth:changed using the header-status response', async function() {
       spyOn(AuthEvents, 'emit');
       spyOn(AuthStorage, 'getToken').and.returnValue('tok-123');
-      client.status.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve({ logged_in: true, username: 'majora-user' }) }));
+      client.headerStatus.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve({ logged_in: true }) }));
 
       await controller.checkStatus();
 
-      expect(client.status).toHaveBeenCalledWith('tok-123');
+      expect(client.headerStatus).toHaveBeenCalledWith('tok-123');
       expect(setLoggedIn).toHaveBeenCalledWith(true);
       expect(AuthEvents.emit).toHaveBeenCalledWith(true);
     });
 
-    it('calls setIsSuperUser with the superuser flag from the status response', async function() {
+    it('calls setIsSuperUser with the superuser flag from the response', async function() {
       spyOn(AuthStorage, 'getToken').and.returnValue('tok-123');
-      client.status.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve({ logged_in: true, is_superuser: true }) }));
+      client.headerStatus.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve({ logged_in: true, is_superuser: true }) }));
 
       await controller.checkStatus();
 
@@ -43,34 +38,16 @@ describe('HeaderController', function() {
 
     it('calls setIsSuperUser with false when is_superuser is absent', async function() {
       spyOn(AuthStorage, 'getToken').and.returnValue('tok-123');
-      client.status.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve({ logged_in: false }) }));
+      client.headerStatus.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve({ logged_in: false }) }));
 
       await controller.checkStatus();
 
       expect(setIsSuperUser).toHaveBeenCalledWith(false);
     });
 
-    it('stores the token from the status response when present', async function() {
-      spyOn(AuthStorage, 'setToken');
-      client.status.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve({ logged_in: true, token: 'new-tok-456' }) }));
-
-      await controller.checkStatus();
-
-      expect(AuthStorage.setToken).toHaveBeenCalledWith('new-tok-456');
-    });
-
-    it('does not call setToken when the status response has no token field', async function() {
-      spyOn(AuthStorage, 'setToken');
-      client.status.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve({ logged_in: true }) }));
-
-      await controller.checkStatus();
-
-      expect(AuthStorage.setToken).not.toHaveBeenCalled();
-    });
-
-    it('stores the cache token from the status response when present', async function() {
+    it('stores the cache token from the response when present', async function() {
       spyOn(AuthStorage, 'setCacheToken');
-      client.status.and.returnValue(Promise.resolve({
+      client.headerStatus.and.returnValue(Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ logged_in: true, cache_token: 'new-cache-tok-456' }),
       }));
@@ -80,67 +57,51 @@ describe('HeaderController', function() {
       expect(AuthStorage.setCacheToken).toHaveBeenCalledWith('new-cache-tok-456');
     });
 
-    it('does not call setCacheToken when the status response has no cache_token field', async function() {
+    it('does not call setCacheToken when the response has no cache_token field', async function() {
       spyOn(AuthStorage, 'setCacheToken');
-      client.status.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve({ logged_in: true }) }));
+      client.headerStatus.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve({ logged_in: true }) }));
 
       await controller.checkStatus();
 
       expect(AuthStorage.setCacheToken).not.toHaveBeenCalled();
     });
 
-    it('does nothing when the status response is not ok', async function() {
-      client.status.and.returnValue(Promise.resolve({ ok: false }));
+    it('does nothing when the response is not ok', async function() {
+      client.headerStatus.and.returnValue(Promise.resolve({ ok: false }));
 
       await controller.checkStatus();
 
       expect(setLoggedIn).not.toHaveBeenCalled();
+    });
+
+    it('returns the fail-closed default admin flags when the response is not ok', async function() {
+      client.headerStatus.and.returnValue(Promise.resolve({ ok: false }));
+
+      const result = await controller.checkStatus();
+
+      expect(result).toEqual({ isSuperUser: false, isStaff: false });
     });
 
     it('swallows unexpected errors', async function() {
-      client.status.and.returnValue(Promise.reject(new Error('network')));
+      client.headerStatus.and.returnValue(Promise.reject(new Error('network')));
 
       await controller.checkStatus();
 
       expect(setLoggedIn).not.toHaveBeenCalled();
     });
 
-    it('applies the favorite language from settings when different from the current one', async function() {
-      spyOn(AuthStorage, 'getToken').and.returnValue('tok-123');
-      spyOn(Translator, 'getLanguage').and.returnValue('en');
-      spyOn(Translator, 'setLanguage');
-      client.status.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve({ logged_in: true, settings: { favorite_language: 'fr' } }) }));
+    it('returns the fail-closed default admin flags when the request throws', async function() {
+      client.headerStatus.and.returnValue(Promise.reject(new Error('network')));
 
-      await controller.checkStatus();
+      const result = await controller.checkStatus();
 
-      expect(Translator.setLanguage).toHaveBeenCalledWith('fr');
+      expect(result).toEqual({ isSuperUser: false, isStaff: false });
     });
 
-    it('does not apply the favorite language when it matches the current one', async function() {
-      spyOn(AuthStorage, 'getToken').and.returnValue('tok-123');
-      spyOn(Translator, 'getLanguage').and.returnValue('en');
-      spyOn(Translator, 'setLanguage');
-      client.status.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve({ logged_in: true, settings: { favorite_language: 'en' } }) }));
-
-      await controller.checkStatus();
-
-      expect(Translator.setLanguage).not.toHaveBeenCalled();
-    });
-
-    it('does not apply a language when settings are absent', async function() {
-      spyOn(AuthStorage, 'getToken').and.returnValue('tok-123');
-      spyOn(Translator, 'setLanguage');
-      client.status.and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve({ logged_in: false }) }));
-
-      await controller.checkStatus();
-
-      expect(Translator.setLanguage).not.toHaveBeenCalled();
-    });
-
-    it('calls setIsStaff with the staff flag from the status response', async function() {
+    it('calls setIsStaff with the staff flag from the response', async function() {
       const setIsStaff = jasmine.createSpy('setIsStaff');
       spyOn(AuthStorage, 'getToken').and.returnValue('tok-123');
-      client.status.and.returnValue(Promise.resolve({
+      client.headerStatus.and.returnValue(Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ logged_in: true, is_staff: true }),
       }));
@@ -153,7 +114,7 @@ describe('HeaderController', function() {
     it('calls setIsStaff with false when is_staff is absent', async function() {
       const setIsStaff = jasmine.createSpy('setIsStaff');
       spyOn(AuthStorage, 'getToken').and.returnValue('tok-123');
-      client.status.and.returnValue(Promise.resolve({
+      client.headerStatus.and.returnValue(Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ logged_in: false }),
       }));
@@ -166,7 +127,7 @@ describe('HeaderController', function() {
     it('calls setPendingApproval with true when status is pending', async function() {
       const setPendingApproval = jasmine.createSpy('setPendingApproval');
       spyOn(AuthStorage, 'getToken').and.returnValue('tok-123');
-      client.status.and.returnValue(Promise.resolve({
+      client.headerStatus.and.returnValue(Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ logged_in: false, status: 'pending' }),
       }));
@@ -179,7 +140,7 @@ describe('HeaderController', function() {
     it('calls setPendingApproval with false when status is absent', async function() {
       const setPendingApproval = jasmine.createSpy('setPendingApproval');
       spyOn(AuthStorage, 'getToken').and.returnValue('tok-123');
-      client.status.and.returnValue(Promise.resolve({
+      client.headerStatus.and.returnValue(Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ logged_in: true }),
       }));
@@ -187,6 +148,19 @@ describe('HeaderController', function() {
       await buildController({ setPendingApproval }).checkStatus();
 
       expect(setPendingApproval).toHaveBeenCalledWith(false);
+    });
+
+    it('resolves the isSuperUser/isStaff flags for callers deriving canViewAs', async function() {
+      const setIsStaff = jasmine.createSpy('setIsStaff');
+      spyOn(AuthStorage, 'getToken').and.returnValue('tok-123');
+      client.headerStatus.and.returnValue(Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ logged_in: true, is_superuser: false, is_staff: true }),
+      }));
+
+      const result = await buildController({ setIsStaff }).checkStatus();
+
+      expect(result).toEqual({ isSuperUser: false, isStaff: true });
     });
   });
 

@@ -1,5 +1,3 @@
-import AccessStore from '../../../../utils/access/store/AccessStore.js';
-
 /**
  * Manages the header's "view as" button visibility (gated on the real,
  * facade-independent admin/staff check) and the facade modal's open state.
@@ -13,25 +11,23 @@ export default class HeaderViewAsController {
    *
    * @param {Function} setCanViewAs - state setter for the "view as" button visibility.
    * @param {Function} setShowViewAsModal - state setter for the "view as" modal visibility.
-   * @param {typeof AccessStore} [accessStore] - store used for the real admin/staff check.
    */
-  constructor(setCanViewAs, setShowViewAsModal, accessStore = AccessStore) {
+  constructor(setCanViewAs, setShowViewAsModal) {
     this.setCanViewAs = setCanViewAs;
     this.setShowViewAsModal = setShowViewAsModal;
-    this.accessStore = accessStore;
   }
 
   /**
    * Refreshes the header's "view as" button visibility from the real,
-   * facade-independent admin/staff check (unaffected by any active "view as"
-   * facade).
+   * facade-independent admin/staff flags already resolved by
+   * `HeaderController#checkStatus` (unaffected by any active "view as" facade).
    *
-   * @returns {Promise<void>} resolves when the check settles.
+   * @param {boolean} isSuperUser - Whether the real (non-facade) identity is a superuser.
+   * @param {boolean} isStaff - Whether the real (non-facade) identity is staff.
+   * @returns {Promise<void>} resolves once the derived availability is applied.
    */
-  async checkAvailability() {
-    const result = await this.accessStore.isReallyAdminOrStaff();
-
-    this.setCanViewAs(Boolean(result));
+  async checkAvailability(isSuperUser, isStaff) {
+    this.setCanViewAs(Boolean(isSuperUser || isStaff));
   }
 
   /**

@@ -23,6 +23,18 @@ describe('BaseClient', function() {
     }));
   });
 
+  it('adds X-Skip-Cache to the header-status endpoint', async function() {
+    await client.request('/users/header_status.json', {
+      headers: { Accept: 'application/json' },
+    });
+
+    expect(fetchSpy).toHaveBeenCalledWith('/users/header_status.json', jasmine.objectContaining({
+      method: 'GET',
+      headers: { Accept: 'application/json', 'X-Skip-Cache': 'true' },
+      body: undefined,
+    }));
+  });
+
   it('does not add X-Skip-Cache to a non-configured endpoint', async function() {
     await client.request('/some/other.json', {
       method: 'GET',

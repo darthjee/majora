@@ -1,7 +1,6 @@
 import AuthClient from '../../../../client/AuthClient.js';
 import AuthEvents from '../../../../utils/auth/AuthEvents.js';
 import AuthStorage from '../../../../utils/auth/AuthStorage.js';
-import Translator from '../../../../i18n/Translator.js';
 import Noop from '../../../../utils/Noop.js';
 import HashRouteResolver from '../../../../utils/routing/HashRouteResolver.js';
 import HeaderRouteResolver from './HeaderRouteResolver.js';
@@ -38,7 +37,7 @@ export default class HeaderController {
    * @param {HashRouteResolver} [routeResolver] - resolver used to derive the current route.
    * @param {EventTarget} [eventTarget] - target used to listen for hash changes.
    * @param {Function} [setPendingApproval] - state setter for the "awaiting approval" flag
-   *   (issue #859), from `GET /users/status.json`'s `status: 'pending'` case. Left undefined
+   *   (issue #859), from `GET /users/header_status.json`'s `status: 'pending'` case. Left undefined
    *   by default (unlike every other setter above) to keep this constructor's complexity at the
    *   project's limit; `#checkStatus` calls it defensively via optional chaining instead.
    */
@@ -98,53 +97,52 @@ export default class HeaderController {
   }
 
   /**
-   * Checks the current authentication status using the stored token,
-   * updates local state, and emits the result.
+   * Checks the current authentication status using the stored token, via the
+   * header-scoped endpoint (`AuthClient#headerStatus`), updates local state,
+   * and emits the result.
    *
-   * @returns {Promise<void>} resolves when the status check finishes.
+   * @returns {Promise<{isSuperUser: boolean, isStaff: boolean}>} resolves with the
+   *   resolved `isSuperUser`/`isStaff` flags once the status check finishes (or the
+   *   fail-closed defaults, when the check fails), for callers deriving `canViewAs`.
    */
   async checkStatus() {
     try {
-      const response = await this.client.status(AuthStorage.getToken());
+      const response = await this.client.headerStatus(AuthStorage.getToken());
 
       if (!response.ok) {
-        return;
+        return HeaderController.#defaultAdminFlags();
       }
 
       const data = await response.json();
-
-      if (data.token) {
-        AuthStorage.setToken(data.token);
-      }
 
       if (data.cache_token) {
         AuthStorage.setCacheToken(data.cache_token);
       }
 
+      const isSuperUser = Boolean(data.is_superuser);
+      const isStaff = Boolean(data.is_staff);
+
       this.setLoggedIn(Boolean(data.logged_in));
-      this.setIsSuperUser(Boolean(data.is_superuser));
-      this.setIsStaff(Boolean(data.is_staff));
+      this.setIsSuperUser(isSuperUser);
+      this.setIsStaff(isStaff);
       this.setPendingApproval?.(Boolean(data.status === 'pending'));
       AuthEvents.emit(Boolean(data.logged_in));
-      this.#applyLanguagePreference(data);
+
+      return { isSuperUser, isStaff };
     } catch {
       // Ignore status check failures; default unauthenticated state remains.
+      return HeaderController.#defaultAdminFlags();
     }
   }
 
   /**
-   * Applies the favorite language preference from a status response, when
-   * present and different from the current translator language.
+   * Fail-closed default admin flags, returned by {@link checkStatus} whenever
+   * the status check does not resolve a real response (non-OK or thrown).
    *
-   * @param {{settings: ({favorite_language: string}|undefined)}} data - status response payload.
-   * @returns {void}
+   * @returns {{isSuperUser: boolean, isStaff: boolean}} both flags, false.
    */
-  #applyLanguagePreference(data) {
-    const favoriteLanguage = data.settings?.favorite_language;
-
-    if (favoriteLanguage && favoriteLanguage !== Translator.getLanguage()) {
-      Translator.setLanguage(favoriteLanguage);
-    }
+  static #defaultAdminFlags() {
+    return { isSuperUser: false, isStaff: false };
   }
 
   /**
@@ -235,8 +233,9 @@ export default class HeaderController {
    * @returns {Promise<void>} resolves when both checks settle.
    */
   async recheckAuthState(viewAsController) {
-    await this.checkStatus();
-    await viewAsController.checkAvailability();
+    const { isSuperUser, isStaff } = await this.checkStatus();
+
+    await viewAsController.checkAvailability(isSuperUser, isStaff);
   }
 
   /**

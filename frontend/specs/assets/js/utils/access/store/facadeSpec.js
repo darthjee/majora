@@ -107,17 +107,6 @@ describe('AccessStore', function() {
     });
   });
 
-  describe('#isReallyAdminOrStaff', function() {
-    it('delegates to #ensureStaffOrSuperUser, resolving the real (facade-independent) identity', async function() {
-      spyOn(AccessStore, 'ensureStaffOrSuperUser').and.returnValue(Promise.resolve(true));
-
-      const result = await AccessStore.isReallyAdminOrStaff();
-
-      expect(result).toBe(true);
-      expect(AccessStore.ensureStaffOrSuperUser).toHaveBeenCalled();
-    });
-  });
-
   describe('#syncForAuthChange', function() {
     it('resets the facade back to disabled/empty', function() {
       AccessStore.setFacade({ enabled: true, roles: ['dm'] });

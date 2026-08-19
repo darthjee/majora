@@ -12,7 +12,7 @@ export function buildContext() {
     setTestEmailStatus: jasmine.createSpy('setTestEmailStatus'),
     setIsSuperUser: jasmine.createSpy('setIsSuperUser'),
     client: {
-      status: jasmine.createSpy('status'),
+      headerStatus: jasmine.createSpy('headerStatus'),
       logout: jasmine.createSpy('logout'),
       sendTestEmail: jasmine.createSpy('sendTestEmail'),
       setLanguagePreference: jasmine.createSpy('setLanguagePreference'),

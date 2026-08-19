@@ -49,8 +49,10 @@ export default function Header({ children }) {
   const gameAccessController = new HeaderGameAccessController(setGameAccess);
 
   useEffect(() => {
-    controller.checkStatus();
-    viewAsController.checkAvailability();
+    controller.checkStatus().then(
+      ({ isSuperUser: resolvedIsSuperUser, isStaff: resolvedIsStaff }) => viewAsController
+        .checkAvailability(resolvedIsSuperUser, resolvedIsStaff)
+    );
 
     const handleAuthChanged = (event) => {
       const newLoggedIn = Boolean(event.detail?.loggedIn);
