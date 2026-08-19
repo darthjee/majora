@@ -110,7 +110,7 @@ class CacheClearHandler extends RequestHandler
             RecursiveIteratorIterator::CHILD_FIRST
         );
 
-        /** @var SplFileInfo $entry */
+        // @var SplFileInfo $entry
         foreach ($iterator as $entry) {
             $path = $entry->getPathname();
 

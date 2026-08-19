@@ -7,7 +7,7 @@
  */
 
 return [
-    // documents entity family — routes mutating a GameDocument or its files/photos.
+    // Documents entity family — routes mutating a GameDocument or its files/photos.
     [
         'targets' => [
             '/games/:game_slug/documents.json',
