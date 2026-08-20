@@ -30,6 +30,7 @@ export default function Header({ children }) {
   const [showViewAsModal, setShowViewAsModal] = useState(false);
   const [facadeEnabled, setFacadeEnabled] = useState(() => AccessStore.getFacade().enabled);
   const [pendingApproval, setPendingApproval] = useState(false);
+  const [domainConfig, setDomainConfig] = useState(null);
 
   const controller = new HeaderController(
     setLoggedIn,
@@ -41,7 +42,9 @@ export default function Header({ children }) {
     setRoute,
     undefined,
     undefined,
-    setPendingApproval
+    setPendingApproval,
+    undefined,
+    setDomainConfig
   );
   const viewAsController = new HeaderViewAsController(setCanViewAs, setShowViewAsModal);
   const gameAccessController = new HeaderGameAccessController(setGameAccess);
@@ -53,6 +56,10 @@ export default function Header({ children }) {
   useEffect(() => gameAccessController.buildEffect(route.gameSlug)(),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [route.gameSlug]);
+
+  useEffect(() => { controller.fetchDomainConfig(); },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []);
 
   return (
     <>
@@ -68,6 +75,7 @@ export default function Header({ children }) {
           canViewAs: canViewAs || Boolean(gameAccess.is_dm),
           showViewAsModal,
           facadeEnabled,
+          domainConfig,
         },
         controller.buildHandlers(viewAsController, loggedIn)
       )}

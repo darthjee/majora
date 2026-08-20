@@ -1,4 +1,5 @@
 import AuthClient from '../../../../client/AuthClient.js';
+import DomainClient from '../../../../client/DomainClient.js';
 import AuthEvents from '../../../../utils/auth/AuthEvents.js';
 import AuthStorage from '../../../../utils/auth/AuthStorage.js';
 import Translator from '../../../../i18n/Translator.js';
@@ -41,6 +42,10 @@ export default class HeaderController {
    *   (issue #859), from `GET /users/header_status.json`'s `status: 'pending'` case. Left undefined
    *   by default (unlike every other setter above) to keep this constructor's complexity at the
    *   project's limit; `#checkStatus` calls it defensively via optional chaining instead.
+   * @param {DomainClient} [domainClient] - HTTP client used for the domain-configuration request.
+   * @param {Function} [setDomainConfig] - state setter for the resolved `{favicon, title,
+   *   subTitle}` domain configuration (issue #759). Left undefined by default, same reasoning
+   *   as `setPendingApproval`; `fetchDomainConfig` calls it defensively via optional chaining.
    */
   constructor(
     setLoggedIn,
@@ -52,7 +57,9 @@ export default class HeaderController {
     setRoute = Noop.noop,
     routeResolver = new HashRouteResolver(),
     eventTarget = HeaderController.#defaultEventTarget(),
-    setPendingApproval
+    setPendingApproval,
+    domainClient = new DomainClient(),
+    setDomainConfig
   ) {
     this.setLoggedIn = setLoggedIn;
     this.setShowModal = setShowModal;
@@ -64,6 +71,8 @@ export default class HeaderController {
     this.routeResolver = routeResolver;
     this.eventTarget = eventTarget;
     this.setPendingApproval = setPendingApproval;
+    this.domainClient = domainClient;
+    this.setDomainConfig = setDomainConfig;
   }
 
   /**
@@ -164,6 +173,35 @@ export default class HeaderController {
    */
   static #defaultAdminFlags() {
     return { isSuperUser: false, isStaff: false };
+  }
+
+  /**
+   * Fetches the current domain group's configuration (favicon/title/sub-title
+   * overrides, resolved server-side from the request's host) and stores the
+   * resolved values via `setDomainConfig`. Failures (non-OK response or a
+   * thrown error) are swallowed silently, leaving the header's already-set
+   * defaults untouched.
+   *
+   * @returns {Promise<void>} resolves once the request settles.
+   */
+  async fetchDomainConfig() {
+    try {
+      const response = await this.domainClient.config();
+
+      if (!response.ok) {
+        return;
+      }
+
+      const data = await response.json();
+
+      this.setDomainConfig?.({
+        favicon: data.favicon ?? null,
+        title: data.title,
+        subTitle: data.sub_title,
+      });
+    } catch {
+      // Ignore domain config fetch failures; header keeps its default title/sub-title.
+    }
   }
 
   /**
