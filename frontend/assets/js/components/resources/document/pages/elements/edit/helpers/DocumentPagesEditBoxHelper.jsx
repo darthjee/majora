@@ -1,6 +1,6 @@
 import React from 'react';
 import MarkdownEditor from '../../../../../../common/forms/MarkdownEditor.jsx';
-import PagesSplitter from '../../../../../../../utils/PagesSplitter.js';
+import PagesSplitter, { PAGE_WARNING_THRESHOLD } from '../../../../../../../utils/PagesSplitter.js';
 import Translator from '../../../../../../../i18n/Translator.js';
 
 /**
@@ -16,14 +16,17 @@ export default class DocumentPagesEditBoxHelper {
    *   the "Edit" affordance renders only when true; `null` is returned instead when false and no
    *   edit is already in progress.
    * @param {{onEdit: Function, onCancel: Function, onChange: Function}} handlers - Event handlers.
+   * @param {string} gameSlug - Game slug the document belongs to, used to link the counter to
+   *   the document's show page (issue #1138) once past the warning threshold.
+   * @param {number|string} id - `GameDocument` id, used for the same link.
    * @returns {React.ReactElement|null} Rendered pages editor, or `null`.
    */
-  static render(state, canEditPages, handlers) {
+  static render(state, canEditPages, handlers, gameSlug, id) {
     if (!state.editMode) {
       return canEditPages ? DocumentPagesEditBoxHelper.#renderEditAffordance(state, handlers) : null;
     }
 
-    return DocumentPagesEditBoxHelper.#renderEditor(state, handlers);
+    return DocumentPagesEditBoxHelper.#renderEditor(state, handlers, gameSlug, id);
   }
 
   static #renderEditAffordance(state, handlers) {
@@ -41,14 +44,13 @@ export default class DocumentPagesEditBoxHelper {
     );
   }
 
-  static #renderEditor(state, handlers) {
+  static #renderEditor(state, handlers, gameSlug, id) {
+    const pageCount = DocumentPagesEditBoxHelper.#pageCount(state.value);
+
     return (
       <div className="mt-4">
         <div className="d-flex justify-content-end mb-1">
-          <span className="text-muted">
-            {Translator.t('document_edit_page.pages_count')
-              .replace('{{count}}', DocumentPagesEditBoxHelper.#pageCount(state.value))}
-          </span>
+          {DocumentPagesEditBoxHelper.#renderPageCount(pageCount, gameSlug, id)}
         </div>
         <MarkdownEditor
           id="document-pages-edit"
@@ -60,6 +62,27 @@ export default class DocumentPagesEditBoxHelper {
           {Translator.t('document_edit_page.cancel')}
         </button>
       </div>
+    );
+  }
+
+  static #renderPageCount(pageCount, gameSlug, id) {
+    const label = Translator.t('document_edit_page.pages_count').replace('{{count}}', pageCount);
+
+    if (pageCount < PAGE_WARNING_THRESHOLD) {
+      return <span className="text-muted">{label}</span>;
+    }
+
+    const hint = Translator.t('document_edit_page.pages_count_warning_hint');
+
+    return (
+      <a
+        href={`#/games/${gameSlug}/documents/${id}`}
+        className="text-warning fw-bold"
+        title={hint}
+        aria-label={hint}
+      >
+        {label}
+      </a>
     );
   }
 

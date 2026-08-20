@@ -1,5 +1,21 @@
 import PagesSplitter from '../../../../assets/js/utils/PagesSplitter.js';
 
+const MODULE_PATH = '../../../../assets/js/utils/PagesSplitter.js';
+
+/**
+ * @description Imports a fresh copy of the `PagesSplitter` module, forcing Node to re-evaluate
+ *   its top-level module code (and thus re-read the current
+ *   `VITE_DOCUMENT_PAGE_WARNING_THRESHOLD`) instead of returning an already-cached module.
+ * @returns {Promise<number>} The freshly-loaded `PAGE_WARNING_THRESHOLD` value.
+ */
+async function freshPageWarningThreshold() {
+  // MODULE_PATH is a fixed local constant; only the cache-busting query string (?spec=...) is
+  // dynamic, and it never comes from external/user input.
+  // eslint-disable-next-line no-unsanitized/method
+  const loaded = await import(`${MODULE_PATH}?spec=${Date.now()}-${Math.random()}`);
+  return loaded.PAGE_WARNING_THRESHOLD;
+}
+
 describe('PagesSplitter', function() {
   describe('.split', function() {
     it('returns an empty array for empty content', function() {
@@ -86,6 +102,42 @@ describe('PagesSplitter', function() {
 
     it('exposes the default character budget', function() {
       expect(PagesSplitter.BUDGET).toBeGreaterThan(0);
+    });
+  });
+
+  describe('PAGE_WARNING_THRESHOLD', function() {
+    const originalThreshold = process.env.VITE_DOCUMENT_PAGE_WARNING_THRESHOLD;
+
+    afterEach(function() {
+      if (originalThreshold === undefined) {
+        delete process.env.VITE_DOCUMENT_PAGE_WARNING_THRESHOLD;
+      } else {
+        process.env.VITE_DOCUMENT_PAGE_WARNING_THRESHOLD = originalThreshold;
+      }
+    });
+
+    it('defaults to 10 when the env var is unset', async function() {
+      delete process.env.VITE_DOCUMENT_PAGE_WARNING_THRESHOLD;
+
+      expect(await freshPageWarningThreshold()).toBe(10);
+    });
+
+    it('defaults to 10 when the env var is empty', async function() {
+      process.env.VITE_DOCUMENT_PAGE_WARNING_THRESHOLD = '';
+
+      expect(await freshPageWarningThreshold()).toBe(10);
+    });
+
+    it('defaults to 10 when the env var is not a valid number', async function() {
+      process.env.VITE_DOCUMENT_PAGE_WARNING_THRESHOLD = 'not-a-number';
+
+      expect(await freshPageWarningThreshold()).toBe(10);
+    });
+
+    it('honors a stubbed override', async function() {
+      process.env.VITE_DOCUMENT_PAGE_WARNING_THRESHOLD = '5';
+
+      expect(await freshPageWarningThreshold()).toBe(5);
     });
   });
 });

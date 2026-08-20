@@ -1,7 +1,8 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import DocumentPagesEditBoxHelper
   from '../../../../../../../../../../assets/js/components/resources/document/pages/elements/edit/helpers/DocumentPagesEditBoxHelper.jsx';
-import PagesSplitter from '../../../../../../../../../../assets/js/utils/PagesSplitter.js';
+import PagesSplitter, { PAGE_WARNING_THRESHOLD }
+  from '../../../../../../../../../../assets/js/utils/PagesSplitter.js';
 
 describe('DocumentPagesEditBoxHelper', function() {
   const buildHandlers = () => ({
@@ -79,6 +80,53 @@ describe('DocumentPagesEditBoxHelper', function() {
       const html = renderToStaticMarkup(DocumentPagesEditBoxHelper.render(state, true, buildHandlers()));
 
       expect(html).toContain('0 pages');
+    });
+
+    describe('the page count warning (issue #1138)', function() {
+      const valueForPages = (pages) => 'a'.repeat(PagesSplitter.BUDGET * pages - 1);
+
+      it('renders a plain text-muted span below the warning threshold', function() {
+        const value = valueForPages(PAGE_WARNING_THRESHOLD - 1);
+        const state = { editMode: true, loading: false, value };
+        const element = DocumentPagesEditBoxHelper.render(
+          state, true, buildHandlers(), 'demo-game', 9,
+        );
+        const [counterWrapper] = element.props.children;
+        const counter = counterWrapper.props.children;
+
+        expect(counter.type).toBe('span');
+        expect(counter.props.className).toBe('text-muted');
+      });
+
+      it('renders a warning-styled link to the document show page at the threshold', function() {
+        const value = valueForPages(PAGE_WARNING_THRESHOLD);
+        const state = { editMode: true, loading: false, value };
+        const element = DocumentPagesEditBoxHelper.render(
+          state, true, buildHandlers(), 'demo-game', 9,
+        );
+        const [counterWrapper] = element.props.children;
+        const counter = counterWrapper.props.children;
+
+        expect(counter.type).toBe('a');
+        expect(counter.props.href).toBe('#/games/demo-game/documents/9');
+        expect(counter.props.className).toContain('text-warning');
+        expect(counter.props.title).toBe(
+          'This document is getting large — consider uploading it as a PDF instead.',
+        );
+        expect(counter.props['aria-label']).toBe(counter.props.title);
+      });
+
+      it('renders the warning link above the threshold too', function() {
+        const value = valueForPages(PAGE_WARNING_THRESHOLD + 1);
+        const state = { editMode: true, loading: false, value };
+        const element = DocumentPagesEditBoxHelper.render(
+          state, true, buildHandlers(), 'demo-game', 9,
+        );
+        const [counterWrapper] = element.props.children;
+        const counter = counterWrapper.props.children;
+
+        expect(counter.type).toBe('a');
+      });
     });
   });
 });

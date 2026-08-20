@@ -19,17 +19,27 @@ describe('DocumentPagesEditBox', function() {
     let capturedState;
     let capturedCanEditPages;
     let capturedHandlers;
+    let capturedGameSlug;
+    let capturedId;
 
-    spyOn(DocumentPagesEditBoxHelper, 'render').and.callFake((state, canEditPages, handlers) => {
+    spyOn(DocumentPagesEditBoxHelper, 'render').and.callFake((state, canEditPages, handlers, gameSlug, id) => {
       capturedState = state;
       capturedCanEditPages = canEditPages;
       capturedHandlers = handlers;
+      capturedGameSlug = gameSlug;
+      capturedId = id;
       return React.createElement('div', null, 'document-pages-edit-box');
     });
 
     renderToStaticMarkup(React.createElement(DocumentPagesEditBox, { gameSlug: 'demo', id: 9, ...props }));
 
-    return { state: capturedState, canEditPages: capturedCanEditPages, handlers: capturedHandlers };
+    return {
+      state: capturedState,
+      canEditPages: capturedCanEditPages,
+      handlers: capturedHandlers,
+      gameSlug: capturedGameSlug,
+      id: capturedId,
+    };
   };
 
   it('starts read-only, not loading, with an empty value', function() {
@@ -65,6 +75,13 @@ describe('DocumentPagesEditBox', function() {
     handlers.onEdit();
 
     expect(loadAllPagesSpy).toHaveBeenCalled();
+  });
+
+  it('forwards gameSlug/id through to the helper (for the past-threshold counter link)', function() {
+    const { gameSlug, id } = renderBox({ gameSlug: 'epic-quest', id: 42 });
+
+    expect(gameSlug).toBe('epic-quest');
+    expect(id).toBe(42);
   });
 
   it('delegates rendering to DocumentPagesEditBoxHelper', function() {
