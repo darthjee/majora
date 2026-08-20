@@ -5,7 +5,7 @@ from rest_framework.response import Response
 
 from permissions import EndpointPermission
 
-from ._shared import _character_resource, _get_character_or_404
+from .._shared import _character_resource, _get_character_or_404
 
 
 def character_photo_set(request, game, character_id, photo_id, npc):
