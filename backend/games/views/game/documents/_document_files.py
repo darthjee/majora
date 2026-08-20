@@ -1,6 +1,6 @@
 """Shared implementation for the character document files-list endpoint."""
 
-from ...serializers import CharacterDocumentFileSerializer
+from ....serializers import CharacterDocumentFileSerializer
 from ._document_content import character_document_content
 
 
