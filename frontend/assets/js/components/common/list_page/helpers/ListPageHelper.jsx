@@ -82,6 +82,7 @@ export default class ListPageHelper {
             type={config.photoType}
             url={item.photoUrl}
             alt={item.displayText}
+            photoClassName={config.cardPhotoClassName}
             overlayItems={{ infoBarItems: config.buildInfoBarItems(item, context), secondaryButtons }}
             {...actionBarProps}
           />
