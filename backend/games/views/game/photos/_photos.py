@@ -1,8 +1,8 @@
 """Shared implementation for the character photos-list endpoint."""
 
-from ...serializers import CharacterPhotoSerializer
-from ..common import paginated_list_response
-from ._decorators import check_hidden
+from ....serializers import CharacterPhotoSerializer
+from ...common import paginated_list_response
+from .._decorators import check_hidden
 
 
 @check_hidden

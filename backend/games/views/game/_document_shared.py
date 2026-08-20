@@ -14,14 +14,14 @@ from ...serializers import (
 )
 from ..common import check_game_edit
 from ._character_shared import _build_api_view, _check_character_all_permission
-from ._document_exchange import (
+from .documents._document_exchange import (
     character_document_acquire,
     character_document_remove,
     character_documents_available,
 )
-from ._document_files import character_document_files
-from ._document_photos import character_document_photos
-from ._documents import character_document_detail, character_documents
+from .documents._document_files import character_document_files
+from .documents._document_photos import character_document_photos
+from .documents._documents import character_document_detail, character_documents
 
 
 def build_documents_view(npc):

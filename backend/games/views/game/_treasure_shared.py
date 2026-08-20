@@ -14,13 +14,13 @@ from ...models import Game
 from ..common import check_game_edit
 from ._character_shared import _build_api_view
 from ._shared import _get_character_or_404
-from ._treasure_exchange import (
+from .treasures._treasure_exchange import (
     character_treasure_acquire,
     character_treasure_buy,
     character_treasure_remove,
     character_treasure_sell,
 )
-from ._treasures import character_treasures
+from .treasures._treasures import character_treasures
 
 
 def build_treasures_view(npc):

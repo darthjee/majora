@@ -8,8 +8,8 @@ from permissions import EndpointPermission
 from uploads.photo_path import PhotoPathBuilder
 from uploads.upload_initiator import UploadInitiator
 
-from ...models import CharacterItemPhoto
-from ._shared import _character_item_resource, _get_character_or_404
+from ....models import CharacterItemPhoto
+from .._shared import _character_item_resource, _get_character_or_404
 
 
 def _check_item_photo_upload(request, character):

@@ -1,6 +1,6 @@
 """Shared implementation for the character document photos-list endpoint."""
 
-from ...serializers import CharacterDocumentPhotoSerializer
+from ....serializers import CharacterDocumentPhotoSerializer
 from ._document_content import character_document_content
 
 

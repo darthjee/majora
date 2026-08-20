@@ -6,7 +6,10 @@ from rest_framework.permissions import AllowAny
 
 from ......decorators import restricted
 from ......models import Game
-from ...._treasure_summary import character_treasure_summary, check_treasure_summary_all_permission
+from ....treasures._treasure_summary import (
+    character_treasure_summary,
+    check_treasure_summary_all_permission,
+)
 
 
 @restricted

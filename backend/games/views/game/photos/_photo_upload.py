@@ -4,8 +4,8 @@ from permissions import EndpointPermission
 from uploads.photo_path import PhotoPathBuilder
 from uploads.upload_initiator import UploadInitiator
 
-from ...models import CharacterPhoto
-from ._shared import _character_resource, _get_character_or_404
+from ....models import CharacterPhoto
+from .._shared import _character_resource, _get_character_or_404
 
 
 def character_photo_upload(request, game, game_slug, character_id, npc):

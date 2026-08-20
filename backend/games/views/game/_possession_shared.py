@@ -14,14 +14,14 @@ from ...serializers import (
 )
 from ..common import check_game_edit
 from ._character_shared import _build_api_view, _check_character_all_permission
-from ._possession_create import character_possession_create
-from ._possession_exchange import (
+from ._shared import _get_character_or_404, _hidden_gate_response
+from .possessions._possession_create import character_possession_create
+from .possessions._possession_exchange import (
     character_possession_acquire,
     character_possession_remove,
     character_possessions_available,
 )
-from ._possessions import character_possession_detail, character_possessions
-from ._shared import _get_character_or_404, _hidden_gate_response
+from .possessions._possessions import character_possession_detail, character_possessions
 
 
 def build_possessions_view(npc):
