@@ -6,12 +6,12 @@ from rest_framework.response import Response
 
 from permissions import EndpointPermission
 
-from ...models import CharacterItem
-from ...serializers import CharacterItemDetailFullSerializer
-from ..common import paginated_list_response, validated_or_error
-from ..games._treasure_filters import filter_by_name
-from ._decorators import check_hidden
-from ._shared import _character_item_resource
+from ....models import CharacterItem
+from ....serializers import CharacterItemDetailFullSerializer
+from ...common import paginated_list_response, validated_or_error
+from ...games._treasure_filters import filter_by_name
+from .._decorators import check_hidden
+from .._shared import _character_item_resource
 
 
 def _check_item_create(request, game, character):

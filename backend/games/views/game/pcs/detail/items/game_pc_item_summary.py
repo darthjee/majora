@@ -6,7 +6,7 @@ from rest_framework.permissions import AllowAny
 
 from ......decorators import regular, skip_cache
 from ......models import Game
-from ...._item_summary import character_item_summary
+from ....items._item_summary import character_item_summary
 
 
 @regular
