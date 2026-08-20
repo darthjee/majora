@@ -57,4 +57,19 @@ describe('CardPhoto', function() {
     );
     expect(html).toContain('card-photo-square');
   });
+
+  it('wraps the image in the given className when one is provided', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(CardPhoto, { url: 'http://example.com/cover.png', alt: 'My Game', className: 'card-photo-rect' })
+    );
+    expect(html).toContain('card-photo-rect');
+    expect(html).not.toContain('card-photo-square');
+  });
+
+  it('falls back to card-photo-square when className is omitted', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(CardPhoto, { url: 'http://example.com/cover.png', alt: 'My Game' })
+    );
+    expect(html).toContain('card-photo-square');
+  });
 });

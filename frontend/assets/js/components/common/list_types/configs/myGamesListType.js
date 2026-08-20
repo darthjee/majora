@@ -68,6 +68,7 @@ const myGamesListType = {
   showCaption: true,
   buildItemHref,
   itemsPerRow: 4,
+  cardPhotoClassName: 'card-photo-rect',
 };
 
 export default myGamesListType;

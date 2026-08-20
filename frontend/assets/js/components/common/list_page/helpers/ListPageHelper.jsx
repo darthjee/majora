@@ -34,7 +34,7 @@ export default class ListPageHelper {
       <div className="container mt-4">
         {Filters && <Filters {...filtersProps} />}
         <div className="row">
-          {items.map((rawItem) => ListPageHelper.#renderItem(rawItem, config, context))}
+          {items.map((rawItem) => ListPageHelper.#renderItem(rawItem, config, context, items.length))}
         </div>
         <Pagination
           currentPage={pagination.page}
@@ -67,13 +67,12 @@ export default class ListPageHelper {
     return <ErrorAlert error={error} />;
   }
 
-  static #renderItem(rawItem, config, context) {
+  static #renderItem(rawItem, config, context, itemsCount) {
     const item = new config.wrapperClass(rawItem);
     const href = config.buildItemHref(item, context);
     const extraCardClassName = config.buildCardClassName ? config.buildCardClassName(item) : '';
     const cardClassName = `card h-100 position-relative${extraCardClassName ? ` ${extraCardClassName}` : ''}`;
-    const largeColumnClass = ListPageHelper.#largeColumnClass(config.itemsPerRow);
-    const columnClassName = `col-6 col-sm-4 col-md-3 ${largeColumnClass} mb-4`;
+    const columnClassName = `${ListPageHelper.#columnClassName(config.itemsPerRow, itemsCount)} mb-4`;
     const { secondaryButtons, ...actionBarProps } = config.buildActionBarProps(item, context);
 
     return (
@@ -83,6 +82,7 @@ export default class ListPageHelper {
             type={config.photoType}
             url={item.photoUrl}
             alt={item.displayText}
+            photoClassName={config.cardPhotoClassName}
             overlayItems={{ infoBarItems: config.buildInfoBarItems(item, context), secondaryButtons }}
             {...actionBarProps}
           />
@@ -93,16 +93,51 @@ export default class ListPageHelper {
   }
 
   /**
-   * Pick the outer card column's largest-breakpoint (`lg`) Bootstrap class based on a list
-   * type's configured items-per-row, so `#renderItem` doesn't hardcode a single column count
-   * for every list type.
+   * Build the outer card column's Bootstrap width classes for every breakpoint, so the grid
+   * fills the row edge-to-edge instead of leaving a gap when fewer items than a breakpoint's
+   * normal column count are being rendered.
    *
    * @param {number} [itemsPerRow] - Number of cards per row at the `lg` breakpoint, from the
    *   active list type's config; defaults to `6` when omitted.
-   * @returns {string} Bootstrap `col-lg-*` class for the requested items-per-row count.
+   * @param {number} itemsCount - Number of items actually being rendered on the current page.
+   * @returns {string} Space-separated `col-*`/`col-sm-*`/`col-md-*`/`col-lg-*` classes.
    */
-  static #largeColumnClass(itemsPerRow) {
-    return itemsPerRow === 4 ? 'col-lg-3' : 'col-lg-2';
+  static #columnClassName(itemsPerRow, itemsCount) {
+    return ListPageHelper.#breakpoints(itemsPerRow)
+      .map(({ prefix, normal }) => ListPageHelper.#breakpointColumnClass(prefix, normal, itemsCount))
+      .join(' ');
+  }
+
+  /**
+   * List the grid's breakpoints and each one's "normal" (unconstrained) column count.
+   *
+   * @param {number} [itemsPerRow] - Number of cards per row at the `lg` breakpoint, from the
+   *   active list type's config; defaults to `6` when omitted.
+   * @returns {{prefix: string, normal: number}[]} Breakpoint prefixes (empty for `xs`) paired
+   *   with their normal column count.
+   */
+  static #breakpoints(itemsPerRow) {
+    return [
+      { prefix: '', normal: 2 },
+      { prefix: 'sm', normal: 3 },
+      { prefix: 'md', normal: 4 },
+      { prefix: 'lg', normal: itemsPerRow || 6 },
+    ];
+  }
+
+  /**
+   * Build a single breakpoint's Bootstrap width class, capping its normal column count to the
+   * number of items actually being rendered.
+   *
+   * @param {string} prefix - Breakpoint prefix (`''`, `'sm'`, `'md'`, or `'lg'`).
+   * @param {number} normal - The breakpoint's normal (unconstrained) column count.
+   * @param {number} itemsCount - Number of items actually being rendered on the current page.
+   * @returns {string} Bootstrap `col-*`/`col-{prefix}-*` class for the given breakpoint.
+   */
+  static #breakpointColumnClass(prefix, normal, itemsCount) {
+    const effectiveColumns = Math.min(normal, itemsCount);
+    const width = 12 / effectiveColumns;
+    return prefix ? `col-${prefix}-${width}` : `col-${width}`;
   }
 
   static #renderCaption(item, href, showCaption) {

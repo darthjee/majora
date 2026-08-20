@@ -179,8 +179,8 @@ describe('ListPageHelper', function() {
   });
 
   describe('items per row', function() {
-    it('renders col-lg-3 for a list type configured with itemsPerRow 4', function() {
-      const games = [buildGame()];
+    it('renders col-6 col-sm-4 col-md-3 col-lg-3 mb-4 for a list type configured with itemsPerRow 4, unchanged when 4+ items are rendered', function() {
+      const games = [buildGame({ id: 1 }), buildGame({ id: 2 }), buildGame({ id: 3 }), buildGame({ id: 4 })];
       const html = renderToStaticMarkup(
         ListPageHelper.render('games', games, pagination, '#/games', {})
       );
@@ -188,12 +188,31 @@ describe('ListPageHelper', function() {
       expect(html).not.toContain('col-lg-2');
     });
 
-    it('renders col-lg-2 for a list type left at the default itemsPerRow of 6', function() {
-      const html = renderToStaticMarkup(
-        ListPageHelper.render('treasures', treasures, pagination, '#/games/demo/treasures', baseContext)
-      );
-      expect(html).toContain('col-6 col-sm-4 col-md-3 col-lg-2 mb-4');
-      expect(html).not.toContain('col-lg-3');
+    it('renders col-6 col-sm-4 col-md-3 col-lg-2 mb-4 for a list type left at the default itemsPerRow of 6, unchanged whenever 6+ items are rendered, regardless of the exact count', function() {
+      const sixTreasures = Array.from({ length: 6 }, (_, index) => buildTreasure({ id: index + 1, game_slug: 'demo' }));
+      const tenTreasures = Array.from({ length: 10 }, (_, index) => buildTreasure({ id: index + 1, game_slug: 'demo' }));
+
+      [sixTreasures, tenTreasures].forEach((items) => {
+        const html = renderToStaticMarkup(
+          ListPageHelper.render('treasures', items, pagination, '#/games/demo/treasures', baseContext)
+        );
+        expect(html).toContain('col-6 col-sm-4 col-md-3 col-lg-2 mb-4');
+        expect(html).not.toContain('col-lg-3');
+      });
+    });
+
+    [
+      { count: 1, columnClassName: 'col-12 col-sm-12 col-md-12 col-lg-12 mb-4' },
+      { count: 2, columnClassName: 'col-6 col-sm-6 col-md-6 col-lg-6 mb-4' },
+      { count: 3, columnClassName: 'col-6 col-sm-4 col-md-4 col-lg-4 mb-4' },
+    ].forEach(({ count, columnClassName }) => {
+      it(`renders ${columnClassName} for a flexible-grid list type (games) with ${count} item(s)`, function() {
+        const games = Array.from({ length: count }, (_, index) => buildGame({ id: index + 1 }));
+        const html = renderToStaticMarkup(
+          ListPageHelper.render('games', games, pagination, '#/games', {})
+        );
+        expect(html).toContain(columnClassName);
+      });
     });
   });
 

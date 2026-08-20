@@ -54,10 +54,13 @@ const PHOTO_COMPONENTS = {
  *   right, rendered when the primary upload button is present on the left.
  * @param {object[]} [props.overlayItems.infoBarItems] - Optional informational (non-interactive)
  *   items rendered in the always-visible {@link InfoBar} at the top of the overlay.
+ * @param {string} [props.photoClassName] - Optional class name forwarded to the underlying
+ *   photo component, overriding its default (e.g. a rectangular instead of square photo box).
+ *   Ignored by every `PHOTO_COMPONENTS` entry other than the default {@link CardPhoto}.
  * @returns {React.ReactElement} Rendered photo/avatar with optional upload/secondary overlay buttons.
  */
 export default function ActionsOverlay({
-  type, url, alt, canEdit, onClick, grayscale = false, dimmed = false, overlayItems = {},
+  type, url, alt, canEdit, onClick, grayscale = false, dimmed = false, overlayItems = {}, photoClassName,
 }) {
   const { secondaryButtons = [], infoBarItems = [] } = overlayItems;
   const Photo = PHOTO_COMPONENTS[type] || CardPhoto;
@@ -65,7 +68,7 @@ export default function ActionsOverlay({
 
   return (
     <div className={className}>
-      <Photo url={url} alt={alt} />
+      <Photo url={url} alt={alt} className={photoClassName} />
       <InfoBar items={infoBarItems} />
       <ActionBar canEdit={canEdit} onClick={onClick} secondaryButtons={secondaryButtons} />
     </div>
