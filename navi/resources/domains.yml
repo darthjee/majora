@@ -1,0 +1,5 @@
+namespace: $NAVI_NAMEPACE
+resources:
+  domain_config:
+    - url: /domain/config.json
+      status: 200

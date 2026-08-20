@@ -21,6 +21,29 @@ classes are explicitly empty and permission is `AllowAny` — this response neve
 |----------|--------|-------------|----------|
 | `/health.json` | GET | **AllowAny** | `{"status": "ok"}` |
 
+## Domain configuration endpoint
+
+| Endpoint | Method | Who can call | Response |
+|----------|--------|-------------|----------|
+| `/domain/config.json` | GET | **AllowAny** | `{"favicon": null\|string, "title": string, "sub_title": string}` |
+
+Backs the `DomainConfiguration` model (`domains` app, `OneToOneField` to `DomainGroup`) — per-tenant
+branding overrides (favicon path, navbar-brand title/sub-title). Resolution: the request's host
+(port-stripped, lowercased) is looked up against `Domain`, then that `Domain`'s `DomainGroup`, then
+that group's `DomainConfiguration` row. An unrecognized host, or a recognized `DomainGroup` with no
+`DomainConfiguration` row, both return the same full-defaults response (`favicon: null`,
+`title: "Majora"`, `sub_title: "RPG"`) — never a 404. A `null` field falls back to its default; an
+explicit `""` is returned as-is (shown as empty by the frontend). Exposes no `id`, no
+`domain_group` reference, and no way to enumerate registered domains/hosts — only the three
+merged branding values for the caller's own resolved host. Deliberately does not set
+`X-Skip-Cache`: unlike most `AllowAny` endpoints in this file, this response is cacheable, since
+`DomainConfiguration` only changes at deploy time (or a manual admin edit), not per-request or
+per-user.
+
+`DomainConfiguration` has no create/update/delete API of its own — it's editable exclusively via
+Django admin (`domains/admin.py`), so it follows this document set's superuser/staff admin-pages
+carve-out for writes; this endpoint only ever reads it.
+
 ## Authentication endpoints
 
 These manage identity; they do not expose domain data beyond success/failure.

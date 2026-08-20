@@ -34,6 +34,7 @@ testpaths = [
     "staff/tests",
     "permissions/tests",
     "common/tests",
+    "domains/tests",
     "versioning/tests",
     "statistics/tests",
     "conversations/tests",
@@ -44,8 +45,8 @@ python_files = ["*_test.py"]
 
 [tool.coverage.run]
 source = [
-    "accounts", "games", "staff", "permissions", "common", "versioning", "statistics",
-    "conversations", "miniatures", "uploads",
+    "accounts", "games", "staff", "permissions", "common", "domains", "versioning",
+    "statistics", "conversations", "miniatures", "uploads",
 ]
 omit = ["*/migrations/*", "*/tests/*"]
 
@@ -64,6 +65,8 @@ exclude_dirs = [
     "backend/permissions/tests",
     "common/tests",
     "backend/common/tests",
+    "domains/tests",
+    "backend/domains/tests",
     "versioning/tests",
     "backend/versioning/tests",
     "statistics/tests",
