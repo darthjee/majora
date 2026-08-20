@@ -323,7 +323,10 @@ jobs:
           path: /tmp/checkout
       - run:
           name: Copy extension into place
-          command: cp -r /tmp/checkout/proxy/extension/. /var/www/html/extension/
+          command: |
+            cp -r /tmp/checkout/proxy/extension/. /var/www/html/extension/
+            mkdir -p /var/www/html/proxy
+            cp -r /tmp/checkout/proxy/. /var/www/html/proxy/
       - run:
           name: Check PHP Lint
           command: vendor/bin/phpcs --standard=/tmp/checkout/proxy/phpcs.xml /tmp/checkout/proxy

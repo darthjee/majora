@@ -30,10 +30,6 @@ use Tent\RequestHandlers\StaticFileHandler;
  */
 class DomainRouteOrderingTest extends TestCase
 {
-    private const DEV_CONFIGURE = '/var/www/html/proxy/dev_configuration/configure.php';
-    private const PROD_DOMAIN_RULE = '/var/www/html/proxy/prod_configuration/rules/domain.php';
-    private const PROD_BACKEND_RULE = '/var/www/html/proxy/prod_configuration/rules/backend.php';
-
     protected function tearDown(): void
     {
         Configuration::reset();
@@ -54,7 +50,7 @@ class DomainRouteOrderingTest extends TestCase
     public function testDevConfigurationRoutesDomainRequests(): void
     {
         Configuration::reset();
-        require self::DEV_CONFIGURE;
+        require self::devConfigurePath();
 
         $jsonHandler = $this->matchedHandler($this->request('/domain/config.json'));
         $this->assertInstanceOf(DefaultProxyRequestHandler::class, $jsonHandler);
@@ -87,8 +83,8 @@ class DomainRouteOrderingTest extends TestCase
         $backendHost = 'https://localhost:3030/';
         $staticRoot = '/home/moria_user/moria.ffavs.net';
         $cacheCleanupMap = [];
-        require self::PROD_BACKEND_RULE;
-        require self::PROD_DOMAIN_RULE;
+        require self::prodBackendRulePath();
+        require self::prodDomainRulePath();
 
         $jsonHandler = $this->matchedHandler($this->request('/domain/config.json'));
         $this->assertInstanceOf(DefaultProxyRequestHandler::class, $jsonHandler);
@@ -102,6 +98,40 @@ class DomainRouteOrderingTest extends TestCase
     private function request(string $path): RequestInterface
     {
         return new Request(['requestMethod' => 'GET', 'requestPath' => $path]);
+    }
+
+    /**
+     * Root directory that contains both `extension/` (this file lives at
+     * `extension/tests/configuration/`) and `proxy/` as siblings.
+     *
+     * Resolved relative to this file's own location rather than hardcoded,
+     * so it works under both:
+     *  - `docker-compose run proxy_tests`, which mounts `./proxy/extension`
+     *    at `/var/www/html/extension` and the full `./proxy` at
+     *    `/var/www/html/proxy`; and
+     *  - the CircleCI `proxy_extension_tests` job, whose "Copy extension
+     *    into place" step mirrors that same layout by copying
+     *    `proxy/extension/` to `/var/www/html/extension/` and the full
+     *    `proxy/` to `/var/www/html/proxy/`.
+     */
+    private static function sharedRoot(): string
+    {
+        return dirname(__DIR__, 3);
+    }
+
+    private static function devConfigurePath(): string
+    {
+        return self::sharedRoot() . '/proxy/dev_configuration/configure.php';
+    }
+
+    private static function prodDomainRulePath(): string
+    {
+        return self::sharedRoot() . '/proxy/prod_configuration/rules/domain.php';
+    }
+
+    private static function prodBackendRulePath(): string
+    {
+        return self::sharedRoot() . '/proxy/prod_configuration/rules/backend.php';
     }
 
     /**
