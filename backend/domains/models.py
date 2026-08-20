@@ -38,7 +38,6 @@ class Domain(models.Model):
         DomainGroup, on_delete=models.CASCADE, related_name='domains'
     )
     schemes = models.CharField(max_length=20, default='https', validators=[validate_schemes])
-    title = models.CharField(max_length=200, blank=True, default='')
     history = HistoricalRecords(app='versioning', user_db_constraint=False)
 
     def save(self, *args, **kwargs):
