@@ -9,10 +9,11 @@ from rest_framework.response import Response
 
 from permissions import EndpointPermission
 
-from ...models import Character, CharacterTreasure, GameTreasure, Treasure
+from ...models import Character, CharacterTreasure, GameTreasure
 from ...serializers.games.treasures.game_treasure_fields import resolve_treasure_value
 from ..common import validated_or_error
 from ._shared import _character_resource
+from ._treasure_finder import _find_game_treasure, _find_treasure_by_id
 
 
 class _TreasureExchangeSerializer(serializers.Serializer):
@@ -102,26 +103,6 @@ def _authorize_and_parse(request, character, resolve_treasure):
     return None, treasure, serializer.validated_data['quantity']
 
 
-def _find_game_treasure(game, treasure_id, allow_hidden=False):
-    """Return the Treasure matching `treasure_id` scoped to `game`, or raise Http404.
-
-    Also 404s when the treasure's `GameTreasure` row for `game` is hidden, unless
-    `allow_hidden` is `True` (the DM-only `/buy/all.json` variant).
-    """
-    treasure = Treasure.objects.for_game(game).filter(id=treasure_id).first()
-    if treasure is None:
-        raise Http404
-    if not allow_hidden and _is_hidden(game, treasure):
-        raise Http404
-    return treasure
-
-
-def _is_hidden(game, treasure):
-    """Return whether `treasure`'s GameTreasure row for `game` is hidden."""
-    game_treasure = GameTreasure.objects.filter(game=game, treasure=treasure).first()
-    return game_treasure is not None and game_treasure.hidden
-
-
 def _resolve_value(game, treasure, game_treasure):
     """Return `treasure`'s effective value in `game`, reusing an already-fetched `game_treasure`.
 
@@ -131,19 +112,6 @@ def _resolve_value(game, treasure, game_treasure):
     """
     context = {'game': game, 'game_treasures_by_treasure_id': {treasure.id: game_treasure}}
     return resolve_treasure_value(context, treasure)
-
-
-def _find_treasure_by_id(treasure_id):
-    """Return the Treasure matching `treasure_id`, unscoped by game, or raise Http404.
-
-    Used by sell, where a character may already own a treasure that has since been delisted
-    from the game's catalog; ownership (not catalog membership) is the real authorization
-    check, performed separately by `_lock_character_treasure`.
-    """
-    treasure = Treasure.objects.filter(id=treasure_id).first()
-    if treasure is None:
-        raise Http404
-    return treasure
 
 
 def _buy(character, treasure, quantity, game):
