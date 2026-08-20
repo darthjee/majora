@@ -12,6 +12,7 @@ RESOURCE_FILES=(
   navi/resources/documents.yml
   navi/resources/sessions.yml
   navi/resources/clients.yml
+  navi/resources/domains.yml
 )
 
 function push_config() {

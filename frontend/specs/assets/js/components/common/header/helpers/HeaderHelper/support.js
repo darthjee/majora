@@ -23,6 +23,7 @@ export const buildState = (overrides = {}) => ({
   canViewAs: false,
   showViewAsModal: false,
   facadeEnabled: false,
+  domainConfig: { favicon: null, title: 'Majora', subTitle: 'RPG' },
   ...overrides,
 });
 

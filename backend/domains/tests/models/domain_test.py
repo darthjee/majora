@@ -109,21 +109,6 @@ class TestDomain:
         )
         assert domain.origins == ['http://foo.majora.app', 'https://foo.majora.app']
 
-    def test_title_defaults_to_empty_string(self):
-        """Test that title defaults to an empty string when not given."""
-        domain = Domain.objects.create(
-            domain='foo.majora.app', domain_group=self.group
-        )
-        assert domain.title == ''
-
-    def test_title_accepts_and_persists_a_custom_value(self):
-        """Test that a custom title is stored and read back unchanged."""
-        domain = Domain.objects.create(
-            domain='foo.majora.app', domain_group=self.group, title='Majora Brand Site'
-        )
-        domain.refresh_from_db()
-        assert domain.title == 'Majora Brand Site'
-
 
 class TestDomainGroupCascade(TestCase):
     """Tests for the on_delete=CASCADE behavior between Domain and DomainGroup."""

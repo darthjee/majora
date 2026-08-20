@@ -6,6 +6,14 @@ import HeaderHelper from './helpers/HeaderHelper.jsx';
 import PendingApprovalPage from './PendingApprovalPage.jsx';
 import AccessStore from '../../../utils/access/store/AccessStore.js';
 import useHeaderAuthEffect from './hooks/useHeaderAuthEffect.js';
+import useDomainConfigEffect from './hooks/useDomainConfigEffect.js';
+
+/**
+ * Pre-fetch domain configuration, rendered until `HeaderController#fetchDomainConfig`
+ * resolves. Mirrors `index.html`'s static `<title>Majora</title>`/favicon fallback, so
+ * the navbar brand never flashes empty while the bootstrap request is in flight.
+ */
+const DEFAULT_DOMAIN_CONFIG = { favicon: null, title: 'Majora', subTitle: 'RPG' };
 
 /**
  * Render application header, tracking authentication state and the login modal. Also gates the
@@ -30,6 +38,7 @@ export default function Header({ children }) {
   const [showViewAsModal, setShowViewAsModal] = useState(false);
   const [facadeEnabled, setFacadeEnabled] = useState(() => AccessStore.getFacade().enabled);
   const [pendingApproval, setPendingApproval] = useState(false);
+  const [domainConfig, setDomainConfig] = useState(DEFAULT_DOMAIN_CONFIG);
 
   const controller = new HeaderController(
     setLoggedIn,
@@ -41,7 +50,9 @@ export default function Header({ children }) {
     setRoute,
     undefined,
     undefined,
-    setPendingApproval
+    setPendingApproval,
+    undefined,
+    setDomainConfig
   );
   const viewAsController = new HeaderViewAsController(setCanViewAs, setShowViewAsModal);
   const gameAccessController = new HeaderGameAccessController(setGameAccess);
@@ -53,6 +64,12 @@ export default function Header({ children }) {
   useEffect(() => gameAccessController.buildEffect(route.gameSlug)(),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [route.gameSlug]);
+
+  useEffect(() => { controller.fetchDomainConfig(); },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []);
+
+  useDomainConfigEffect(domainConfig);
 
   return (
     <>
@@ -68,6 +85,7 @@ export default function Header({ children }) {
           canViewAs: canViewAs || Boolean(gameAccess.is_dm),
           showViewAsModal,
           facadeEnabled,
+          domainConfig,
         },
         controller.buildHandlers(viewAsController, loggedIn)
       )}

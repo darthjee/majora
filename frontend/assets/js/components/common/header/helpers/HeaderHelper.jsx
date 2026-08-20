@@ -154,7 +154,7 @@ export default class HeaderHelper {
   /**
    * Render the application header with navigation and auth controls.
    *
-   * @param {{loggedIn: boolean, showModal: boolean, testEmailStatus: (string|null), isSuperUser: boolean, isStaff: boolean, route: ({page: string, gameSlug: (string|undefined), characterId: (string|undefined)}|undefined), gameAccess: ({is_dm: boolean, is_player: boolean, is_superuser: boolean, is_staff: boolean}|undefined), canViewAs: boolean, showViewAsModal: boolean, facadeEnabled: boolean}} state - header auth state.
+   * @param {{loggedIn: boolean, showModal: boolean, testEmailStatus: (string|null), isSuperUser: boolean, isStaff: boolean, route: ({page: string, gameSlug: (string|undefined), characterId: (string|undefined)}|undefined), gameAccess: ({is_dm: boolean, is_player: boolean, is_superuser: boolean, is_staff: boolean}|undefined), canViewAs: boolean, showViewAsModal: boolean, facadeEnabled: boolean, domainConfig: {favicon: (string|null), title: string, subTitle: string}}} state - header auth state.
    * @param {{onLoginClick: Function, onLogoffClick: Function, onModalClose: Function, onLoginSuccess: Function, onSendTestEmailClick: Function, onLanguageChange: Function, onViewAsClick: Function, onViewAsModalClose: Function}} handlers - header event handlers.
    * @returns {React.ReactElement} Header element.
    */
@@ -163,8 +163,8 @@ export default class HeaderHelper {
       <Navbar bg="light" expand="md">
         <Container fluid>
           <Navbar.Brand href="#/">
-            {Translator.t('header.title')}
-            <small className="d-block text-muted">{Translator.t('header.subtitle')}</small>
+            {state.domainConfig.title}
+            <small className="d-block text-muted">{state.domainConfig.subTitle}</small>
           </Navbar.Brand>
           <Navbar.Toggle aria-controls="header-navbar" />
           <Navbar.Collapse id="header-navbar">
