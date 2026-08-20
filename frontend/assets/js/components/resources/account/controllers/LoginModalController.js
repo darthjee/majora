@@ -24,6 +24,9 @@ export default class LoginModalController {
    *   `'approved'`, `'denied'`, `'expired'`, or `'error'`).
    * @param {AuthorizationRequestPoller} [poller] - poller used to track a pending
    *   device-authorization request until a terminal outcome is reached.
+   * @param {Function|null} [setMode] - state setter for the modal's mode (`'login'`,
+   *   `'recover'`, or `'authorize'`).
+   * @param {Function|null} [setEmail] - state setter for the recovery email field.
    */
   constructor(
     setUsername,
@@ -34,7 +37,9 @@ export default class LoginModalController {
     client = new AuthClient(),
     setRecoverySent = null,
     setAuthorizeStatus = null,
-    poller = new AuthorizationRequestPoller()
+    poller = new AuthorizationRequestPoller(),
+    setMode = null,
+    setEmail = null
   ) {
     this.setUsername = setUsername;
     this.setPassword = setPassword;
@@ -45,6 +50,8 @@ export default class LoginModalController {
     this.setRecoverySent = setRecoverySent;
     this.setAuthorizeStatus = setAuthorizeStatus;
     this.poller = poller;
+    this.setMode = setMode;
+    this.setEmail = setEmail;
   }
 
   /**
@@ -129,7 +136,8 @@ export default class LoginModalController {
   }
 
   /**
-   * Clears the login modal form state.
+   * Clears the login modal form state, including its mode/email fields when
+   * this controller was given setters for them.
    *
    * @returns {void}
    */
@@ -143,7 +151,115 @@ export default class LoginModalController {
       this.setRecoverySent(false);
     }
 
+    if (typeof this.setMode === 'function') {
+      this.setMode('login');
+    }
+
+    if (typeof this.setEmail === 'function') {
+      this.setEmail('');
+    }
+
     this.handleAuthorizeReset();
+  }
+
+  /**
+   * Clears the form state and invokes the given close callback, e.g. from the
+   * modal's cancel/close controls.
+   *
+   * @param {Function} [onClose] - callback invoked after the form is cleared.
+   * @returns {void}
+   */
+  handleClose(onClose) {
+    this.handleClear();
+
+    if (typeof onClose === 'function') {
+      onClose();
+    }
+  }
+
+  /**
+   * Closes the modal (see {@link handleClose}) and navigates to the
+   * registration page.
+   *
+   * @param {Function} [onClose] - callback invoked after the form is cleared.
+   * @returns {void}
+   */
+  handleRegisterClick(onClose) {
+    this.handleClose(onClose);
+
+    if (typeof window !== 'undefined') {
+      window.location.hash = '/users/register';
+    }
+  }
+
+  /**
+   * Switches the modal's mode, resetting the `'authorize'` mode's in-progress
+   * state and the password/error fields left over from a previous mode.
+   *
+   * @param {string} newMode - the mode to switch to (`'login'`, `'recover'`, or `'authorize'`).
+   * @returns {void}
+   */
+  handleModeChange(newMode) {
+    this.handleAuthorizeReset();
+    this.setPassword('');
+    this.setIncorrect(false);
+    this.setError(false);
+
+    if (typeof this.setMode === 'function') {
+      this.setMode(newMode);
+    }
+  }
+
+  /**
+   * Prevents the default form submission, when the given event supports it.
+   *
+   * @param {Event} [event] - DOM submit event, or `undefined`/`null` when called directly.
+   * @returns {void}
+   */
+  #preventDefault(event) {
+    if (event && typeof event.preventDefault === 'function') {
+      event.preventDefault();
+    }
+  }
+
+  /**
+   * Event-guarded wrapper around {@link handleSubmit}, for direct use as a
+   * form's `onSubmit` handler.
+   *
+   * @param {Event} [event] - DOM submit event.
+   * @param {string} username - username to submit.
+   * @param {string} password - password to submit.
+   * @returns {Promise<void>} resolves when the request handling finishes.
+   */
+  handleSubmitEvent(event, username, password) {
+    this.#preventDefault(event);
+    return this.handleSubmit(username, password);
+  }
+
+  /**
+   * Event-guarded wrapper around {@link handleRecoverSubmit}, for direct use
+   * as a form's `onSubmit` handler.
+   *
+   * @param {Event} [event] - DOM submit event.
+   * @param {string} email - email address to send the recovery link to.
+   * @returns {Promise<void>} resolves when the request handling finishes.
+   */
+  handleRecoverSubmitEvent(event, email) {
+    this.#preventDefault(event);
+    return this.handleRecoverSubmit(email);
+  }
+
+  /**
+   * Event-guarded wrapper around {@link handleAuthorizeSubmit}, for direct
+   * use as a form's `onSubmit` handler.
+   *
+   * @param {Event} [event] - DOM submit event.
+   * @param {string} username - username to request a device-authorized login for.
+   * @returns {Promise<void>} resolves when the create request handling finishes.
+   */
+  handleAuthorizeSubmitEvent(event, username) {
+    this.#preventDefault(event);
+    return this.handleAuthorizeSubmit(username);
   }
 
   async #handleResponse(response) {

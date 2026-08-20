@@ -33,62 +33,12 @@ export default function LoginModal({ show, onClose, onSuccess }) {
     undefined,
     setRecoverySent,
     setAuthorizeStatus,
-    poller
+    poller,
+    setMode,
+    setEmail
   );
 
-  const handleClear = () => {
-    controller.handleClear();
-    setMode('login');
-    setEmail('');
-  };
-
-  const handleClose = () => {
-    handleClear();
-
-    if (typeof onClose === 'function') {
-      onClose();
-    }
-  };
-
-  const handleSubmit = (event) => {
-    if (event && typeof event.preventDefault === 'function') {
-      event.preventDefault();
-    }
-
-    return controller.handleSubmit(username, password);
-  };
-
-  const handleRecoverSubmit = (event) => {
-    if (event && typeof event.preventDefault === 'function') {
-      event.preventDefault();
-    }
-
-    return controller.handleRecoverSubmit(email);
-  };
-
-  const handleRegisterClick = () => {
-    handleClose();
-
-    if (typeof window !== 'undefined') {
-      window.location.hash = '/users/register';
-    }
-  };
-
-  const handleAuthorizeSubmit = (event) => {
-    if (event && typeof event.preventDefault === 'function') {
-      event.preventDefault();
-    }
-
-    return controller.handleAuthorizeSubmit(username);
-  };
-
-  const handleModeChange = (newMode) => {
-    controller.handleAuthorizeReset();
-    setPassword('');
-    setIncorrect(false);
-    setError(false);
-    setMode(newMode);
-  };
+  const handleClose = () => controller.handleClose(onClose);
 
   return LoginModalHelper.render(
     show,
@@ -105,16 +55,16 @@ export default function LoginModal({ show, onClose, onSuccess }) {
     {
       onClose: handleClose,
       onCancel: handleClose,
-      onSubmit: handleSubmit,
+      onSubmit: (event) => controller.handleSubmitEvent(event, username, password),
       onUsernameChange: (event) => setUsername(event.target.value),
       onPasswordChange: (event) => setPassword(event.target.value),
       onForgotPasswordClick: () => setMode('recover'),
-      onRegisterClick: handleRegisterClick,
+      onRegisterClick: () => controller.handleRegisterClick(onClose),
       onBackToLoginClick: () => setMode('login'),
       onEmailChange: (event) => setEmail(event.target.value),
-      onRecoverSubmit: handleRecoverSubmit,
-      onModeChange: handleModeChange,
-      onAuthorizeSubmit: handleAuthorizeSubmit,
+      onRecoverSubmit: (event) => controller.handleRecoverSubmitEvent(event, email),
+      onModeChange: (newMode) => controller.handleModeChange(newMode),
+      onAuthorizeSubmit: (event) => controller.handleAuthorizeSubmitEvent(event, username),
       onAuthorizeReset: () => controller.handleAuthorizeReset(),
     }
   );

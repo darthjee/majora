@@ -1,12 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import HeaderController from './controllers/HeaderController.js';
 import HeaderViewAsController from './controllers/HeaderViewAsController.js';
 import HeaderGameAccessController from './controllers/HeaderGameAccessController.js';
 import HeaderHelper from './helpers/HeaderHelper.jsx';
 import PendingApprovalPage from './PendingApprovalPage.jsx';
-import AuthEvents from '../../../utils/auth/AuthEvents.js';
 import AccessStore from '../../../utils/access/store/AccessStore.js';
-import AccessEvents from '../../../utils/access/AccessEvents.js';
+import useHeaderAuthEffect from './hooks/useHeaderAuthEffect.js';
 
 /**
  * Render application header, tracking authentication state and the login modal. Also gates the
@@ -31,7 +30,6 @@ export default function Header({ children }) {
   const [showViewAsModal, setShowViewAsModal] = useState(false);
   const [facadeEnabled, setFacadeEnabled] = useState(() => AccessStore.getFacade().enabled);
   const [pendingApproval, setPendingApproval] = useState(false);
-  const lastLoggedInRef = useRef(loggedIn);
 
   const controller = new HeaderController(
     setLoggedIn,
@@ -48,40 +46,9 @@ export default function Header({ children }) {
   const viewAsController = new HeaderViewAsController(setCanViewAs, setShowViewAsModal);
   const gameAccessController = new HeaderGameAccessController(setGameAccess);
 
-  useEffect(() => {
-    controller.checkStatus().then(
-      ({ isSuperUser: resolvedIsSuperUser, isStaff: resolvedIsStaff }) => viewAsController
-        .checkAvailability(resolvedIsSuperUser, resolvedIsStaff)
-    );
-
-    const handleAuthChanged = (event) => {
-      const newLoggedIn = Boolean(event.detail?.loggedIn);
-
-      setLoggedIn(newLoggedIn);
-
-      if (newLoggedIn === lastLoggedInRef.current) {
-        return;
-      }
-
-      lastLoggedInRef.current = newLoggedIn;
-      controller.recheckAuthState(viewAsController);
-    };
-
-    AuthEvents.subscribe(handleAuthChanged);
-
-    const handleFacadeChanged = () => setFacadeEnabled(AccessStore.getFacade().enabled);
-
-    AccessEvents.subscribeFacadeChanged(handleFacadeChanged);
-
-    const cleanupRoute = controller.buildRouteEffect()();
-
-    return () => {
-      AuthEvents.unsubscribe(handleAuthChanged);
-      AccessEvents.unsubscribeFacadeChanged(handleFacadeChanged);
-      cleanupRoute();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  useHeaderAuthEffect({
+    controller, viewAsController, setFacadeEnabled, loggedIn,
+  });
 
   useEffect(() => gameAccessController.buildEffect(route.gameSlug)(),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -102,18 +69,7 @@ export default function Header({ children }) {
           showViewAsModal,
           facadeEnabled,
         },
-        {
-          onLoginClick: () => controller.handleLoginClick(),
-          onLogoffClick: () => controller.handleLogoffClick(),
-          onModalClose: () => controller.handleModalClose(),
-          onLoginSuccess: () => controller.handleLoginSuccess(),
-          onSendTestEmailClick: () => controller.handleSendTestEmailClick(),
-          onLanguageChange: (language) => controller.handleLanguageChange(language, loggedIn),
-          onViewAsClick: (event) => controller.handleViewAsClick(
-            event, () => viewAsController.handleViewAsClick(),
-          ),
-          onViewAsModalClose: () => viewAsController.handleViewAsModalClose(),
-        }
+        controller.buildHandlers(viewAsController, loggedIn)
       )}
       {pendingApproval ? <PendingApprovalPage /> : children}
     </>
