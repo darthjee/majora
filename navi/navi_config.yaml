@@ -11,6 +11,7 @@ failure:
 
 include:
   - resources/treasures.yml
+  - resources/domains.yml
   - resources/games.yml
   - resources/pcs.yml
   - resources/npcs.yml

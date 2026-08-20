@@ -17,10 +17,14 @@ for that client's reference.
 The Navi configuration entry file lives at
 [`navi/navi_config.yaml`](../../navi/navi_config.yaml). It holds the `web`, `workers`, and
 `failure` sections, and pulls in the `resources`/`clients` sections via a top-level `include:`
-list from eleven files under [`navi/resources/`](../../navi/resources/):
+list from twelve files under [`navi/resources/`](../../navi/resources/):
 
 - `treasures.yml` — top-level `/treasures.json` chain, plus a game's `game_treasures` listing
   (and its `paginated_game_treasures`/`game_treasure_detail` chain).
+- `domains.yml` — the standalone, unparameterized `domain_config` resource (`/domain/config.json`),
+  the public per-domain-group branding config. It's `AllowAny` and always returns 200 (never 404,
+  even for an unrecognized host), so it needs no pagination, nested `actions`, or carried-forward
+  `parameters.*`.
 - `games.yml` — `/games.json` chain down through each game's detail and photos listing (and the
   fan-out into every other per-game resource file below).
 - `pcs.yml` — a game's PCs listing (`game_pcs`/`paginated_game_pcs`/`short_game_pcs`) plus a
@@ -46,9 +50,9 @@ list from eleven files under [`navi/resources/`](../../navi/resources/):
   `paginated_game_sessions_unscheduled`, `session`).
 - `permissions.yml` — the entity-agnostic `permissions_*` resources (see below).
 - `clients.yml` — the `clients.default` block (base URL, timeout, headers) used to make every
-  request in the other ten files.
+  request in the other eleven files.
 
-Every one of these eleven files declares a top-level `namespace: $NAVI_NAMEPACE` key, so every
+Every one of these twelve files declares a top-level `namespace: $NAVI_NAMEPACE` key, so every
 resource/client they declare resolves into the `$NAVI_NAMEPACE` namespace instead of the
 implicit `default` one. This is a literal, unresolved placeholder in the committed YAML —
 it's resolved at read time by whoever loads the files (see "CI (CircleCI)" and "Local testing"
@@ -136,7 +140,7 @@ documents the flow as it affects the files this agent owns.
 
 Local dev is unaffected by the CI change above: `docker-compose up majora_navi` still runs the
 standalone `darthjee/navi-hey` server against `navi/navi_config.yaml`, which now also pulls in
-`resources/clients.yml` through the same `include:` chain as the other ten resource files.
+`resources/clients.yml` through the same `include:` chain as the other eleven resource files.
 
 To test the cache warmer locally, set `MAJORA_PRODUCTION_URL` in your `.env` file (defaults to
 `http://localhost:3000` in `.env.dev.sample`) and run:
