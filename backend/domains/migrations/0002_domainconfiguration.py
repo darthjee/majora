@@ -14,11 +14,35 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='DomainConfiguration',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('favicon', models.CharField(blank=True, default=None, max_length=200, null=True)),
-                ('title', models.CharField(blank=True, default=None, max_length=200, null=True)),
-                ('sub_title', models.CharField(blank=True, default=None, max_length=200, null=True)),
-                ('domain_group', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='configuration', to='domains.domaingroup')),
+                (
+                    'id',
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name='ID',
+                    ),
+                ),
+                (
+                    'favicon',
+                    models.CharField(blank=True, default=None, max_length=200, null=True),
+                ),
+                (
+                    'title',
+                    models.CharField(blank=True, default=None, max_length=200, null=True),
+                ),
+                (
+                    'sub_title',
+                    models.CharField(blank=True, default=None, max_length=200, null=True),
+                ),
+                (
+                    'domain_group',
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name='configuration',
+                        to='domains.domaingroup',
+                    ),
+                ),
             ],
         ),
     ]
