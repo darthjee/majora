@@ -3,12 +3,12 @@
 from django.db.models import Exists, IntegerField, OuterRef, Subquery
 from django.db.models.functions import Coalesce
 
-from ...models import GameTreasure
-from ...serializers import CharacterTreasureSerializer
-from ..common import paginated_list_response
-from ..games._treasure_context import game_treasures_context
-from ..games._treasure_filters import filter_by_max_value, filter_by_min_value, filter_by_name
-from ._decorators import check_hidden
+from ....models import GameTreasure
+from ....serializers import CharacterTreasureSerializer
+from ...common import paginated_list_response
+from ...games._treasure_context import game_treasures_context
+from ...games._treasure_filters import filter_by_max_value, filter_by_min_value, filter_by_name
+from .._decorators import check_hidden
 
 
 @check_hidden

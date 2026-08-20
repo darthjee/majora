@@ -7,7 +7,7 @@ from rest_framework.permissions import AllowAny
 from ......models import Game
 from ......serializers import CharacterTreasureAllSerializer
 from .....common import check_game_edit
-from ...._treasures import character_treasures
+from ....treasures._treasures import character_treasures
 
 
 @api_view(['GET'])
