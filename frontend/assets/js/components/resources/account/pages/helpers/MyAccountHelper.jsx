@@ -7,6 +7,38 @@ import SubmitButton from '../../../../common/buttons/SubmitButton.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 
 /**
+ * Flat, declarative registry of the account form's fields, one entry per field, in the
+ * current visual order. Each entry declares the `<FormField>` props that differ per
+ * field: its `id`/`type`, its label's translation key, the `formState` value key to read
+ * from, the `handlers` key to wire as `onChange`, and the `formState.fieldErrors` key to
+ * read errors from. Exported (even though nothing outside this module needs it) so specs
+ * can assert `id` uniqueness directly.
+ */
+export const FIELD_REGISTRY = [
+  {
+    id: 'my-account-name', type: 'text', labelKey: 'my_account_page.name_label', valueKey: 'name', onChangeKey: 'onNameChange', errorKey: 'name',
+  },
+  {
+    id: 'my-account-display-name', type: 'text', labelKey: 'my_account_page.display_name_label', valueKey: 'displayName', onChangeKey: 'onDisplayNameChange', errorKey: 'display_name',
+  },
+  {
+    id: 'my-account-first-name', type: 'text', labelKey: 'my_account_page.first_name_label', valueKey: 'firstName', onChangeKey: 'onFirstNameChange', errorKey: 'first_name',
+  },
+  {
+    id: 'my-account-last-name', type: 'text', labelKey: 'my_account_page.last_name_label', valueKey: 'lastName', onChangeKey: 'onLastNameChange', errorKey: 'last_name',
+  },
+  {
+    id: 'my-account-email', type: 'email', labelKey: 'my_account_page.email_label', valueKey: 'email', onChangeKey: 'onEmailChange', errorKey: 'email',
+  },
+  {
+    id: 'my-account-password', type: 'password', labelKey: 'my_account_page.password_label', valueKey: 'password', onChangeKey: 'onPasswordChange', errorKey: 'password',
+  },
+  {
+    id: 'my-account-password-confirmation', type: 'password', labelKey: 'my_account_page.password_confirmation_label', valueKey: 'passwordConfirmation', onChangeKey: 'onPasswordConfirmationChange', errorKey: 'password_confirmation',
+  },
+];
+
+/**
  * Rendering helper for the my account page.
  */
 export default class MyAccountHelper {
@@ -29,62 +61,17 @@ export default class MyAccountHelper {
         <h1>{Translator.t('my_account_page.title')}</h1>
         {MyAccountHelper.#renderError(formState)}
         <form onSubmit={handlers.onSubmit}>
-          <FormField
-            id="my-account-name"
-            type="text"
-            label={Translator.t('my_account_page.name_label')}
-            value={formState.name}
-            onChange={handlers.onNameChange}
-            errors={formState.fieldErrors.name ?? []}
-          />
-          <FormField
-            id="my-account-display-name"
-            type="text"
-            label={Translator.t('my_account_page.display_name_label')}
-            value={formState.displayName}
-            onChange={handlers.onDisplayNameChange}
-            errors={formState.fieldErrors.display_name ?? []}
-          />
-          <FormField
-            id="my-account-first-name"
-            type="text"
-            label={Translator.t('my_account_page.first_name_label')}
-            value={formState.firstName}
-            onChange={handlers.onFirstNameChange}
-            errors={formState.fieldErrors.first_name ?? []}
-          />
-          <FormField
-            id="my-account-last-name"
-            type="text"
-            label={Translator.t('my_account_page.last_name_label')}
-            value={formState.lastName}
-            onChange={handlers.onLastNameChange}
-            errors={formState.fieldErrors.last_name ?? []}
-          />
-          <FormField
-            id="my-account-email"
-            type="email"
-            label={Translator.t('my_account_page.email_label')}
-            value={formState.email}
-            onChange={handlers.onEmailChange}
-            errors={formState.fieldErrors.email ?? []}
-          />
-          <FormField
-            id="my-account-password"
-            type="password"
-            label={Translator.t('my_account_page.password_label')}
-            value={formState.password}
-            onChange={handlers.onPasswordChange}
-            errors={formState.fieldErrors.password ?? []}
-          />
-          <FormField
-            id="my-account-password-confirmation"
-            type="password"
-            label={Translator.t('my_account_page.password_confirmation_label')}
-            value={formState.passwordConfirmation}
-            onChange={handlers.onPasswordConfirmationChange}
-            errors={formState.fieldErrors.password_confirmation ?? []}
-          />
+          {FIELD_REGISTRY.map((entry) => (
+            <FormField
+              key={entry.id}
+              id={entry.id}
+              type={entry.type}
+              label={Translator.t(entry.labelKey)}
+              value={formState[entry.valueKey]}
+              onChange={handlers[entry.onChangeKey]}
+              errors={formState.fieldErrors[entry.errorKey] ?? []}
+            />
+          ))}
           <SubmitButton disabled={formState.status === 'submitting'}>
             {Translator.t('my_account_page.submit')}
           </SubmitButton>

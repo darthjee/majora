@@ -277,4 +277,33 @@ export default class HeaderController {
       // Ignore failures persisting the language preference.
     }
   }
+
+  /**
+   * Builds the handlers object passed to `HeaderHelper.render`, wrapping every
+   * user-interaction callback used by the header's markup so `Header.jsx` doesn't
+   * need to build this object inline.
+   *
+   * @param {HeaderViewAsController} viewAsController - controller backing the
+   *   "view as" click/modal-close handlers.
+   * @param {boolean} loggedIn - current logged-in value, forwarded to
+   *   `handleLanguageChange`.
+   * @returns {{onLoginClick: Function, onLogoffClick: Function, onModalClose: Function,
+   *   onLoginSuccess: Function, onSendTestEmailClick: Function, onLanguageChange: Function,
+   *   onViewAsClick: Function, onViewAsModalClose: Function}} handlers consumed by
+   *   `HeaderHelper.render`.
+   */
+  buildHandlers(viewAsController, loggedIn) {
+    return {
+      onLoginClick: () => this.handleLoginClick(),
+      onLogoffClick: () => this.handleLogoffClick(),
+      onModalClose: () => this.handleModalClose(),
+      onLoginSuccess: () => this.handleLoginSuccess(),
+      onSendTestEmailClick: () => this.handleSendTestEmailClick(),
+      onLanguageChange: (language) => this.handleLanguageChange(language, loggedIn),
+      onViewAsClick: (event) => this.handleViewAsClick(
+        event, () => viewAsController.handleViewAsClick(),
+      ),
+      onViewAsModalClose: () => viewAsController.handleViewAsModalClose(),
+    };
+  }
 }

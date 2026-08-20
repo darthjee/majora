@@ -77,5 +77,28 @@ describe('LoginModalController', function() {
       expect(poller.stop).toHaveBeenCalled();
       expect(setAuthorizeStatus).toHaveBeenCalledWith(null);
     });
+
+    it('resets the mode and email fields when setters are provided', function() {
+      const setMode = jasmine.createSpy('setMode');
+      const setEmail = jasmine.createSpy('setEmail');
+      const controller = new LoginModalController(
+        setUsername,
+        setPassword,
+        setIncorrect,
+        setError,
+        onSuccess,
+        client,
+        setRecoverySent,
+        null,
+        undefined,
+        setMode,
+        setEmail
+      );
+
+      controller.handleClear();
+
+      expect(setMode).toHaveBeenCalledWith('login');
+      expect(setEmail).toHaveBeenCalledWith('');
+    });
   });
 });
