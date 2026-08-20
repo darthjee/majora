@@ -1,4 +1,18 @@
 const FENCE = '```';
+const DEFAULT_WARNING_THRESHOLD_PAGES = 10;
+
+/**
+ * Build-time-configurable page-count threshold (issue #1138) past which the live "total pages"
+ * counter shown while editing switches to a warning style and links to the document's show page
+ * (where PDF upload is available), nudging authors of oversized documents toward PDF upload
+ * instead. Reads `VITE_DOCUMENT_PAGE_WARNING_THRESHOLD` from `import.meta.env` once at module
+ * load, mirroring {@link MajoraLogger}'s `VITE_FRONTEND_LOG_LEVEL` pattern; falls back to `10`
+ * whenever the env var is unset, empty, or not a valid number.
+ *
+ * @type {number}
+ */
+export const PAGE_WARNING_THRESHOLD = Number(import.meta.env?.VITE_DOCUMENT_PAGE_WARNING_THRESHOLD)
+  || DEFAULT_WARNING_THRESHOLD_PAGES;
 
 /**
  * Pure, save-time text-to-pages splitter for `DocumentPagesEditBox` (issue #1129). Cuts a single

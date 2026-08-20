@@ -55,7 +55,11 @@ function DocumentPagesEditBox({ gameSlug, id, canEditPages = false }, ref) {
   const handleChange = (event) => setState((previous) => ({ ...previous, value: event.target.value }));
 
   return DocumentPagesEditBoxHelper.render(
-    state, canEditPages, { onEdit: handleEdit, onCancel: handleCancel, onChange: handleChange },
+    state,
+    canEditPages,
+    { onEdit: handleEdit, onCancel: handleCancel, onChange: handleChange },
+    gameSlug,
+    id,
   );
 }
 
