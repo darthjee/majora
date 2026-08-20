@@ -29,7 +29,7 @@ The following shared/general files remain at `game/` root:
 ### Scope
 - Move files to domain subfolders (filenames unchanged per Views Organization convention)
 - Update imports in `_character_shared.py` for the moved files
-- Update imports in the 17 additional consumer files that import the flat files
+- Update imports in the 16 additional consumer files that import the flat files
   directly (beyond `_character_shared.py`): `game/pcs/detail/{documents,factions,items,treasures}/*.py`
   and `game/npcs/detail/{documents,factions,items,treasures}/*.py` (the photos and
   possessions domains have no such direct consumers)
