@@ -54,3 +54,19 @@ class Domain(models.Model):
     def origins(self):
         """Return this domain's `scheme://domain` origins, one per configured scheme."""
         return [f'{scheme}://{self.domain}' for scheme in self.schemes.split(',')]
+
+
+class DomainConfiguration(models.Model):
+    """Model representing per-DomainGroup branding overrides (title, sub-title, favicon)."""
+
+    domain_group = models.OneToOneField(
+        DomainGroup, on_delete=models.CASCADE, related_name='configuration'
+    )
+    favicon = models.CharField(max_length=200, null=True, blank=True, default=None)
+    title = models.CharField(max_length=200, null=True, blank=True, default=None)
+    sub_title = models.CharField(max_length=200, null=True, blank=True, default=None)
+    history = HistoricalRecords(app='versioning', user_db_constraint=False)
+
+    def __str__(self):
+        """Return string representation of the domain configuration."""
+        return f'Configuration for {self.domain_group}'
