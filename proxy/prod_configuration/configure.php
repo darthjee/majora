@@ -13,6 +13,7 @@ require_once __DIR__ . '/locals.php';
 
 require_once __DIR__ . '/rules/frontend.php';
 require_once __DIR__ . '/rules/photos.php';
+require_once __DIR__ . '/rules/domain.php';
 require_once __DIR__ . '/rules/files.php';
 require_once __DIR__ . '/rules/uploads.php';
 require_once __DIR__ . '/rules/delete.php';
