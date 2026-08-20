@@ -36,24 +36,24 @@ class CacheSizeHandler extends RequestHandler
     private DirectorySizeCalculator $calculator;
 
     /**
-     * @param string                        $host          Backend host URL.
-     * @param HttpClientInterface|null      $httpClient    HTTP client (defaults to
-     *                                                       CurlHttpClient).
-     * @param string                        $cachePath     Path to the cache folder to measure.
-     * @param string                        $cacheSizeTool Directory-size tool identifier used
-     *                                                       to build the default calculator
-     *                                                       (e.g. 'du', 'php_walk'); ignored
-     *                                                       when $calculator is given.
-     * @param DirectorySizeCalculator|null  $calculator    Calculator used to size the cache
-     *                                                       folder (defaults to one built from
-     *                                                       $cacheSizeTool).
+     * @param string                       $host          Backend host URL.
+     * @param HttpClientInterface|null     $httpClient    HTTP client (defaults to
+     *                                                    CurlHttpClient).
+     * @param string                       $cachePath     Path to the cache folder to measure.
+     * @param string                       $cacheSizeTool Directory-size tool identifier used
+     *                                                    to build the default calculator
+     *                                                    (e.g. 'du', 'php_walk'); ignored
+     *                                                    when $calculator is given.
+     * @param DirectorySizeCalculator|null $calculator    Calculator used to size the cache
+     *                                                    folder (defaults to one built
+     *                                                    from $cacheSizeTool).
      */
     public function __construct(
         string $host,
-        ?HttpClientInterface $httpClient = null,
-        string $cachePath = '',
-        string $cacheSizeTool = 'php_walk',
-        ?DirectorySizeCalculator $calculator = null
+        ?HttpClientInterface $httpClient=null,
+        string $cachePath='',
+        string $cacheSizeTool='php_walk',
+        ?DirectorySizeCalculator $calculator=null
     ) {
         $this->client = new BackendClient($host, $httpClient);
         $this->cachePath = $cachePath;
@@ -64,7 +64,7 @@ class CacheSizeHandler extends RequestHandler
      * Builds a CacheSizeHandler from configuration parameters.
      *
      * @param array $params Must contain 'host' (string) and 'cache_path' (string); optionally
-     *                        'cache_size_tool' (string, defaults to 'php_walk').
+     *                      'cache_size_tool' (string, defaults to 'php_walk').
      * @return self
      */
     public static function build(array $params): self
@@ -107,11 +107,13 @@ class CacheSizeHandler extends RequestHandler
             return new Response(['httpCode' => 500, 'body' => 'Internal Server Error']);
         }
 
-        return new Response([
+        return new Response(
+            [
             'httpCode' => 200,
             'headers'  => ['Content-Type: application/json'],
             'body'     => json_encode(['size' => $size]),
-        ]);
+            ]
+        );
     }
 
     /**

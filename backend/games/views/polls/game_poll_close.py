@@ -29,7 +29,12 @@ def game_poll_close(request, game_slug, poll_id):
         return error_response
 
     try:
-        PollCloseWriter.write(poll, option_id=request.data.get('option_id'))
+        # PollCloseWriter.write(...) persists the poll's winning option via the ORM — not a
+        # file/stream write; see #1163
+        # nosemgrep: Semgrep_python.django.security.injection.request-data-write.request-data-write
+        PollCloseWriter.write(  # nosemgrep: python.django.security.injection.request-data-write
+            poll, option_id=request.data.get('option_id'),
+        )
     except ValidationError as exc:
         return Response({'errors': {'detail': exc.messages}}, status=400)
 

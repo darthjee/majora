@@ -70,6 +70,7 @@ export default class RecoverPasswordController {
   async handleSubmit(token, password, confirmPassword) {
     this.setErrorMessage('');
 
+    // eslint-disable-next-line security/detect-possible-timing-attacks, security-node/detect-possible-timing-attacks -- client-side-only comparison of two values the same user just entered (new password vs. confirmation); no server secret or distinct attacker involved, see issue #1158
     if (password !== confirmPassword) {
       this.setStatus('error');
       this.setErrorMessage('Passwords do not match.');

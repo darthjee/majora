@@ -56,6 +56,42 @@ describe('HeaderHelper', function() {
         expect(html).not.toContain('header-pc-nav-dropdown');
         expect(html).not.toContain('header-npc-nav-dropdown');
       });
+
+      it('renders PC dropdown items in Overview/Photos/Treasures/Items/Documents order', function() {
+        const html = render({ route: { page: 'pcCharacter', gameSlug: 'epic-quest', characterId: '7' } });
+
+        const hrefs = [
+          'href="#/games/epic-quest/pcs/7"',
+          'href="#/games/epic-quest/pcs/7/photos"',
+          'href="#/games/epic-quest/pcs/7/treasures"',
+          'href="#/games/epic-quest/pcs/7/items"',
+          'href="#/games/epic-quest/pcs/7/documents"',
+        ];
+        const indexes = hrefs.map((href) => html.indexOf(href));
+
+        indexes.forEach((index) => expect(index).toBeGreaterThan(-1));
+        for (let i = 1; i < indexes.length; i += 1) {
+          expect(indexes[i]).toBeGreaterThan(indexes[i - 1]);
+        }
+      });
+
+      it('renders NPC dropdown items in Overview/Photos/Treasures/Items/Documents order', function() {
+        const html = render({ route: { page: 'npcCharacter', gameSlug: 'epic-quest', characterId: '9' } });
+
+        const hrefs = [
+          'href="#/games/epic-quest/npcs/9"',
+          'href="#/games/epic-quest/npcs/9/photos"',
+          'href="#/games/epic-quest/npcs/9/treasures"',
+          'href="#/games/epic-quest/npcs/9/items"',
+          'href="#/games/epic-quest/npcs/9/documents"',
+        ];
+        const indexes = hrefs.map((href) => html.indexOf(href));
+
+        indexes.forEach((index) => expect(index).toBeGreaterThan(-1));
+        for (let i = 1; i < indexes.length; i += 1) {
+          expect(indexes[i]).toBeGreaterThan(indexes[i - 1]);
+        }
+      });
     });
   });
 });

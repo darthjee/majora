@@ -14,6 +14,7 @@ implications (same enum as [Link](link.md)).
 
 No dedicated endpoint — links are written exclusively as a nested `links` array inside the
 character payload, gated by the same permission as the character write itself:
+
 - `PATCH /games/<slug>/pcs\|npcs/<id>/full.json` — **CharacterEdit**.
 - `POST /games/<slug>/npcs.json` — **GameEdit**.
 - The narrow player-facing PC/NPC `PATCH`s — see [Character](character.md#narrow-player-facing-patch).
@@ -22,6 +23,7 @@ character payload, gated by the same permission as the character write itself:
 
 Each entry in the `links` array accepts `id` (optional), `text`, `url`, `link_type`, and a
 transient `delete` flag. Per entry, applied after the character's own fields are saved:
+
 - `delete: true` — deletes the link matching `id`. `id` is required; a delete with no `id` → 400.
 - `id` present (no `delete`) — updates the link matching `id`; only present fields change.
 - `id` absent — creates a new link owned by the target character; `url` is required for a create

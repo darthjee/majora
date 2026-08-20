@@ -41,7 +41,7 @@ class BackendClient
      * @param string                   $host       Backend host URL.
      * @param HttpClientInterface|null $httpClient HTTP client (defaults to CurlHttpClient).
      */
-    public function __construct(string $host, ?HttpClientInterface $httpClient = null)
+    public function __construct(string $host, ?HttpClientInterface $httpClient=null)
     {
         $this->host = $host;
         $this->httpClient = ($httpClient ?? new CurlHttpClient());
@@ -78,22 +78,22 @@ class BackendClient
      * @param string      $method              The HTTP method (e.g. 'GET', 'PATCH', 'DELETE').
      * @param string      $path                The backend path, e.g. '/users/status.json'.
      * @param array       $incomingHeaders     The raw, unfiltered headers off the original
-     *                                          client request.
+     *                                         client request.
      * @param string|null $body                Optional request body.
      * @param string[]    $extraAllowedHeaders Per-call additions to the base forwarded-header
-     *                                          allow-list.
+     *                                         allow-list.
      * @param array       $overrideHeaders     Headers forced on the outgoing request, applied
-     *                                          after filtering/host-remap (e.g. a forced
-     *                                          Content-Type).
+     *                                         after filtering/host-remap (e.g. a forced
+     *                                         Content-Type).
      * @return array{body: string, httpCode: int, headers: string[]}
      */
     public function request(
         string $method,
         string $path,
         array $incomingHeaders,
-        ?string $body = null,
-        array $extraAllowedHeaders = [],
-        array $overrideHeaders = []
+        ?string $body=null,
+        array $extraAllowedHeaders=[],
+        array $overrideHeaders=[]
     ): array {
         $url = $this->url($path);
 

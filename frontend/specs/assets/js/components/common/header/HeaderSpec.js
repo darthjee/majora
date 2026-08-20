@@ -10,7 +10,7 @@ import { captureConstructorFields } from '../../../../../support/controllerStubs
 
 describe('Header', function() {
   beforeEach(function() {
-    spyOn(AuthClient.prototype, 'status').and.returnValue(
+    spyOn(AuthClient.prototype, 'headerStatus').and.returnValue(
       Promise.resolve({ ok: true, json: () => Promise.resolve({ logged_in: false }) })
     );
   });

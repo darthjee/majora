@@ -1,3 +1,6 @@
+import { readdirSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
 import Translator from '../../assets/js/i18n/Translator.js';
 import TranslationLoader from '../../assets/js/i18n/TranslationLoader.js';
 import * as en from '../../assets/i18n/en/index.js';
@@ -18,6 +21,24 @@ import * as pt from '../../assets/i18n/pt/index.js';
 // get organically warmed by some other spec's render first.
 const MANIFESTS = { en, pt };
 const INITIAL_LANGUAGE = Translator.getLanguage();
+
+/**
+ * Lists every page-specific namespace for a language by reading its i18n
+ * directory directly off disk, since `manifest.chunkLoaders` is now a
+ * `Proxy` with no real own keys until a namespace has been requested or
+ * overridden by a spec fixture (see docs/agents/i18n.md).
+ *
+ * @param {string} language - The language code whose directory to list.
+ * @returns {string[]} namespace names (file basenames without `.yaml`), excluding `common`.
+ */
+const listNamespaces = (language) => {
+  const dir = join(dirname(fileURLToPath(import.meta.url)), '../../assets/i18n', language);
+
+  // eslint-disable-next-line security/detect-non-literal-fs-filename -- dir is join(__dirname, '../../assets/i18n', language) where language always comes from this file's own MANIFESTS keys ('en', 'pt'), never external input.
+  return readdirSync(dir)
+    .filter((file) => file.endsWith('.yaml') && file !== 'common.yaml')
+    .map((file) => file.replace(/\.yaml$/, ''));
+};
 
 /**
  * Waits for a `TranslationLoader` entry to settle by polling `.get()` on
@@ -62,8 +83,8 @@ const preloadNamespace = (language, namespace) => {
 };
 
 beforeAll(async function() {
-  const tasks = Object.entries(MANIFESTS).flatMap(([language, manifest]) => {
-    const namespaces = ['common', ...Object.keys(manifest.chunkLoaders)];
+  const tasks = Object.keys(MANIFESTS).flatMap((language) => {
+    const namespaces = ['common', ...listNamespaces(language)];
 
     return namespaces.map((namespace) => preloadNamespace(language, namespace));
   });

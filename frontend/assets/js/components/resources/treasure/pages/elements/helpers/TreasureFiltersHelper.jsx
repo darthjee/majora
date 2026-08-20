@@ -22,6 +22,16 @@ export default class TreasureFiltersHelper {
     return (
       <div className="row g-2 align-items-end mb-4" data-testid="treasure-filters">
         {TreasureFiltersHelper.#renderGameType(state, handlers, showGameType)}
+        {TreasureFiltersHelper.#renderMinMaxValue(state, handlers)}
+        {TreasureFiltersHelper.#renderNameFilter(state, handlers)}
+        {TreasureFiltersHelper.#renderActions(handlers)}
+      </div>
+    );
+  }
+
+  static #renderMinMaxValue(state, handlers) {
+    return (
+      <>
         <div className="col-auto">
           <label htmlFor="treasure-filter-min-value" className="form-label">
             {Translator.t('treasures_page.filter_min_value_label')}
@@ -48,20 +58,32 @@ export default class TreasureFiltersHelper {
             onChange={(event) => handlers.onMaxValueChange(event.target.value)}
           />
         </div>
-        <div className="col-auto">
-          <label htmlFor="treasure-filter-name" className="form-label">
-            {Translator.t('treasures_page.filter_name_label')}
-          </label>
-          <input
-            id="treasure-filter-name"
-            data-testid="treasure-filter-name"
-            type="text"
-            className="form-control"
-            placeholder={Translator.t('treasures_page.filter_name_placeholder')}
-            value={state.name}
-            onChange={(event) => handlers.onNameChange(event.target.value)}
-          />
-        </div>
+      </>
+    );
+  }
+
+  static #renderNameFilter(state, handlers) {
+    return (
+      <div className="col-auto">
+        <label htmlFor="treasure-filter-name" className="form-label">
+          {Translator.t('treasures_page.filter_name_label')}
+        </label>
+        <input
+          id="treasure-filter-name"
+          data-testid="treasure-filter-name"
+          type="text"
+          className="form-control"
+          placeholder={Translator.t('treasures_page.filter_name_placeholder')}
+          value={state.name}
+          onChange={(event) => handlers.onNameChange(event.target.value)}
+        />
+      </div>
+    );
+  }
+
+  static #renderActions(handlers) {
+    return (
+      <>
         <div className="col-auto">
           <button
             type="button"
@@ -82,7 +104,7 @@ export default class TreasureFiltersHelper {
             {Translator.t('treasures_page.filter_clear')}
           </button>
         </div>
-      </div>
+      </>
     );
   }
 

@@ -106,7 +106,7 @@ describe('DocumentDetailHelper', function() {
       const document = { id: 5, name: 'Ancient Scroll', description: '' };
       const onUploadClick = jasmine.createSpy('onUploadClick');
       const element = DocumentDetailHelper.render(
-        document, '#/games/demo/documents', '#/games/demo/documents/5/edit', true, onUploadClick,
+        document, '#/games/demo/documents', '#/games/demo/documents/5/edit', true, undefined, { onUploadClick },
       );
 
       expect(element.props.context.canUploadPhoto).toBe(true);
@@ -132,7 +132,7 @@ describe('DocumentDetailHelper', function() {
     it('passes gameSlug through to the show page layout context as game_slug (issue #873)', function() {
       const document = { id: 5, name: 'Ancient Scroll', description: '' };
       const element = DocumentDetailHelper.render(
-        document, '#/games/demo/documents', '#/games/demo/documents/5/edit', true, undefined, undefined, 'demo',
+        document, '#/games/demo/documents', '#/games/demo/documents/5/edit', true, 'demo',
       );
 
       expect(element.props.context.game_slug).toBe('demo');
@@ -143,8 +143,7 @@ describe('DocumentDetailHelper', function() {
       const document = { id: 5, name: 'Ancient Scroll', description: '' };
       const onSelectPhoto = jasmine.createSpy('onSelectPhoto');
       const element = DocumentDetailHelper.render(
-        document, '#/games/demo/documents', '#/games/demo/documents/5/edit', true,
-        undefined, undefined, 'demo', onSelectPhoto,
+        document, '#/games/demo/documents', '#/games/demo/documents/5/edit', true, 'demo', { onSelectPhoto },
       );
 
       expect(element.props.context.handlers.onSelectPhoto).toBe(onSelectPhoto);
@@ -216,8 +215,7 @@ describe('DocumentDetailHelper', function() {
         const document = { id: 5, name: 'Ancient Scroll', description: '' };
         const onGiveDocumentClick = jasmine.createSpy('onGiveDocumentClick');
         const element = DocumentDetailHelper.render(
-          document, '#/games/demo/documents', '#/games/demo/documents/5/edit', true,
-          undefined, undefined, undefined, undefined, onGiveDocumentClick,
+          document, '#/games/demo/documents', '#/games/demo/documents/5/edit', true, undefined, { onGiveDocumentClick },
         );
         const button = findGiveDocumentButton(element);
 
@@ -260,8 +258,8 @@ describe('DocumentDetailHelper', function() {
         const onUploadClick = jasmine.createSpy('onUploadClick');
         const onFileUploadClick = jasmine.createSpy('onFileUploadClick');
         const element = DocumentDetailHelper.render(
-          document, '#/games/demo/documents', '#/games/demo/documents/5/edit', true,
-          onUploadClick, onFileUploadClick,
+          document, '#/games/demo/documents', '#/games/demo/documents/5/edit', true, undefined,
+          { onUploadClick, onFileUploadClick },
         );
         const button = findFileUploadButton(element);
 

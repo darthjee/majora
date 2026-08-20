@@ -42,8 +42,8 @@ class CacheClearHandler extends RequestHandler
      */
     public function __construct(
         string $host,
-        ?HttpClientInterface $httpClient = null,
-        string $cachePath = ''
+        ?HttpClientInterface $httpClient=null,
+        string $cachePath=''
     ) {
         $this->client = new BackendClient($host, $httpClient);
         $this->cachePath = $cachePath;
@@ -110,7 +110,7 @@ class CacheClearHandler extends RequestHandler
             RecursiveIteratorIterator::CHILD_FIRST
         );
 
-        /** @var SplFileInfo $entry */
+        // @var SplFileInfo $entry
         foreach ($iterator as $entry) {
             $path = $entry->getPathname();
 

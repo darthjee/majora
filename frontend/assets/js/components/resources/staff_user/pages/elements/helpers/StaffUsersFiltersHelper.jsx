@@ -16,37 +16,57 @@ export default class StaffUsersFiltersHelper {
   static render(state, handlers) {
     return (
       <div className="row g-2 align-items-end mb-4" data-testid="staff-users-filters">
-        <div className="col-auto">
-          <label htmlFor="staff-users-filter-status" className="form-label">
-            {Translator.t('staff_users_page.filter_status_label')}
-          </label>
-          <select
-            id="staff-users-filter-status"
-            data-testid="staff-users-filter-status"
-            className="form-select"
-            value={state.status}
-            onChange={(event) => handlers.onStatusChange(event.target.value)}
-          >
-            <option value="">{Translator.t('staff_users_page.filter_status_all')}</option>
-            <option value="pending">{Translator.t('staff_users_page.status_pending')}</option>
-            <option value="approved">{Translator.t('staff_users_page.status_approved')}</option>
-            <option value="denied">{Translator.t('staff_users_page.status_denied')}</option>
-          </select>
-        </div>
-        <div className="col-auto">
-          <label htmlFor="staff-users-filter-search" className="form-label">
-            {Translator.t('staff_users_page.filter_search_label')}
-          </label>
-          <input
-            id="staff-users-filter-search"
-            data-testid="staff-users-filter-search"
-            type="text"
-            className="form-control"
-            placeholder={Translator.t('staff_users_page.filter_search_placeholder')}
-            value={state.search}
-            onChange={(event) => handlers.onSearchChange(event.target.value)}
-          />
-        </div>
+        {StaffUsersFiltersHelper.#renderStatusFilter(state, handlers)}
+        {StaffUsersFiltersHelper.#renderSearchFilter(state, handlers)}
+        {StaffUsersFiltersHelper.#renderActions(handlers)}
+      </div>
+    );
+  }
+
+  static #renderStatusFilter(state, handlers) {
+    return (
+      <div className="col-auto">
+        <label htmlFor="staff-users-filter-status" className="form-label">
+          {Translator.t('staff_users_page.filter_status_label')}
+        </label>
+        <select
+          id="staff-users-filter-status"
+          data-testid="staff-users-filter-status"
+          className="form-select"
+          value={state.status}
+          onChange={(event) => handlers.onStatusChange(event.target.value)}
+        >
+          <option value="">{Translator.t('staff_users_page.filter_status_all')}</option>
+          <option value="pending">{Translator.t('staff_users_page.status_pending')}</option>
+          <option value="approved">{Translator.t('staff_users_page.status_approved')}</option>
+          <option value="denied">{Translator.t('staff_users_page.status_denied')}</option>
+        </select>
+      </div>
+    );
+  }
+
+  static #renderSearchFilter(state, handlers) {
+    return (
+      <div className="col-auto">
+        <label htmlFor="staff-users-filter-search" className="form-label">
+          {Translator.t('staff_users_page.filter_search_label')}
+        </label>
+        <input
+          id="staff-users-filter-search"
+          data-testid="staff-users-filter-search"
+          type="text"
+          className="form-control"
+          placeholder={Translator.t('staff_users_page.filter_search_placeholder')}
+          value={state.search}
+          onChange={(event) => handlers.onSearchChange(event.target.value)}
+        />
+      </div>
+    );
+  }
+
+  static #renderActions(handlers) {
+    return (
+      <>
         <div className="col-auto">
           <button
             type="button"
@@ -67,7 +87,7 @@ export default class StaffUsersFiltersHelper {
             {Translator.t('staff_users_page.filter_clear')}
           </button>
         </div>
-      </div>
+      </>
     );
   }
 }

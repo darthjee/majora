@@ -47,61 +47,8 @@ export default class StlModelNewHelper {
         {StlModelNewHelper.#renderPhotoUploadFailed(formState, handlers)}
         <form onSubmit={handlers.onSubmit}>
           <div className="row">
-            <div className="col-md-6">
-              <StlModelPhotoField
-                url={formState.photoPreviewUrl}
-                alt={formState.name}
-                onClick={handlers.onOpenUploadModal}
-              />
-              <FormField
-                id="stl-model-new-name"
-                type="text"
-                label={Translator.t('stl_model_new_page.name_label')}
-                value={formState.name}
-                onChange={handlers.onNameChange}
-                errors={formState.fieldErrors.name ?? []}
-              />
-              <SwitchField
-                id="stl-model-new-owned"
-                label={Translator.t('stl_model_new_page.owned_switch_label')}
-                checked={formState.owned}
-                onChange={handlers.onOwnedChange}
-              />
-              {StlModelFormFieldsHelper.render(formState, handlers, 'stl-model-new')}
-            </div>
-            <div className="col-md-6">
-              <TagsField
-                id="stl-model-new-tags"
-                label={Translator.t('stl_model_new_page.tags_label')}
-                placeholder={Translator.t('stl_model_new_page.tags_input_placeholder')}
-                addLabel={Translator.t('stl_model_new_page.add_tag')}
-                tags={formState.tags}
-                inputValue={formState.tagInput}
-                onInputChange={handlers.onTagInputChange}
-                onAdd={handlers.onAddTag}
-                onRemoveTag={handlers.onRemoveTag}
-                removeTagLabel={Translator.t('stl_model_new_page.remove_tag_tooltip')}
-                errors={formState.fieldErrors.tags ?? []}
-              />
-              <MultiResourcePickerField
-                resource="source"
-                maxEntries={4}
-                value={formState.sources}
-                onChange={handlers.onSourcesChange}
-                label={Translator.t('stl_model_new_page.sources_label')}
-                searchPlaceholder={Translator.t('stl_model_new_page.sources_search_placeholder')}
-                removeLabel={Translator.t('stl_model_new_page.remove_tag_tooltip')}
-              />
-              <MultiResourcePickerField
-                resource="collection"
-                maxEntries={4}
-                value={formState.collections}
-                onChange={handlers.onCollectionsChange}
-                label={Translator.t('stl_model_new_page.collections_label')}
-                searchPlaceholder={Translator.t('stl_model_new_page.collections_search_placeholder')}
-                removeLabel={Translator.t('stl_model_new_page.remove_tag_tooltip')}
-              />
-            </div>
+            {StlModelNewHelper.#renderLeftColumn(formState, handlers)}
+            {StlModelNewHelper.#renderRightColumn(formState, handlers)}
           </div>
           <SubmitButton disabled={formState.status === 'submitting'}>
             {Translator.t('stl_model_new_page.submit')}
@@ -118,6 +65,73 @@ export default class StlModelNewHelper {
    */
   static renderLoading() {
     return StlModelHelper.renderLoading();
+  }
+
+  static #renderLeftColumn(formState, handlers) {
+    return (
+      <div className="col-md-6">
+        <StlModelPhotoField
+          url={formState.photoPreviewUrl}
+          alt={formState.name}
+          onClick={handlers.onOpenUploadModal}
+        />
+        <FormField
+          id="stl-model-new-name"
+          type="text"
+          label={Translator.t('stl_model_new_page.name_label')}
+          value={formState.name}
+          onChange={handlers.onNameChange}
+          errors={formState.fieldErrors.name ?? []}
+        />
+        <SwitchField
+          id="stl-model-new-owned"
+          label={Translator.t('stl_model_new_page.owned_switch_label')}
+          checked={formState.owned}
+          onChange={handlers.onOwnedChange}
+        />
+        {StlModelFormFieldsHelper.render(formState, handlers, 'stl-model-new')}
+      </div>
+    );
+  }
+
+  static #renderRightColumn(formState, handlers) {
+    return (
+      <div className="col-md-6">
+        <TagsField
+          id="stl-model-new-tags"
+          tags={formState.tags}
+          inputValue={formState.tagInput}
+          errors={formState.fieldErrors.tags ?? []}
+          handlers={{
+            onInputChange: handlers.onTagInputChange,
+            onAdd: handlers.onAddTag,
+            onRemoveTag: handlers.onRemoveTag,
+          }}
+          labels={{
+            label: Translator.t('stl_model_new_page.tags_label'),
+            placeholder: Translator.t('stl_model_new_page.tags_input_placeholder'),
+            addLabel: Translator.t('stl_model_new_page.add_tag'),
+            removeTagLabel: Translator.t('stl_model_new_page.remove_tag_tooltip'),
+          }}
+        />
+        <MultiResourcePickerField
+          picker={{ resource: 'source', maxEntries: 4 }}
+          value={formState.sources}
+          onChange={handlers.onSourcesChange}
+          label={Translator.t('stl_model_new_page.sources_label')}
+          searchPlaceholder={Translator.t('stl_model_new_page.sources_search_placeholder')}
+          removeLabel={Translator.t('stl_model_new_page.remove_tag_tooltip')}
+        />
+        <MultiResourcePickerField
+          picker={{ resource: 'collection', maxEntries: 4 }}
+          value={formState.collections}
+          onChange={handlers.onCollectionsChange}
+          label={Translator.t('stl_model_new_page.collections_label')}
+          searchPlaceholder={Translator.t('stl_model_new_page.collections_search_placeholder')}
+          removeLabel={Translator.t('stl_model_new_page.remove_tag_tooltip')}
+        />
+      </div>
+    );
   }
 
   static #renderError(formState) {

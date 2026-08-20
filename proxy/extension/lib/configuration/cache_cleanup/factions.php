@@ -11,7 +11,7 @@
  */
 
 return [
-    // factions entity family — routes mutating a single GameFaction.
+    // Factions entity family — routes mutating a single GameFaction.
     [
         'targets' => [
             '/games/:game_slug/factions.json',

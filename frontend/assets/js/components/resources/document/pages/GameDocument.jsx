@@ -1,9 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import DocumentDetailHelper from './helpers/DocumentDetailHelper.jsx';
 import GameDocumentController from './controllers/GameDocumentController.js';
-import PhotoUploadModal from '../../../common/modals/PhotoUploadModal.jsx';
-import PhotoViewModal from '../../../common/modals/PhotoViewModal.jsx';
-import GiveDocumentModal from './elements/GiveDocumentModal.jsx';
+import GameDocumentModals from './elements/GameDocumentModals.jsx';
 import RequestStore from '../../../../utils/requests/RequestStore.js';
 import resourceConfig from '../../../../utils/requests/resourceConfig.js';
 import FacadeRefresh from '../../../../utils/access/useFacadeRefresh.js';
@@ -87,41 +85,29 @@ export default function GameDocument({ ControllerClass = GameDocumentController 
 
   return (
     <>
-      {DocumentDetailHelper.render(
-        document, backHref, editHref, canUploadPhoto,
-        () => setShowUploadModal(true), () => setShowFileUploadModal(true),
-        gameSlug, setSelectedPhoto, () => setShowGiveDocumentModal(true),
-      )}
-      <PhotoUploadModal
-        show={showUploadModal}
-        uploadPath={uploadPath}
-        onClose={() => setShowUploadModal(false)}
-        onSuccess={buildUploadSuccessHandler(setShowUploadModal)}
-      />
-      <PhotoUploadModal
-        show={showFileUploadModal}
-        uploadPath={fileUploadPath}
-        translationPrefix="file_upload_modal"
-        accept=".pdf"
-        showNameField
-        showPhotoField
-        photoUploadPathBuilder={buildFilePhotoUploadPath}
-        onClose={() => setShowFileUploadModal(false)}
-        onSuccess={buildUploadSuccessHandler(setShowFileUploadModal)}
-      />
-      <PhotoViewModal
-        show={selectedPhoto !== null}
-        photo={selectedPhoto}
-        alt={document?.name}
-        onClose={() => setSelectedPhoto(null)}
-        canSetProfilePhoto={false}
-      />
-      <GiveDocumentModal
-        show={showGiveDocumentModal}
-        document={document ?? {}}
+      {DocumentDetailHelper.render(document, backHref, editHref, canUploadPhoto, gameSlug, {
+        onUploadClick: () => setShowUploadModal(true),
+        onFileUploadClick: () => setShowFileUploadModal(true),
+        onSelectPhoto: setSelectedPhoto,
+        onGiveDocumentClick: () => setShowGiveDocumentModal(true),
+      })}
+      <GameDocumentModals
+        showUploadModal={showUploadModal}
+        showFileUploadModal={showFileUploadModal}
+        showGiveDocumentModal={showGiveDocumentModal}
+        document={document}
         gameSlug={gameSlug}
         canGiveHidden={canGiveHidden}
-        onClose={() => setShowGiveDocumentModal(false)}
+        selectedPhoto={selectedPhoto}
+        uploadPath={uploadPath}
+        fileUploadPath={fileUploadPath}
+        buildFilePhotoUploadPath={buildFilePhotoUploadPath}
+        onUploadSuccess={buildUploadSuccessHandler(setShowUploadModal)}
+        onFileUploadSuccess={buildUploadSuccessHandler(setShowFileUploadModal)}
+        onUploadClose={() => setShowUploadModal(false)}
+        onFileUploadClose={() => setShowFileUploadModal(false)}
+        onSelectPhoto={setSelectedPhoto}
+        onGiveDocumentClose={() => setShowGiveDocumentModal(false)}
       />
     </>
   );

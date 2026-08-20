@@ -45,7 +45,7 @@ export default function GameDocumentPhotos({ ControllerClass = GameDocumentPhoto
         photo={selectedPhoto}
         alt=""
         onClose={() => setSelectedPhoto(null)}
-        canSetProfilePhoto={false}
+        setProfilePhoto={{ canSetProfilePhoto: false }}
       />
     </>
   );

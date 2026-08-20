@@ -69,8 +69,8 @@ describe('TreasuresHelper', function() {
       expect(listPage.props.type).toBe('treasures-global');
       expect(listPage.props.basePath).toBe('#/treasures');
       expect(listPage.props.context.onUploadClick).toBe(handlers.onUploadClick);
-      expect(listPage.props.filtersProps.onQuery).toBe(handlers.onFilterQuery);
-      expect(listPage.props.filtersProps.onClear).toBe(handlers.onFilterClear);
+      expect(listPage.props.filters.props.onQuery).toBe(handlers.onFilterQuery);
+      expect(listPage.props.filters.props.onClear).toBe(handlers.onFilterClear);
     });
 
     it('wires the photo upload modal to the selected treasure', function() {

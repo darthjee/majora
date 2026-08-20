@@ -19,6 +19,7 @@ class TestHeaderMiddleware
      *
      * @param Request  $request  The incoming HTTP request.
      * @param Response $response The HTTP response to be sent to the client.
+     * @return void
      */
     public function handle(Request $request, Response $response): void
     {

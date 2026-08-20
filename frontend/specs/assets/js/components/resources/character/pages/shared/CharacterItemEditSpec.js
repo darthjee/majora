@@ -24,8 +24,7 @@ class LoadedController {
 
   buildEffect() { return () => Noop.noop; }
   submitForm() { return Promise.resolve(); }
-  // eslint-disable-next-line no-empty-function
-  applyLoadedItem() {}
+  applyLoadedItem() { Noop.noop(); }
 }
 
 /** Stub controller that stays in the loading state. */

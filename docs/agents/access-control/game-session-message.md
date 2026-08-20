@@ -14,6 +14,7 @@ permission model (**SessionMessagePermission**) with different rules for viewing
 
 A distinct id-cursor style, not the numbered-page paginator used elsewhere. Ordered by `id`
 descending (newest first), 20 per page.
+
 - No `next-entry-id` param: returns the most recent 20.
 - `?next-entry-id=<id>`: returns messages with `id <= <id>` (20 at a time) — the boundary message
   is intentionally repeated as the first item (frontend dedupes it).

@@ -34,7 +34,7 @@ $npcsEntityTargets = [
 ];
 
 return [
-    // treasures.json (collection).
+    // Treasures.json (collection).
     [
         'targets' => [
             '/games/:game_slug/treasures.json',
@@ -44,7 +44,7 @@ return [
             '/games/:game_slug/treasures.json',
         ],
     ],
-    // treasures entity — a single treasure.
+    // Treasures entity — a single treasure.
     [
         'targets' => [
             '/games/:game_slug/treasures.json',
@@ -56,7 +56,7 @@ return [
             '/treasures/:treasure_id/photo_upload.json',
         ],
     ],
-    // Treasures
+    // Treasures.
     [
         'targets' => [
           '/treasures.json',
@@ -73,12 +73,14 @@ return [
             '/games/:game_slug/npcs/:character_id/treasures/remove.json',
         ],
     ],
-    // pcs treasures buy/sell/acquire/remove — pcs entity targets plus the
+    // Pcs treasures buy/sell/acquire/remove — pcs entity targets plus the
     // PC's own treasures list.
     [
-        'targets' => array_merge($pcsEntityTargets, [
+        'targets' => array_merge(
+            $pcsEntityTargets, [
             '/games/:game_slug/pcs/:character_id/treasures.json',
-        ]),
+            ]
+        ),
         'routes' => [
             '/games/:game_slug/pcs/:character_id/treasures/buy.json',
             '/games/:game_slug/pcs/:character_id/treasures/sell.json',
@@ -87,12 +89,14 @@ return [
             '/games/:game_slug/pcs/:character_id/treasures/remove.json',
         ],
     ],
-    // npcs treasures buy/sell/acquire/remove — npcs entity targets plus the
+    // Npcs treasures buy/sell/acquire/remove — npcs entity targets plus the
     // NPC's own treasures list.
     [
-        'targets' => array_merge($npcsEntityTargets, [
+        'targets' => array_merge(
+            $npcsEntityTargets, [
             '/games/:game_slug/npcs/:character_id/treasures.json',
-        ]),
+            ]
+        ),
         'routes' => [
             '/games/:game_slug/npcs/:character_id/treasures/buy.json',
             '/games/:game_slug/npcs/:character_id/treasures/sell.json',

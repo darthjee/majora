@@ -65,7 +65,10 @@ def _cast_votes(request, poll):
 
     writer_cls = SinglePollVoteWriter if poll.type == Poll.TYPE_SINGLE else MultiplePollVoteWriter
     try:
-        votes = writer_cls.write(
+        # writer_cls.write(...) persists PollVote rows via the ORM — not a file/stream write;
+        # see #1163
+        # nosemgrep: Semgrep_python.django.security.injection.request-data-write.request-data-write
+        votes = writer_cls.write(  # nosemgrep: python.django.security.injection.request-data-write
             poll, request.user, serializer.validated_data['option_ids'],
         )
     except ValidationError as exc:

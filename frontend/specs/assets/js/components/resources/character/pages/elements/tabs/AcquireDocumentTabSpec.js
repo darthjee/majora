@@ -7,12 +7,12 @@ import AcquireDocumentTabHelper
 import AcquireDocumentTabController
   from '../../../../../../../../../assets/js/components/resources/character/pages/elements/tabs/controllers/AcquireDocumentTabController.js';
 import { buildCharacter } from '../../../../../../../../support/factories.js';
+import Noop from '../../../../../../../../../assets/js/utils/Noop.js';
 
 describe('AcquireDocumentTab', function() {
   const character = buildCharacter({ id: 7, game_slug: 'demo', is_pc: true });
 
-  // eslint-disable-next-line no-empty-function
-  const neverResolves = () => new Promise(() => {});
+  const neverResolves = () => new Promise(Noop.noop);
 
   const renderTab = (props = {}) => {
     let capturedState;

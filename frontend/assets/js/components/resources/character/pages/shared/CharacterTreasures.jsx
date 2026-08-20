@@ -8,7 +8,7 @@ import mergeCharacterTreasureQuantity from '../../../../../utils/money/mergeChar
 import FacadeRefresh from '../../../../../utils/access/useFacadeRefresh.js';
 import HashRouteResolver from '../../../../../utils/routing/HashRouteResolver.js';
 import getCurrentHash from '../../../../../utils/routing/currentHash.js';
-import buildFilterQueryHash from '../../../../../utils/routing/buildFilteredHref.js';
+import useFilterHandlers from './hooks/useFilterHandlers.js';
 
 /**
  * Merge a successful exchange's result into the currently loaded owned-treasures snapshot kept
@@ -70,6 +70,85 @@ export function resolveExchangeButtonCanEdit(character) {
 }
 
 /**
+ * Private hook bundling the page-level character context load state (`character`/
+ * `refreshToken`) together with the `CharacterContextController` instance, its effect/facade-
+ * refresh wiring, and the grid `refresh` trigger.
+ *
+ * @param {string} characterKind - Character kind URL segment (`'pcs'` or `'npcs'`).
+ * @returns {{character: object|null, refreshToken: number, controller: object, refresh:
+ *   Function}} Load state, controller instance, and grid-refresh trigger.
+ */
+function useCharacterTreasuresLoad(characterKind) {
+  const [character, setCharacter] = useState(null);
+  const [refreshToken, setRefreshToken] = useState(0);
+
+  const controller = useMemo(
+    () => new CharacterContextController(characterKind, setCharacter),
+    [characterKind],
+  );
+
+  useEffect(() => controller.buildEffect()(), [controller]);
+  FacadeRefresh.useFacadeRefresh(controller);
+
+  const refresh = () => setRefreshToken((token) => token + 1);
+
+  return {
+    character, refreshToken, controller, refresh,
+  };
+}
+
+/**
+ * Builds the handlers object passed into `CharacterTreasuresHelper.render`.
+ *
+ * @param {object} params - Handler-building params.
+ * @param {Function} params.setShowExchangeModal - `useTreasureExchangeModal()`'s
+ *   `setShowExchangeModal` setter.
+ * @param {Function} params.onFilterQuery - `useFilterHandlers()`'s `onFilterQuery`.
+ * @param {Function} params.onFilterClear - `useFilterHandlers()`'s `onFilterClear`.
+ * @param {Function} params.setOwnedTreasures - `useTreasureExchangeModal()`'s
+ *   `setOwnedTreasures` setter.
+ * @returns {object} Handlers object for `CharacterTreasuresHelper.render`.
+ */
+function buildCharacterTreasuresHandlers({
+  setShowExchangeModal, onFilterQuery, onFilterClear, setOwnedTreasures,
+}) {
+  return {
+    onAddTreasure: () => setShowExchangeModal(true),
+    onFilterQuery,
+    onFilterClear,
+    onItemsChange: setOwnedTreasures,
+  };
+}
+
+/**
+ * Private hook bundling the treasure exchange modal's `showExchangeModal`/`ownedTreasures`
+ * state together with its success handler, which refreshes the page-level character context,
+ * merges the exchanged quantity into the owned-treasures snapshot, and re-triggers the grid
+ * refresh.
+ *
+ * @param {object} controller - `CharacterContextController` instance, exposing
+ *   `refreshCharacter`.
+ * @param {Function} refresh - Called to re-trigger the treasures grid's data fetch.
+ * @returns {{ownedTreasures: object[], setOwnedTreasures: Function, showExchangeModal: boolean,
+ *   setShowExchangeModal: Function, handleExchangeSuccess: Function}} Exchange modal state and
+ *   handlers.
+ */
+function useTreasureExchangeModal(controller, refresh) {
+  const [ownedTreasures, setOwnedTreasures] = useState([]);
+  const [showExchangeModal, setShowExchangeModal] = useState(false);
+
+  const handleExchangeSuccess = (payload) => {
+    controller.refreshCharacter();
+    setOwnedTreasures((prev) => mergeOwnedTreasures(prev, payload));
+    refresh();
+  };
+
+  return {
+    ownedTreasures, setOwnedTreasures, showExchangeModal, setShowExchangeModal, handleExchangeSuccess,
+  };
+}
+
+/**
  * Shared character treasures index page component.
  *
  * @description The treasures grid itself renders through the shared `ListPage`/`listTypeConfig`
@@ -86,10 +165,9 @@ export function resolveExchangeButtonCanEdit(character) {
  * @returns {React.ReactElement} Character treasures page element.
  */
 export default function CharacterTreasures({ characterKind, listType, isPc }) {
-  const [character, setCharacter] = useState(null);
-  const [ownedTreasures, setOwnedTreasures] = useState([]);
-  const [showExchangeModal, setShowExchangeModal] = useState(false);
-  const [refreshToken, setRefreshToken] = useState(0);
+  const {
+    character, refreshToken, controller, refresh,
+  } = useCharacterTreasuresLoad(characterKind);
 
   const currentHash = getCurrentHash();
   const { game_slug: gameSlug, character_id: characterId } = BasePageController.extractParams(
@@ -100,31 +178,14 @@ export default function CharacterTreasures({ characterKind, listType, isPc }) {
   const gameType = character?.game_type ?? 'dnd';
   const activeFilters = Object.fromEntries(new HashRouteResolver().getFilterParams());
 
-  const controller = useMemo(
-    () => new CharacterContextController(characterKind, setCharacter),
-    [characterKind],
-  );
+  const {
+    ownedTreasures, setOwnedTreasures, showExchangeModal, setShowExchangeModal, handleExchangeSuccess,
+  } = useTreasureExchangeModal(controller, refresh);
 
-  useEffect(() => controller.buildEffect()(), [controller]);
-  FacadeRefresh.useFacadeRefresh(controller);
-
-  const refresh = () => setRefreshToken((token) => token + 1);
-
-  const handleExchangeSuccess = (payload) => {
-    controller.refreshCharacter();
-    setOwnedTreasures((prev) => mergeOwnedTreasures(prev, payload));
-    refresh();
-  };
-
-  const handleFilterQuery = (filters) => {
-    window.location.hash = buildFilterQueryHash(basePath, filters);
-    refresh();
-  };
-
-  const handleFilterClear = () => {
-    window.location.hash = basePath;
-    refresh();
-  };
+  const { onFilterQuery, onFilterClear } = useFilterHandlers(basePath, refresh);
+  const handlers = buildCharacterTreasuresHandlers({
+    setShowExchangeModal, onFilterQuery, onFilterClear, setOwnedTreasures,
+  });
 
   return (
     <>
@@ -138,12 +199,7 @@ export default function CharacterTreasures({ characterKind, listType, isPc }) {
           refreshToken,
           activeFilters,
         },
-        {
-          onAddTreasure: () => setShowExchangeModal(true),
-          onFilterQuery: handleFilterQuery,
-          onFilterClear: handleFilterClear,
-          onItemsChange: setOwnedTreasures,
-        },
+        handlers,
       )}
       <ResourceExchangeModal
         show={showExchangeModal}

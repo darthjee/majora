@@ -55,9 +55,9 @@ export default class BuyTreasureTabHelper {
         submitting={state.submitting}
         actionError={state.actionError}
         gameType={state.gameType}
-        onQuantityChange={handlers.onQuantityChange}
-        onConfirm={handlers.onConfirm}
-        onCancel={handlers.onCancel}
+        handlers={{
+          onQuantityChange: handlers.onQuantityChange, onConfirm: handlers.onConfirm, onCancel: handlers.onCancel,
+        }}
       />
     );
   }

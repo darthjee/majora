@@ -27,7 +27,7 @@ $npcsEntityTargets = [
 ];
 
 return [
-    // npcs.json (collection) — clearing the npcs list itself.
+    // Npcs.json (collection) — clearing the npcs list itself.
     [
         'targets' => [
             '/games/:game_slug/npcs.json',
@@ -37,7 +37,7 @@ return [
             '/games/:game_slug/npcs.json',
         ],
     ],
-    // npcs entity family — routes mutating a single NPC.
+    // Npcs entity family — routes mutating a single NPC.
     [
         'targets' => $npcsEntityTargets,
         'routes' => [

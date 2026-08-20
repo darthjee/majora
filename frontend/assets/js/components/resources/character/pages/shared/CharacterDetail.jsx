@@ -7,22 +7,12 @@ import PhotoViewModal from '../../../../common/modals/PhotoViewModal.jsx';
 import ProfilePhotoSetModal from '../../../../common/modals/ProfilePhotoSetModal.jsx';
 import MoneyEditModal from '../../../../common/modals/MoneyEditModal.jsx';
 import ErrorAlert from '../../../../common/misc/ErrorAlert.jsx';
-import Translator from '../../../../../i18n/Translator.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import RequestStore from '../../../../../utils/requests/RequestStore.js';
 import resourceConfig from '../../../../../utils/requests/resourceConfig.js';
 import getCurrentHash from '../../../../../utils/routing/currentHash.js';
-
-/**
- * Resource name (`'pc'`/`'npc'`) `RequestStore`/`resourceConfig` key for a character kind
- * (`'pcs'`/`'npcs'`).
- *
- * @param {string} characterKind - Character kind URL segment (`'pcs'` or `'npcs'`).
- * @returns {string} `'pc'` or `'npc'`.
- */
-function resourceName(characterKind) {
-  return characterKind === 'npcs' ? 'npc' : 'pc';
-}
+import resourceName from './characterResourceName.js';
+import useProfilePhotoActions from './hooks/useProfilePhotoActions.js';
 
 /**
  * Default extension hook, used when a character kind has no extra
@@ -32,6 +22,132 @@ function resourceName(characterKind) {
  */
 function useNoExtra() {
   return { handlers: {}, modal: null };
+}
+
+/**
+ * Private hook bundling the money-edit modal's `show` state together with its confirm handler,
+ * which PATCHes the character's money total and refreshes the character on success.
+ *
+ * @param {object} controller - Detail controller instance, exposing `updateCharacterMoney` and
+ *   `buildEffect`.
+ * @param {string} gameSlug - Game slug the character belongs to.
+ * @param {object|null} character - Currently loaded character, or `null` while loading.
+ * @returns {{showMoneyModal: boolean, openMoneyModal: Function, closeMoneyModal: Function,
+ *   handleMoneyConfirm: Function}} Money modal state and handlers.
+ */
+function useCharacterMoneyModal(controller, gameSlug, character) {
+  const [showMoneyModal, setShowMoneyModal] = useState(false);
+
+  const handleMoneyConfirm = (newTotal) => {
+    const token = AuthStorage.getToken();
+
+    return controller.updateCharacterMoney(gameSlug, character.id, token, newTotal).then(() => {
+      setShowMoneyModal(false);
+      controller.buildEffect()();
+    });
+  };
+
+  return {
+    showMoneyModal,
+    openMoneyModal: () => setShowMoneyModal(true),
+    closeMoneyModal: () => setShowMoneyModal(false),
+    handleMoneyConfirm,
+  };
+}
+
+/**
+ * Private hook bundling the photo-upload modal's `show` state together with the selected-photo
+ * (view modal) state and the upload success handler, which purges the resource cache (the photo
+ * upload saga doesn't go through `RequestStore.mutate`) and refreshes the character.
+ *
+ * @param {object} controller - Detail controller instance, exposing `buildEffect`.
+ * @param {string} gameSlug - Game slug the character belongs to.
+ * @param {string|number} characterId - Character id.
+ * @param {string} characterKind - Character kind URL segment (`'pcs'` or `'npcs'`).
+ * @returns {{showUploadModal: boolean, openUploadModal: Function, closeUploadModal: Function,
+ *   handleUploadSuccess: Function, selectedPhoto: object|null, setSelectedPhoto: Function,
+ *   uploadPath: string}} Photo-upload/view state and handlers.
+ */
+function useCharacterPhotoActions(controller, gameSlug, characterId, characterKind) {
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [selectedPhoto, setSelectedPhoto] = useState(null);
+
+  const handleUploadSuccess = () => {
+    setShowUploadModal(false);
+    // Purge before refetching: the photo upload saga doesn't go through `RequestStore.mutate`
+    // (it's a two-step, non-JSON-body saga), so the cache purge must happen explicitly here,
+    // before `buildEffect()()`'s refetch, or that refetch would re-serve the pre-upload cache.
+    RequestStore.purge({ resource: resourceName(characterKind) });
+    controller.buildEffect()();
+  };
+
+  const uploadPath = resourceConfig.get('POST', resourceName(characterKind), 'single').regular.path(
+    { gameSlug, id: characterId },
+  );
+
+  return {
+    showUploadModal,
+    openUploadModal: () => setShowUploadModal(true),
+    closeUploadModal: () => setShowUploadModal(false),
+    handleUploadSuccess,
+    selectedPhoto,
+    setSelectedPhoto,
+    uploadPath,
+  };
+}
+
+/**
+ * Renders the photo-upload, money-edit, photo-view, profile-photo-set, and extra (type-specific)
+ * modals for {@link CharacterDetail}.
+ *
+ * @param {object} props - Component props.
+ * @param {object} props.character - Currently loaded character.
+ * @param {object} props.photoActions - `useCharacterPhotoActions()` result.
+ * @param {object} props.moneyModal - `useCharacterMoneyModal()` result.
+ * @param {object} props.profilePhotoActions - `useProfilePhotoActions()` result.
+ * @param {React.ReactElement|null} props.extraModal - Extra, type-specific modal (e.g. NPC's
+ *   slain confirm modal), or `null`.
+ * @returns {React.ReactElement} The detail page's modals.
+ */
+function CharacterDetailModals({
+  character, photoActions, moneyModal, profilePhotoActions, extraModal,
+}) {
+  return (
+    <>
+      <PhotoUploadModal
+        show={photoActions.showUploadModal}
+        uploadPath={photoActions.uploadPath}
+        onClose={photoActions.closeUploadModal}
+        onSuccess={photoActions.handleUploadSuccess}
+      />
+      <MoneyEditModal
+        show={moneyModal.showMoneyModal}
+        money={character.money}
+        context="character"
+        gameType={character.game_type}
+        onClose={moneyModal.closeMoneyModal}
+        onConfirm={moneyModal.handleMoneyConfirm}
+      />
+      <PhotoViewModal
+        show={photoActions.selectedPhoto !== null}
+        photo={photoActions.selectedPhoto}
+        alt={character.name}
+        onClose={() => photoActions.setSelectedPhoto(null)}
+        setProfilePhoto={{
+          canSetProfilePhoto: character.can_set_profile_photo,
+          isProfilePhoto: photoActions.selectedPhoto?.id === character.photo_id,
+          onSetProfilePhoto: profilePhotoActions.handleSetProfilePhoto,
+        }}
+      />
+      <ProfilePhotoSetModal
+        show={profilePhotoActions.profilePhotoSet !== null}
+        photo={profilePhotoActions.profilePhotoSet}
+        alt={character.name}
+        onClose={() => profilePhotoActions.setProfilePhotoSet(null)}
+      />
+      {extraModal}
+    </>
+  );
 }
 
 /**
@@ -56,11 +172,6 @@ export default function CharacterDetail({
   const [character, setCharacter] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [showUploadModal, setShowUploadModal] = useState(false);
-  const [showMoneyModal, setShowMoneyModal] = useState(false);
-  const [selectedPhoto, setSelectedPhoto] = useState(null);
-  const [profilePhotoSet, setProfilePhotoSet] = useState(null);
-  const [actionError, setActionError] = useState('');
 
   const controller = useMemo(
     () => new ControllerClass(setCharacter, setLoading, setError),
@@ -83,81 +194,35 @@ export default function CharacterDetail({
   const { game_slug: gameSlug } = getParamsFromHash(currentHash);
   const backHref = `#/games/${gameSlug}/${characterKind}`;
 
-  const handleUploadSuccess = () => {
-    setShowUploadModal(false);
-    // Purge before refetching: the photo upload saga doesn't go through `RequestStore.mutate`
-    // (it's a two-step, non-JSON-body saga), so the cache purge must happen explicitly here,
-    // before `buildEffect()()`'s refetch, or that refetch would re-serve the pre-upload cache.
-    RequestStore.purge({ resource: resourceName(characterKind) });
-    controller.buildEffect()();
-  };
-
-  const handleMoneyConfirm = (newTotal) => {
-    const token = AuthStorage.getToken();
-
-    return controller.updateCharacterMoney(gameSlug, character.id, token, newTotal).then(() => {
-      setShowMoneyModal(false);
-      controller.buildEffect()();
-    });
-  };
-
-  const handleSetProfilePhoto = (photoId) => {
-    setActionError('');
-    const photo = (character.photos ?? []).find((p) => p.id === photoId) ?? selectedPhoto;
-
-    return controller.setProfilePhoto(gameSlug, character.id, photoId)
-      .then(() => {
-        setProfilePhotoSet(photo);
-        controller.buildEffect()();
-      })
-      .catch(() => setActionError(Translator.t('character_photos_page.set_profile_photo_error')));
-  };
+  const moneyModal = useCharacterMoneyModal(controller, gameSlug, character);
+  const photoActions = useCharacterPhotoActions(controller, gameSlug, character?.id, characterKind);
+  const profilePhotoActions = useProfilePhotoActions({
+    requestSetProfilePhoto: (photoId) => controller.setProfilePhoto(gameSlug, character?.id, photoId),
+    getPhotos: () => character?.photos ?? [],
+    selectedPhoto: photoActions.selectedPhoto,
+    onSuccess: () => controller.buildEffect()(),
+  });
 
   if (loading) return CharacterHelper.renderLoading();
   if (error) return CharacterHelper.renderError(error);
 
   return (
     <>
-      {actionError && <ErrorAlert error={actionError} />}
+      {profilePhotoActions.actionError && <ErrorAlert error={profilePhotoActions.actionError} />}
       {CharacterHelper.render(character, backHref, {
-        onOpenUploadModal: () => setShowUploadModal(true),
-        onOpenMoneyModal: () => setShowMoneyModal(true),
-        onSelectPhoto: setSelectedPhoto,
-        onSetProfilePhoto: handleSetProfilePhoto,
+        onOpenUploadModal: photoActions.openUploadModal,
+        onOpenMoneyModal: moneyModal.openMoneyModal,
+        onSelectPhoto: photoActions.setSelectedPhoto,
+        onSetProfilePhoto: profilePhotoActions.handleSetProfilePhoto,
         ...extraHandlers,
       })}
-      <PhotoUploadModal
-        show={showUploadModal}
-        uploadPath={resourceConfig.get('POST', resourceName(characterKind), 'single').regular.path(
-          { gameSlug, id: character.id },
-        )}
-        onClose={() => setShowUploadModal(false)}
-        onSuccess={handleUploadSuccess}
+      <CharacterDetailModals
+        character={character}
+        photoActions={photoActions}
+        moneyModal={moneyModal}
+        profilePhotoActions={profilePhotoActions}
+        extraModal={extraModal}
       />
-      <MoneyEditModal
-        show={showMoneyModal}
-        money={character.money}
-        context="character"
-        gameType={character.game_type}
-        onClose={() => setShowMoneyModal(false)}
-        onConfirm={handleMoneyConfirm}
-      />
-      <PhotoViewModal
-        show={selectedPhoto !== null}
-        photo={selectedPhoto}
-        alt={character.name}
-        onClose={() => setSelectedPhoto(null)}
-        canSetProfilePhoto={character.can_set_profile_photo}
-        isProfilePhoto={selectedPhoto?.id === character.photo_id}
-        onSetProfilePhoto={handleSetProfilePhoto}
-      />
-      <ProfilePhotoSetModal
-        show={profilePhotoSet !== null}
-        photo={profilePhotoSet}
-        alt={character.name}
-        onClose={() => setProfilePhotoSet(null)}
-      />
-      {extraModal}
     </>
   );
 }

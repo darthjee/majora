@@ -33,6 +33,130 @@ export async function resolve(specifier, context, nextResolve) {
 }
 
 /**
+ * Handles `?raw` text imports by returning the file's raw contents as a default export.
+ *
+ * @param {string} url - The module URL.
+ * @returns {object|undefined} The load result, or undefined if the URL doesn't match.
+ */
+function handleRawImport(url) {
+  if (!url.endsWith('?raw')) {
+    return undefined;
+  }
+  const filePath = fileURLToPath(url.slice(0, -'?raw'.length));
+  // eslint-disable-next-line security/detect-non-literal-fs-filename -- filePath comes from Node's own ESM loader url, driven only by import specifiers in this repo's own source/spec files; this loader is registered for local Jasmine runs only, never in production.
+  const source = readFileSync(filePath, 'utf-8');
+  return {
+    format: 'module',
+    source: `export default ${JSON.stringify(source)};`,
+    shortCircuit: true,
+  };
+}
+
+/**
+ * Transforms `.jsx` files to plain JavaScript via Babel.
+ *
+ * @param {string} url - The module URL.
+ * @returns {object|undefined} The load result, or undefined if the URL doesn't match.
+ */
+function handleJsxTransform(url) {
+  if (!url.endsWith('.jsx')) {
+    return undefined;
+  }
+  const filePath = fileURLToPath(url);
+  // eslint-disable-next-line security/detect-non-literal-fs-filename -- filePath comes from Node's own ESM loader url, driven only by import specifiers in this repo's own source/spec files; this loader is registered for local Jasmine runs only, never in production.
+  const source = readFileSync(filePath, 'utf-8');
+  const transformed = transformSync(source, {
+    filename: filePath,
+    presets: [
+      ['@babel/preset-react', { runtime: 'automatic' }],
+    ],
+    sourceType: 'module',
+  });
+  return {
+    format: 'module',
+    source: transformed.code,
+    shortCircuit: true,
+  };
+}
+
+/**
+ * Stubs `.css`/`.scss` imports, which Node-based specs don't need.
+ *
+ * @param {string} url - The module URL.
+ * @returns {object|undefined} The load result, or undefined if the URL doesn't match.
+ */
+function handleStyleStub(url) {
+  if (!url.endsWith('.css') && !url.endsWith('.scss')) {
+    return undefined;
+  }
+  return {
+    format: 'module',
+    source: 'export default {};',
+    shortCircuit: true,
+  };
+}
+
+/**
+ * Stubs the Bootstrap JS bundle, which requires a browser DOM.
+ *
+ * @param {string} url - The module URL.
+ * @returns {object|undefined} The load result, or undefined if the URL doesn't match.
+ */
+function handleBootstrapStub(url) {
+  if (!url.includes('/bootstrap/dist/js/')) {
+    return undefined;
+  }
+  return {
+    format: 'module',
+    source: 'export default {};',
+    shortCircuit: true,
+  };
+}
+
+/**
+ * Stubs static image imports resolved by Vite at build time.
+ *
+ * @param {string} url - The module URL.
+ * @returns {object|undefined} The load result, or undefined if the URL doesn't match.
+ */
+function handleImageStub(url) {
+  if (!url.startsWith('stub:image:')) {
+    return undefined;
+  }
+  const filename = url.slice('stub:image:'.length);
+  return {
+    format: 'module',
+    source: `export default '${filename}';`,
+    shortCircuit: true,
+  };
+}
+
+/**
+ * Shims `import.meta.env` from `process.env` for modules that read it, since plain Node
+ * never populates it the way Vite does at build/dev time.
+ *
+ * @param {string} url - The module URL.
+ * @returns {object|undefined} The load result, or undefined if the URL doesn't match.
+ */
+function handleViteEnvShim(url) {
+  const [bareUrl] = url.split('?');
+  if (!bareUrl.endsWith('.js') || bareUrl.includes('/node_modules/')) {
+    return undefined;
+  }
+  const filePath = fileURLToPath(bareUrl);
+  // eslint-disable-next-line security/detect-non-literal-fs-filename -- filePath comes from Node's own ESM loader url, driven only by import specifiers in this repo's own source/spec files; this loader is registered for local Jasmine runs only, never in production.
+  const source = readFileSync(filePath, 'utf-8');
+  if (!source.includes('import.meta.env')) {
+    return undefined;
+  }
+  return {
+    format: 'module',
+    source: `import.meta.env = import.meta.env ?? { ...process.env };\n${source}`,
+    shortCircuit: true,
+  };
+}
+
+/**
  * Load hook for the Node.js module loader.
  * Transforms JSX files to plain JavaScript.
  *
@@ -42,69 +166,13 @@ export async function resolve(specifier, context, nextResolve) {
  * @returns {Promise<object>} The loaded and transformed module source.
  */
 export async function load(url, context, nextLoad) {
-  if (url.endsWith('?raw')) {
-    const filePath = fileURLToPath(url.slice(0, -'?raw'.length));
-    const source = readFileSync(filePath, 'utf-8');
-    return {
-      format: 'module',
-      source: `export default ${JSON.stringify(source)};`,
-      shortCircuit: true,
-    };
-  }
-  if (url.endsWith('.jsx')) {
-    const filePath = fileURLToPath(url);
-    const source = readFileSync(filePath, 'utf-8');
-    const transformed = transformSync(source, {
-      filename: filePath,
-      presets: [
-        ['@babel/preset-react', { runtime: 'automatic' }],
-      ],
-      sourceType: 'module',
-    });
-    return {
-      format: 'module',
-      source: transformed.code,
-      shortCircuit: true,
-    };
-  }
-  if (url.endsWith('.css') || url.endsWith('.scss')) {
-    // Frontend entrypoints import stylesheets, but Node-based specs only need the JS module graph.
-    return {
-      format: 'module',
-      source: 'export default {};',
-      shortCircuit: true,
-    };
-  }
-  if (url.includes('/bootstrap/dist/js/')) {
-    // Bootstrap JS bundle requires a browser DOM; stub it out for Node-based specs.
-    return {
-      format: 'module',
-      source: 'export default {};',
-      shortCircuit: true,
-    };
-  }
-  if (url.startsWith('stub:image:')) {
-    // Static image imports are resolved by Vite at build time; return a fixed filename stub for specs.
-    const filename = url.slice('stub:image:'.length);
-    return {
-      format: 'module',
-      source: `export default '${filename}';`,
-      shortCircuit: true,
-    };
-  }
-  const [bareUrl] = url.split('?');
-  if (bareUrl.endsWith('.js') && !bareUrl.includes('/node_modules/')) {
-    const filePath = fileURLToPath(bareUrl);
-    const source = readFileSync(filePath, 'utf-8');
-    if (source.includes('import.meta.env')) {
-      // Vite statically replaces `import.meta.env.VITE_*` at build/dev time; plain Node never
-      // populates `import.meta.env`, so shim it from `process.env` before the module's own code runs.
-      return {
-        format: 'module',
-        source: `import.meta.env = import.meta.env ?? { ...process.env };\n${source}`,
-        shortCircuit: true,
-      };
-    }
-  }
-  return nextLoad(url, context);
+  return (
+    handleRawImport(url) ??
+    handleJsxTransform(url) ??
+    handleStyleStub(url) ??
+    handleBootstrapStub(url) ??
+    handleImageStub(url) ??
+    handleViteEnvShim(url) ??
+    nextLoad(url, context)
+  );
 }

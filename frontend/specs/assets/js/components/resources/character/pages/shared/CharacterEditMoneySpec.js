@@ -20,10 +20,8 @@ class LoadedController {
   }
 
   buildEffect() { return () => Noop.noop; }
-  // eslint-disable-next-line no-empty-function
-  applyLoadedCharacter() {}
-  // eslint-disable-next-line no-empty-function
-  submitForm() {}
+  applyLoadedCharacter() { Noop.noop(); }
+  submitForm() { Noop.noop(); }
 }
 
 class DeadlandsLoadedController {
@@ -33,10 +31,8 @@ class DeadlandsLoadedController {
   }
 
   buildEffect() { return () => Noop.noop; }
-  // eslint-disable-next-line no-empty-function
-  applyLoadedCharacter() {}
-  // eslint-disable-next-line no-empty-function
-  submitForm() {}
+  applyLoadedCharacter() { Noop.noop(); }
+  submitForm() { Noop.noop(); }
 }
 
 describe('CharacterEdit money modal', function() {

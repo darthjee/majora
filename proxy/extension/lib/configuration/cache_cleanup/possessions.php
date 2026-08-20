@@ -11,7 +11,7 @@
  */
 
 return [
-    // possessions entity family — routes mutating a single GamePossession.
+    // Possessions entity family — routes mutating a single GamePossession.
     [
         'targets' => [
             '/games/:game_slug/possessions.json',

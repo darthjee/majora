@@ -1,6 +1,15 @@
 """Views package for the accounts app."""
 
-from accounts.views.auth import account, language, login, logout, register, status, test_email
+from accounts.views.auth import (
+    account,
+    header_status,
+    language,
+    login,
+    logout,
+    register,
+    status,
+    test_email,
+)
 from accounts.views.authorization_requests import (
     authorization_requests_list,
     authorize,
@@ -16,6 +25,7 @@ __all__ = [
     'authorize',
     'create',
     'deny',
+    'header_status',
     'language',
     'login',
     'logout',

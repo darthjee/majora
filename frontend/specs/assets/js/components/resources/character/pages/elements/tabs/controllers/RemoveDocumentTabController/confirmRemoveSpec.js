@@ -4,6 +4,7 @@ import RequestStore
   from '../../../../../../../../../../../assets/js/utils/requests/RequestStore.js';
 import { buildResponse } from './support.js';
 import { buildCharacter } from '../../../../../../../../../../support/factories.js';
+import Noop from '../../../../../../../../../../../assets/js/utils/Noop.js';
 
 describe('RemoveDocumentTabController', function() {
   describe('#confirmRemove', function() {
@@ -19,8 +20,7 @@ describe('RemoveDocumentTabController', function() {
     });
 
     it('sets submitting true before the request settles', function() {
-      // eslint-disable-next-line no-empty-function
-      spyOn(RequestStore, 'mutate').and.returnValue(new Promise(() => {}));
+      spyOn(RequestStore, 'mutate').and.returnValue(new Promise(Noop.noop));
       const controller = new RemoveDocumentTabController();
       const setters = buildSetters();
 

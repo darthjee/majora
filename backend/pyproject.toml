@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "majora"
-version = "0.66.0"
+version = "0.67.0"
 description = "Majora - RPG Campaign Management System"
 authors = ["darthjee"]
 license = "MIT"
@@ -9,7 +9,7 @@ license = "MIT"
 python = "^3.11"
 django = "^5.0"
 mysqlclient = "^2.2"
-gunicorn = "^21.2"
+gunicorn = "^23.0"
 djangorestframework = "^3.14"
 django-cors-headers = "^4.3"
 django-simple-history = "^3.12.0"

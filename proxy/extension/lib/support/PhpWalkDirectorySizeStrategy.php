@@ -36,7 +36,7 @@ class PhpWalkDirectorySizeStrategy implements DirectorySizeStrategyInterface
             new RecursiveDirectoryIterator($path, RecursiveDirectoryIterator::SKIP_DOTS)
         );
 
-        /** @var SplFileInfo $file */
+        // @var SplFileInfo $file
         foreach ($iterator as $file) {
             if ($file->isFile()) {
                 $size += $file->getSize();
