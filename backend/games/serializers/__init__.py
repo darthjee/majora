@@ -1,179 +1,30 @@
-"""Serializers package for the games app."""
+"""Serializers package for the games app.
 
-from games.serializers.base_access import BaseAccessSerializer
-from games.serializers.base_permissions import BasePermissionsSerializer
-from games.serializers.characters.character_access import CharacterAccessSerializer
-from games.serializers.characters.character_create import CharacterCreateSerializer
-from games.serializers.characters.character_detail import CharacterDetailSerializer
-from games.serializers.characters.character_document import (
-    CharacterDocumentAllSerializer,
-    CharacterDocumentSerializer,
-)
-from games.serializers.characters.character_document_file import (
-    CharacterDocumentFileSerializer,
-)
-from games.serializers.characters.character_document_photo import (
-    CharacterDocumentPhotoSerializer,
-)
-from games.serializers.characters.character_faction import (
-    CharacterFactionAllSerializer,
-    CharacterFactionSerializer,
-)
-from games.serializers.characters.character_full import CharacterFullSerializer
-from games.serializers.characters.character_full_list import CharacterFullListSerializer
-from games.serializers.characters.character_item import (
-    CharacterItemAllSerializer,
-    CharacterItemDetailFullSerializer,
-    CharacterItemDetailSerializer,
-    CharacterItemSerializer,
-)
-from games.serializers.characters.character_item_update import CharacterItemUpdateSerializer
-from games.serializers.characters.character_link import CharacterLinkSerializer
-from games.serializers.characters.character_link_write import CharacterLinkWriteSerializer
-from games.serializers.characters.character_list import CharacterListSerializer
-from games.serializers.characters.character_permissions import CharacterPermissionsSerializer
-from games.serializers.characters.character_photo import CharacterPhotoSerializer
-from games.serializers.characters.character_possession import (
-    CharacterPossessionAllSerializer,
-    CharacterPossessionSerializer,
-)
-from games.serializers.characters.character_regular_update import (
-    CharacterRegularUpdateSerializer,
-)
-from games.serializers.characters.character_treasure import (
-    CharacterTreasureAllSerializer,
-    CharacterTreasureSerializer,
-)
-from games.serializers.characters.character_update import CharacterUpdateSerializer
-from games.serializers.characters.npcs.npc_player_create import NpcPlayerCreateSerializer
-from games.serializers.characters.npcs.npc_player_update import NpcPlayerUpdateSerializer
-from games.serializers.characters.pcs.pc_access import PcAccessSerializer
-from games.serializers.games.common_items.game_common_item_list import (
-    GameCommonItemAllListSerializer,
-    GameCommonItemDetailFullSerializer,
-    GameCommonItemDetailSerializer,
-    GameCommonItemListSerializer,
-)
-from games.serializers.games.common_items.game_common_item_permissions import (
-    GameCommonItemPermissionsSerializer,
-)
-from games.serializers.games.common_items.game_common_item_update import (
-    GameCommonItemUpdateSerializer,
-)
-from games.serializers.games.conversations.conversation_list import ConversationListSerializer
-from games.serializers.games.documents.game_document_file import GameDocumentFileSerializer
-from games.serializers.games.documents.game_document_list import (
-    GameDocumentAllListSerializer,
-    GameDocumentDetailFullSerializer,
-    GameDocumentDetailSerializer,
-    GameDocumentListSerializer,
-)
-from games.serializers.games.documents.game_document_page_create import (
-    GameDocumentPageCreateSerializer,
-)
-from games.serializers.games.documents.game_document_page_list import (
-    GameDocumentPageListSerializer,
-)
-from games.serializers.games.documents.game_document_page_update import (
-    GameDocumentPageUpdateSerializer,
-)
-from games.serializers.games.documents.game_document_pages_bump_version import (
-    GameDocumentPagesBumpVersionSerializer,
-)
-from games.serializers.games.documents.game_document_pages_trim import (
-    GameDocumentPagesTrimSerializer,
-)
-from games.serializers.games.documents.game_document_permissions import (
-    GameDocumentPermissionsSerializer,
-)
-from games.serializers.games.documents.game_document_photo import GameDocumentPhotoSerializer
-from games.serializers.games.documents.game_document_update import GameDocumentUpdateSerializer
-from games.serializers.games.factions.game_faction_character import (
-    GameFactionCharacterSerializer,
-)
-from games.serializers.games.factions.game_faction_list import GameFactionListSerializer
-from games.serializers.games.factions.game_faction_permissions import (
-    GameFactionPermissionsSerializer,
-)
-from games.serializers.games.factions.game_faction_photo import GameFactionPhotoSerializer
-from games.serializers.games.factions.game_faction_update import GameFactionUpdateSerializer
-from games.serializers.games.game_access import GameAccessSerializer
-from games.serializers.games.game_create import GameCreateSerializer
-from games.serializers.games.game_detail import GameDetailSerializer
-from games.serializers.games.game_link import GameLinkSerializer
-from games.serializers.games.game_link_write import GameLinkWriteSerializer
-from games.serializers.games.game_list import GameListSerializer
-from games.serializers.games.game_permissions import GamePermissionsSerializer
-from games.serializers.games.game_photo import GamePhotoSerializer
-from games.serializers.games.game_regular_update import GameRegularUpdateSerializer
-from games.serializers.games.game_update import GameUpdateSerializer
-from games.serializers.games.items.game_item_list import (
-    GameItemAllListSerializer,
-    GameItemDetailFullSerializer,
-    GameItemDetailSerializer,
-    GameItemListSerializer,
-)
-from games.serializers.games.items.game_item_permissions import GameItemPermissionsSerializer
-from games.serializers.games.items.game_item_photo import GameItemPhotoSerializer
-from games.serializers.games.items.game_item_update import GameItemUpdateSerializer
-from games.serializers.games.my_games.my_games_item import MyGamesItemSerializer
-from games.serializers.games.players.player_character import PlayerCharacterSerializer
-from games.serializers.games.players.player_list import PlayerListSerializer
-from games.serializers.games.players.player_user import PlayerUserSerializer
-from games.serializers.games.polls.poll_create import PollCreateSerializer
-from games.serializers.games.polls.poll_detail import PollDetailSerializer
-from games.serializers.games.polls.poll_list import PollListSerializer
-from games.serializers.games.polls.poll_option import PollOptionSerializer
-from games.serializers.games.polls.poll_option_vote_count import PollOptionVoteCountSerializer
-from games.serializers.games.polls.poll_option_write import PollOptionWriteSerializer
-from games.serializers.games.polls.poll_vote import PollVoteSerializer
-from games.serializers.games.polls.poll_vote_user import PollVoteUserSerializer
-from games.serializers.games.polls.poll_vote_write import PollVoteWriteSerializer
-from games.serializers.games.polls.session_poll_create import SessionPollCreateSerializer
-from games.serializers.games.possessions.game_possession_list import (
-    GamePossessionAllListSerializer,
-    GamePossessionDetailFullSerializer,
-    GamePossessionDetailSerializer,
-    GamePossessionListSerializer,
-)
-from games.serializers.games.possessions.game_possession_permissions import (
-    GamePossessionPermissionsSerializer,
-)
-from games.serializers.games.possessions.game_possession_photo import (
-    GamePossessionPhotoSerializer,
-)
-from games.serializers.games.possessions.game_possession_update import (
-    GamePossessionUpdateSerializer,
-)
-from games.serializers.games.sessions.game_session_create import GameSessionCreateSerializer
-from games.serializers.games.sessions.game_session_detail import GameSessionDetailSerializer
-from games.serializers.games.sessions.game_session_list import GameSessionListSerializer
-from games.serializers.games.sessions.game_session_update import GameSessionUpdateSerializer
-from games.serializers.games.sessions.messages.session_message_create import (
-    SessionMessageCreateSerializer,
-)
-from games.serializers.games.sessions.messages.session_message_list import (
-    SessionMessageListSerializer,
-)
-from games.serializers.games.sessions.messages.session_message_user import (
-    SessionMessageUserSerializer,
-)
-from games.serializers.games.tasks.game_task_create import GameTaskCreateSerializer
-from games.serializers.games.tasks.game_task_list import GameTaskListSerializer
-from games.serializers.games.tasks.game_task_update import GameTaskUpdateSerializer
-from games.serializers.games.treasures.game_treasure_link import GameTreasureLinkSerializer
-from games.serializers.games.treasures.game_treasure_update import GameTreasureUpdateSerializer
-from games.serializers.photo_upload import FileUploadSerializer, PhotoUploadSerializer
-from games.serializers.treasures.hidden_field import HiddenFieldSerializer
-from games.serializers.treasures.treasure_access import TreasureAccessSerializer
-from games.serializers.treasures.treasure_create import TreasureCreateSerializer
-from games.serializers.treasures.treasure_detail import TreasureDetailSerializer
-from games.serializers.treasures.treasure_list import (
-    TreasureAllListSerializer,
-    TreasureListSerializer,
-)
-from games.serializers.treasures.treasure_permissions import TreasurePermissionsSerializer
-from games.serializers.treasures.treasure_update import TreasureUpdateSerializer
+Public API: every class importable via `from games.serializers import X` is defined in
+`__all__` below and lazily loaded on first access (PEP 562, see `__getattr__`) — the
+submodule that actually defines a symbol is only imported the first time that symbol is
+looked up, instead of every submodule loading eagerly at `import games.serializers` time.
+
+Subpackage map (mirrors `docs/agents/serializers-organization.md`):
+
+- `characters/` — serializers for the `Character` resource (access, permissions,
+  create/update, list/detail, and nested sub-resources: documents, factions, items,
+  possessions, treasures). `characters/npcs/` and `characters/pcs/` hold the small set of
+  serializers whose logic genuinely differs per role (`pc_access.py`,
+  `npc_player_create.py`, `npc_player_update.py`).
+- `games/` — serializers for the `Game` resource and its nested sub-resources, each in its
+  own folder: `common_items/`, `conversations/`, `documents/`, `factions/`, `items/`,
+  `my_games/`, `players/`, `polls/`, `possessions/`, `sessions/` (incl. `sessions/
+  messages/`), `tasks/`, `treasures/`.
+- `treasures/` — serializers for the top-level (not game-scoped) `Treasure` resource.
+- Root-level cross-cutting files: `base_access.py` and `base_permissions.py` (shared base
+  classes subclassed by every resource's access/permissions serializer) and
+  `photo_upload.py`. `photo_upload.py`'s `PhotoUploadSerializer` is the one serializer with
+  genuine cross-app usage — it's consumed by the `uploads` app in addition to `games`.
+"""
+
+import importlib
+import sys
 
 __all__ = [
     'BaseAccessSerializer',
@@ -294,3 +145,142 @@ __all__ = [
     'TreasurePermissionsSerializer',
     'TreasureUpdateSerializer',
 ]
+
+# Maps every public symbol name to the dotted submodule path (relative to this package)
+# that defines it, so `__getattr__` can import only what's actually requested.
+_SUBMODULE_BY_NAME = {
+    'BaseAccessSerializer': 'base_access',
+    'BasePermissionsSerializer': 'base_permissions',
+    'CharacterAccessSerializer': 'characters.character_access',
+    'CharacterCreateSerializer': 'characters.character_create',
+    'CharacterDetailSerializer': 'characters.character_detail',
+    'CharacterDocumentAllSerializer': 'characters.character_document',
+    'CharacterDocumentFileSerializer': 'characters.character_document_file',
+    'CharacterDocumentPhotoSerializer': 'characters.character_document_photo',
+    'CharacterDocumentSerializer': 'characters.character_document',
+    'CharacterFactionAllSerializer': 'characters.character_faction',
+    'CharacterFactionSerializer': 'characters.character_faction',
+    'CharacterFullListSerializer': 'characters.character_full_list',
+    'CharacterFullSerializer': 'characters.character_full',
+    'CharacterItemAllSerializer': 'characters.character_item',
+    'CharacterItemDetailFullSerializer': 'characters.character_item',
+    'CharacterItemDetailSerializer': 'characters.character_item',
+    'CharacterItemSerializer': 'characters.character_item',
+    'CharacterItemUpdateSerializer': 'characters.character_item_update',
+    'CharacterLinkSerializer': 'characters.character_link',
+    'CharacterLinkWriteSerializer': 'characters.character_link_write',
+    'CharacterListSerializer': 'characters.character_list',
+    'CharacterPermissionsSerializer': 'characters.character_permissions',
+    'CharacterPhotoSerializer': 'characters.character_photo',
+    'CharacterPossessionAllSerializer': 'characters.character_possession',
+    'CharacterPossessionSerializer': 'characters.character_possession',
+    'CharacterRegularUpdateSerializer': 'characters.character_regular_update',
+    'CharacterTreasureAllSerializer': 'characters.character_treasure',
+    'CharacterTreasureSerializer': 'characters.character_treasure',
+    'CharacterUpdateSerializer': 'characters.character_update',
+    'ConversationListSerializer': 'games.conversations.conversation_list',
+    'FileUploadSerializer': 'photo_upload',
+    'GameAccessSerializer': 'games.game_access',
+    'GameCommonItemAllListSerializer': 'games.common_items.game_common_item_list',
+    'GameCommonItemDetailFullSerializer': 'games.common_items.game_common_item_list',
+    'GameCommonItemDetailSerializer': 'games.common_items.game_common_item_list',
+    'GameCommonItemListSerializer': 'games.common_items.game_common_item_list',
+    'GameCommonItemPermissionsSerializer': 'games.common_items.game_common_item_permissions',
+    'GameCommonItemUpdateSerializer': 'games.common_items.game_common_item_update',
+    'GameCreateSerializer': 'games.game_create',
+    'GameDetailSerializer': 'games.game_detail',
+    'GameDocumentAllListSerializer': 'games.documents.game_document_list',
+    'GameDocumentDetailFullSerializer': 'games.documents.game_document_list',
+    'GameDocumentDetailSerializer': 'games.documents.game_document_list',
+    'GameDocumentFileSerializer': 'games.documents.game_document_file',
+    'GameDocumentListSerializer': 'games.documents.game_document_list',
+    'GameDocumentPageCreateSerializer': 'games.documents.game_document_page_create',
+    'GameDocumentPageListSerializer': 'games.documents.game_document_page_list',
+    'GameDocumentPageUpdateSerializer': 'games.documents.game_document_page_update',
+    'GameDocumentPagesBumpVersionSerializer': 'games.documents.game_document_pages_bump_version',
+    'GameDocumentPagesTrimSerializer': 'games.documents.game_document_pages_trim',
+    'GameDocumentPermissionsSerializer': 'games.documents.game_document_permissions',
+    'GameDocumentPhotoSerializer': 'games.documents.game_document_photo',
+    'GameDocumentUpdateSerializer': 'games.documents.game_document_update',
+    'GameFactionCharacterSerializer': 'games.factions.game_faction_character',
+    'GameFactionListSerializer': 'games.factions.game_faction_list',
+    'GameFactionPermissionsSerializer': 'games.factions.game_faction_permissions',
+    'GameFactionPhotoSerializer': 'games.factions.game_faction_photo',
+    'GameFactionUpdateSerializer': 'games.factions.game_faction_update',
+    'GameItemAllListSerializer': 'games.items.game_item_list',
+    'GameItemDetailFullSerializer': 'games.items.game_item_list',
+    'GameItemDetailSerializer': 'games.items.game_item_list',
+    'GameItemListSerializer': 'games.items.game_item_list',
+    'GameItemPermissionsSerializer': 'games.items.game_item_permissions',
+    'GameItemPhotoSerializer': 'games.items.game_item_photo',
+    'GameItemUpdateSerializer': 'games.items.game_item_update',
+    'GameLinkSerializer': 'games.game_link',
+    'GameLinkWriteSerializer': 'games.game_link_write',
+    'GameListSerializer': 'games.game_list',
+    'GamePermissionsSerializer': 'games.game_permissions',
+    'GamePhotoSerializer': 'games.game_photo',
+    'GamePossessionAllListSerializer': 'games.possessions.game_possession_list',
+    'GamePossessionDetailFullSerializer': 'games.possessions.game_possession_list',
+    'GamePossessionDetailSerializer': 'games.possessions.game_possession_list',
+    'GamePossessionListSerializer': 'games.possessions.game_possession_list',
+    'GamePossessionPermissionsSerializer': 'games.possessions.game_possession_permissions',
+    'GamePossessionPhotoSerializer': 'games.possessions.game_possession_photo',
+    'GamePossessionUpdateSerializer': 'games.possessions.game_possession_update',
+    'GameRegularUpdateSerializer': 'games.game_regular_update',
+    'GameSessionCreateSerializer': 'games.sessions.game_session_create',
+    'GameSessionDetailSerializer': 'games.sessions.game_session_detail',
+    'GameSessionListSerializer': 'games.sessions.game_session_list',
+    'GameSessionUpdateSerializer': 'games.sessions.game_session_update',
+    'GameTaskCreateSerializer': 'games.tasks.game_task_create',
+    'GameTaskListSerializer': 'games.tasks.game_task_list',
+    'GameTaskUpdateSerializer': 'games.tasks.game_task_update',
+    'GameTreasureLinkSerializer': 'games.treasures.game_treasure_link',
+    'GameTreasureUpdateSerializer': 'games.treasures.game_treasure_update',
+    'GameUpdateSerializer': 'games.game_update',
+    'HiddenFieldSerializer': 'treasures.hidden_field',
+    'MyGamesItemSerializer': 'games.my_games.my_games_item',
+    'NpcPlayerCreateSerializer': 'characters.npcs.npc_player_create',
+    'NpcPlayerUpdateSerializer': 'characters.npcs.npc_player_update',
+    'PcAccessSerializer': 'characters.pcs.pc_access',
+    'PhotoUploadSerializer': 'photo_upload',
+    'PlayerCharacterSerializer': 'games.players.player_character',
+    'PlayerListSerializer': 'games.players.player_list',
+    'PlayerUserSerializer': 'games.players.player_user',
+    'PollCreateSerializer': 'games.polls.poll_create',
+    'PollDetailSerializer': 'games.polls.poll_detail',
+    'PollListSerializer': 'games.polls.poll_list',
+    'PollOptionSerializer': 'games.polls.poll_option',
+    'PollOptionVoteCountSerializer': 'games.polls.poll_option_vote_count',
+    'PollOptionWriteSerializer': 'games.polls.poll_option_write',
+    'PollVoteSerializer': 'games.polls.poll_vote',
+    'PollVoteUserSerializer': 'games.polls.poll_vote_user',
+    'PollVoteWriteSerializer': 'games.polls.poll_vote_write',
+    'SessionMessageCreateSerializer': 'games.sessions.messages.session_message_create',
+    'SessionMessageListSerializer': 'games.sessions.messages.session_message_list',
+    'SessionMessageUserSerializer': 'games.sessions.messages.session_message_user',
+    'SessionPollCreateSerializer': 'games.polls.session_poll_create',
+    'TreasureAccessSerializer': 'treasures.treasure_access',
+    'TreasureAllListSerializer': 'treasures.treasure_list',
+    'TreasureCreateSerializer': 'treasures.treasure_create',
+    'TreasureDetailSerializer': 'treasures.treasure_detail',
+    'TreasureListSerializer': 'treasures.treasure_list',
+    'TreasurePermissionsSerializer': 'treasures.treasure_permissions',
+    'TreasureUpdateSerializer': 'treasures.treasure_update',
+}
+
+
+def __getattr__(name):
+    """Lazily import and return the serializer class registered as `name` (PEP 562)."""
+    submodule_path = _SUBMODULE_BY_NAME.get(name)
+    if submodule_path is None:
+        raise AttributeError(f"module 'games.serializers' has no attribute '{name}'")
+
+    submodule = importlib.import_module(f'.{submodule_path}', __name__)
+    value = getattr(submodule, name)
+    setattr(sys.modules[__name__], name, value)
+    return value
+
+
+def __dir__():
+    """Return the sorted public API, matching `__all__`, for introspection tools."""
+    return sorted(__all__)
