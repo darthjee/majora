@@ -3,6 +3,7 @@ import FactionCharactersPanelController
 import RequestPermissionResolvers
   from '../../../../../../../../../assets/js/utils/requests/RequestPermissionResolvers.js';
 import RequestStore from '../../../../../../../../../assets/js/utils/requests/RequestStore.js';
+import Noop from '../../../../../../../../../assets/js/utils/Noop.js';
 
 describe('FactionCharactersPanelController', function() {
   let originalWindow;
@@ -93,8 +94,7 @@ describe('FactionCharactersPanelController', function() {
 
   describe('#buildEffect', function() {
     it('sets loading true before fetching', function() {
-      // eslint-disable-next-line no-empty-function
-      spyOn(RequestStore, 'ensure').and.returnValue(new Promise(() => {}));
+      spyOn(RequestStore, 'ensure').and.returnValue(new Promise(Noop.noop));
       const controller = new FactionCharactersPanelController();
       const setState = jasmine.createSpy('setState');
 

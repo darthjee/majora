@@ -6,12 +6,12 @@ import RecruitModalHelper
   from '../../../../../../../../assets/js/components/resources/faction/pages/elements/helpers/RecruitModalHelper.jsx';
 import RecruitModalController
   from '../../../../../../../../assets/js/components/resources/faction/pages/elements/controllers/RecruitModalController.js';
+import Noop from '../../../../../../../../assets/js/utils/Noop.js';
 
 describe('RecruitModal', function() {
   const faction = { id: 9 };
 
-  // eslint-disable-next-line no-empty-function
-  const neverResolves = () => new Promise(() => {});
+  const neverResolves = () => new Promise(Noop.noop);
 
   const renderModal = (props = {}) => {
     let capturedState;

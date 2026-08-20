@@ -2,6 +2,8 @@ import RecruitModalController
   from '../../../../../../../../../../assets/js/components/resources/faction/pages/elements/controllers/RecruitModalController.js';
 import RequestStore
   from '../../../../../../../../../../assets/js/utils/requests/RequestStore.js';
+import Noop
+  from '../../../../../../../../../../assets/js/utils/Noop.js';
 
 describe('RecruitModalController', function() {
   describe('#submit', function() {
@@ -22,8 +24,7 @@ describe('RecruitModalController', function() {
 
     it('sets submitting true before any request settles', function() {
       const controller = new RecruitModalController();
-      // eslint-disable-next-line no-empty-function
-      spyOn(controller, 'acquire').and.returnValue(new Promise(() => {}));
+      spyOn(controller, 'acquire').and.returnValue(new Promise(Noop.noop));
       const setters = buildSetters();
 
       controller.submit([rowA], 'demo', 9, false, setters);
