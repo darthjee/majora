@@ -6,6 +6,7 @@ import HeaderHelper from './helpers/HeaderHelper.jsx';
 import PendingApprovalPage from './PendingApprovalPage.jsx';
 import AccessStore from '../../../utils/access/store/AccessStore.js';
 import useHeaderAuthEffect from './hooks/useHeaderAuthEffect.js';
+import useDomainConfigEffect from './hooks/useDomainConfigEffect.js';
 
 /**
  * Pre-fetch domain configuration, rendered until `HeaderController#fetchDomainConfig`
@@ -67,6 +68,8 @@ export default function Header({ children }) {
   useEffect(() => { controller.fetchDomainConfig(); },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []);
+
+  useDomainConfigEffect(domainConfig);
 
   return (
     <>
