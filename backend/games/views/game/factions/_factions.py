@@ -3,9 +3,9 @@
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 
-from ...serializers import CharacterFactionSerializer
-from ..common import paginated_list_response
-from ._decorators import check_hidden
+from ....serializers import CharacterFactionSerializer
+from ...common import paginated_list_response
+from .._decorators import check_hidden
 
 
 @check_hidden

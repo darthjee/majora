@@ -6,12 +6,12 @@ from rest_framework.response import Response
 
 from permissions import EndpointPermission
 
-from ...models import CharacterFaction
-from ...serializers import CharacterFactionAllSerializer
-from ..common import paginated_list_response, validated_or_error
-from ..games._treasure_filters import filter_by_name
-from ._decorators import check_hidden
-from ._shared import _character_faction_resource
+from ....models import CharacterFaction
+from ....serializers import CharacterFactionAllSerializer
+from ...common import paginated_list_response, validated_or_error
+from ...games._treasure_filters import filter_by_name
+from .._decorators import check_hidden
+from .._shared import _character_faction_resource
 
 
 def _check_faction_create(request, game, character, tier):

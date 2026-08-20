@@ -6,7 +6,10 @@ from rest_framework.permissions import AllowAny
 
 from ......decorators import restricted
 from ......models import Game
-from ...._faction_summary import character_faction_summary, check_faction_summary_all_permission
+from ....factions._faction_summary import (
+    character_faction_summary,
+    check_faction_summary_all_permission,
+)
 from ...._shared import _get_character_or_404
 
 

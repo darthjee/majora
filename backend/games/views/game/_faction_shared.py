@@ -10,12 +10,12 @@ from ...models import Game
 from ...serializers import CharacterFactionSerializer, GameFactionListSerializer
 from ..common import check_game_edit
 from ._character_shared import _build_api_view, _check_character_all_permission
-from ._faction_exchange import (
+from .factions._faction_exchange import (
     character_faction_acquire,
     character_faction_remove,
     character_factions_available,
 )
-from ._factions import character_faction_detail, character_factions
+from .factions._factions import character_faction_detail, character_factions
 
 
 def build_factions_view(npc):
