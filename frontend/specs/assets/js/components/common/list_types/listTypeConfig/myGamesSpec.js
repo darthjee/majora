@@ -27,6 +27,10 @@ describe('listTypeConfig', function() {
       expect(myGames.itemsPerRow).toBe(4);
     });
 
+    it('uses the rectangular card photo class', function() {
+      expect(myGames.cardPhotoClassName).toBe('card-photo-rect');
+    });
+
     describe('.buildItemHref', function() {
       it('links to the game detail page using the nested game slug', function() {
         const item = new MyGameListItem({
