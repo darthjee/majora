@@ -6,3 +6,4 @@ document_edit_page:
   pages_save_failed: Falha ao salvar algumas páginas. O documento foi salvo — você pode tentar novamente ou pular por enquanto.
   retry_pages_save: Tentar salvar as páginas novamente
   skip_pages_save: Pular e continuar
+  pages_count_warning_hint: Este documento está ficando grande — considere enviá-lo como PDF.
