@@ -6,11 +6,13 @@ import defaultGamePhoto from '../../../../images/placeholders/default_game.png';
  * @param {object} props - Component props.
  * @param {string|null} [props.url] - Image URL, or null/undefined to use the default photo.
  * @param {string} props.alt - Alt text for the image.
+ * @param {string} [props.className] - Wrapper div class name, defaulting to the shared
+ *   square photo box class used everywhere else this component is rendered.
  * @returns {React.ReactElement} Image element.
  */
-export default function CardPhoto({ url, alt }) {
+export default function CardPhoto({ url, alt, className = 'card-photo-square' }) {
   return (
-    <div className="card-photo-square">
+    <div className={className}>
       <img src={url || defaultGamePhoto} className="card-img-top" alt={alt} />
     </div>
   );
