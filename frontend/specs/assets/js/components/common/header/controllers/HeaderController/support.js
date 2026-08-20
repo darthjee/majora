@@ -24,7 +24,7 @@ export function buildContext() {
  * @description Builds a HeaderController wired to the given context and overrides.
  * @param {object} ctx - the setters/client built by buildContext().
  * @param {object} overrides - optional setIsStaff/setRoute/routeResolver/eventTarget/
- *   setPendingApproval overrides.
+ *   setPendingApproval/domainClient/setDomainConfig overrides.
  * @returns {HeaderController} the built controller.
  */
 export function buildHeaderController(ctx, overrides = {}) {
@@ -34,6 +34,8 @@ export function buildHeaderController(ctx, overrides = {}) {
     overrides.setRoute ?? Noop.noop,
     overrides.routeResolver,
     overrides.eventTarget,
-    overrides.setPendingApproval ?? Noop.noop
+    overrides.setPendingApproval ?? Noop.noop,
+    overrides.domainClient,
+    overrides.setDomainConfig ?? Noop.noop
   );
 }
