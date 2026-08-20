@@ -8,6 +8,7 @@ urlpatterns = [
     path('', include('games.urls')),
     path('', include('staff.urls')),
     path('', include('accounts.urls')),
+    path('', include('domains.urls')),
     path('', include('miniatures.urls')),
     path('', include('uploads.urls')),
 ]
