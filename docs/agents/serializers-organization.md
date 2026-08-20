@@ -56,6 +56,10 @@ live in the dedicated `backend/accounts/serializers/auth/` app instead — see
 `backend/games/serializers/__init__.py` re-exports every serializer class by name (e.g.
 `from games.serializers import CharacterDetailSerializer`); this is the only import path
 callers outside `serializers/` should use, and it does not change when files move between
-folders inside `serializers/`. Only the internal import paths inside `__init__.py` (and
-any serializer that imports a sibling serializer directly, e.g.
-`character_full.py` importing `character_detail.py`) need to track a file's actual folder.
+folders inside `serializers/`. The re-export is implemented via a PEP 562 module-level
+`__getattr__`: a `name -> submodule` mapping lists every public symbol, and the matching
+submodule is only imported (and the class cached on the module) the first time that name
+is actually accessed, rather than every submodule loading eagerly at `import
+games.serializers` time. Only the submodule path recorded for a symbol in that mapping
+(and any serializer that imports a sibling serializer directly, e.g. `character_full.py`
+importing `character_detail.py`) needs to track a file's actual folder.
