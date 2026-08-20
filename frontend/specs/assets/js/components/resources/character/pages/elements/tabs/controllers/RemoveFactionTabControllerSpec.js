@@ -1,6 +1,7 @@
 import RemoveFactionTabController
   from '../../../../../../../../../../assets/js/components/resources/character/pages/elements/tabs/controllers/RemoveFactionTabController.js';
 import RequestStore from '../../../../../../../../../../assets/js/utils/requests/RequestStore.js';
+import Noop from '../../../../../../../../../../assets/js/utils/Noop.js';
 import { buildCharacter } from '../../../../../../../../../support/factories.js';
 
 const buildResponse = (status, body) => ({
@@ -161,8 +162,7 @@ describe('RemoveFactionTabController', function() {
     });
 
     it('sets submitting true before the request settles', function() {
-      // eslint-disable-next-line no-empty-function
-      spyOn(RequestStore, 'mutate').and.returnValue(new Promise(() => {}));
+      spyOn(RequestStore, 'mutate').and.returnValue(new Promise(Noop.noop));
       const controller = new RemoveFactionTabController();
       const setters = buildSetters();
 
