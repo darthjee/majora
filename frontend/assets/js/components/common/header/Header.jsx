@@ -8,6 +8,13 @@ import AccessStore from '../../../utils/access/store/AccessStore.js';
 import useHeaderAuthEffect from './hooks/useHeaderAuthEffect.js';
 
 /**
+ * Pre-fetch domain configuration, rendered until `HeaderController#fetchDomainConfig`
+ * resolves. Mirrors `index.html`'s static `<title>Majora</title>`/favicon fallback, so
+ * the navbar brand never flashes empty while the bootstrap request is in flight.
+ */
+const DEFAULT_DOMAIN_CONFIG = { favicon: null, title: 'Majora', subTitle: 'RPG' };
+
+/**
  * Render application header, tracking authentication state and the login modal. Also gates the
  * requested route's content (issue #859): whenever the current user's account is `pending`
  * approval, the dedicated {@link PendingApprovalPage} is rendered below the nav bar instead of
@@ -30,7 +37,7 @@ export default function Header({ children }) {
   const [showViewAsModal, setShowViewAsModal] = useState(false);
   const [facadeEnabled, setFacadeEnabled] = useState(() => AccessStore.getFacade().enabled);
   const [pendingApproval, setPendingApproval] = useState(false);
-  const [domainConfig, setDomainConfig] = useState(null);
+  const [domainConfig, setDomainConfig] = useState(DEFAULT_DOMAIN_CONFIG);
 
   const controller = new HeaderController(
     setLoggedIn,
