@@ -24,18 +24,21 @@ Sub-issue of #1223 (parent: "Refatoração: listar arquivos de views de 'charact
 
 Every wrapper view file across `game/{npcs,pcs}/detail/{documents,factions,items,possessions,treasures,photos}/**` that imports one of these shared modules needs its import path updated to the new location.
 
+**Also out of this issue's move, but affected by it (import-path-only):** `backend/games/views/game/{documents,factions,items,photos,possessions,treasures}/` are pre-existing sibling folders (not touched by this issue or its 6 siblings) holding the granular per-endpoint implementation modules (e.g. `factions/_faction_exchange.py`, `documents/_document_summary.py`) that the corresponding `_*_shared.py` hub file imports from. These folders stay where they are, but several of their files — plus a handful of files directly in `game/npcs/` and `game/pcs/` roots (e.g. `game_npcs.py`, `game_pc_detail.py`, `npcs/_npc_player_update.py`) — import the 5 character-wide helpers (`_shared`, `_decorators`, `_detail`, `_regular`) or `_character_shared`/`_treasure_finder` directly, not just through a `_*_shared.py` hub. Those import statements also need their relative-import depth updated, even though the importing file itself doesn't move.
+
 ### Decisions
 
 1. Purely structural move — no behavior or API changes.
 2. Group the shared modules into `_character/` with one subfolder per resource (`documents/`, `factions/`, `items/`, `photos/`, `possessions/`, `treasures/`), mirroring the view folder hierarchy the sibling sub-issues establish.
 3. `_character_shared.py`'s content becomes `_character/__init__.py` directly — no separate `_shared_hub.py`. This matches parent issue #1223's Target Structure, and `_character_shared.py` already imports from `_full.py`/`_shared.py` (moving to `_detail.py`/`_full.py`/`_regular.py`/`_shared.py`/`_decorators.py` under the same package) rather than re-exporting other resources' factories.
 4. Run this sub-issue's changes after the 6 sibling sub-issues (documents, factions, items, possessions, treasures, photos) have landed, so it only needs to update each wrapper file's import path once, against final view-file locations. If it lands first instead, expect the sibling sub-issues' PRs to need a rebase to pick up the new shared-module paths.
-5. Update every import site across both `npcs/` and `pcs/` trees (and their tests, if tests import shared modules directly rather than through the view wrappers).
+5. Update every import site across both `npcs/` and `pcs/` trees (and their tests, if tests import shared modules directly rather than through the view wrappers) — this includes the granular `game/{documents,factions,items,photos,possessions,treasures}/` folders and `game/npcs/`, `game/pcs/` root files described above, not only the `detail/**` wrapper tree.
+6. The granular `game/{documents,factions,items,photos,possessions,treasures}/` folders themselves are out of scope for this issue — they stay flat at `game/`, unmoved; only imports pointing at the modules that *do* move need updating.
 
 ### Acceptance Criteria
 
 - [ ] All 8 shared modules (+ the 5 character-wide helper modules) moved into `_character/` with the subfolder layout above.
 - [ ] `_character_shared.py`'s content lands in `_character/__init__.py` (no `_shared_hub.py`).
-- [ ] Every import of a moved module, across the full `game/{npcs,pcs}/**` view tree, updated to the new path.
+- [ ] Every import of a moved module updated to the new path, across the full `game/{npcs,pcs}/**` view tree *and* across the unmoved `game/{documents,factions,items,photos,possessions,treasures}/` folders and `game/npcs/`, `game/pcs/` root files that reference a moved module directly.
 - [ ] Full backend test suite passes.
 - [ ] No behavior change.
