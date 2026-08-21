@@ -44,9 +44,9 @@ from .detail.items.game_pc_items import game_pc_items
 from .detail.items.game_pc_items_all import game_pc_items_all
 from .detail.items.game_pc_items_available import game_pc_items_available
 from .detail.items.game_pc_items_available_all import game_pc_items_available_all
-from .detail.photos.game_pc_photo_deletable import game_pc_photo_deletable
-from .detail.photos.game_pc_photo_detail import game_pc_photo_detail
-from .detail.photos.game_pc_photo_set import game_pc_photo_set
+from .detail.photos.detail.game_pc_photo_deletable import game_pc_photo_deletable
+from .detail.photos.detail.game_pc_photo_detail import game_pc_photo_detail
+from .detail.photos.detail.game_pc_photo_set import game_pc_photo_set
 from .detail.photos.game_pc_photos import game_pc_photos
 from .detail.possessions.detail.game_pc_possession_acquire import game_pc_possession_acquire
 from .detail.possessions.detail.game_pc_possession_acquire_all import (

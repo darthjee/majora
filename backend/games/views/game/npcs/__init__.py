@@ -44,9 +44,9 @@ from .detail.items.game_npc_items import game_npc_items
 from .detail.items.game_npc_items_all import game_npc_items_all
 from .detail.items.game_npc_items_available import game_npc_items_available
 from .detail.items.game_npc_items_available_all import game_npc_items_available_all
-from .detail.photos.game_npc_photo_deletable import game_npc_photo_deletable
-from .detail.photos.game_npc_photo_detail import game_npc_photo_detail
-from .detail.photos.game_npc_photo_set import game_npc_photo_set
+from .detail.photos.detail.game_npc_photo_deletable import game_npc_photo_deletable
+from .detail.photos.detail.game_npc_photo_detail import game_npc_photo_detail
+from .detail.photos.detail.game_npc_photo_set import game_npc_photo_set
 from .detail.photos.game_npc_photos import game_npc_photos
 from .detail.possessions.detail.game_npc_possession_acquire import game_npc_possession_acquire
 from .detail.possessions.detail.game_npc_possession_acquire_all import (
