@@ -13,7 +13,6 @@ from .....serializers import (
     GameDocumentListSerializer,
 )
 from ....common import check_game_edit
-from .. import _build_api_view, _check_character_all_permission
 from ...documents._document_exchange import (
     character_document_acquire,
     character_document_remove,
@@ -22,6 +21,7 @@ from ...documents._document_exchange import (
 from ...documents._document_files import character_document_files
 from ...documents._document_photos import character_document_photos
 from ...documents._documents import character_document_detail, character_documents
+from .. import _build_api_view, _check_character_all_permission
 
 
 def build_documents_view(npc):

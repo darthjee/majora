@@ -13,8 +13,6 @@ from .....serializers import (
     GamePossessionListSerializer,
 )
 from ....common import check_game_edit
-from .. import _build_api_view, _check_character_all_permission
-from .._shared import _get_character_or_404, _hidden_gate_response
 from ...possessions._possession_create import character_possession_create
 from ...possessions._possession_exchange import (
     character_possession_acquire,
@@ -22,6 +20,8 @@ from ...possessions._possession_exchange import (
     character_possessions_available,
 )
 from ...possessions._possessions import character_possession_detail, character_possessions
+from .. import _build_api_view, _check_character_all_permission
+from .._shared import _get_character_or_404, _hidden_gate_response
 
 
 def build_possessions_view(npc):

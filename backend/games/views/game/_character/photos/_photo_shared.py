@@ -7,12 +7,12 @@ from django.shortcuts import get_object_or_404
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from .....models import Game
-from .. import _build_api_view
 from ...photos._photo_deletable import character_photo_deletable
 from ...photos._photo_detail import character_photo_detail
 from ...photos._photo_set import character_photo_set
 from ...photos._photo_upload import character_photo_upload
 from ...photos._photos import character_photos
+from .. import _build_api_view
 
 
 def build_photo_upload_view(npc):
