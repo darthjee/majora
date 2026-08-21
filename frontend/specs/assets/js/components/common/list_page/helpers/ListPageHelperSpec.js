@@ -214,6 +214,15 @@ describe('ListPageHelper', function() {
         expect(html).toContain(columnClassName);
       });
     });
+
+    it('renders col-6 col-sm-4 col-md-3 col-lg-2 mb-4 for a fixed (non-flexible) list type given fewer items than its itemsPerRow', function() {
+      const treasures = [buildTreasure({ id: 1, game_slug: 'demo' }), buildTreasure({ id: 2, game_slug: 'demo' })];
+      const html = renderToStaticMarkup(
+        ListPageHelper.render('treasures', treasures, pagination, '#/games/demo/treasures', baseContext)
+      );
+      expect(html).toContain('col-6 col-sm-4 col-md-3 col-lg-2 mb-4');
+      expect(html).not.toContain('col-lg-6');
+    });
   });
 
   describe('.renderLoading', function() {

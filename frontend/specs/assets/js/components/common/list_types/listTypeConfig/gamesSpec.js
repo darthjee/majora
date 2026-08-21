@@ -35,6 +35,10 @@ describe('listTypeConfig', function() {
       expect(games.cardPhotoClassName).toBe('card-photo-rect');
     });
 
+    it('uses the flexible column display', function() {
+      expect(games.flexibleColumns).toBe(true);
+    });
+
     describe('.buildItemHref', function() {
       it('links to the game detail page', function() {
         const item = new GameListItem(buildGame());

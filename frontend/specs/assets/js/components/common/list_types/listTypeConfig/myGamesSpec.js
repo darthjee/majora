@@ -31,6 +31,10 @@ describe('listTypeConfig', function() {
       expect(myGames.cardPhotoClassName).toBe('card-photo-rect');
     });
 
+    it('uses the flexible column display', function() {
+      expect(myGames.flexibleColumns).toBe(true);
+    });
+
     describe('.buildItemHref', function() {
       it('links to the game detail page using the nested game slug', function() {
         const item = new MyGameListItem({
