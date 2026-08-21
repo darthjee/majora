@@ -10,8 +10,8 @@ from ....models import CharacterPossession
 from ....serializers import CharacterPossessionAllSerializer
 from ...common import paginated_list_response, validated_or_error
 from ...games._treasure_filters import filter_by_name
-from .._decorators import check_hidden
-from .._shared import _character_possession_resource
+from .._character._decorators import check_hidden
+from .._character._shared import _character_possession_resource
 
 
 def _check_possession_create(request, game, character, tier):

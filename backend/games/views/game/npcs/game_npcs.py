@@ -14,7 +14,7 @@ from ....serializers import (
     NpcPlayerCreateSerializer,
 )
 from ...common import paginated_list_response, save_or_error, validated_or_error
-from .._shared import _filter_characters, _with_treasure_value
+from .._character._shared import _filter_characters, _with_treasure_value
 
 
 @api_view(['GET', 'POST'])

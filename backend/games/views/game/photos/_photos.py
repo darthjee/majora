@@ -2,7 +2,7 @@
 
 from ....serializers import CharacterPhotoSerializer
 from ...common import paginated_list_response
-from .._decorators import check_hidden
+from .._character._decorators import check_hidden
 
 
 @check_hidden

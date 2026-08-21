@@ -5,7 +5,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 
 from ....models import Game
-from .._detail import character_detail
+from .._character._detail import character_detail
 from ._npc_player_update import npc_player_update
 
 

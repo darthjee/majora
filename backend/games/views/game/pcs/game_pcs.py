@@ -6,7 +6,7 @@ from rest_framework.decorators import api_view
 from ....models import Game
 from ....serializers import CharacterListSerializer
 from ...common import paginated_list_response
-from .._shared import _filter_by_character_name, _with_treasure_value
+from .._character._shared import _filter_by_character_name, _with_treasure_value
 
 
 @api_view(['GET'])

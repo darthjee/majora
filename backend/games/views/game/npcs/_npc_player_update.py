@@ -4,7 +4,7 @@ from permissions import EndpointPermission
 
 from ....serializers import CharacterDetailSerializer, NpcPlayerUpdateSerializer
 from ...common import detail_or_update
-from .._shared import _get_character_or_404, _hidden_gate_response
+from .._character._shared import _get_character_or_404, _hidden_gate_response
 
 
 def _check_npc_player_edit(request, character):

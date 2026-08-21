@@ -7,7 +7,7 @@ from rest_framework.permissions import AllowAny
 from ....models import Game
 from ....serializers import CharacterFullListSerializer
 from ...common import check_game_edit, paginated_list_response
-from .._shared import _filter_characters, _with_treasure_value
+from .._character._shared import _filter_characters, _with_treasure_value
 
 
 @api_view(['GET'])
