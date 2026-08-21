@@ -16,14 +16,14 @@ from .detail.documents.game_npc_documents_available import game_npc_documents_av
 from .detail.documents.game_npc_documents_available_all import game_npc_documents_available_all
 from .detail.documents.photos.game_npc_document_photos import game_npc_document_photos
 from .detail.documents.photos.game_npc_document_photos_all import game_npc_document_photos_all
-from .detail.factions.game_npc_faction_acquire import game_npc_faction_acquire
-from .detail.factions.game_npc_faction_acquire_all import game_npc_faction_acquire_all
-from .detail.factions.game_npc_faction_detail import game_npc_faction_detail
-from .detail.factions.game_npc_faction_detail_full import game_npc_faction_detail_full
-from .detail.factions.game_npc_faction_remove import game_npc_faction_remove
-from .detail.factions.game_npc_faction_remove_all import game_npc_faction_remove_all
-from .detail.factions.game_npc_faction_summary import game_npc_faction_summary
-from .detail.factions.game_npc_faction_summary_all import game_npc_faction_summary_all
+from .detail.factions.detail.game_npc_faction_acquire import game_npc_faction_acquire
+from .detail.factions.detail.game_npc_faction_acquire_all import game_npc_faction_acquire_all
+from .detail.factions.detail.game_npc_faction_detail import game_npc_faction_detail
+from .detail.factions.detail.game_npc_faction_detail_full import game_npc_faction_detail_full
+from .detail.factions.detail.game_npc_faction_remove import game_npc_faction_remove
+from .detail.factions.detail.game_npc_faction_remove_all import game_npc_faction_remove_all
+from .detail.factions.detail.game_npc_faction_summary import game_npc_faction_summary
+from .detail.factions.detail.game_npc_faction_summary_all import game_npc_faction_summary_all
 from .detail.factions.game_npc_factions import game_npc_factions
 from .detail.factions.game_npc_factions_all import game_npc_factions_all
 from .detail.factions.game_npc_factions_available import game_npc_factions_available
@@ -66,14 +66,14 @@ from .detail.possessions.game_npc_possessions_available import game_npc_possessi
 from .detail.possessions.game_npc_possessions_available_all import (
     game_npc_possessions_available_all,
 )
-from .detail.treasures.game_npc_treasure_acquire import game_npc_treasure_acquire
-from .detail.treasures.game_npc_treasure_acquire_all import game_npc_treasure_acquire_all
-from .detail.treasures.game_npc_treasure_buy import game_npc_treasure_buy
-from .detail.treasures.game_npc_treasure_buy_all import game_npc_treasure_buy_all
-from .detail.treasures.game_npc_treasure_remove import game_npc_treasure_remove
-from .detail.treasures.game_npc_treasure_sell import game_npc_treasure_sell
-from .detail.treasures.game_npc_treasure_summary import game_npc_treasure_summary
-from .detail.treasures.game_npc_treasure_summary_all import game_npc_treasure_summary_all
+from .detail.treasures.detail.game_npc_treasure_acquire import game_npc_treasure_acquire
+from .detail.treasures.detail.game_npc_treasure_acquire_all import game_npc_treasure_acquire_all
+from .detail.treasures.detail.game_npc_treasure_buy import game_npc_treasure_buy
+from .detail.treasures.detail.game_npc_treasure_buy_all import game_npc_treasure_buy_all
+from .detail.treasures.detail.game_npc_treasure_remove import game_npc_treasure_remove
+from .detail.treasures.detail.game_npc_treasure_sell import game_npc_treasure_sell
+from .detail.treasures.detail.game_npc_treasure_summary import game_npc_treasure_summary
+from .detail.treasures.detail.game_npc_treasure_summary_all import game_npc_treasure_summary_all
 from .detail.treasures.game_npc_treasures import game_npc_treasures
 from .detail.treasures.game_npc_treasures_all import game_npc_treasures_all
 from .game_npc_detail import game_npc_detail
