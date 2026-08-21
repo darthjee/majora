@@ -1,21 +1,21 @@
 """Views for NPC (Non-Player Character) endpoints."""
 
-from .detail.documents.game_npc_document_acquire import game_npc_document_acquire
-from .detail.documents.game_npc_document_acquire_all import game_npc_document_acquire_all
-from .detail.documents.game_npc_document_detail import game_npc_document_detail
-from .detail.documents.game_npc_document_detail_full import game_npc_document_detail_full
-from .detail.documents.game_npc_document_files import game_npc_document_files
-from .detail.documents.game_npc_document_files_all import game_npc_document_files_all
-from .detail.documents.game_npc_document_photos import game_npc_document_photos
-from .detail.documents.game_npc_document_photos_all import game_npc_document_photos_all
-from .detail.documents.game_npc_document_remove import game_npc_document_remove
-from .detail.documents.game_npc_document_remove_all import game_npc_document_remove_all
-from .detail.documents.game_npc_document_summary import game_npc_document_summary
-from .detail.documents.game_npc_document_summary_all import game_npc_document_summary_all
+from .detail.documents.detail.game_npc_document_acquire import game_npc_document_acquire
+from .detail.documents.detail.game_npc_document_acquire_all import game_npc_document_acquire_all
+from .detail.documents.detail.game_npc_document_detail import game_npc_document_detail
+from .detail.documents.detail.game_npc_document_detail_full import game_npc_document_detail_full
+from .detail.documents.detail.game_npc_document_remove import game_npc_document_remove
+from .detail.documents.detail.game_npc_document_remove_all import game_npc_document_remove_all
+from .detail.documents.detail.game_npc_document_summary import game_npc_document_summary
+from .detail.documents.detail.game_npc_document_summary_all import game_npc_document_summary_all
+from .detail.documents.files.game_npc_document_files import game_npc_document_files
+from .detail.documents.files.game_npc_document_files_all import game_npc_document_files_all
 from .detail.documents.game_npc_documents import game_npc_documents
 from .detail.documents.game_npc_documents_all import game_npc_documents_all
 from .detail.documents.game_npc_documents_available import game_npc_documents_available
 from .detail.documents.game_npc_documents_available_all import game_npc_documents_available_all
+from .detail.documents.photos.game_npc_document_photos import game_npc_document_photos
+from .detail.documents.photos.game_npc_document_photos_all import game_npc_document_photos_all
 from .detail.factions.game_npc_faction_acquire import game_npc_faction_acquire
 from .detail.factions.game_npc_faction_acquire_all import game_npc_faction_acquire_all
 from .detail.factions.game_npc_faction_detail import game_npc_faction_detail
@@ -31,15 +31,15 @@ from .detail.factions.game_npc_factions_available_all import game_npc_factions_a
 from .detail.game_npc_access import game_npc_access
 from .detail.game_npc_full import game_npc_full
 from .detail.game_npc_photo_upload import game_npc_photo_upload
-from .detail.items.game_npc_item_acquire import game_npc_item_acquire
-from .detail.items.game_npc_item_acquire_all import game_npc_item_acquire_all
-from .detail.items.game_npc_item_detail import game_npc_item_detail
-from .detail.items.game_npc_item_detail_full import game_npc_item_detail_full
-from .detail.items.game_npc_item_photo_upload import game_npc_item_photo_upload
-from .detail.items.game_npc_item_remove import game_npc_item_remove
-from .detail.items.game_npc_item_remove_all import game_npc_item_remove_all
-from .detail.items.game_npc_item_summary import game_npc_item_summary
-from .detail.items.game_npc_item_summary_all import game_npc_item_summary_all
+from .detail.items.detail.game_npc_item_acquire import game_npc_item_acquire
+from .detail.items.detail.game_npc_item_acquire_all import game_npc_item_acquire_all
+from .detail.items.detail.game_npc_item_detail import game_npc_item_detail
+from .detail.items.detail.game_npc_item_detail_full import game_npc_item_detail_full
+from .detail.items.detail.game_npc_item_photo_upload import game_npc_item_photo_upload
+from .detail.items.detail.game_npc_item_remove import game_npc_item_remove
+from .detail.items.detail.game_npc_item_remove_all import game_npc_item_remove_all
+from .detail.items.detail.game_npc_item_summary import game_npc_item_summary
+from .detail.items.detail.game_npc_item_summary_all import game_npc_item_summary_all
 from .detail.items.game_npc_items import game_npc_items
 from .detail.items.game_npc_items_all import game_npc_items_all
 from .detail.items.game_npc_items_available import game_npc_items_available
@@ -48,12 +48,18 @@ from .detail.photos.game_npc_photo_deletable import game_npc_photo_deletable
 from .detail.photos.game_npc_photo_detail import game_npc_photo_detail
 from .detail.photos.game_npc_photo_set import game_npc_photo_set
 from .detail.photos.game_npc_photos import game_npc_photos
-from .detail.possessions.game_npc_possession_acquire import game_npc_possession_acquire
-from .detail.possessions.game_npc_possession_acquire_all import game_npc_possession_acquire_all
-from .detail.possessions.game_npc_possession_detail import game_npc_possession_detail
-from .detail.possessions.game_npc_possession_detail_full import game_npc_possession_detail_full
-from .detail.possessions.game_npc_possession_remove import game_npc_possession_remove
-from .detail.possessions.game_npc_possession_remove_all import game_npc_possession_remove_all
+from .detail.possessions.detail.game_npc_possession_acquire import game_npc_possession_acquire
+from .detail.possessions.detail.game_npc_possession_acquire_all import (
+    game_npc_possession_acquire_all,
+)
+from .detail.possessions.detail.game_npc_possession_detail import game_npc_possession_detail
+from .detail.possessions.detail.game_npc_possession_detail_full import (
+    game_npc_possession_detail_full,
+)
+from .detail.possessions.detail.game_npc_possession_remove import game_npc_possession_remove
+from .detail.possessions.detail.game_npc_possession_remove_all import (
+    game_npc_possession_remove_all,
+)
 from .detail.possessions.game_npc_possessions import game_npc_possessions
 from .detail.possessions.game_npc_possessions_all import game_npc_possessions_all
 from .detail.possessions.game_npc_possessions_available import game_npc_possessions_available
