@@ -72,7 +72,7 @@ export default class ListPageHelper {
     const href = config.buildItemHref(item, context);
     const extraCardClassName = config.buildCardClassName ? config.buildCardClassName(item) : '';
     const cardClassName = `card h-100 position-relative${extraCardClassName ? ` ${extraCardClassName}` : ''}`;
-    const columnClassName = `${ListPageHelper.#columnClassName(config.itemsPerRow, itemsCount)} mb-4`;
+    const columnClassName = `${ListPageHelper.#columnClassName(config.itemsPerRow, itemsCount, config.flexibleColumns)} mb-4`;
     const { secondaryButtons, ...actionBarProps } = config.buildActionBarProps(item, context);
 
     return (
@@ -100,11 +100,16 @@ export default class ListPageHelper {
    * @param {number} [itemsPerRow] - Number of cards per row at the `lg` breakpoint, from the
    *   active list type's config; defaults to `6` when omitted.
    * @param {number} itemsCount - Number of items actually being rendered on the current page.
+   * @param {boolean} [flexibleColumns] - Whether the active list type opts into the flexible
+   *   edge-to-edge grid (capping each breakpoint's column count to `itemsCount`); falsy keeps
+   *   the fixed column count regardless of `itemsCount`.
    * @returns {string} Space-separated `col-*`/`col-sm-*`/`col-md-*`/`col-lg-*` classes.
    */
-  static #columnClassName(itemsPerRow, itemsCount) {
+  static #columnClassName(itemsPerRow, itemsCount, flexibleColumns) {
     return ListPageHelper.#breakpoints(itemsPerRow)
-      .map(({ prefix, normal }) => ListPageHelper.#breakpointColumnClass(prefix, normal, itemsCount))
+      .map(({ prefix, normal }) => (
+        ListPageHelper.#breakpointColumnClass(prefix, normal, itemsCount, flexibleColumns)
+      ))
       .join(' ');
   }
 
@@ -132,10 +137,12 @@ export default class ListPageHelper {
    * @param {string} prefix - Breakpoint prefix (`''`, `'sm'`, `'md'`, or `'lg'`).
    * @param {number} normal - The breakpoint's normal (unconstrained) column count.
    * @param {number} itemsCount - Number of items actually being rendered on the current page.
+   * @param {boolean} [flexibleColumns] - Whether to cap `normal` to `itemsCount`; falsy keeps
+   *   `normal` as-is (fixed column count, pre-PR-#1211 behavior).
    * @returns {string} Bootstrap `col-*`/`col-{prefix}-*` class for the given breakpoint.
    */
-  static #breakpointColumnClass(prefix, normal, itemsCount) {
-    const effectiveColumns = Math.min(normal, itemsCount);
+  static #breakpointColumnClass(prefix, normal, itemsCount, flexibleColumns) {
+    const effectiveColumns = flexibleColumns ? Math.min(normal, itemsCount) : normal;
     const width = 12 / effectiveColumns;
     return prefix ? `col-${prefix}-${width}` : `col-${width}`;
   }
