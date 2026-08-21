@@ -6,8 +6,8 @@ from django.http import Http404
 
 from common.query_filters import filter_by_name as _common_filter_by_name
 
-from ...models import Character
-from ..common import hidden_gate_response
+from ....models import Character
+from ...common import hidden_gate_response
 
 
 def _with_treasure_value(queryset):

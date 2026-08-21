@@ -2,8 +2,8 @@
 
 from permissions import EndpointPermission
 
-from ...serializers import CharacterDetailSerializer, CharacterRegularUpdateSerializer
-from ..common import detail_or_update
+from ....serializers import CharacterDetailSerializer, CharacterRegularUpdateSerializer
+from ...common import detail_or_update
 
 
 def _check_regular_edit(request, character):
