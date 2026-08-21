@@ -66,14 +66,14 @@ from .detail.possessions.game_npc_possessions_available import game_npc_possessi
 from .detail.possessions.game_npc_possessions_available_all import (
     game_npc_possessions_available_all,
 )
-from .detail.treasures.game_npc_treasure_acquire import game_npc_treasure_acquire
-from .detail.treasures.game_npc_treasure_acquire_all import game_npc_treasure_acquire_all
-from .detail.treasures.game_npc_treasure_buy import game_npc_treasure_buy
-from .detail.treasures.game_npc_treasure_buy_all import game_npc_treasure_buy_all
-from .detail.treasures.game_npc_treasure_remove import game_npc_treasure_remove
-from .detail.treasures.game_npc_treasure_sell import game_npc_treasure_sell
-from .detail.treasures.game_npc_treasure_summary import game_npc_treasure_summary
-from .detail.treasures.game_npc_treasure_summary_all import game_npc_treasure_summary_all
+from .detail.treasures.detail.game_npc_treasure_acquire import game_npc_treasure_acquire
+from .detail.treasures.detail.game_npc_treasure_acquire_all import game_npc_treasure_acquire_all
+from .detail.treasures.detail.game_npc_treasure_buy import game_npc_treasure_buy
+from .detail.treasures.detail.game_npc_treasure_buy_all import game_npc_treasure_buy_all
+from .detail.treasures.detail.game_npc_treasure_remove import game_npc_treasure_remove
+from .detail.treasures.detail.game_npc_treasure_sell import game_npc_treasure_sell
+from .detail.treasures.detail.game_npc_treasure_summary import game_npc_treasure_summary
+from .detail.treasures.detail.game_npc_treasure_summary_all import game_npc_treasure_summary_all
 from .detail.treasures.game_npc_treasures import game_npc_treasures
 from .detail.treasures.game_npc_treasures_all import game_npc_treasures_all
 from .game_npc_detail import game_npc_detail

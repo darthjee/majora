@@ -66,14 +66,14 @@ from .detail.possessions.game_pc_possessions_available import game_pc_possession
 from .detail.possessions.game_pc_possessions_available_all import (
     game_pc_possessions_available_all,
 )
-from .detail.treasures.game_pc_treasure_acquire import game_pc_treasure_acquire
-from .detail.treasures.game_pc_treasure_acquire_all import game_pc_treasure_acquire_all
-from .detail.treasures.game_pc_treasure_buy import game_pc_treasure_buy
-from .detail.treasures.game_pc_treasure_buy_all import game_pc_treasure_buy_all
-from .detail.treasures.game_pc_treasure_remove import game_pc_treasure_remove
-from .detail.treasures.game_pc_treasure_sell import game_pc_treasure_sell
-from .detail.treasures.game_pc_treasure_summary import game_pc_treasure_summary
-from .detail.treasures.game_pc_treasure_summary_all import game_pc_treasure_summary_all
+from .detail.treasures.detail.game_pc_treasure_acquire import game_pc_treasure_acquire
+from .detail.treasures.detail.game_pc_treasure_acquire_all import game_pc_treasure_acquire_all
+from .detail.treasures.detail.game_pc_treasure_buy import game_pc_treasure_buy
+from .detail.treasures.detail.game_pc_treasure_buy_all import game_pc_treasure_buy_all
+from .detail.treasures.detail.game_pc_treasure_remove import game_pc_treasure_remove
+from .detail.treasures.detail.game_pc_treasure_sell import game_pc_treasure_sell
+from .detail.treasures.detail.game_pc_treasure_summary import game_pc_treasure_summary
+from .detail.treasures.detail.game_pc_treasure_summary_all import game_pc_treasure_summary_all
 from .detail.treasures.game_pc_treasures import game_pc_treasures
 from .game_pc_detail import game_pc_detail
 from .game_pcs import game_pcs

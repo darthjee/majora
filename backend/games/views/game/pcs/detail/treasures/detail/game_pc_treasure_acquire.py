@@ -1,5 +1,5 @@
 """View for the PC treasure acquire endpoint."""
 
-from ...._treasure_shared import build_treasure_acquire_view
+from ....._treasure_shared import build_treasure_acquire_view
 
 game_pc_treasure_acquire = build_treasure_acquire_view(npc=False)
