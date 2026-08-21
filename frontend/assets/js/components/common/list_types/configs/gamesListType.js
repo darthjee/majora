@@ -68,6 +68,7 @@ const gamesListType = {
   buildItemHref,
   itemsPerRow: 4,
   cardPhotoClassName: 'card-photo-rect',
+  flexibleColumns: true,
 };
 
 export default gamesListType;
