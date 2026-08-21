@@ -30,25 +30,35 @@ export function fetchResourcePickerResults({ resource, maxEntries, searchTerm })
 }
 
 /**
+ * Maximum number of entries returned by `filterConstantResults`. Internal to constant mode only —
+ * unrelated to the API-mode `maxEntries` prop (which maps to `per_page` and is ignored in
+ * constant mode), hence the distinct name.
+ */
+const MAX_CONSTANT_RESULTS = 5;
+
+/**
  * Filter a local constant `values` list by substring match (case-insensitive) against each
  * value's translated label, shaping matches as `{id, name}` — mirroring the `{id, name}` shape
  * `fetchResourcePickerResults` resolves to, so both modes render through the same
  * `ResourcePickerSearchHelper`. `id` is the raw constant string itself; there is never a value
  * outside `values`, so — unlike the API-backed mode — there is no equivalent of "create new" to
- * guard against. Exported as a plain, named function so it can be exercised directly in specs.
+ * guard against. Results are capped at `MAX_CONSTANT_RESULTS` entries. Exported as a plain, named
+ * function so it can be exercised directly in specs.
  *
  * @param {object} params - Params.
  * @param {string[]} params.values - Constant list of raw `db_value`s to filter/offer.
  * @param {Function} params.translateOption - `(value) => label string` for each entry.
  * @param {string} params.searchTerm - Current name filter.
- * @returns {{id: string, name: string}[]} Matching entries, in `values`' original order.
+ * @returns {{id: string, name: string}[]} Up to `MAX_CONSTANT_RESULTS` matching entries, in
+ *   `values`' original order.
  */
 export function filterConstantResults({ values, translateOption, searchTerm }) {
   const term = searchTerm.trim().toLowerCase();
 
   return values
     .map((value) => ({ id: value, name: translateOption(value) }))
-    .filter((item) => item.name.toLowerCase().includes(term));
+    .filter((item) => item.name.toLowerCase().includes(term))
+    .slice(0, MAX_CONSTANT_RESULTS);
 }
 
 /**
