@@ -4,9 +4,9 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 
-from ......decorators import restricted
-from ......models import Game
-from ....factions._faction_summary import (
+from .......decorators import restricted
+from .......models import Game
+from .....factions._faction_summary import (
     character_faction_summary,
     check_faction_summary_all_permission,
 )
