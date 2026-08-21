@@ -50,8 +50,11 @@ route is always predictable from its path alone.
 | `treasures/:id/access.json` (top-level treasure, not game-scoped) | `backend/games/views/treasures/detail/treasure_access.py` |
 | `staff/users/:id/recovery-link.json` | `backend/games/views/staff/detail/staff_user_recovery_link.py` |
 
-Every affected import (`urls.py`, package `__init__.py` re-exports) must be updated to
-match the new paths whenever a slice is actually carried out.
+`games/urls/*.py` files import each view function directly from its owning submodule
+(e.g. `from ..views.game_tasks import game_task_detail`) — there is no package-level
+`games/views/__init__.py` re-export layer to keep in sync. Only the `urls.py` import
+statements themselves need to be updated to match the new path whenever a slice is
+actually carried out.
 
 ## Adoption status
 

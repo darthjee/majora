@@ -7,37 +7,48 @@ only on the entity type and the `?role=` query params, never on a specific insta
 
 from django.urls import path
 
-from .. import views
+from ..views.permissions import (
+    game_common_item_permissions,
+    game_document_permissions,
+    game_faction_permissions,
+    game_item_permissions,
+    game_npc_permissions,
+    game_pc_permissions,
+    game_permissions,
+    game_possession_permissions,
+    game_treasure_permissions,
+    treasure_permissions,
+)
 
 urlpatterns = [
-    path('permissions/game.json', views.game_permissions, name='permissions-game'),
-    path('permissions/treasure.json', views.treasure_permissions, name='permissions-treasure'),
+    path('permissions/game.json', game_permissions, name='permissions-game'),
+    path('permissions/treasure.json', treasure_permissions, name='permissions-treasure'),
     path(
         'permissions/game_treasure.json',
-        views.game_treasure_permissions,
+        game_treasure_permissions,
         name='permissions-game-treasure',
     ),
-    path('permissions/game_pc.json', views.game_pc_permissions, name='permissions-game-pc'),
-    path('permissions/game_npc.json', views.game_npc_permissions, name='permissions-game-npc'),
+    path('permissions/game_pc.json', game_pc_permissions, name='permissions-game-pc'),
+    path('permissions/game_npc.json', game_npc_permissions, name='permissions-game-npc'),
     path(
         'permissions/game_possession.json',
-        views.game_possession_permissions,
+        game_possession_permissions,
         name='permissions-game-possession',
     ),
     path(
         'permissions/game_common_item.json',
-        views.game_common_item_permissions,
+        game_common_item_permissions,
         name='permissions-game-common-item',
     ),
-    path('permissions/game_item.json', views.game_item_permissions, name='permissions-game-item'),
+    path('permissions/game_item.json', game_item_permissions, name='permissions-game-item'),
     path(
         'permissions/game_faction.json',
-        views.game_faction_permissions,
+        game_faction_permissions,
         name='permissions-game-faction',
     ),
     path(
         'permissions/game_document.json',
-        views.game_document_permissions,
+        game_document_permissions,
         name='permissions-game-document',
     ),
 ]
