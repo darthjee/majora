@@ -48,12 +48,18 @@ from .detail.photos.game_npc_photo_deletable import game_npc_photo_deletable
 from .detail.photos.game_npc_photo_detail import game_npc_photo_detail
 from .detail.photos.game_npc_photo_set import game_npc_photo_set
 from .detail.photos.game_npc_photos import game_npc_photos
-from .detail.possessions.game_npc_possession_acquire import game_npc_possession_acquire
-from .detail.possessions.game_npc_possession_acquire_all import game_npc_possession_acquire_all
-from .detail.possessions.game_npc_possession_detail import game_npc_possession_detail
-from .detail.possessions.game_npc_possession_detail_full import game_npc_possession_detail_full
-from .detail.possessions.game_npc_possession_remove import game_npc_possession_remove
-from .detail.possessions.game_npc_possession_remove_all import game_npc_possession_remove_all
+from .detail.possessions.detail.game_npc_possession_acquire import game_npc_possession_acquire
+from .detail.possessions.detail.game_npc_possession_acquire_all import (
+    game_npc_possession_acquire_all,
+)
+from .detail.possessions.detail.game_npc_possession_detail import game_npc_possession_detail
+from .detail.possessions.detail.game_npc_possession_detail_full import (
+    game_npc_possession_detail_full,
+)
+from .detail.possessions.detail.game_npc_possession_remove import game_npc_possession_remove
+from .detail.possessions.detail.game_npc_possession_remove_all import (
+    game_npc_possession_remove_all,
+)
 from .detail.possessions.game_npc_possessions import game_npc_possessions
 from .detail.possessions.game_npc_possessions_all import game_npc_possessions_all
 from .detail.possessions.game_npc_possessions_available import game_npc_possessions_available

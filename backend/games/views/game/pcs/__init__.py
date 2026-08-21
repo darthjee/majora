@@ -48,12 +48,18 @@ from .detail.photos.game_pc_photo_deletable import game_pc_photo_deletable
 from .detail.photos.game_pc_photo_detail import game_pc_photo_detail
 from .detail.photos.game_pc_photo_set import game_pc_photo_set
 from .detail.photos.game_pc_photos import game_pc_photos
-from .detail.possessions.game_pc_possession_acquire import game_pc_possession_acquire
-from .detail.possessions.game_pc_possession_acquire_all import game_pc_possession_acquire_all
-from .detail.possessions.game_pc_possession_detail import game_pc_possession_detail
-from .detail.possessions.game_pc_possession_detail_full import game_pc_possession_detail_full
-from .detail.possessions.game_pc_possession_remove import game_pc_possession_remove
-from .detail.possessions.game_pc_possession_remove_all import game_pc_possession_remove_all
+from .detail.possessions.detail.game_pc_possession_acquire import game_pc_possession_acquire
+from .detail.possessions.detail.game_pc_possession_acquire_all import (
+    game_pc_possession_acquire_all,
+)
+from .detail.possessions.detail.game_pc_possession_detail import game_pc_possession_detail
+from .detail.possessions.detail.game_pc_possession_detail_full import (
+    game_pc_possession_detail_full,
+)
+from .detail.possessions.detail.game_pc_possession_remove import game_pc_possession_remove
+from .detail.possessions.detail.game_pc_possession_remove_all import (
+    game_pc_possession_remove_all,
+)
 from .detail.possessions.game_pc_possessions import game_pc_possessions
 from .detail.possessions.game_pc_possessions_all import game_pc_possessions_all
 from .detail.possessions.game_pc_possessions_available import game_pc_possessions_available
