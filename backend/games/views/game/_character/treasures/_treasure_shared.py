@@ -10,17 +10,17 @@ other domains have, and that is pre-existing behaviour this refactor preserves a
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import AllowAny
 
-from ...models import Game
-from ..common import check_game_edit
-from ._character_shared import _build_api_view
-from ._shared import _get_character_or_404
-from .treasures._treasure_exchange import (
+from .....models import Game
+from ....common import check_game_edit
+from .. import _build_api_view
+from .._shared import _get_character_or_404
+from ...treasures._treasure_exchange import (
     character_treasure_acquire,
     character_treasure_buy,
     character_treasure_remove,
     character_treasure_sell,
 )
-from .treasures._treasures import character_treasures
+from ...treasures._treasures import character_treasures
 
 
 def build_treasures_view(npc):
