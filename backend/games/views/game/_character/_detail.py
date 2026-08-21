@@ -2,7 +2,7 @@
 
 from rest_framework.response import Response
 
-from ...serializers import CharacterDetailSerializer
+from ....serializers import CharacterDetailSerializer
 from ._decorators import check_hidden
 
 

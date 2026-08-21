@@ -1,5 +1,5 @@
 """View for the PC items/available.json endpoint."""
 
-from ...._item_shared import build_items_available_view
+from ...._character.items._item_shared import build_items_available_view
 
 game_pc_items_available = build_items_available_view(npc=False)

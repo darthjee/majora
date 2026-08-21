@@ -1,5 +1,5 @@
 """View for the NPC photo set (role update) endpoint."""
 
-from ....._photo_shared import build_photo_set_view
+from ....._character.photos._photo_shared import build_photo_set_view
 
 game_npc_photo_set = build_photo_set_view(npc=True)

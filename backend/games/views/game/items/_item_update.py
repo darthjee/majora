@@ -7,7 +7,7 @@ from permissions import EndpointPermission
 
 from ....serializers import CharacterItemDetailFullSerializer, CharacterItemUpdateSerializer
 from ...common import validated_or_error
-from .._shared import _character_item_resource, _hidden_gate_response
+from .._character._shared import _character_item_resource, _hidden_gate_response
 
 
 def character_item_update(request, character, item_id, npc):

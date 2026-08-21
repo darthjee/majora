@@ -5,9 +5,9 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 
 from ....models import Game
-from .._detail import character_detail
-from .._regular import character_regular_update
-from .._shared import _get_character_or_404
+from .._character._detail import character_detail
+from .._character._regular import character_regular_update
+from .._character._shared import _get_character_or_404
 
 
 @api_view(['GET', 'PATCH'])

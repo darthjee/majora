@@ -6,7 +6,7 @@ from rest_framework.permissions import AllowAny
 
 from .......decorators import restricted
 from .......models import Game
-from ....._shared import _get_character_or_404
+from ....._character._shared import _get_character_or_404
 from .....treasures._treasure_summary import (
     character_treasure_summary,
     check_treasure_summary_all_permission,

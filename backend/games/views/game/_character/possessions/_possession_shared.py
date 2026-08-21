@@ -6,22 +6,22 @@ Split out of `_character_shared.py` — see that module's docstring for the gene
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import AllowAny
 
-from ...models import Game
-from ...serializers import (
+from .....models import Game
+from .....serializers import (
     CharacterPossessionSerializer,
     GamePossessionAllListSerializer,
     GamePossessionListSerializer,
 )
-from ..common import check_game_edit
-from ._character_shared import _build_api_view, _check_character_all_permission
-from ._shared import _get_character_or_404, _hidden_gate_response
-from .possessions._possession_create import character_possession_create
-from .possessions._possession_exchange import (
+from ....common import check_game_edit
+from ...possessions._possession_create import character_possession_create
+from ...possessions._possession_exchange import (
     character_possession_acquire,
     character_possession_remove,
     character_possessions_available,
 )
-from .possessions._possessions import character_possession_detail, character_possessions
+from ...possessions._possessions import character_possession_detail, character_possessions
+from .. import _build_api_view, _check_character_all_permission
+from .._shared import _get_character_or_404, _hidden_gate_response
 
 
 def build_possessions_view(npc):

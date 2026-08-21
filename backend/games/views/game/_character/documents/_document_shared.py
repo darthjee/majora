@@ -6,22 +6,22 @@ Split out of `_character_shared.py` — see that module's docstring for the gene
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import AllowAny
 
-from ...models import Game
-from ...serializers import (
+from .....models import Game
+from .....serializers import (
     CharacterDocumentSerializer,
     GameDocumentAllListSerializer,
     GameDocumentListSerializer,
 )
-from ..common import check_game_edit
-from ._character_shared import _build_api_view, _check_character_all_permission
-from .documents._document_exchange import (
+from ....common import check_game_edit
+from ...documents._document_exchange import (
     character_document_acquire,
     character_document_remove,
     character_documents_available,
 )
-from .documents._document_files import character_document_files
-from .documents._document_photos import character_document_photos
-from .documents._documents import character_document_detail, character_documents
+from ...documents._document_files import character_document_files
+from ...documents._document_photos import character_document_photos
+from ...documents._documents import character_document_detail, character_documents
+from .. import _build_api_view, _check_character_all_permission
 
 
 def build_documents_view(npc):

@@ -8,7 +8,7 @@ from ....serializers import CharacterTreasureSerializer
 from ...common import paginated_list_response
 from ...games._treasure_context import game_treasures_context
 from ...games._treasure_filters import filter_by_max_value, filter_by_min_value, filter_by_name
-from .._decorators import check_hidden
+from .._character._decorators import check_hidden
 
 
 @check_hidden

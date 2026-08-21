@@ -17,8 +17,8 @@ from rest_framework.permissions import AllowAny
 
 from permissions import EndpointPermission
 
-from ...models import Game
-from ..common import access_response, check_game_edit
+from ....models import Game
+from ...common import access_response, check_game_edit
 from ._full import character_full
 from ._shared import _find_character, _get_character_or_404
 

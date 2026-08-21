@@ -6,16 +6,16 @@ Split out of `_character_shared.py` — see that module's docstring for the gene
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import AllowAny
 
-from ...models import Game
-from ...serializers import CharacterFactionSerializer, GameFactionListSerializer
-from ..common import check_game_edit
-from ._character_shared import _build_api_view, _check_character_all_permission
-from .factions._faction_exchange import (
+from .....models import Game
+from .....serializers import CharacterFactionSerializer, GameFactionListSerializer
+from ....common import check_game_edit
+from ...factions._faction_exchange import (
     character_faction_acquire,
     character_faction_remove,
     character_factions_available,
 )
-from .factions._factions import character_faction_detail, character_factions
+from ...factions._factions import character_faction_detail, character_factions
+from .. import _build_api_view, _check_character_all_permission
 
 
 def build_factions_view(npc):

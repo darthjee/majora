@@ -2,7 +2,7 @@
 
 from django.http import Http404
 
-from ...models import GameTreasure, Treasure
+from .....models import GameTreasure, Treasure
 
 
 def _find_game_treasure(game, treasure_id, allow_hidden=False):

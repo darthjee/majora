@@ -9,7 +9,7 @@ from permissions import EndpointPermission
 from ....models import CharacterPossession, GamePossession
 from ....serializers import CharacterPossessionAllSerializer
 from ...common import validated_or_error
-from .._shared import _character_possession_resource
+from .._character._shared import _character_possession_resource
 
 
 class _CharacterPossessionCreateSerializer(serializers.Serializer):

@@ -3,7 +3,7 @@
 from django.shortcuts import get_object_or_404
 
 from ...common import paginated_list_response
-from .._decorators import check_hidden
+from .._character._decorators import check_hidden
 
 
 @check_hidden

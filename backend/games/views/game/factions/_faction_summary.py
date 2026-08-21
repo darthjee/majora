@@ -4,7 +4,7 @@ from rest_framework.response import Response
 
 from permissions import EndpointPermission
 
-from .._shared import _get_character_or_404, _hidden_gate_response
+from .._character._shared import _get_character_or_404, _hidden_gate_response
 from ._faction_exchange import _find_game_faction
 
 

@@ -12,8 +12,8 @@ from permissions import EndpointPermission
 from ....models import Character, CharacterTreasure, GameTreasure
 from ....serializers.games.treasures.game_treasure_fields import resolve_treasure_value
 from ...common import validated_or_error
-from .._shared import _character_resource
-from .._treasure_finder import _find_game_treasure, _find_treasure_by_id
+from .._character._shared import _character_resource
+from .._character.treasures._treasure_finder import _find_game_treasure, _find_treasure_by_id
 
 
 class _TreasureExchangeSerializer(serializers.Serializer):
