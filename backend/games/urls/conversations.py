@@ -2,12 +2,12 @@
 
 from django.urls import path
 
-from .. import views
+from ..views.game import game_conversations
 
 urlpatterns = [
     path(
         'games/<slug:game_slug>/conversations.json',
-        views.game_conversations,
+        game_conversations,
         name='game-conversations',
     ),
 ]

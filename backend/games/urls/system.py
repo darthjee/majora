@@ -2,13 +2,14 @@
 
 from django.urls import path
 
-from .. import views
+from ..views.access_route_config import access_route_config
+from ..views.ready import ready
 
 urlpatterns = [
-    path('ready.json', views.ready, name='ready'),
+    path('ready.json', ready, name='ready'),
     path(
         'access-route-config.json',
-        views.access_route_config,
+        access_route_config,
         name='access-route-config',
     ),
 ]

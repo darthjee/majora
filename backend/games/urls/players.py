@@ -2,13 +2,13 @@
 
 from django.urls import path
 
-from .. import views
+from ..views.game import game_player_detail, game_players
 
 urlpatterns = [
-    path('games/<slug:game_slug>/players.json', views.game_players, name='game-players'),
+    path('games/<slug:game_slug>/players.json', game_players, name='game-players'),
     path(
         'games/<slug:game_slug>/players/<int:player_id>.json',
-        views.game_player_detail,
+        game_player_detail,
         name='game-player-detail',
     ),
 ]
