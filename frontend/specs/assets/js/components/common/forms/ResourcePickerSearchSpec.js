@@ -93,6 +93,43 @@ describe('ResourcePickerSearch', function() {
 
       expect(filterConstantResults({ values, translateOption, searchTerm: 'dragon' })).toEqual([]);
     });
+
+    it('caps results at 5 entries when searchTerm is empty and more than 5 values are given', function() {
+      const values = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
+      const translateOption = (value) => value;
+
+      const results = filterConstantResults({ values, translateOption, searchTerm: '' });
+
+      expect(results.length).toBe(5);
+      expect(results).toEqual([
+        { id: 'a', name: 'a' }, { id: 'b', name: 'b' }, { id: 'c', name: 'c' },
+        { id: 'd', name: 'd' }, { id: 'e', name: 'e' },
+      ]);
+    });
+
+    it('caps results at the first 5 matches, in original array order, when more than 5 match', function() {
+      const values = ['alpha1', 'beta', 'alpha2', 'alpha3', 'alpha4', 'alpha5', 'alpha6'];
+      const translateOption = (value) => value;
+
+      const results = filterConstantResults({ values, translateOption, searchTerm: 'alpha' });
+
+      expect(results).toEqual([
+        { id: 'alpha1', name: 'alpha1' }, { id: 'alpha2', name: 'alpha2' },
+        { id: 'alpha3', name: 'alpha3' }, { id: 'alpha4', name: 'alpha4' },
+        { id: 'alpha5', name: 'alpha5' },
+      ]);
+    });
+
+    it('returns all matches without truncation when 5 or fewer match', function() {
+      const values = ['alpha1', 'beta', 'alpha2', 'alpha3'];
+      const translateOption = (value) => value;
+
+      const results = filterConstantResults({ values, translateOption, searchTerm: 'alpha' });
+
+      expect(results).toEqual([
+        { id: 'alpha1', name: 'alpha1' }, { id: 'alpha2', name: 'alpha2' }, { id: 'alpha3', name: 'alpha3' },
+      ]);
+    });
   });
 
   describe('.fetchResourcePickerResults', function() {
