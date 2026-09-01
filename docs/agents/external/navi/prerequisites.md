@@ -74,6 +74,7 @@ Key points:
 | `client` | Name of the client to use for this request. Defaults to `default`. |
 | `enabled` | Optional. Set to `false` to mark this request disabled. Defaults to `true`. |
 | `disabled` | Optional. Set to `true` to mark this request disabled — always wins over `enabled`. Defaults to `false`. A disabled request is never enqueued (not at startup, not on manual/API trigger, and not when targeted by another resource's `actions`/`paginated_actions`). |
+| `max_page` | Optional. When this request is the target of another resource's `paginated_actions`, caps how many of its pages ever get enqueued — a ceiling owned by this resource, applying uniformly to every caller. Counts pages, not page numbers (the first `max_page` pages in iteration order, whether `zero_indexed` or not). Omitted, `null`, `0`, or any other non-positive-integer value means unlimited; a present-but-invalid value also logs a warning. Defaults to unlimited. |
 | `actions[].resource` | Resource to enqueue after a successful response (resource chaining). |
 | `actions[].parameters` | Path expressions that extract values from the response (e.g. `parsedBody.id`, `headers['x-next-page']`). |
 | `paginated_actions` | Optional. Like `actions`, but fans out one request per page instead of one per array item. |
