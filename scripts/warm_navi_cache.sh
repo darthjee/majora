@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export LOG_LEVEL=debug
+
 RESOURCE_FILES=(
   navi/resources/games.yml
   navi/resources/npcs.yml

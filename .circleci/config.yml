@@ -503,7 +503,7 @@ jobs:
 
   warm-up-cache:
     docker:
-      - image: darthjee/navi-hey-client:latest
+      - image: darthjee/navi-hey-client:0.2.0
     steps:
       - checkout
       - run:
