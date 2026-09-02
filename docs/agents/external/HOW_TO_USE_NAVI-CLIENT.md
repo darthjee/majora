@@ -23,4 +23,5 @@ This guide is intended for developers and AI agents who want to control a runnin
 - [Installation](./navi-client/installation.md) — installing `navi-hey-client` from npm.
 - [Library Usage](./navi-client/library-usage.md) — using the `NaviClient` class in your own code.
 - [CLI Usage](./navi-client/cli-usage.md) — using the `navi-client` command line tool.
+- [Samples](./navi-client/samples.md) — end-to-end recipes for driving a running Navi instance.
 - [Reference](./navi-client/reference.md) — the underlying `/api/*` HTTP namespace and error handling.

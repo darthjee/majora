@@ -137,4 +137,6 @@ resources:
             id: parsedBody.id
 ```
 
+**Related sample:** [Split a large config across files and namespaces](samples/split-config.md)
+
 [← Back to How to Use Navi](../HOW_TO_USE_NAVI.md)

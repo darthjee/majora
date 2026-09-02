@@ -43,4 +43,33 @@ If `/categories.json` returns `{ "pagination": { "pages": 3 } }` with a `X-Per-P
 
 `paginated_actions` and `actions` may coexist on the same resource — both are processed independently after a successful response.
 
+### Capping pages with `max_page`
+
+Sometimes you don't want to warm every page a `paginated_actions` caller reports — just the first few, most-likely-to-be-hit ones. `max_page` caps this from the **target** resource's side, independent of who calls it:
+
+```yaml
+resources:
+  categories:
+    - url: /categories.json
+      status: 200
+      paginated_actions:
+        - resource: products_page
+          pagination:
+            - pages: parsedBody.pagination.pages
+            - page_key: page
+            - zero_indexed: false
+          parameters:
+            per_page: headers['x-per-page']
+  products_page:
+    - url: /products/{:page}.json?per_page={:per_page}
+      status: 200
+      max_page: 2
+```
+
+Even though `/categories.json` reports 3 pages, `products_page` caps itself at 2 — Navi enqueues only `/products/1.json?per_page=25` and `/products/2.json?per_page=25`. `max_page` is a property of `products_page` itself: **every** caller that fans out into it is capped the same way, not just this one. It counts pages, not page numbers, so it composes the same way regardless of `zero_indexed` (a `zero_indexed: true` caller capped at `max_page: 2` would enqueue pages `0` and `1`, not `1` and `2`).
+
+Omitted, `null`, `0`, or any other non-positive-integer value means unlimited (all pages the caller resolves are enqueued) — the default. A present-but-invalid value (e.g. a negative number or a non-numeric string) also logs a warning.
+
+**Related sample:** [Warm a paginated API](samples/paginated-warmup.md), [Crawl every page and emit every item](samples/paginated-crawl-emit.md)
+
 [← Back to How to Use Navi](../HOW_TO_USE_NAVI.md)
