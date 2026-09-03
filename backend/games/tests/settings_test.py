@@ -51,6 +51,31 @@ class TestSettingsPasswordResetTokenExpirationMinutes:
         monkeypatch.setenv('MAJORA_PASSWORD_RESET_TOKEN_EXPIRATION_MINUTES', '')
         assert Settings.password_reset_token_expiration_minutes() == 30
 
+    def test_clamps_up_when_env_is_below_floor(self, monkeypatch):
+        """Test that a value of 0 is clamped up to the floor of 1."""
+        monkeypatch.setenv('MAJORA_PASSWORD_RESET_TOKEN_EXPIRATION_MINUTES', '0')
+        assert Settings.password_reset_token_expiration_minutes() == 1
+
+    def test_clamps_up_when_env_is_negative(self, monkeypatch):
+        """Test that a negative value is clamped up to the floor of 1."""
+        monkeypatch.setenv('MAJORA_PASSWORD_RESET_TOKEN_EXPIRATION_MINUTES', '-5')
+        assert Settings.password_reset_token_expiration_minutes() == 1
+
+    def test_clamps_down_when_env_is_above_ceiling(self, monkeypatch):
+        """Test that a value above 1440 is clamped down to the ceiling of 1440."""
+        monkeypatch.setenv('MAJORA_PASSWORD_RESET_TOKEN_EXPIRATION_MINUTES', '99999')
+        assert Settings.password_reset_token_expiration_minutes() == 1440
+
+    def test_passes_through_at_lower_boundary(self, monkeypatch):
+        """Test that a value of exactly 1 passes through unchanged."""
+        monkeypatch.setenv('MAJORA_PASSWORD_RESET_TOKEN_EXPIRATION_MINUTES', '1')
+        assert Settings.password_reset_token_expiration_minutes() == 1
+
+    def test_passes_through_at_upper_boundary(self, monkeypatch):
+        """Test that a value of exactly 1440 passes through unchanged."""
+        monkeypatch.setenv('MAJORA_PASSWORD_RESET_TOKEN_EXPIRATION_MINUTES', '1440')
+        assert Settings.password_reset_token_expiration_minutes() == 1440
+
 
 class TestSettingsEmailsEnabled:
     """Tests for Settings.emails_enabled()."""
