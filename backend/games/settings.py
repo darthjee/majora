@@ -15,8 +15,9 @@ class Settings:
 
     @staticmethod
     def password_reset_token_expiration_minutes():
-        """Return the password recovery token expiration, in minutes."""
-        return env_int('MAJORA_PASSWORD_RESET_TOKEN_EXPIRATION_MINUTES', 30)
+        """Return the password recovery token expiration, in minutes, clamped to [1, 1440]."""
+        value = env_int('MAJORA_PASSWORD_RESET_TOKEN_EXPIRATION_MINUTES', 30)
+        return max(1, min(1440, value))
 
     @staticmethod
     def upload_expiration_minutes():
