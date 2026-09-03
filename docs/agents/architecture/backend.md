@@ -24,7 +24,7 @@ Account/authentication app — every `/users/*.json` and `/account/*.json` endpo
 
 Key files:
 
-- `models/` — `UserProfile`, `PasswordResetToken` (table names preserved for migration compatibility).
+- `models/` — `UserProfile` (table `games_userprofile` preserved for migration compatibility), `PasswordResetToken`.
 - `views/auth/`, `views/password_reset/`, `views/authorization_requests/`
 - `serializers/auth/`
 - `authentication.py` — `CookieTokenAuthentication`
