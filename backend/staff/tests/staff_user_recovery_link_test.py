@@ -115,7 +115,7 @@ class TestStaffUserRecoveryLinkView(TestCase):
         """Test that a new token is created when the existing one has expired."""
         expired = PasswordResetToken.objects.create(user=self.target_user, token='expired-token')
         PasswordResetToken.objects.filter(pk=expired.pk).update(
-            created_at=timezone.now() - timedelta(minutes=1000)
+            expires_at=timezone.now() - timedelta(minutes=1)
         )
 
         response = self._post(self.client, self.target_user.id, token=self.superuser_token)

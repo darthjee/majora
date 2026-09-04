@@ -9,7 +9,6 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 
 from accounts.models import PasswordResetToken, UserProfile
-from games.settings import Settings
 from games.tests.factories import UserFactory, UserProfileFactory
 
 TEST_PASSWORD = get_random_string(20)
@@ -67,11 +66,8 @@ class TestResetPasswordView(TestCase):
     def test_rejects_expired_token(self):
         """Test that an expired token is rejected with a generic error."""
         reset_token = PasswordResetToken.objects.create(user=self.user, token='expired-token')
-        expired_created_at = timezone.now() - timedelta(
-            minutes=Settings.password_reset_token_expiration_minutes() + 1
-        )
         PasswordResetToken.objects.filter(pk=reset_token.pk).update(
-            created_at=expired_created_at
+            expires_at=timezone.now() - timedelta(minutes=1)
         )
 
         response = self.client.post(

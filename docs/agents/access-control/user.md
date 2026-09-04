@@ -11,6 +11,7 @@ authentication and enforce **Staff-or-superuser** inline. Always sets `X-Skip-Ca
 | Detail (`GET /staff/users/<id>.json`) | **Staff-or-superuser** |
 | Update name/email (`PATCH /staff/users/<id>.json`) | **Staff-or-superuser** |
 | Generate/reuse recovery link (`POST /staff/users/<id>/recovery-link.json`) | **Staff-or-superuser** |
+| List recovery tokens (`GET /staff/users/<id>/recovery-tokens.json`) | **Staff-or-superuser** |
 | Approve a pending user (`POST /staff/users/approve.json`) | **Staff-or-superuser** |
 | Deny/ban a user (`POST /staff/users/deny.json`) | **Staff-or-superuser** |
 
@@ -40,3 +41,12 @@ endpoint exists to create a user, delete a user, change a password directly, or 
 user if one exists, otherwise creates one, and returns its URL directly in the response body.
 Unlike `/users/recover.json`, it never sends an email — the URL is meant to be shared by staff
 directly with the user out-of-band.
+
+**Recovery-tokens endpoint**: read-only listing of every `PasswordResetToken` row owned by the
+target user (404 for an unknown user id), ordered `-created_at`, no pagination. Each row serializes
+`id`, a convenience `status` (`used`/`revoked`/`expired`/`valid`, precedence
+Used > Revoked > Expired > Valid — recomputed client-side rather than trusted from the API on
+every render), `created_at`, `expires_at`, `used_at`, `invalidated_at`, and `token_preview` (last 6
+characters of the token, for human cross-reference only) — the serializer's `fields` is an explicit
+allowlist and the raw `token` is never serialized. No mutation controls exist on this endpoint;
+unexpire/force-expire/delete land in a later sub-issue.

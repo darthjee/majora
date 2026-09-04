@@ -3,6 +3,7 @@
 import secrets
 
 from accounts.models import PasswordResetToken, UserProfile
+from accounts.models.password_reset_token import _default_expires_at
 from accounts.url_builder import FrontendBaseUrl
 from accounts.views.auth._shared import _send_email
 from games.settings import Settings
@@ -27,7 +28,7 @@ def send_password_reset_email(user, token):
 def _create_and_send_reset_token(user):
     """Create a password reset token for the user and email it to them."""
     token = secrets.token_urlsafe(32)
-    PasswordResetToken.objects.create(user=user, token=token)
+    PasswordResetToken.objects.create(user=user, token=token, expires_at=_default_expires_at())
     send_password_reset_email(user, token)
 
 
@@ -44,5 +45,5 @@ def get_or_create_recovery_token(user):
         return existing.token
 
     token = secrets.token_urlsafe(32)
-    PasswordResetToken.objects.create(user=user, token=token)
+    PasswordResetToken.objects.create(user=user, token=token, expires_at=_default_expires_at())
     return token
