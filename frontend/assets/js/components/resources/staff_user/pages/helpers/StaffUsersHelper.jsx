@@ -93,7 +93,7 @@ export default class StaffUsersHelper {
 
     return {
       id: user.id,
-      name: user.name,
+      name: <a href={`#/staff/users/${user.id}`}>{user.name}</a>,
       email: user.email,
       display_name: user.display_name,
       status: <Badge variant={badge.variant} text={badge.text} />,

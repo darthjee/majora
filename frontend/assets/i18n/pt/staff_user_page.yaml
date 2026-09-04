@@ -3,5 +3,6 @@ staff_user_page:
   title: Usuário
   name_label: Nome
   email_label: E-mail
+  status_label: Status
   edit: Editar
   error: Falha ao carregar usuário. Tente novamente.
