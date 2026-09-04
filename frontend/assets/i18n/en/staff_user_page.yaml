@@ -6,3 +6,15 @@ staff_user_page:
   status_label: Status
   edit: Edit
   error: Failed to load user. Please try again.
+  recovery_tokens_title: Recovery tokens
+  recovery_tokens_loading: Loading recovery tokens...
+  recovery_tokens_error: Failed to load recovery tokens. Please try again.
+  recovery_tokens_empty: This user has no recovery tokens.
+  recovery_token_status_column: Status
+  recovery_token_created_column: Created
+  recovery_token_expires_column: Expires
+  recovery_token_preview_column: Token preview
+  recovery_token_status_used: Used
+  recovery_token_status_revoked: Revoked
+  recovery_token_status_expired: Expired
+  recovery_token_status_valid: Valid

@@ -6,3 +6,15 @@ staff_user_page:
   status_label: Status
   edit: Editar
   error: Falha ao carregar usuário. Tente novamente.
+  recovery_tokens_title: Tokens de recuperação
+  recovery_tokens_loading: Carregando tokens de recuperação...
+  recovery_tokens_error: Falha ao carregar tokens de recuperação. Tente novamente.
+  recovery_tokens_empty: Este usuário não possui tokens de recuperação.
+  recovery_token_status_column: Status
+  recovery_token_created_column: Criado em
+  recovery_token_expires_column: Expira em
+  recovery_token_preview_column: Prévia do token
+  recovery_token_status_used: Usado
+  recovery_token_status_revoked: Revogado
+  recovery_token_status_expired: Expirado
+  recovery_token_status_valid: Válido
