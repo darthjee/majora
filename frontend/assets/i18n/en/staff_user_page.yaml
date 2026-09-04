@@ -3,5 +3,6 @@ staff_user_page:
   title: User
   name_label: Name
   email_label: Email
+  status_label: Status
   edit: Edit
   error: Failed to load user. Please try again.
