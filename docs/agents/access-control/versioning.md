@@ -2,14 +2,22 @@
 
 `django-simple-history` generates one `Historical<Model>` table per tracked model — `Game`,
 `Player`, `Character`, `Treasure`, `CharacterTreasure`, `GamePhoto`, `CharacterPhoto`, `Link`,
-`CharacterLink`, `TreasurePhoto`, `StlModel`, `StlModelLink`, `StlModelPhoto`, `Source`, `Tag`
-(see [`architecture.md`](../architecture.md)'s `versioning/` section). `GameTreasure` is not
-tracked.
+`CharacterLink`, `TreasurePhoto`, `StlModel`, `StlModelLink`, `StlModelPhoto`, `Source`, `Tag`,
+`PasswordResetToken` (see [`architecture.md`](../architecture.md)'s `versioning/` section).
+`GameTreasure` is not tracked.
 
 These tables carry the full field state of every tracked model at every past save/delete, plus
 `history_user` (the acting user, when known). **They are exposed only via Django Admin — never
 through any API endpoint or serializer.** A future issue that wants to surface history through the
 API would need its own dedicated review and its own entry in this document.
+
+**`PasswordResetToken` is a partial exception**: its `HistoricalRecords(...)` declaration passes
+`excluded_fields=['token']`, so `HistoricalPasswordResetToken` never carries a copy of the raw,
+single-use token — only its status timestamps (`created_at`, `expires_at`, `used_at`,
+`invalidated_at`) and `history_user` are tracked. This avoids multiplying durable plaintext copies
+of the secret across every mutation (issuance, use, and — from a later sub-issue —
+unexpire/force-expire), matching the "never persist/emit the raw token beyond what's needed"
+principle applied to the live table's own serializer.
 
 **`history_user` has no DB-level foreign-key constraint** — deliberately, to avoid MySQL deadlocks
 under the test suite. Integrity of `history_user_id` after a user is deleted relies on the
