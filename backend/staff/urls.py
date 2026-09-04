@@ -14,6 +14,11 @@ urlpatterns = [
         views.staff_user_recovery_link,
         name='staff-user-recovery-link',
     ),
+    path(
+        'staff/users/<int:user_id>/recovery-tokens.json',
+        views.staff_user_recovery_tokens,
+        name='staff-user-recovery-tokens',
+    ),
     path('staff/cache.json', views.staff_cache_clear, name='staff-cache-clear'),
     path('staff/cache/summary.json', views.staff_cache_summary, name='staff-cache-summary'),
 ]
