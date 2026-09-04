@@ -27,7 +27,9 @@ class PasswordResetToken(models.Model):
     used_at = models.DateTimeField(null=True, blank=True)
     expires_at = models.DateTimeField(default=_default_expires_at)
     invalidated_at = models.DateTimeField(null=True, blank=True)
-    history = HistoricalRecords(app='versioning', user_db_constraint=False)
+    history = HistoricalRecords(
+        app='versioning', user_db_constraint=False, excluded_fields=['token']
+    )
 
     def is_valid(self):
         """Return True if the token has not been used, not invalidated, and not expired."""

@@ -24,7 +24,6 @@ class Migration(migrations.Migration):
                         auto_created=True, blank=True, db_index=True, verbose_name="ID"
                     ),
                 ),
-                ("token", models.CharField(db_index=True, max_length=64)),
                 ("created_at", models.DateTimeField(blank=True, editable=False)),
                 ("used_at", models.DateTimeField(blank=True, null=True)),
                 (
