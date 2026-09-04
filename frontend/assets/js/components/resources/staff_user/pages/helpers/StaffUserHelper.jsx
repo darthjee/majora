@@ -74,6 +74,9 @@ export default class StaffUserHelper {
    * the details block above it (a token-fetch failure never blanks the name/email/status block).
    *
    * @param {object} tokensState - Token panel state (`tokens`, `tokensLoading`, `tokensError`).
+   * @param {Array<object>} tokensState.tokens - Recovery-token rows.
+   * @param {boolean} tokensState.tokensLoading - Whether the token panel is loading.
+   * @param {boolean} tokensState.tokensError - Whether the token panel failed to load.
    * @returns {React.ReactElement} Recovery-token panel element.
    */
   static #renderRecoveryTokenPanel({ tokens, tokensLoading, tokensError }) {

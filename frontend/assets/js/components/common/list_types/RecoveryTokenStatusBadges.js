@@ -24,6 +24,9 @@ export default class RecoveryTokenStatusBadges {
    * Precedence: used > revoked > expired > valid.
    *
    * @param {object} token - Row object (`used_at`, `invalidated_at`, `expires_at`).
+   * @param {string|null} token.used_at - ISO-8601 timestamp the token was used, or `null`.
+   * @param {string|null} token.invalidated_at - ISO-8601 timestamp the token was revoked, or `null`.
+   * @param {string} token.expires_at - ISO-8601 timestamp the token expires at.
    * @returns {string} One of `'used'`, `'revoked'`, `'expired'`, `'valid'`.
    */
   static computeStatus({ used_at: usedAt, invalidated_at: invalidatedAt, expires_at: expiresAt }) {
