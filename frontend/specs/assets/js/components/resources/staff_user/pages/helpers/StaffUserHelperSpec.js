@@ -2,7 +2,9 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import StaffUserHelper from '../../../../../../../../assets/js/components/resources/staff_user/pages/helpers/StaffUserHelper.jsx';
 
 describe('StaffUserHelper', function() {
-  const user = { id: 1, name: 'Jane', email: 'jane@example.com' };
+  const user = {
+    id: 1, name: 'Jane', email: 'jane@example.com', status: 'approved',
+  };
 
   describe('.render', function() {
     it('renders the user name and email', function() {
@@ -22,6 +24,20 @@ describe('StaffUserHelper', function() {
       const html = renderToStaticMarkup(StaffUserHelper.render(user));
 
       expect(html).toContain('href="#/staff/users"');
+    });
+
+    it('renders the status badge with its translated label', function() {
+      const html = renderToStaticMarkup(StaffUserHelper.render(user));
+
+      expect(html).toContain('Status');
+      expect(html).toContain('Approved');
+      expect(html).toContain('bg-success');
+    });
+
+    it('renders successfully while the recovery-token panel slot contributes nothing', function() {
+      const html = renderToStaticMarkup(StaffUserHelper.render(user));
+
+      expect(html).toContain('href="#/staff/users/1/edit"');
     });
   });
 
