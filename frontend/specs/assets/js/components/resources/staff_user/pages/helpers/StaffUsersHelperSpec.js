@@ -24,6 +24,14 @@ describe('StaffUsersHelper', function() {
       expect(html).toContain('jane@example.com');
     });
 
+    it('links the name cell to the user detail page', function() {
+      const html = renderToStaticMarkup(
+        StaffUsersHelper.render(users, pagination, {}, buildHandlers())
+      );
+
+      expect(html).toContain('<a href="#/staff/users/1">Jane</a>');
+    });
+
     it('renders the display name column', function() {
       const html = renderToStaticMarkup(
         StaffUsersHelper.render(users, pagination, {}, buildHandlers())
