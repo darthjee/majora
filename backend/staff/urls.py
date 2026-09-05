@@ -29,6 +29,11 @@ urlpatterns = [
         views.staff_user_recovery_token_force_expire,
         name='staff-user-recovery-token-force-expire',
     ),
+    path(
+        'staff/users/<int:user_id>/recovery-tokens/<int:token_id>.json',
+        views.staff_user_recovery_token_delete,
+        name='staff-user-recovery-token-delete',
+    ),
     path('staff/cache.json', views.staff_cache_clear, name='staff-cache-clear'),
     path('staff/cache/summary.json', views.staff_cache_summary, name='staff-cache-summary'),
 ]
