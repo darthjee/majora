@@ -25,15 +25,20 @@ export default class StaffUserHelper {
    * @param {Array<object>} tokensState.tokens - Recovery-token rows.
    * @param {boolean} tokensState.tokensLoading - Whether the token panel is loading.
    * @param {boolean} tokensState.tokensError - Whether the token panel failed to load.
+   * @param {boolean} tokensState.actionError - Whether the last row/panel action failed (issue
+   *   #1249), shown as a transient alert above the still-visible table.
+   * @param {{onUnexpire: Function, onForceExpirePrompt: Function, onDeletePrompt: Function,
+   *   onGenerateRecoveryLink: Function}} handlers - Recovery-token panel action handlers (issue
+   *   #1249).
    * @returns {React.ReactElement} User detail element.
    */
-  static render(user, tokensState) {
+  static render(user, tokensState, handlers) {
     return (
       <div className="container mt-4">
         <BackButton href="#/staff/users" />
         <h1>{Translator.t('staff_user_page.title')}</h1>
         {StaffUserHelper.#renderDetails(user)}
-        {StaffUserHelper.#renderRecoveryTokenPanel(tokensState)}
+        {StaffUserHelper.#renderRecoveryTokenPanel(tokensState, handlers)}
         {StaffUserHelper.#renderEditAction(user)}
       </div>
     );
@@ -73,16 +78,33 @@ export default class StaffUserHelper {
    * Render the recovery-token panel: its own loading/error/empty/table states, independent of
    * the details block above it (a token-fetch failure never blanks the name/email/status block).
    *
-   * @param {object} tokensState - Token panel state (`tokens`, `tokensLoading`, `tokensError`).
+   * @param {object} tokensState - Token panel state (`tokens`, `tokensLoading`, `tokensError`,
+   *   `actionError`).
    * @param {Array<object>} tokensState.tokens - Recovery-token rows.
    * @param {boolean} tokensState.tokensLoading - Whether the token panel is loading.
    * @param {boolean} tokensState.tokensError - Whether the token panel failed to load.
+   * @param {boolean} tokensState.actionError - Whether the last row/panel action failed (issue
+   *   #1249).
+   * @param {{onUnexpire: Function, onForceExpirePrompt: Function, onDeletePrompt: Function,
+   *   onGenerateRecoveryLink: Function}} handlers - Recovery-token panel action handlers.
    * @returns {React.ReactElement} Recovery-token panel element.
    */
-  static #renderRecoveryTokenPanel({ tokens, tokensLoading, tokensError }) {
+  static #renderRecoveryTokenPanel({
+    tokens, tokensLoading, tokensError, actionError,
+  }, handlers) {
     return (
       <div className="mt-4">
         <h2>{Translator.t('staff_user_page.recovery_tokens_title')}</h2>
+        <button
+          type="button"
+          className="btn btn-primary btn-sm mb-3"
+          onClick={handlers.onGenerateRecoveryLink}
+        >
+          {Translator.t('staff_user_page.recovery_token_generate_button')}
+        </button>
+        {actionError && (
+          <ErrorAlert error={Translator.t('staff_user_page.recovery_token_action_error')} />
+        )}
         {tokensLoading && (
           <LoadingMessage message={Translator.t('staff_user_page.recovery_tokens_loading')} />
         )}
@@ -93,18 +115,21 @@ export default class StaffUserHelper {
           <p>{Translator.t('staff_user_page.recovery_tokens_empty')}</p>
         )}
         {!tokensLoading && !tokensError && tokens.length > 0
-          && StaffUserHelper.#renderTokenTable(tokens)}
+          && StaffUserHelper.#renderTokenTable(tokens, handlers)}
       </div>
     );
   }
 
   /**
-   * Render the recovery-token table: one row per token, status/created/expires/preview columns.
+   * Render the recovery-token table: one row per token, status/created/expires/preview/actions
+   * columns.
    *
    * @param {Array<object>} tokens - Recovery-token rows.
+   * @param {{onUnexpire: Function, onForceExpirePrompt: Function, onDeletePrompt: Function}}
+   *   handlers - Row action handlers.
    * @returns {React.ReactElement} Token table element.
    */
-  static #renderTokenTable(tokens) {
+  static #renderTokenTable(tokens, handlers) {
     return (
       <table className="table">
         <thead>
@@ -113,22 +138,67 @@ export default class StaffUserHelper {
             <th>{Translator.t('staff_user_page.recovery_token_created_column')}</th>
             <th>{Translator.t('staff_user_page.recovery_token_expires_column')}</th>
             <th>{Translator.t('staff_user_page.recovery_token_preview_column')}</th>
+            <th>{Translator.t('staff_user_page.recovery_token_actions_column')}</th>
           </tr>
         </thead>
         <tbody>
           {tokens.map((token) => {
             const badge = RecoveryTokenStatusBadges.build(token);
+            const status = RecoveryTokenStatusBadges.computeStatus(token);
             return (
               <tr key={token.id}>
                 <td><Badge variant={badge.variant} text={badge.text} /></td>
                 <td>{token.created_at}</td>
                 <td>{token.expires_at}</td>
                 <td>{token.token_preview}</td>
+                <td>{StaffUserHelper.#renderRowActions(token, status, handlers)}</td>
               </tr>
             );
           })}
         </tbody>
       </table>
+    );
+  }
+
+  /**
+   * Render a single token row's action buttons, per its computed status.
+   *
+   * @param {object} token - Token row object (`id`).
+   * @param {string} status - The row's computed status (`'used'`, `'revoked'`, `'expired'`, or
+   *   `'valid'`).
+   * @param {{onUnexpire: Function, onForceExpirePrompt: Function, onDeletePrompt: Function}}
+   *   handlers - Row action handlers.
+   * @returns {React.ReactElement} Row action buttons.
+   */
+  static #renderRowActions(token, status, handlers) {
+    return (
+      <>
+        {(status === 'expired' || status === 'revoked') && (
+          <button
+            type="button"
+            className="btn btn-outline-secondary btn-sm me-2"
+            onClick={() => handlers.onUnexpire(token.id)}
+          >
+            {Translator.t('staff_user_page.recovery_token_action_unexpire')}
+          </button>
+        )}
+        {status === 'valid' && (
+          <button
+            type="button"
+            className="btn btn-outline-warning btn-sm me-2"
+            onClick={() => handlers.onForceExpirePrompt(token.id)}
+          >
+            {Translator.t('staff_user_page.recovery_token_action_force_expire')}
+          </button>
+        )}
+        <button
+          type="button"
+          className="btn btn-outline-danger btn-sm"
+          onClick={() => handlers.onDeletePrompt(token.id)}
+        >
+          {Translator.t('staff_user_page.recovery_token_action_delete')}
+        </button>
+      </>
     );
   }
 
