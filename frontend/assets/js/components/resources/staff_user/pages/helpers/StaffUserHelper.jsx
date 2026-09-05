@@ -105,19 +105,36 @@ export default class StaffUserHelper {
         {actionError && (
           <ErrorAlert error={Translator.t('staff_user_page.recovery_token_action_error')} />
         )}
-        {tokensLoading && (
-          <LoadingMessage message={Translator.t('staff_user_page.recovery_tokens_loading')} />
-        )}
-        {!tokensLoading && tokensError && (
-          <ErrorAlert error={Translator.t('staff_user_page.recovery_tokens_error')} />
-        )}
-        {!tokensLoading && !tokensError && tokens.length === 0 && (
-          <p>{Translator.t('staff_user_page.recovery_tokens_empty')}</p>
-        )}
-        {!tokensLoading && !tokensError && tokens.length > 0
-          && StaffUserHelper.#renderTokenTable(tokens, handlers)}
+        {StaffUserHelper.#renderTokenListBody({ tokens, tokensLoading, tokensError }, handlers)}
       </div>
     );
+  }
+
+  /**
+   * Render the recovery-token panel's own loading/error/empty/table states.
+   *
+   * @param {object} tokensState - Token panel state (`tokens`, `tokensLoading`, `tokensError`).
+   * @param {Array<object>} tokensState.tokens - Recovery-token rows.
+   * @param {boolean} tokensState.tokensLoading - Whether the token panel is loading.
+   * @param {boolean} tokensState.tokensError - Whether the token panel failed to load.
+   * @param {{onUnexpire: Function, onForceExpirePrompt: Function, onDeletePrompt: Function}}
+   *   handlers - Row action handlers.
+   * @returns {React.ReactElement} Loading message, error alert, empty message, or token table.
+   */
+  static #renderTokenListBody({ tokens, tokensLoading, tokensError }, handlers) {
+    if (tokensLoading) {
+      return <LoadingMessage message={Translator.t('staff_user_page.recovery_tokens_loading')} />;
+    }
+
+    if (tokensError) {
+      return <ErrorAlert error={Translator.t('staff_user_page.recovery_tokens_error')} />;
+    }
+
+    if (tokens.length === 0) {
+      return <p>{Translator.t('staff_user_page.recovery_tokens_empty')}</p>;
+    }
+
+    return StaffUserHelper.#renderTokenTable(tokens, handlers);
   }
 
   /**

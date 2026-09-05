@@ -8,9 +8,12 @@ import RecoveryTokenActionConfirmModal from './elements/RecoveryTokenActionConfi
 /**
  * Staff user detail page.
  *
+ * @param {object} [props] - Component props.
+ * @param {Function} [props.ControllerClass] - User controller class to instantiate, mainly for
+ *   tests (mirrors `GameFaction.jsx`'s own injectable-controller pattern).
  * @returns {React.ReactElement} User detail page element.
  */
-export default function StaffUser() {
+export default function StaffUser({ ControllerClass = StaffUserController }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -22,7 +25,8 @@ export default function StaffUser() {
   const [pendingAction, setPendingAction] = useState(null);
 
   const controller = useMemo(
-    () => new StaffUserController(setUser, setLoading, setError),
+    () => new ControllerClass(setUser, setLoading, setError),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
 
