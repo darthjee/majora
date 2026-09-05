@@ -12,6 +12,9 @@ authentication and enforce **Staff-or-superuser** inline. Always sets `X-Skip-Ca
 | Update name/email (`PATCH /staff/users/<id>.json`) | **Staff-or-superuser** |
 | Generate/reuse recovery link (`POST /staff/users/<id>/recovery-link.json`) | **Staff-or-superuser** |
 | List recovery tokens (`GET /staff/users/<id>/recovery-tokens.json`) | **Staff-or-superuser** |
+| Unexpire a recovery token (`POST /staff/users/<id>/recovery-tokens/<token_id>/unexpire.json`) | **Staff-or-superuser** |
+| Force-expire a recovery token (`POST /staff/users/<id>/recovery-tokens/<token_id>/force-expire.json`) | **Staff-or-superuser** |
+| Delete a recovery token (`DELETE /staff/users/<id>/recovery-tokens/<token_id>.json`) | **Staff-or-superuser** |
 | Approve a pending user (`POST /staff/users/approve.json`) | **Staff-or-superuser** |
 | Deny/ban a user (`POST /staff/users/deny.json`) | **Staff-or-superuser** |
 
@@ -48,5 +51,16 @@ target user (404 for an unknown user id), ordered `-created_at`, no pagination. 
 Used > Revoked > Expired > Valid — recomputed client-side rather than trusted from the API on
 every render), `created_at`, `expires_at`, `used_at`, `invalidated_at`, and `token_preview` (last 6
 characters of the token, for human cross-reference only) — the serializer's `fields` is an explicit
-allowlist and the raw `token` is never serialized. No mutation controls exist on this endpoint;
-unexpire/force-expire/delete land in a later sub-issue.
+allowlist and the raw `token` is never serialized.
+
+**Recovery-token action endpoints**: `unexpire`, `force-expire`, and `delete` each verify ownership
+via `get_object_or_404(PasswordResetToken, pk=token_id, user_id=user_id)` — a token id belonging to
+a different user 404s, same as the listing endpoint. All three accept any action regardless of the
+token's current state (no server-side guard rails; the UI only hides no-op buttons client-side).
+`unexpire` clears `invalidated_at` and pushes `expires_at` forward by the configured expiration
+window, but never touches `used_at` (so a used token stays unusable even after unexpiring).
+`force-expire` sets `invalidated_at` to now, immediately revoking the token. `delete` removes the
+row outright. None of the three return token data in the response body (`unexpire`/`force-expire`
+return `200 {}`, `delete` returns `204`) — the panel always re-fetches the full list afterward.
+Every action logs `pk`, target `user_id`, action name, and the acting staff user's id — never the
+raw token value.

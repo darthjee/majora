@@ -18,3 +18,9 @@ staff_user_page:
   recovery_token_status_revoked: Revoked
   recovery_token_status_expired: Expired
   recovery_token_status_valid: Valid
+  recovery_token_actions_column: Actions
+  recovery_token_action_unexpire: Unexpire
+  recovery_token_action_force_expire: Force expire
+  recovery_token_action_delete: Delete
+  recovery_token_generate_button: Generate recovery link
+  recovery_token_action_error: That action could not be completed — the list has been refreshed.

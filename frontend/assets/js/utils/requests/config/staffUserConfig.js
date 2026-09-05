@@ -26,6 +26,14 @@
  *   `POST.approve`/`POST.deny` (issue #859, `/staff/users/approve.json`/`/staff/users/deny.json`)
  *   have no dynamic path segment — the target user id travels in the request body (`{user_id}`)
  *   instead, unlike every other quantity type here.
+ *
+ *   `POST.unexpireRecoveryToken`/`POST.forceExpireRecoveryToken`/`DELETE.deleteRecoveryToken`
+ *   (issue #1249, `/staff/users/:id/recovery-tokens/:tokenId/unexpire.json`,
+ *   `/staff/users/:id/recovery-tokens/:tokenId/force-expire.json` and
+ *   `/staff/users/:id/recovery-tokens/:tokenId.json`) are the row-level mutation actions on a
+ *   single `PasswordResetToken`, each keyed by both `id` (user) and `tokenId`; none returns any
+ *   token data, so callers must re-fetch `GET.recoveryTokens` on success. `DELETE` is a brand-new
+ *   top-level key on this resource.
  */
 const collection = { path: () => '/staff/users.json', permission: null };
 const single = { path: ({ id }) => `/staff/users/${id}.json`, permission: null };
@@ -33,6 +41,18 @@ const recoveryLink = { path: ({ id }) => `/staff/users/${id}/recovery-link.json`
 const recoveryTokens = { path: ({ id }) => `/staff/users/${id}/recovery-tokens.json`, permission: null };
 const approve = { path: () => '/staff/users/approve.json', permission: null };
 const deny = { path: () => '/staff/users/deny.json', permission: null };
+const unexpireRecoveryToken = {
+  path: ({ id, tokenId }) => `/staff/users/${id}/recovery-tokens/${tokenId}/unexpire.json`,
+  permission: null,
+};
+const forceExpireRecoveryToken = {
+  path: ({ id, tokenId }) => `/staff/users/${id}/recovery-tokens/${tokenId}/force-expire.json`,
+  permission: null,
+};
+const deleteRecoveryToken = {
+  path: ({ id, tokenId }) => `/staff/users/${id}/recovery-tokens/${tokenId}.json`,
+  permission: null,
+};
 
 export default {
   GET: {
@@ -47,5 +67,10 @@ export default {
     recoveryLink: { regular: recoveryLink, private: recoveryLink },
     approve: { regular: approve, private: approve },
     deny: { regular: deny, private: deny },
+    unexpireRecoveryToken: { regular: unexpireRecoveryToken, private: unexpireRecoveryToken },
+    forceExpireRecoveryToken: { regular: forceExpireRecoveryToken, private: forceExpireRecoveryToken },
+  },
+  DELETE: {
+    deleteRecoveryToken: { regular: deleteRecoveryToken, private: deleteRecoveryToken },
   },
 };

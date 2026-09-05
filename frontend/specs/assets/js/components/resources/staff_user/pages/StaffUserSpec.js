@@ -2,10 +2,33 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import StaffUser from '../../../../../../../assets/js/components/resources/staff_user/pages/StaffUser.jsx';
 import StaffUserHelper from '../../../../../../../assets/js/components/resources/staff_user/pages/helpers/StaffUserHelper.jsx';
+import RecoveryTokenActionConfirmModalHelper from '../../../../../../../assets/js/components/resources/staff_user/pages/elements/helpers/RecoveryTokenActionConfirmModalHelper.jsx';
 import StaffUserController from '../../../../../../../assets/js/components/resources/staff_user/pages/controllers/StaffUserController.js';
 import StaffUserRecoveryTokensController from '../../../../../../../assets/js/components/resources/staff_user/pages/controllers/StaffUserRecoveryTokensController.js';
 import RequestStore from '../../../../../../../assets/js/utils/requests/RequestStore.js';
+import Noop from '../../../../../../../assets/js/utils/Noop.js';
 import { stubBuildEffect, stubRenderLoading, captureConstructorFields } from '../../../../../../support/controllerStubs.js';
+
+const loadedUser = {
+  id: 1, name: 'Jane', email: 'jane@example.com', status: 'approved',
+};
+
+const buildNoopHandlers = () => ({
+  onUnexpire: Noop.noop,
+  onForceExpirePrompt: Noop.noop,
+  onDeletePrompt: Noop.noop,
+  onGenerateRecoveryLink: Noop.noop,
+});
+
+/** Stub controller that synchronously loads a user during construction. */
+class LoadedController {
+  constructor(setUser, setLoading) {
+    setUser(loadedUser);
+    setLoading(false);
+  }
+
+  buildEffect() { return () => Noop.noop; }
+}
 
 describe('StaffUser', function() {
   it('renders the loading state while fetching', function() {
@@ -25,6 +48,7 @@ describe('StaffUser', function() {
       StaffUserHelper.render(
         { id: 1, name: 'Jane', email: 'jane@example.com' },
         { tokens: [], tokensLoading: false, tokensError: false },
+        buildNoopHandlers(),
       )
     );
 
@@ -36,6 +60,7 @@ describe('StaffUser', function() {
       StaffUserHelper.render(
         { id: 1, name: 'Jane', email: 'jane@example.com', status: 'approved' },
         { tokens: [], tokensLoading: false, tokensError: true },
+        buildNoopHandlers(),
       )
     );
 
@@ -44,7 +69,7 @@ describe('StaffUser', function() {
   });
 
   describe('wiring into StaffUserRecoveryTokensController', function() {
-    const fields = ['setTokens', 'setLoading', 'setError'];
+    const fields = ['setTokens', 'setLoading', 'setError', 'setActionError'];
     let capture;
 
     beforeEach(function() {
@@ -76,6 +101,91 @@ describe('StaffUser', function() {
       expect(capture.spies.setLoading).toHaveBeenCalledWith(false);
 
       cleanup();
+    });
+
+    it('wires setActionError so the controller can clear/set the action-error flag', async function() {
+      spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({ data: [] }));
+      spyOn(RequestStore, 'purge');
+
+      renderToStaticMarkup(React.createElement(StaffUser));
+
+      await capture.getInstance().refresh('7');
+
+      expect(capture.spies.setActionError).toHaveBeenCalledWith(false);
+    });
+  });
+
+  describe('once the user has loaded', function() {
+    let handlers;
+    let modalProps;
+
+    beforeEach(function() {
+      spyOn(StaffUserHelper, 'render').and.callFake((user, tokensState, actionHandlers) => {
+        handlers = actionHandlers;
+        return null;
+      });
+      spyOn(RecoveryTokenActionConfirmModalHelper, 'render').and.callFake((show, action, modalHandlers) => {
+        modalProps = { show, action, ...modalHandlers };
+        return null;
+      });
+      stubBuildEffect(StaffUserRecoveryTokensController);
+
+      renderToStaticMarkup(React.createElement(StaffUser, { ControllerClass: LoadedController }));
+    });
+
+    it('delegates to StaffUserHelper.render with the loaded user and action handlers', function() {
+      expect(handlers.onUnexpire).toEqual(jasmine.any(Function));
+      expect(handlers.onForceExpirePrompt).toEqual(jasmine.any(Function));
+      expect(handlers.onDeletePrompt).toEqual(jasmine.any(Function));
+      expect(handlers.onGenerateRecoveryLink).toEqual(jasmine.any(Function));
+    });
+
+    it('renders the confirm modal initially hidden', function() {
+      expect(modalProps.show).toBe(false);
+    });
+
+    it('dispatches onUnexpire straight to the tokens controller (one-click, no prompt)', function() {
+      const unexpireSpy = spyOn(StaffUserRecoveryTokensController.prototype, 'handleUnexpire');
+
+      handlers.onUnexpire(3);
+
+      expect(unexpireSpy).toHaveBeenCalledWith(1, 3);
+    });
+
+    it('opens the force-expire confirm prompt without throwing', function() {
+      expect(() => handlers.onForceExpirePrompt(3)).not.toThrow();
+    });
+
+    it('opens the delete confirm prompt without throwing', function() {
+      expect(() => handlers.onDeletePrompt(3)).not.toThrow();
+    });
+
+    it('cancelling the confirm modal does not call any mutation handler', function() {
+      const deleteSpy = spyOn(StaffUserRecoveryTokensController.prototype, 'handleDelete');
+      const forceExpireSpy = spyOn(StaffUserRecoveryTokensController.prototype, 'handleForceExpire');
+
+      expect(() => modalProps.onCancel()).not.toThrow();
+
+      expect(deleteSpy).not.toHaveBeenCalled();
+      expect(forceExpireSpy).not.toHaveBeenCalled();
+    });
+
+    it('generates a recovery link through RequestStore then refreshes the token list', async function() {
+      const mutateSpy = spyOn(RequestStore, 'mutate').and.returnValue(Promise.resolve({ ok: true }));
+      const refreshSpy = spyOn(StaffUserRecoveryTokensController.prototype, 'refresh').and.returnValue(
+        Promise.resolve(),
+      );
+
+      await handlers.onGenerateRecoveryLink();
+
+      expect(mutateSpy).toHaveBeenCalledWith({
+        componentName: 'StaffUser',
+        resource: 'staffUser',
+        method: 'POST',
+        quantityType: 'recoveryLink',
+        params: { id: 1 },
+      });
+      expect(refreshSpy).toHaveBeenCalledWith(1);
     });
   });
 });

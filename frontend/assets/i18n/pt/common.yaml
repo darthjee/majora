@@ -93,6 +93,14 @@ delete_photo_confirm_modal:
   body: Tem certeza de que deseja excluir esta foto? Esta ação não pode ser desfeita.
   confirm: Excluir
   cancel: Cancelar
+recovery_token_action_confirm_modal:
+  cancel: Cancelar
+  delete_title: Excluir token de recuperação
+  delete_body: Tem certeza de que deseja excluir este token de recuperação? Esta ação não pode ser desfeita.
+  delete_confirm: Excluir
+  force_expire_title: Forçar expiração do token de recuperação
+  force_expire_body: Tem certeza de que deseja forçar a expiração deste token de recuperação? Ele não poderá mais ser usado para redefinir a senha deste usuário.
+  force_expire_confirm: Forçar expiração
 kick_confirm_modal:
   title: Remover da Facção
   body: 'Remover {{character_name}} da facção {{faction_name}}?'
