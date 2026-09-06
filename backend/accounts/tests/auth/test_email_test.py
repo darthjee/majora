@@ -30,16 +30,19 @@ class TestTestEmailView(TestCase):
         )
         token = Token.objects.create(user=user)
 
-        response = self.client.post(
-            '/staff/test-email.json',
-            HTTP_AUTHORIZATION=f'Token {token.key}',
-        )
+        with self.assertLogs('accounts.views.auth._shared', level='INFO') as log_ctx:
+            response = self.client.post(
+                '/staff/test-email.json',
+                HTTP_AUTHORIZATION=f'Token {token.key}',
+            )
 
         assert response.status_code == 200
         assert json.loads(response.content) == {'sent': True}
         assert len(mail.outbox) == 1
         assert mail.outbox[0].to == ['alice@example.com']
         assert 'alice' in mail.outbox[0].body
+        assert any('email_send_attempt' in message for message in log_ctx.output)
+        assert any('email_send_succeeded' in message for message in log_ctx.output)
 
     def test_does_not_send_email_when_emails_disabled(self):
         """Test that no email is sent when EMAILS_ENABLED is unset."""
@@ -50,14 +53,39 @@ class TestTestEmailView(TestCase):
         )
         token = Token.objects.create(user=user)
 
-        response = self.client.post(
-            '/staff/test-email.json',
-            HTTP_AUTHORIZATION=f'Token {token.key}',
-        )
+        with self.assertLogs('accounts.views.auth._shared', level='INFO') as log_ctx:
+            response = self.client.post(
+                '/staff/test-email.json',
+                HTTP_AUTHORIZATION=f'Token {token.key}',
+            )
 
         assert response.status_code == 200
         assert json.loads(response.content) == {'sent': True}
         assert mail.outbox == []
+        assert any('email_send_skipped_disabled' in message for message in log_ctx.output)
+
+    def test_logs_and_reraises_when_send_fails(self):
+        """Test that a send_mail failure is logged and still propagates."""
+        self.monkeypatch.setenv('EMAILS_ENABLED', 'true')
+        user = UserFactory(
+            username='alice', password=TEST_PASSWORD, email='alice@example.com',
+            is_staff=True,
+        )
+        token = Token.objects.create(user=user)
+
+        def _raise(*args, **kwargs):
+            raise RuntimeError('smtp boom')
+
+        self.monkeypatch.setattr('accounts.views.auth._shared.send_mail', _raise)
+
+        with self.assertLogs('accounts.views.auth._shared', level='INFO') as log_ctx:
+            with pytest.raises(RuntimeError):
+                self.client.post(
+                    '/staff/test-email.json',
+                    HTTP_AUTHORIZATION=f'Token {token.key}',
+                )
+
+        assert any('email_send_failed' in message for message in log_ctx.output)
 
     def test_rejects_user_without_email(self):
         """Test that no email is sent when the user has no email configured."""

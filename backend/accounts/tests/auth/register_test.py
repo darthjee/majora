@@ -173,20 +173,26 @@ class TestRegisterView(TestCase):
     def test_sends_welcome_email_when_emails_enabled(self):
         """Test that a welcome email is sent on success when EMAILS_ENABLED is true."""
         self.monkeypatch.setenv('EMAILS_ENABLED', 'true')
-        response = self._post(self.client, self.valid_payload)
+
+        with self.assertLogs('accounts.views.auth._shared', level='INFO') as log_ctx:
+            response = self._post(self.client, self.valid_payload)
 
         assert response.status_code == 201
         assert len(mail.outbox) == 1
         assert mail.outbox[0].to == ['bob@example.com']
         assert 'bob' in mail.outbox[0].body
+        assert any('email_send_succeeded' in message for message in log_ctx.output)
 
     def test_does_not_send_welcome_email_when_emails_disabled(self):
         """Test that no welcome email is sent when EMAILS_ENABLED is unset."""
         self.monkeypatch.delenv('EMAILS_ENABLED', raising=False)
-        response = self._post(self.client, self.valid_payload)
+
+        with self.assertLogs('accounts.views.auth._shared', level='INFO') as log_ctx:
+            response = self._post(self.client, self.valid_payload)
 
         assert response.status_code == 201
         assert mail.outbox == []
+        assert any('email_send_skipped_disabled' in message for message in log_ctx.output)
 
     def test_does_not_send_welcome_email_when_emails_explicitly_disabled(self):
         """Test that no welcome email is sent when EMAILS_ENABLED is false."""
