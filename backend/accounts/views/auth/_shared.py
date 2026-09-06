@@ -1,5 +1,7 @@
 """Private helpers shared across authentication view modules."""
 
+import logging
+
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
@@ -14,21 +16,45 @@ from accounts.models import CacheToken, UserProfile
 from games.settings import Settings
 from statistics.session_attachment import attach_user
 
+logger = logging.getLogger(__name__)
+
 REGISTER_REQUIRED_FIELDS = {'name', 'display_name', 'email', 'password', 'password_confirmation'}
 
 
 def _send_email(user, template, subject, context=None):
     """Render `template` with `context` and email it to `user`, when emails are enabled."""
-    if not Settings.emails_enabled():
+    emails_enabled = Settings.emails_enabled()
+    logger.info(
+        'email_send_flag_check emails_enabled=%s user_id=%s subject=%s',
+        emails_enabled, user.id, subject,
+    )
+    if not emails_enabled:
+        logger.info('email_send_skipped_disabled user_id=%s subject=%s', user.id, subject)
         return
 
     message = render_to_string(template, context or {})
-    send_mail(
-        subject=subject,
-        message=message,
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[user.email],
+    logger.info(
+        'email_send_attempt user_id=%s subject=%s template=%s host=%s port=%s',
+        user.id, subject, template, settings.EMAIL_HOST, settings.EMAIL_PORT,
     )
+    try:
+        send_mail(
+            subject=subject,
+            message=message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[user.email],
+        )
+    except Exception:
+        logger.exception(
+            'email_send_failed user_id=%s subject=%s host=%s port=%s',
+            user.id, subject, settings.EMAIL_HOST, settings.EMAIL_PORT,
+        )
+        raise
+    else:
+        logger.info(
+            'email_send_succeeded user_id=%s subject=%s host=%s port=%s',
+            user.id, subject, settings.EMAIL_HOST, settings.EMAIL_PORT,
+        )
 
 
 def send_test_email(user):

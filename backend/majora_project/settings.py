@@ -1,6 +1,7 @@
 """Django settings for majora_project."""
 
 import os
+import sys
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -137,6 +138,43 @@ DEFAULT_FROM_EMAIL = os.environ.get('DJANGO_DEFAULT_FROM_EMAIL', 'no-reply@major
 
 # Base URL of the frontend application, used to build links sent in emails.
 FRONTEND_BASE_URL = os.environ.get('FRONTEND_BASE_URL', 'http://localhost:3000')
+
+# Only the apps that currently emit log records (`accounts`, `staff`) get an explicit
+# logger config, each with `propagate: False`, so records never bubble up into Django's
+# own `django`-namespaced logger tree (which already has its own console handler via
+# Django's DEFAULT_LOGGING) — this avoids duplicate lines in local dev. The handler writes
+# to stdout explicitly so Render's log capture (which reads stdout/stderr) picks it up in
+# production; DJANGO_LOG_LEVEL lets the level be tuned without touching this dict.
+DJANGO_LOG_LEVEL = os.environ.get('DJANGO_LOG_LEVEL', 'INFO').upper()
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'simple': {
+            'format': '%(asctime)s %(levelname)s %(name)s %(message)s',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'stream': sys.stdout,
+            'formatter': 'simple',
+        },
+    },
+    'loggers': {
+        'accounts': {
+            'handlers': ['console'],
+            'level': DJANGO_LOG_LEVEL,
+            'propagate': False,
+        },
+        'staff': {
+            'handlers': ['console'],
+            'level': DJANGO_LOG_LEVEL,
+            'propagate': False,
+        },
+    },
+}
 
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': [

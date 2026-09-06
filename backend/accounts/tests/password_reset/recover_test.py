@@ -28,17 +28,19 @@ class TestRecoverView(TestCase):
             username='alice', password=TEST_PASSWORD, email='alice@example.com'
         )
 
-        response = self.client.post(
-            '/users/recover.json',
-            data=json.dumps({'email': 'alice@example.com'}),
-            content_type='application/json',
-        )
+        with self.assertLogs('accounts.views.auth._shared', level='INFO') as log_ctx:
+            response = self.client.post(
+                '/users/recover.json',
+                data=json.dumps({'email': 'alice@example.com'}),
+                content_type='application/json',
+            )
 
         assert response.status_code == 200
         assert json.loads(response.content) == {'sent': True}
         assert PasswordResetToken.objects.filter(user=user).exists()
         assert len(mail.outbox) == 1
         assert mail.outbox[0].to == ['alice@example.com']
+        assert any('email_send_succeeded' in message for message in log_ctx.output)
 
     def test_does_not_send_email_when_emails_disabled(self):
         """Test that no recovery email is sent when EMAILS_ENABLED is unset."""
@@ -47,16 +49,18 @@ class TestRecoverView(TestCase):
             username='alice', password=TEST_PASSWORD, email='alice@example.com'
         )
 
-        response = self.client.post(
-            '/users/recover.json',
-            data=json.dumps({'email': 'alice@example.com'}),
-            content_type='application/json',
-        )
+        with self.assertLogs('accounts.views.auth._shared', level='INFO') as log_ctx:
+            response = self.client.post(
+                '/users/recover.json',
+                data=json.dumps({'email': 'alice@example.com'}),
+                content_type='application/json',
+            )
 
         assert response.status_code == 200
         assert json.loads(response.content) == {'sent': True}
         assert PasswordResetToken.objects.filter(user=user).exists()
         assert mail.outbox == []
+        assert any('email_send_skipped_disabled' in message for message in log_ctx.output)
 
     def test_creates_token_and_sends_email_for_denied_user(self):
         """Test that a denied user's matching email creates a token and sends an email too.
