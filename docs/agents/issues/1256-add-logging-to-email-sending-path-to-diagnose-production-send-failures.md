@@ -1,56 +1,67 @@
-# Add logging to email-sending path to diagnose production send failures
+# Issue: Add logging to email-sending path to diagnose production send failures
 
-## Context
+## Description
 
-Majora sends transactional emails (welcome email on registration, password reset
-recovery emails) through a single shared helper, `_send_email`, defined in
-`backend/accounts/views/auth/_shared.py`. That helper is guarded by
-`Settings.emails_enabled()` and calls Django's `send_mail(...)`. The password
-reset flow builds on top of it via `send_password_reset_email` /
-`_create_and_send_reset_token` in `backend/accounts/views/password_reset/_shared.py`.
+Add structured logging to Majora's email-sending path (`_send_email` in
+`backend/accounts/views/auth/_shared.py`, used by the welcome email, staff
+test-email, and password-reset email flows) so production email delivery
+attempts and failures are visible in logs instead of being completely silent.
 
-None of this code currently emits any log output. There is no `logging.getLogger`
-call anywhere in `accounts/views/auth/_shared.py` or
-`accounts/views/password_reset/_shared.py`, so when an email fails to send in
-production (bad SMTP credentials, connection timeout, disabled emails, template
-rendering error, etc.) there is no trace in the logs to diagnose why. The only
-related logging in the codebase today is for staff actions on recovery tokens
-(`backend/staff/views/_recovery_token_shared.py`), which is unrelated to the
-actual send attempt.
+## Problem
 
-This makes production email delivery failures effectively invisible until a user
-reports "I never got the email," at which point there is no diagnostic
-information (target address, template, SMTP error) to investigate with.
+None of the email-sending code emits any log output today. When production
+SMTP was configured (Dreamhost) and a staff-triggered test email never
+arrived, there was no way to tell whether the `EMAILS_ENABLED` flag was
+actually true at request time, whether a send was even attempted, or whether
+the SMTP request to the host failed. The only existing logging in the
+codebase (`backend/staff/views/_recovery_token_shared.py`) covers staff
+recovery-token actions, unrelated to the actual send attempt. Django also had
+no `LOGGING` configuration at all, so even adding `logger.info(...)` calls
+would have been silently dropped rather than surfaced anywhere (e.g. Render's
+log viewer).
 
-## What needs to be done
+## Expected Behavior
 
-Backend (`backend/accounts/`):
+After this change, every call through `_send_email` produces a log line
+showing: the resolved `EMAILS_ENABLED` flag value, whether the send was
+skipped (disabled), attempted (with target SMTP host/port and
+template/subject), and its outcome (success, or failure with a captured
+traceback via `logger.exception`) — all visible in Render's log capture
+(stdout), without changing any existing behavior (error propagation,
+`fail_silently`, etc. stay exactly as they were). No sensitive content (raw
+token, email body, recipient's actual email address) is ever logged —
+`user_id` is used instead of `user.email`.
 
-- Add a module-level logger (`logging.getLogger(__name__)`) to
-  `backend/accounts/views/auth/_shared.py` and
-  `backend/accounts/views/password_reset/_shared.py`.
-- In `_send_email`, log:
-  - An info-level message before attempting to send, including the recipient
-    user identifier/email, the template/subject, and whether emails are enabled
-    (short-circuit path via `Settings.emails_enabled()` should also be logged at
-    debug/info level so a disabled-emails misconfiguration is visible).
-  - An error-level message (with `exc_info=True` or the exception message) when
-    `send_mail` raises, before re-raising or handling the failure, so SMTP-level
-    errors (connection refused, auth failure, timeout) are captured with enough
-    context to correlate with a user report.
-  - An info-level message confirming a successful send.
-- Ensure the password reset path (`_create_and_send_reset_token` /
-  `send_password_reset_email`) benefits from the same logging by virtue of
-  going through `_send_email`, or add equivalent logging at that layer if it
-  wraps/catches exceptions from `_send_email`.
-- Avoid logging sensitive content: do not log the password reset token value,
-  email body, or template contents — only recipient identifier, template name,
-  and success/failure status.
-- Confirm the logger output is picked up by the existing Django `LOGGING`
-  configuration in `backend/majora_project/settings.py` (add/adjust a logger
-  entry if the current config would otherwise silence or drop these records in
-  production).
+## Solution
 
-## Acceptance criteria
+- Add a `LOGGING` config to `backend/majora_project/settings.py`: targeted
+  `accounts`/`staff` loggers (the only two apps that log anything today)
+  writing to stdout via a `StreamHandler`, level controlled by a new
+  `DJANGO_LOG_LEVEL` env var (default `INFO`), `propagate: False` to avoid
+  double-logging Django's own `django`-namespaced records in local dev.
+- Add a module-level `logger = logging.getLogger(__name__)` to
+  `backend/accounts/views/auth/_shared.py` and instrument `_send_email` to
+  log: the `EMAILS_ENABLED` flag check, a skip when disabled, an attempt
+  (with host/port/template/subject) before calling `send_mail`, and
+  success/failure afterwards (failure via `logger.exception`, then
+  re-raised unchanged).
+- `send_password_reset_email` (in
+  `backend/accounts/views/password_reset/_shared.py`) needs no separate
+  logger — it already funnels through the same instrumented `_send_email`.
+- Extend the existing tests in `test_email_test.py`, `register_test.py`, and
+  `recover_test.py` with `assertLogs` assertions for the skip/success paths,
+  plus a new test asserting a `send_mail` failure is logged and still
+  propagates.
 
-- [ ] TODO
+This has already been implemented on branch `issue-1256` (commit
+`3ff69622`); the full backend test suite (5506 tests) passes and `ruff` is
+clean.
+
+## Benefits
+
+- Production email failures (bad SMTP credentials, connection issues, a
+  disabled flag) are now diagnosable from Render's log viewer instead of
+  being a silent, unreproducible "I never got the email" report.
+- Establishes a reusable `LOGGING` pattern (targeted per-app loggers to
+  stdout) that any future backend logging can build on, since none existed
+  before this.
