@@ -60,4 +60,4 @@ Starting the engine this way returns immediately — the CI step that triggers i
 
 For anything beyond this quick example — installation, library usage, full CLI/action reference — see [How to Use navi-hey-client](../HOW_TO_USE_NAVI-CLIENT.md).
 
-[← Back to How to Use Navi](../HOW_TO_USE_NAVI.md)
+[← Back to How to Use Navi](../how_to_use_navi.md)

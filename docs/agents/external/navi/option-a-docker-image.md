@@ -46,4 +46,4 @@ jobs:
 
 The container exits with a non-zero code if any request ultimately fails after all retries, which causes the CI step to fail.
 
-[← Back to How to Use Navi](../HOW_TO_USE_NAVI.md)
+[← Back to How to Use Navi](../how_to_use_navi.md)

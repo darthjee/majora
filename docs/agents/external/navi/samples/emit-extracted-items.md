@@ -27,6 +27,12 @@ resources:
   products:
     - url: /products.json
       status: 200
+      parser:
+        type: json_path
+        # match omitted — the whole response body is the array of items
+        fields:
+          id: id
+          name: name
       emit:
         client: analytics_api
         method: POST
@@ -43,8 +49,10 @@ npx navi-hey --config navi_config.yml
 ## What happens
 
 Navi enqueues one job for `products`:
-`GET https://shop.example.com/products.json` through `default`. On a `200`, it
-parses the body as JSON and runs `emit` once per extracted item.
+`GET https://shop.example.com/products.json` through `default`. On a `200`, the
+`json_path` parser treats the response body as the array of items and, with the
+`fields` map, produces one item per array element; `emit` then forwards each
+item.
 
 For a body like `[ { "id": 1, "name": "Widget" }, { "id": 2, "name": "Gadget" } ]`,
 Navi makes two emit requests through `analytics_api`:
@@ -65,6 +73,8 @@ and both emits have settled.
   [Reshape the emitted body with a template](emit-body-template.md).
 - Full `emit.*` field reference:
   [Emit Configuration](../emit-configuration.md).
+- Full `parser.*` field reference:
+  [Extraction Configuration](../extraction-configuration.md).
 
 ---
 [← Back to Samples](../samples.md)

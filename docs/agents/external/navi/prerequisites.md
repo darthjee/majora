@@ -88,6 +88,19 @@ Key points:
 | `assets[].attribute` | Attribute name on matched elements that holds the asset URL (e.g. `href`, `src`). |
 | `assets[].client` | Optional named client to use when fetching each discovered asset. Defaults to `default`. |
 | `assets[].status` | Expected HTTP status for asset fetches. Defaults to `200`. |
+| `parser` | Optional. Extracts structured items from the raw response body after a successful response, independently of (in parallel with) the resource's own `actions`/`paginated_actions` chaining. **Required** for any extraction or emission to happen — with no `parser`, nothing is extracted and an `emit` block does nothing. See [Extraction Configuration](extraction-configuration.md). |
+| `parser.type` | One of `regex`, `json_path`, `css`. Selects the extraction strategy. Required. |
+| `parser.match` | Meaning depends on `type`: a regex pattern (`regex`), a dot-notation path to the array to extract items from, e.g. `data.items` (`json_path`), or a CSS selector for the repeated container elements (`css`). Required for `regex` and `css`. Optional for `json_path`: omitting `match` (aliases `match: ''` / `match: '.'`) treats the whole parsed response body as the array of items, with no path navigation. |
+| `parser.filter` | Optional, `json_path`/`css` only. List of AND'ed conditions a matched item/container must satisfy to be included (`{ field, equals }` / `{ field, equals_field }` for `json_path`; `{ selector, attribute, trim, equals }` / `{ ..., equals_field: {...} }` for `css`). |
+| `parser.fields` | Field-mapping map. `json_path`: a `{ sourceKey: outputKey }` map remapping the matched item's keys. `css`: a `{ outputKey: { selector, attribute, array, trim } }` map, each field resolved relative to the matched container. |
+| `parser.field` | Single output key name. `regex`: required, holds the captured value. `css`: fallback single-field mode's output key, used when `fields` is absent. |
+| `parser.attribute` | `css` fallback single-field mode only (used when `fields` is absent). Attribute to read off the matched container; reads text content when absent. |
+| `parser.trim` | `css` fallback single-field mode only (used when `fields` is absent). Whether to trim the resolved value. Defaults to `true`. |
+| `emit` | Optional. Sends each item extracted by `parser` to an external endpoint, one request per item. Does nothing without a `parser` block. See [Emit Configuration](emit-configuration.md). |
+| `emit.size` | Optional **top-level** key (a sibling of `resources`/`web`/`log`, not part of a resource's `emit` block). Sizes the in-memory ring buffer behind `GET /emissions.json`. Defaults to `100`. |
+| `extraction.size` | Optional **top-level** key, sibling of `emit.size`. Sizes the in-memory ring buffer behind `GET /extractions.json`. Defaults to `100`. |
+
+See [Extraction Configuration](extraction-configuration.md) and [Emit Configuration](emit-configuration.md) for the full field-by-field breakdown of `parser` and `emit`. This is a separate mechanism from the `actions[].parameters` path expressions (`parsedBody.*`) described below — the two run in parallel after a successful response.
 
 > **`parsedBody` is camelCase — never `parsed_body`.**
 > Path expressions in `actions[].parameters` values must use `parsedBody.<field>` (camelCase).
@@ -104,4 +117,4 @@ Key points:
 >
 > **Note:** HTTP response header names are always lowercase after Node.js normalization. Use lowercase keys in path expressions (e.g. `headers['x-total-pages']`), regardless of how the server set them.
 
-[← Back to How to Use Navi](../HOW_TO_USE_NAVI.md)
+[← Back to How to Use Navi](../how_to_use_navi.md)
