@@ -4,6 +4,8 @@
 It reads a YAML configuration file and performs HTTP requests concurrently using a configurable worker pool, with support for resource chaining and automatic retry of failed requests.
 
 This guide is intended for developers and AI agents who want to integrate Navi as a cache-warmer into their own projects or CI/CD pipelines.
+Navi can also be used to **crawl** — extract structured items from each response and emit them onward to another endpoint. Any extraction or emission requires the resource-request entry to declare a `parser:` block; without one, nothing is extracted and an `emit:` block does nothing. See [Extraction Configuration](./navi/extraction-configuration.md).
+
 Four integration modes are covered:
 
 - **Option A** — use the `darthjee/navi-hey` Docker image directly in a CI step.
@@ -22,6 +24,7 @@ Four integration modes are covered:
 - [Option D — Hosted server + `navi-hey-client`](./navi/option-d-hosted-server.md) — Hosting `darthjee/navi-hey` as a long-running server and driving it via `navi-hey-client`, without CI blocking on the warm-up run.
 - [Warming HTML pages and their assets](./navi/warming-html-assets.md) — Declaring an `assets` list so Navi also warms CSS/JS referenced by an HTML response.
 - [Paginated Actions](./navi/paginated-actions.md) — Fanning out one request per page with `paginated_actions`.
+- [Extraction Configuration](./navi/extraction-configuration.md) — Extracting structured items from a response with a required `parser:` block (`regex` / `json_path` / `css`), consumed by `emit`.
 - [Emit Configuration](./navi/emit-configuration.md) — Sending extracted items onward to an external endpoint with `emit`, including reshaping the body with `body_template`.
 - [Splitting Configuration Across Files](./navi/splitting-configuration.md) — Using `include` and `namespace` to organize config across multiple files.
 - [Samples](./navi/samples.md) — end-to-end, copy-paste recipes for cache warm-up and crawling.

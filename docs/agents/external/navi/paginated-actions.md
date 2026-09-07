@@ -72,4 +72,4 @@ Omitted, `null`, `0`, or any other non-positive-integer value means unlimited (a
 
 **Related sample:** [Warm a paginated API](samples/paginated-warmup.md), [Crawl every page and emit every item](samples/paginated-crawl-emit.md)
 
-[← Back to How to Use Navi](../HOW_TO_USE_NAVI.md)
+[← Back to How to Use Navi](../how_to_use_navi.md)

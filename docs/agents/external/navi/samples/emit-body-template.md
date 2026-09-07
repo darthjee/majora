@@ -27,6 +27,13 @@ resources:
   products:
     - url: /products.json
       status: 200
+      parser:
+        type: json_path
+        # match omitted — the whole response body is the array of items
+        fields:
+          id: id
+          name: name
+          address: address
       emit:
         client: analytics_api
         method: POST
@@ -48,8 +55,9 @@ npx navi-hey --config navi_config.yml
 
 ## What happens
 
-Navi crawls `/products.json` and runs `emit` once per array item, building the
-body from `body_template` each time.
+The `json_path` parser treats the response body as the array of items and maps
+`id`, `name`, and `address` into each one; `emit` then runs once per item,
+building the body from `body_template` each time.
 
 For the item
 `{ "id": 1, "name": "Widget", "address": { "city": "Berlin" } }`, Navi sends:
@@ -85,6 +93,8 @@ as without a template.
 - Without `body_template`, the bare item is sent as-is.
 - Full `emit.*` field reference and body-template semantics:
   [Emit Configuration](../emit-configuration.md).
+- Full `parser.*` field reference:
+  [Extraction Configuration](../extraction-configuration.md).
 
 ---
 [← Back to Samples](../samples.md)

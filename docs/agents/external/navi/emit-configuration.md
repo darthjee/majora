@@ -1,6 +1,6 @@
 # Emit Configuration
 
-`emit` declares a follow-up HTTP call made with data collected while crawling a resource — instead of (or in addition to) chaining into another resource via `actions`/`paginated_actions`, each item extracted from a response can be sent onward to an external endpoint. It lives under a resource entry's `emit:` key.
+`emit` declares a follow-up HTTP call that sends onward the items produced by the resource's [`parser`](extraction-configuration.md) — instead of (or in addition to) chaining into another resource via `actions`/`paginated_actions`, each extracted item is sent to an external endpoint. It lives under a resource entry's `emit:` key. `emit` is **not** automatic: it does nothing unless the same resource entry also declares a `parser:` block (see [Extraction Configuration](extraction-configuration.md)) — there is no extraction, and therefore nothing to emit, without one.
 
 ### Fields
 
@@ -33,6 +33,12 @@ resources:
   products:
     - url: /products.json
       status: 200
+      parser:
+        type: json_path
+        # match omitted — the whole response body is the array of items
+        fields:
+          id: id
+          name: name
       emit:
         client: analytics_api
         method: POST
@@ -54,6 +60,10 @@ For an extracted item `{ "id": 1, "name": "Widget" }`, Navi sends:
 
 If `emit` had no `body_template`, the bare item (`{ "id": 1, "name": "Widget" }`) would be sent as-is.
 
+**Related:** [Extraction Configuration](extraction-configuration.md) — declaring the `parser:` block that produces the items `emit` sends.
+
 **Related sample:** [Emit every extracted item to an external endpoint](samples/emit-extracted-items.md), [Reshape the emitted body with a template](samples/emit-body-template.md)
 
-[← Back to How to Use Navi](../HOW_TO_USE_NAVI.md)
+**See it live:** the public [`navi-hey` demo](https://navi-hey-demo.tamanduati.tech/) emits extracted items from four Oak resources — one per parser type — to a `collector` client backed by a logging endpoint on the demo app; watch it on the [Emissions dashboard](https://navi-hey-demo.tamanduati.tech/#/emissions).
+
+[← Back to How to Use Navi](../how_to_use_navi.md)

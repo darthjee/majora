@@ -139,4 +139,4 @@ resources:
 
 **Related sample:** [Split a large config across files and namespaces](samples/split-config.md)
 
-[← Back to How to Use Navi](../HOW_TO_USE_NAVI.md)
+[← Back to How to Use Navi](../how_to_use_navi.md)

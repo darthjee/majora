@@ -53,4 +53,4 @@ jobs:
           command: npx navi-hey --config navi_config.yml
 ```
 
-[← Back to How to Use Navi](../HOW_TO_USE_NAVI.md)
+[← Back to How to Use Navi](../how_to_use_navi.md)

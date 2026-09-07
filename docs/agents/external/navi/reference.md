@@ -63,7 +63,28 @@ When enabled, the web UI is accessible at `http://localhost:<port>` and includes
 | Dashboard | `/#/` | Real-time job queue stats (counts per status). |
 | Jobs list | `/#/jobs` | Table of all jobs across every status, with links to individual job pages. |
 | Job detail | `/#/job/:id` | Full details for a specific job (ID, status, attempt count). |
+| Memory status | `/#/memory/status` | Real-time RSS usage against the configured maximum, plus a historical usage graph. |
+
+The Memory status screen is powered by a `web.memory` section, also optional:
+
+```yaml
+web:
+  port: 3000
+  memory:
+    maximum: 2147483648   # optional, bytes; falls back to cgroup v2 → cgroup v1 → OS total memory when unset
+    thresholds:            # optional; low/medium/high/over percentage bands
+      low: 25.0
+      medium: 50.0
+      high: 75.0
+      over: 100.0
+    data_store:
+      size: 100             # optional; max readings retained in the in-memory ring buffer
+      interval: 5            # optional; seconds between RSS samples
+      page_size: 20           # optional; max entries returned per page from the history endpoint
+```
+
+`data_store.size` and `data_store.interval` together determine how far back the usage graph reaches — roughly `size × interval` seconds, ~8 minutes at the defaults shown above. Like the job/log/emission buffers, this history is in-memory only and lost on restart. See [`docs/agents/web-server.md`](../../agents/web-server.md) for the full HTTP API reference, including config validation rules and the exact `/memory/history.json` response shape.
 
 For CI pipelines, omit the `web:` key so that Navi exits automatically once all jobs are processed.
 
-[← Back to How to Use Navi](../HOW_TO_USE_NAVI.md)
+[← Back to How to Use Navi](../how_to_use_navi.md)
