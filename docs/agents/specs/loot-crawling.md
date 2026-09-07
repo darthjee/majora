@@ -1,0 +1,8 @@
+# Loot Crawling
+
+Design notes for crawling Lootstudios into Majora's miniatures catalog
+(`Collection`, `Source`, `StlModel`) via the future STL-site crawler client.
+
+## Aspect pages
+
+- [Collection → StlModels extraction](loot-crawling/collection-to-stl-models.md)
