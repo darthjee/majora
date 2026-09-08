@@ -7,3 +7,4 @@ Design notes for crawling Lootstudios into Majora's miniatures catalog
 
 - [Collection → StlModels extraction](loot-crawling/collection-to-stl-models.md)
 - [Source → Collections extraction](loot-crawling/source-to-collections.md)
+- [Emission endpoint & model contract](loot-crawling/emission-endpoint.md)
