@@ -149,6 +149,9 @@ class StlModel(models.Model):
         validators=[URLValidator(schemes=['http', 'https'])],
     )
     size = models.CharField(max_length=16, choices=SIZE_CHOICES, null=True, blank=True)
+    #: `default=None` for the same reason as `url` above -- an omitted `external_id` must store
+    #: as a real `NULL`, not `''`, to avoid colliding under `unique=True` on a second row.
+    external_id = models.CharField(max_length=200, unique=True, null=True, blank=True, default=None)
     history = HistoricalRecords(app='versioning', user_db_constraint=False)
 
     class Meta:
