@@ -6,6 +6,7 @@ from .. import views
 
 urlpatterns = [
     path('miniatures/stl_models.json', views.stl_models_list, name='miniatures-list'),
+    path('miniatures/stl_models/import.json', views.stl_model_import, name='miniatures-import'),
     path(
         'miniatures/stl_models/<int:stl_model_id>.json',
         views.stl_model_detail,

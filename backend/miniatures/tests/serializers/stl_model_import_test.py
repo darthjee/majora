@@ -4,7 +4,7 @@ import pytest
 
 from games.models.base_link import BaseLink
 from miniatures.models import StlModel, StlModelLink
-from miniatures.serializers.stl_model_import import StlModelImportSerializer
+from miniatures.serializers import StlModelImportSerializer
 from miniatures.tests.factories import StlModelFactory
 
 BASE_DATA = {'name': 'Dragon Miniature', 'source_name': 'Lootstudios'}

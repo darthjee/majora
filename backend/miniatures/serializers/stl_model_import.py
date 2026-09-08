@@ -24,6 +24,9 @@ class StlModelImportSerializer(serializers.Serializer):
     map onto DRF's `create()`/`update()` dispatch, so `save()` is overridden directly. Newly
     created items always default to `type=StlModel.TYPE_OTHER`, leaving `size` and the
     `StlModelRace`/`StlModelRole` join rows unset -- the crawler has no opinion on either.
+
+    After `save()`, `self.created` tells the caller (the import view) whether a new `StlModel`
+    was created (`True`, for a 201 response) or an existing one was updated (`False`, for 200).
     """
 
     name = serializers.CharField(max_length=200)
@@ -68,9 +71,13 @@ class StlModelImportSerializer(serializers.Serializer):
         return CollectionSync(source=source, external_id=external_id, name=name).resolve()
 
     def _upsert_stl_model(self):
-        """Find an existing `StlModel` to update, or create a new one, from `validated_data`."""
+        """Find an existing `StlModel` to update, or create a new one, from `validated_data`.
+
+        Sets `self.created` so the caller can tell which of the two happened.
+        """
         instance = self._find_stl_model()
         fields = self._stl_model_fields()
+        self.created = instance is None
         if instance is None:
             return StlModel.objects.create(type=StlModel.TYPE_OTHER, **fields)
         for key, value in fields.items():
