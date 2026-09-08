@@ -8,3 +8,4 @@ knowledge has moved into the permanent docs.
 ## Active specs
 
 - [Loot Crawling](specs/loot-crawling.md)
+- [Crawler Test Harness](specs/crawler-test-harness.md)
