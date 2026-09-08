@@ -20,7 +20,19 @@ declared on `StlModel`) — mirroring `StlModel.sources`'s own M2M shape. `sourc
 | Detail (`GET /miniatures/collections/<id>.json`) | **IsAuthenticated** |
 | Create (`POST /miniatures/collections.json`) | **Staff-or-superuser** (`require_staff`, see [common rules](common-rules.md)) |
 | Photo upload (`POST /miniatures/collections/<id>/photo_upload.json`) | **Staff-or-superuser** (`require_staff`) — see [Upload](upload.md) |
-| Update/Delete | None — no update/delete endpoints, matching `Source`/`StlModel`'s own current state |
+| Update/Delete | No dedicated update/delete endpoint on `Collection` itself, but `source` can be mutated indirectly — see "Indirect mutation via StlModel import" below |
+
+### Indirect mutation via StlModel import
+
+[StlModel](stl-model.md#import-endpoint)'s `POST /miniatures/stl_models/import.json` (same
+**Staff-or-superuser** tier as every other write here) find-or-creates a `Collection` by
+`collection_external_id` then `collection_name` (both optional, matched **globally** — not scoped
+per `Source`, since `Collection.name` is a globally unique field) and, on every match, unconditionally
+(re)assigns `Collection.source` to whichever `Source` was resolved on that call — even overwriting
+a different prior `source` or `null`. This is the only way `Collection.source` changes after
+creation today. Known limitation: since matching isn't scoped per source, two different `Source`s
+importing into a same-named/same-`external_id` `Collection` will cause its `source` to flip to
+whichever source was imported last (see `docs/guides/majora/miniatures.md`'s own note on this).
 
 **Deviation — `X-Skip-Cache: true` on all endpoints, including the writes.** Per [Permission
 Principles](principles.md#x-skip-cache-rule), any endpoint not open to `AllowAny` always sets
@@ -44,6 +56,11 @@ no-format-validation deviation as [Source](source.md)'s `url`, but unlike `Sourc
 unique. It defaults to `None` (a real DB `NULL`), not `''`, specifically so that multiple
 url-less `Collection`s never collide under the `unique=True` constraint — a blank-string default
 (`Source.url`'s own default) would make every second url-less row a duplicate.
+
+`external_id` (nullable, DB-level `unique=True` `CharField`, added for
+[StlModel](stl-model.md#import-endpoint)'s import endpoint) is **not** serialized on any read
+endpoint (list/detail/create) — it exists purely as an internal upsert key for that endpoint, not
+a field callers can read or set through the regular create flow.
 
 ## Create endpoint
 

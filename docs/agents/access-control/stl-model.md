@@ -19,6 +19,7 @@ endpoint (see [Fields](#fields) below).
 | List (`GET /miniatures/stl_models.json`) | **IsAuthenticated** — no `AllowAny` regular form |
 | Detail (`GET /miniatures/stl_models/<id>.json`) | **IsAuthenticated** |
 | Create (`POST /miniatures/stl_models.json`) | **Staff-or-superuser** (`require_staff`, see [common rules](common-rules.md)) |
+| Import/upsert (`POST /miniatures/stl_models/import.json`) | **Staff-or-superuser** (`require_staff`, same tier as create) — see [Import endpoint](#import-endpoint) below |
 | Photo upload (`POST /miniatures/stl_models/<id>/photo_upload.json`) | **Staff-or-superuser** (`require_staff`) — see [Upload](upload.md) |
 | Update (`PATCH /miniatures/stl_models/<id>.json`) | **Staff-or-superuser** (`require_staff`, same tier as create) |
 | Delete | None — still no delete endpoint; `Tag`/`StlModelLink` remain Django-admin-only for now (see [Source](source.md) for `Source`'s own, now-standalone, permissions) |
@@ -40,6 +41,11 @@ class list), `photo_url`, `links` (`id`, `text`, `url`, `link_type` — same sha
 only, no `id`, via `CollectionSerializer` — mirrors `sources`'s shape), `tags` (flat array of
 strings, not `{id, name}` objects). The create endpoint (`201`) returns this same shape.
 
+`external_id` (nullable, DB-level `unique=True` `CharField`, added for the [Import
+endpoint](#import-endpoint) below) is **not** serialized on any read endpoint (list/detail/create)
+— it exists purely as an internal upsert key for the import endpoint, not a field callers can read
+or set through the regular create/update flow.
+
 ## Create endpoint
 
 `POST /miniatures/stl_models.json` accepts `name` (required), `owned` (optional boolean, default
@@ -56,6 +62,28 @@ unknown `type`/`race`/`role` value, or an omitted `type`, also returns `400` (Dj
 `choices=` auto-generates the rejecting `ChoiceField`, no custom `validate_*` needed). Responses:
 `201` (created, `StlModelDetailSerializer` shape), `400` (validation error), `401`
 (unauthenticated), `403` (authenticated but not staff/superuser).
+
+## Import endpoint
+
+`POST /miniatures/stl_models/import.json` is a dedicated, single-item upsert endpoint for
+automated crawlers (e.g. the Lootstudios crawler), gated at the same **Staff-or-superuser** tier
+as create (`require_staff`). Unlike the regular create endpoint, it never returns `400` for a
+"duplicate" match — a repeat call for an already-imported item is expected and updates the
+existing row instead.
+
+Accepts `name` (required), `external_id` (optional, opaque string — the source system's own
+stable id), `url` (optional, same field type as create but with no `UniqueValidator`, since a
+matching `url` is the expected upsert-match case here), `source_name` (required — find-or-creates
+a [Source](source.md) by name), `collection_name`/`collection_external_id` (both optional —
+find-or-creates a [Collection](collection.md), see that resource's own doc for the
+`source`-reassignment side effect), and `tags` (optional, same validation as create).
+
+Upsert key: an existing `StlModel` is matched by `external_id` first, then by `url` as a fallback;
+if neither matches, a new row is created with `type: "other"` (`race`/`role`/`size` left unset,
+refined later via the regular `PATCH` flow). A `lootstudio`-typed `StlModelLink` pointing at the
+sent `url` is created/updated alongside the upsert. Responses: `201` (new `StlModel` created),
+`200` (existing `StlModel` matched and updated) — both with `StlModelDetailSerializer` shape,
+`400` (validation error), `401` (unauthenticated), `403` (authenticated but not staff/superuser).
 
 ## Update endpoint
 
