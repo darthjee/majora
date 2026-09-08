@@ -20,10 +20,9 @@ landed:
   configuration that extracts Lootstudios' catalog and emits it to that
   endpoint.
 
-**As of this writing, both #1262 and #1263 are still open.** Sections below
-that depend on their exact implementation are marked `TBD` — update them once
-those issues resolve, following what was actually built rather than what they
-originally proposed.
+**As of this writing, both #1262 and #1263 have landed.** The sections below
+reflect what was actually built rather than what those issues originally
+proposed.
 
 ## Prerequisites
 
