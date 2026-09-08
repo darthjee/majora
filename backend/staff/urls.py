@@ -36,4 +36,5 @@ urlpatterns = [
     ),
     path('staff/cache.json', views.staff_cache_clear, name='staff-cache-clear'),
     path('staff/cache/summary.json', views.staff_cache_summary, name='staff-cache-summary'),
+    path('staff/crawler.json', views.staff_crawler, name='staff-crawler'),
 ]
