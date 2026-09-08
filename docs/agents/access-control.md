@@ -39,6 +39,7 @@ regardless of any other rule listed below.
 - [Player](access-control/player.md) — includes the DM/GameMaster role (`Player.is_dm`)
 - [User (Staff Management)](access-control/user.md)
 - [Staff Cache](access-control/staff-cache.md) — the staff-only memory-cache management endpoints
+- [Staff Crawler](access-control/staff-crawler.md) — the staff-only crawler debug-harness endpoints
 - [CharacterPhoto](access-control/character-photo.md)
 - [CharacterTreasure](access-control/character-treasure.md)
 - [GameTreasure](access-control/game-treasure.md)
