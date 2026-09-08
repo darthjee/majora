@@ -1,0 +1,99 @@
+# Navi configuration for the Lootstudios crawler (issue #1263).
+#
+# Single-resource config: `loot_catalog` fetches Lootstudios' owned-loot
+# catalog once (`GetMyLootsCache`) and runs two independent parser/emit
+# passes over the same `bundleObjs[]` array — one for bundles (-> Majora
+# `Collection`s, via #1281's `collections/import.json`), one for miniatures
+# (-> Majora `StlModel`s, via #1262's `stl_models/import.json`). There is no
+# cross-item join between the two passes; both endpoints resolve/create
+# their own side of the relationship using `collection_external_id`.
+#
+# See:
+# - docs/agents/plans/1263-.../crawler.md (shared contracts)
+# - docs/agents/specs/loot-crawling/source-to-collections.md
+# - docs/agents/specs/loot-crawling/collection-to-stl-models.md
+# - docs/agents/specs/loot-crawling/emission-endpoint.md
+# - docs/guides/majora/miniatures.md
+# - crawler/RUNNING.md (how to run this config)
+
+workers:
+  quantity: 1
+  retry_cooldown: 2000
+  sleep: 500
+  max-retries: 3
+
+clients:
+  lootstudios:
+    base_url: https://app.lootstudios.com
+    headers:
+      # Realistic browser-like headers to avoid the flat 403 bot-protection
+      # response observed against unheadered requests (see
+      # docs/agents/specs/loot-crawling/emission-endpoint.md's "Request
+      # pacing/headers" note). These are literal values, not secrets.
+      User-Agent: >-
+        Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
+        (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+      Accept: application/json, text/javascript, */*; q=0.01
+      Accept-Language: en-US,en;q=0.9
+      # Sent defensively even though whether GetMyLootsCache needs auth at
+      # all is still unverified (#1282) — harmless no-op if unneeded.
+      Cookie: PHPSESSID=$LOOTSTUDIOS_SESSION_COOKIE
+  majora_api:
+    base_url: ${MAJORA_API_BASE_URL}
+    headers:
+      Authorization: Token $MAJORA_API_TOKEN
+
+resources:
+  loot_catalog:
+    # Bundle-side pass: bundleObjs[] items with obj_type == "bundle" ->
+    # Majora `Collection`s.
+    - url: /wp-admin/admin-ajax.php?action=GetMyLootsCache
+      status: 200
+      client: lootstudios
+      parser:
+        type: json_path
+        match: bundleObjs
+        filter:
+          - field: obj_type
+            equals: bundle
+        fields:
+          obj_inid: external_id
+          obj_title: name
+          obj_slug: slug
+      emit:
+        client: majora_api
+        method: POST
+        url: /miniatures/collections/import.json
+        status: 200
+        body_template:
+          name: "{:name}"
+          external_id: "{:external_id}"
+          url: "https://app.lootstudios.com/bundle/{:slug}/"
+          source_name: Lootstudios
+
+    # Miniature-side pass: bundleObjs[] items with obj_type == "miniature"
+    # -> Majora `StlModel`s, linked to their parent Collection only by
+    # `collection_external_id` (no join/name lookup needed here).
+    - url: /wp-admin/admin-ajax.php?action=GetMyLootsCache
+      status: 200
+      client: lootstudios
+      parser:
+        type: json_path
+        match: bundleObjs
+        filter:
+          - field: obj_type
+            equals: miniature
+        fields:
+          obj_inid: external_id
+          obj_title: name
+          bnd_inid: collection_external_id
+      emit:
+        client: majora_api
+        method: POST
+        url: /miniatures/stl_models/import.json
+        status: 200
+        body_template:
+          name: "{:name}"
+          external_id: "{:external_id}"
+          source_name: Lootstudios
+          collection_external_id: "{:collection_external_id}"

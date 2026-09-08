@@ -20,10 +20,9 @@ landed:
   configuration that extracts Lootstudios' catalog and emits it to that
   endpoint.
 
-**As of this writing, both #1262 and #1263 are still open.** Sections below
-that depend on their exact implementation are marked `TBD` — update them once
-those issues resolve, following what was actually built rather than what they
-originally proposed.
+**As of this writing, both #1262 and #1263 have landed.** The sections below
+reflect what was actually built rather than what those issues originally
+proposed.
 
 ## Prerequisites
 
@@ -47,9 +46,7 @@ originally proposed.
   The account backing the token must be staff/admin (`is_staff` or
   `is_superuser`), since every miniatures write endpoint (and the crawler
   import endpoint from #1262) is staff/admin-only.
-- **The Navi config file** added by #1263 — expected under `crawler/`
-  (`TBD` — see #1263 for its final path once merged, e.g.
-  `crawler/navi_config.yaml`).
+- **The Navi config file** added by #1263 — `crawler/navi_config.yaml`.
 
 ## Obtaining/refreshing the Lootstudios session
 
@@ -65,21 +62,21 @@ Based on the exploration in
 on is a `PHPSESSID` cookie value obtained by logging into
 `https://app.lootstudios.com` in a regular browser and copying the
 `PHPSESSID` cookie (browser devtools → Application/Storage → Cookies).
-**However, this is provisional**: the primary extraction approach
-(`GetMyLootsCache`, used by #1263) was observed responding without an
-explicit auth header/cookie in the exploration pass — whether it actually
-needs a session at all, and if so which cookie/header, is an open question
-left unresolved in that spec page (`Open question 1`). Treat the exact
-mechanism below as `TBD` until #1263 lands and confirms it:
+**However, whether it's actually required is still unverified**: the primary
+extraction approach (`GetMyLootsCache`, used by #1263) was observed
+responding without an explicit auth header/cookie in the exploration pass —
+whether it actually needs a session at all is an open question left
+unresolved in that spec page (`Open question 1`, tracked further by #1282).
+`crawler/navi_config.yaml` sends the cookie defensively regardless — harmless
+if it turns out not to be needed (an unset env var just substitutes an empty
+`Cookie` value, per Navi's environment-variable-substitution behavior):
 
-- **Environment variable name**: `TBD` — see #1263's resolved config for the
-  exact variable it substitutes (likely something like
-  `LOOTSTUDIOS_SESSION` or `LOOTSTUDIOS_PHPSESSID`; do not assume the name
-  until the config exists).
+- **Environment variable name**: `LOOTSTUDIOS_SESSION_COOKIE` — substituted
+  into the `lootstudios` client's `Cookie: PHPSESSID=$LOOTSTUDIOS_SESSION_COOKIE`
+  header in `crawler/navi_config.yaml`.
 - **How to obtain it**: log into `https://app.lootstudios.com` with the
-  account that owns the target library, then copy the session cookie value
-  from the browser (exact cookie name TBD per the open question above — most
-  likely `PHPSESSID`).
+  account that owns the target library, then copy the `PHPSESSID` cookie
+  value from the browser (devtools → Application/Storage → Cookies).
 - **Expiry / refreshing**: Lootstudios' session cookies expire like any
   standard PHP session. If a run starts failing with an authentication-style
   error (see "Running it" below for how that surfaces), log into
@@ -88,26 +85,35 @@ mechanism below as `TBD` until #1263 lands and confirms it:
 
 ## Running it
 
-`TBD` — the exact invocation depends on #1263's actual config path and
-whatever wrapper (if any) it ships, and #1262's actual endpoint path/env var
-naming for the Majora side. Once #1263 lands, this section should be updated
-with:
+Export the required environment variables, then invoke `navi-hey` against
+`crawler/navi_config.yaml` — either via `npx` (no install needed) or a
+globally-installed `navi-hey`:
 
-- The literal command (expected shape, per
-  [Option B](../docs/agents/external/navi/option-b-nodejs-image.md):
-  `navi-hey --config crawler/<config-file>.yml` or the `npx` equivalent),
-  including which environment variables must be exported first (Majora API
-  token, Lootstudios session credential — see above).
-- Where output/logs/errors surface: if the config enables Navi's web UI
-  (`web:` section), via `http://localhost:<port>` (Dashboard / Jobs list /
-  Job detail screens, see
-  [Reference — Headless vs. web UI mode](../docs/agents/external/navi/reference.md#headless-vs-web-ui-mode));
-  if it runs headlessly (no `web:` key), via stdout/stderr of the `navi-hey`
-  process itself. Confirm which mode #1263 actually configures once merged,
-  and document the concrete URL/log stream here.
-- What a failed emit (e.g. a `401`/`403` from the Majora import endpoint, or
-  an expired Lootstudios session) looks like in that output, so it's
-  distinguishable from a successful run at a glance.
+```bash
+export MAJORA_API_TOKEN=<your Majora API token>
+export MAJORA_API_BASE_URL=<Majora backend base URL, e.g. http://localhost:3030>
+export LOOTSTUDIOS_SESSION_COOKIE=<your PHPSESSID cookie value>
+
+npx navi-hey --config crawler/navi_config.yaml
+# or, if navi-hey is installed globally:
+navi-hey --config crawler/navi_config.yaml
+```
+
+`crawler/navi_config.yaml` declares no `web:` section, so it runs headlessly
+(per
+[Reference — Headless vs. web UI mode](../docs/agents/external/navi/reference.md#headless-vs-web-ui-mode)):
+there is no dashboard to open, and all output — job progress, retries, and
+failures — surfaces via the `navi-hey` process's own stdout/stderr. Navi
+exits automatically once every job (the initial `GetMyLootsCache` fetch, plus
+one emit per extracted bundle/miniature) has been processed.
+
+A failed emit (e.g. a `401`/`403` from a Majora import endpoint due to a bad
+or missing `MAJORA_API_TOKEN`, or a non-`200` from Lootstudios if
+`LOOTSTUDIOS_SESSION_COOKIE` has expired and turns out to be required after
+all — see #1282) shows up as a retried, then eventually dead-lettered job in
+the log output, distinguishable from a normal run by repeated retry-cooldown
+log lines followed by a "moved to dead queue" message for that job, instead
+of the run exiting cleanly once the queue drains.
 
 ## Verifying it worked
 
