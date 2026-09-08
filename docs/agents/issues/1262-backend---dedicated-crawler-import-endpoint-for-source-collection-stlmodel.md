@@ -16,6 +16,24 @@ of #1261 — the exact field semantics here are informed by that exploration,
 though this issue can still proceed without waiting for #1261's own doc
 sub-issues to land, since the shape below is already decided.
 
+**Update:** the emission-endpoint spec (#1267,
+`docs/agents/specs/loot-crawling/emission-endpoint.md`) has since settled on
+`POST /miniatures/stl_models/import.json` as the crawler's actual emission
+target — including a Navi `body_template` sketch that hardcodes that literal
+path — so the endpoint path below is no longer left to the assignee's
+discretion; it's authoritative (see "Expected Behavior"). Separately, a
+temporary staff-only debug harness (`POST`/`GET /staff/crawler.json`, spec'd
+in #1272, implemented in #1273/#1275) exists so the crawler's emissions can be
+inspected before being wired into this real import endpoint. Rollout order is
+to implement and use the debug harness first to validate what the crawler
+emits, then switch the crawler over to this endpoint once trusted — both
+endpoints end up documented (`/staff/crawler.json` per #1272's spec,
+`/miniatures/stl_models/import.json` here in
+`docs/guides/majora/miniatures.md`). This issue's own contract/acceptance
+criteria are unaffected by that sequencing — #1273/#1275 have no code
+dependency on this issue — it's noted here purely for implementation-order
+context.
+
 ## Problem
 
 The existing miniatures write endpoints
@@ -42,15 +60,19 @@ independently of any crawler code.
 
 ## Expected Behavior
 
-A new endpoint under `backend/miniatures/` (naming/URL shape at the assignee's
-discretion, following the existing `backend/miniatures/{views,urls,serializers}/`
+A new endpoint under `backend/miniatures/` at the **fixed** path
+`POST /miniatures/stl_models/import.json` — this path is authoritative, not
+merely an example: #1267's emission-endpoint spec
+(`docs/agents/specs/loot-crawling/emission-endpoint.md`) and its Navi
+`body_template` sketch already hardcode it as the crawler's emission target,
+so the implementer must not pick a different path/name. File organization
+follows the existing `backend/miniatures/{views,urls,serializers}/`
 per-resource, one-file-per-action folder convention already used for e.g.
 `stl_models_list.py`/`source_create.py`/`collection_create.py` — see
 `docs/agents/views-organization.md` / `docs/agents/serializers-organization.md`
 for the general convention, noting that doc's nested-folder scheme is
 documented as `games/`-specific; `miniatures/` already follows a simpler flat
-layout, which the new endpoint should match), e.g.
-`POST /miniatures/stl_models/import.json`:
+layout, which the new endpoint should match:
 
 - **Auth**: same as the rest of the miniatures write endpoints — staff/admin
   only (`user.is_staff or user.is_superuser`), API token via `Authorization:
@@ -159,8 +181,9 @@ auth (staff-only, 401/403 cases matching the other write endpoints).
 
 ## Acceptance criteria
 
-- [ ] New endpoint exists, staff/admin-only, documented in
-      `docs/guides/majora/miniatures.md`
+- [ ] New endpoint exists at the fixed path
+      `POST /miniatures/stl_models/import.json`, staff/admin-only, documented
+      in `docs/guides/majora/miniatures.md`
 - [ ] `StlModel` and `Collection` have a new nullable, unique `external_id`
       field (migration included)
 - [ ] Find-or-create semantics work for `Source` (by `name`) and `Collection`
