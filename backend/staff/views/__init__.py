@@ -2,6 +2,7 @@
 
 from .staff_cache_clear import staff_cache_clear
 from .staff_cache_summary import staff_cache_summary
+from .staff_crawler import staff_crawler
 from .staff_user_approve import staff_user_approve
 from .staff_user_deny import staff_user_deny
 from .staff_user_detail import staff_user_detail
@@ -24,4 +25,5 @@ __all__ = [
     'staff_user_recovery_token_delete',
     'staff_cache_clear',
     'staff_cache_summary',
+    'staff_crawler',
 ]
