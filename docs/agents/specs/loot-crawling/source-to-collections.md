@@ -24,7 +24,7 @@ side — `obj_type: "bundle"` records:
 Maps onto Majora's `Collection` (`docs/guides/majora/miniatures.md`):
 `obj_title` → `name`, the bundle URL (built from `obj_slug`) → `url`,
 `obj_image` → a candidate photo, `obj_inid` → `external_id` (the field
-#1262 already added — see #1262 and #1268 for the rationale).
+#1262's contract specifies — see #1262 and #1268 for the rationale).
 
 **No fallback approach exists for this direction.** #1266's Approaches B/C
 are both about listing a *known* bundle's miniatures, not about discovering
