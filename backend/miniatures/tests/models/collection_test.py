@@ -89,6 +89,29 @@ class TestCollection(TestCase):
         collection = CollectionFactory(name='Monster Pack')
         assert collection.photo is None
 
+    def test_external_id_defaults_to_none(self):
+        """Test that a collection has no external_id by default."""
+        collection = CollectionFactory(name='Monster Pack')
+        assert collection.external_id is None
+
+    def test_external_id_can_be_set(self):
+        """Test that a collection's external_id can be set."""
+        collection = CollectionFactory(name='Monster Pack', external_id='ext-123')
+        assert collection.external_id == 'ext-123'
+
+    def test_external_id_uniqueness_enforced(self):
+        """Test that two collections cannot share the same non-null external_id."""
+        CollectionFactory(name='Monster Pack', external_id='ext-123')
+        with pytest.raises(IntegrityError):
+            CollectionFactory(name='Terrain Set', external_id='ext-123')
+
+    def test_multiple_collections_can_have_no_external_id(self):
+        """Test that multiple collections can each have a null external_id without colliding."""
+        first = CollectionFactory(name='Monster Pack')
+        second = CollectionFactory(name='Terrain Set')
+        assert first.external_id is None
+        assert second.external_id is None
+
     def test_deleting_photo_clears_collection_photo(self):
         """Test that deleting a collection's photo sets Collection.photo back to None."""
         collection = CollectionFactory(name='Monster Pack')

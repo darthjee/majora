@@ -235,6 +235,61 @@ their own dedicated flows. If `races`/`roles` are provided, they fully replace t
 existing set. Response `200`: full STL model detail (same shape as the `GET`
 above). Response `400` on validation failure.
 
+### `POST /miniatures/stl_models/import.json`
+
+Crawler-import upsert of a single STL model, keyed by a source-provided
+`external_id` (falling back to `url`) rather than by numeric `id` — separate from
+the plain `POST /miniatures/stl_models.json` create endpoint, whose `type`-required
+and unique-`url` semantics don't fit an idempotent, re-runnable import. The
+crawler calls this endpoint once per item; there is no array/batch variant. Auth:
+staff/admin only. Request body:
+
+```json
+{
+  "name": "string (required)",
+  "external_id": "string | null (optional, unique)",
+  "url": "string | null (optional, http/https only, NOT unique-validated here)",
+  "source_name": "string (required)",
+  "collection_name": "string | null (optional)",
+  "collection_external_id": "string | null (optional, unique)",
+  "tags": ["string", ...]
+}
+```
+
+- `tags`: same `max_tags_exceeded`/`tag_name_too_long` validation as the create
+  endpoint (optional, defaults to `[]`).
+- `source_name` get-or-creates a `Source` by `name` and links the STL model to it.
+- `collection_name`/`collection_external_id` (both optional) resolve a
+  `Collection`: matched globally by `external_id` first, then by `name` — **not**
+  scoped to the resolved `Source`, since `Collection.name` is globally unique. A
+  match always has its `source` (re)assigned to the resolved `Source`, even
+  overwriting a different prior value or `null`. If neither field is given, no
+  `Collection` is resolved/linked. Known limitation: `external_id`/`name` matching
+  is not namespaced per source, so a same-named/same-external_id `Collection`
+  reused across two different sources would have its `source` silently reassigned
+  to whichever source is imported last.
+- The `StlModel` itself is looked up by `external_id` first (if given), then by
+  `url` (if given and no `external_id` match was found) — also not scoped to
+  `Source`, for the same reason (`external_id` is a bare unique column, not
+  source-namespaced).
+  - Found: `name`/`url`/`external_id`/`tags` (whichever were sent) are updated;
+    fields omitted from the payload are left untouched (partial-update
+    semantics, like the `PATCH` endpoint).
+  - Not found: a new `StlModel` is created with `type: "other"`, `size` and its
+    `races`/`roles` left unset — this endpoint has no way to set them.
+- Either way, the resolved `Source`/`Collection` are *added* to the STL model's
+  `sources`/`collections` (not replaced) — re-importing never drops a
+  manually-added source/collection.
+- If `url` is present, a `link_type: "lootstudio"` link pointing at it is
+  created (first import) or updated in place (re-import with a changed `url`) —
+  matched on `stl_model` + `link_type`, so repeated imports of the same item
+  never duplicate this link.
+
+Response `201` (new item) or `200` (existing item updated): full STL model
+detail, same shape as the `GET`/`POST create` endpoints above. Response `400` on
+validation failure (e.g. missing `name`/`source_name`), same shape as
+collections/sources.
+
 ### `POST /miniatures/stl_models/<id>/photo_upload.json`
 
 Start a photo upload for an STL model. Auth: staff/admin only (same `401` vs `403`

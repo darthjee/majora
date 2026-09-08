@@ -20,6 +20,13 @@ is not part of this resource's endpoints.
 | Photo upload (`POST /miniatures/sources/<id>/photo_upload.json`) | **Staff-or-superuser** (`require_staff`) — see [Upload](upload.md) |
 | Update/Delete | None — no update/delete endpoints, matching `StlModel`'s own current state |
 
+**Indirect creation via StlModel import.** [StlModel](stl-model.md#import-endpoint)'s `POST
+/miniatures/stl_models/import.json` (same **Staff-or-superuser** tier as this resource's own
+create endpoint) find-or-creates a `Source` by `source_name` (required on that endpoint) as a side
+effect of upserting an `StlModel` — this is the only way a `Source` row can be created without
+going through `POST /miniatures/sources.json` directly, but it stays behind the same permission
+tier, so no privilege gap is introduced.
+
 **Deviation — `X-Skip-Cache: true` on all endpoints, including the writes.** Per [Permission
 Principles](principles.md#x-skip-cache-rule), any endpoint not open to `AllowAny` always sets
 this header; since every endpoint requires login, they all set it unconditionally, including on

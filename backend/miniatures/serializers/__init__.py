@@ -10,6 +10,7 @@ from miniatures.serializers.source_detail import SourceDetailSerializer
 from miniatures.serializers.source_list import SourceListSerializer
 from miniatures.serializers.stl_model_create import StlModelCreateSerializer
 from miniatures.serializers.stl_model_detail import StlModelDetailSerializer
+from miniatures.serializers.stl_model_import import StlModelImportSerializer
 from miniatures.serializers.stl_model_link import StlModelLinkSerializer
 from miniatures.serializers.stl_model_list import StlModelListSerializer
 from miniatures.serializers.stl_model_update import StlModelUpdateSerializer
@@ -25,6 +26,7 @@ __all__ = [
     'SourceSerializer',
     'StlModelCreateSerializer',
     'StlModelDetailSerializer',
+    'StlModelImportSerializer',
     'StlModelLinkSerializer',
     'StlModelListSerializer',
     'StlModelUpdateSerializer',

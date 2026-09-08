@@ -2,6 +2,7 @@
 
 import pytest
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 from django.test import TestCase
 
 from miniatures.models import StlModel, StlModelRace, StlModelRole
@@ -90,6 +91,29 @@ class TestStlModel(TestCase):
         """Test that size defaults to None."""
         stl_model = StlModelFactory(name='Dragon Miniature')
         assert stl_model.size is None
+
+    def test_external_id_defaults_to_none(self):
+        """Test that external_id defaults to None."""
+        stl_model = StlModelFactory(name='Dragon Miniature')
+        assert stl_model.external_id is None
+
+    def test_external_id_can_be_set(self):
+        """Test that an STL model's external_id can be set."""
+        stl_model = StlModelFactory(name='Dragon Miniature', external_id='ext-123')
+        assert stl_model.external_id == 'ext-123'
+
+    def test_external_id_uniqueness_enforced(self):
+        """Test that two STL models cannot share the same non-null external_id."""
+        StlModelFactory(name='Dragon Miniature', external_id='ext-123')
+        with pytest.raises(IntegrityError):
+            StlModelFactory(name='Goblin Miniature', external_id='ext-123')
+
+    def test_multiple_stl_models_can_have_no_external_id(self):
+        """Test that multiple STL models can each have a null external_id without colliding."""
+        first = StlModelFactory(name='Dragon Miniature')
+        second = StlModelFactory(name='Goblin Miniature')
+        assert first.external_id is None
+        assert second.external_id is None
 
     def test_type_is_required(self):
         """Test that a blank type fails full_clean() validation."""
