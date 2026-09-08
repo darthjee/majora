@@ -9,6 +9,7 @@ from rest_framework.authtoken.models import Token
 from games.tests.factories import SuperUserFactory, UserFactory
 from staff.crawler_debug_emission_paginator import PAGE_SIZE, RETENTION_CAP
 from staff.models import CrawlerDebugEmission
+from staff.views.staff_crawler import MAX_PAYLOAD_BYTES
 
 
 @pytest.mark.django_db
@@ -131,6 +132,74 @@ class TestStaffCrawlerView:
         )
         assert response.status_code == 400
         assert 'type' in response.data['errors']
+
+    def test_create_non_string_source_returns_400(self, client):
+        """Test that a non-string source (e.g. a dict) returns 400 with an 'invalid' code."""
+        response = self._post(
+            client, data={'source': {'a': 1}, 'type': 'stl_model'}, token=self.staff_token,
+        )
+        assert response.status_code == 400
+        assert response.data['errors']['source'] == ['invalid']
+
+    def test_create_non_string_type_returns_400(self, client):
+        """Test that a non-string type (e.g. a list) returns 400 with an 'invalid' code."""
+        response = self._post(
+            client, data={'source': 'lootstudios', 'type': [1, 2, 3]}, token=self.staff_token,
+        )
+        assert response.status_code == 400
+        assert response.data['errors']['type'] == ['invalid']
+
+    def test_create_source_too_long_returns_400(self, client):
+        """Test that a source longer than 100 chars returns 400 with a 'too_long' code."""
+        response = self._post(
+            client, data={'source': 'a' * 101, 'type': 'stl_model'}, token=self.staff_token,
+        )
+        assert response.status_code == 400
+        assert response.data['errors']['source'] == ['too_long']
+
+    def test_create_type_too_long_returns_400(self, client):
+        """Test that a type longer than 100 chars returns 400 with a 'too_long' code."""
+        response = self._post(
+            client, data={'source': 'lootstudios', 'type': 'a' * 101}, token=self.staff_token,
+        )
+        assert response.status_code == 400
+        assert response.data['errors']['type'] == ['too_long']
+
+    def test_create_source_at_max_length_succeeds(self, client):
+        """Test that a source of exactly 100 chars is accepted."""
+        response = self._post(
+            client,
+            data={'source': 'a' * 100, 'type': 'stl_model'},
+            token=self.staff_token,
+        )
+        assert response.status_code == 201
+
+    def test_create_payload_too_large_returns_400(self, client):
+        """Test that a payload exceeding MAX_PAYLOAD_BYTES returns 400."""
+        response = self._post(
+            client,
+            data={
+                'source': 'lootstudios',
+                'type': 'stl_model',
+                'payload': {'name': 'x' * (MAX_PAYLOAD_BYTES + 1)},
+            },
+            token=self.staff_token,
+        )
+        assert response.status_code == 400
+        assert response.data['errors']['payload'] == ['too_large']
+
+    def test_create_payload_too_large_does_not_create_a_row(self, client):
+        """Test that an oversized payload does not create any row."""
+        self._post(
+            client,
+            data={
+                'source': 'lootstudios',
+                'type': 'stl_model',
+                'payload': {'name': 'x' * (MAX_PAYLOAD_BYTES + 1)},
+            },
+            token=self.staff_token,
+        )
+        assert CrawlerDebugEmission.objects.count() == 0
 
     def test_create_invalid_does_not_create_a_row(self, client):
         """Test that an invalid create request does not create any row."""
