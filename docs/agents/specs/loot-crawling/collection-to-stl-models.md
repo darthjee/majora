@@ -22,8 +22,9 @@ auth/pagination questions) also returns miniature records in the same flat
 | `obj_title` | The miniature's name. |
 
 Maps onto Majora's `StlModel` (`docs/guides/majora/miniatures.md`):
-`obj_title` → `name`, `obj_inid` → `external_id` (the field #1262 added — see
-#1262 and the sibling "Model changes" sub-issue, #1268, for the rationale).
+`obj_title` → `name`, `obj_inid` → `external_id` (the field #1262's contract
+specifies — see #1262 and the sibling "Model changes" sub-issue, #1268, for
+the rationale).
 
 **Algorithm** (verified working, given a bundle's URL slug):
 
