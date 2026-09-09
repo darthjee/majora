@@ -18,4 +18,27 @@ export default class CrawlerClient extends BaseClient {
 
     return this.getJson(`/staff/crawler.json${query ? `?${query}` : ''}`, token);
   }
+
+  /**
+   * Fetches the crawler emissions summary, a `{ "<type>": <count> }` object.
+   *
+   * @param {string|null} token - Authentication token, if any.
+   * @returns {Promise<Response>} fetch response from the crawler summary endpoint.
+   */
+  fetchSummary(token) {
+    return this.getJson('/staff/crawler/summary.json', token);
+  }
+
+  /**
+   * Clears every retained crawler emission record (blanket delete).
+   *
+   * @param {string|null} token - Authentication token, if any.
+   * @returns {Promise<Response>} fetch response from the crawler debug endpoint.
+   */
+  clearEmissions(token) {
+    return this.request('/staff/crawler.json', {
+      method: 'DELETE',
+      headers: this.buildHeaders(token),
+    });
+  }
 }

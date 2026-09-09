@@ -31,4 +31,23 @@ describe('CrawlerClient', function() {
       expect(globalThis.fetch).toHaveBeenCalledWith('/staff/crawler.json?last_id=42', jasmine.any(Object));
     });
   });
+
+  describe('#fetchSummary', function() {
+    itSendsAuthHeader({
+      call: (token) => new CrawlerClient().fetchSummary(token),
+      url: '/staff/crawler/summary.json',
+      method: 'GET',
+      token: 'tok-abc',
+    });
+  });
+
+  describe('#clearEmissions', function() {
+    itSendsAuthHeader({
+      call: (token) => new CrawlerClient().clearEmissions(token),
+      url: '/staff/crawler.json',
+      method: 'DELETE',
+      headers: { 'X-Skip-Cache': 'true' },
+      token: 'tok-abc',
+    });
+  });
 });
