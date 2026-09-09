@@ -23,6 +23,12 @@ describe('StaffDashboardHelper', function() {
       expect(html).toContain('Memory Cache');
     });
 
+    it('renders the crawler debug card', function() {
+      const html = renderToStaticMarkup(StaffDashboardHelper.render());
+
+      expect(html).toContain('Crawler Debug');
+    });
+
     it('uses the 4-per-row column classes', function() {
       const rendered = StaffDashboardHelper.render();
       const row = rendered.props.children[2];
