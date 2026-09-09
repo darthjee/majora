@@ -16,6 +16,7 @@ from games.views.common import require_staff
 
 from ..crawler_debug_emission_paginator import CrawlerDebugEmissionPaginator, enforce_retention_cap
 from ..models import CrawlerDebugEmission
+from .staff_crawler_clear import clear_crawler_emissions
 
 #: Matches `CrawlerDebugEmission.source`/`type` `CharField(max_length=100)`.
 MAX_FIELD_LENGTH = 100
@@ -27,18 +28,21 @@ MAX_PAYLOAD_BYTES = 64 * 1024
 
 
 @restricted
-@api_view(['GET', 'POST'])
+@api_view(['GET', 'POST', 'DELETE'])
 # AllowAny: authentication/authorisation is enforced inline via require_staff so
 # unauthenticated or non-staff callers receive a proper 401/403.
 @permission_classes([AllowAny])
 def staff_crawler(request):
-    """Record a new crawler emission (`POST`), or list recorded ones (`GET`)."""
+    """Record an emission (`POST`), list recorded ones (`GET`), or clear them all (`DELETE`)."""
     error_response = require_staff(request)
     if error_response:
         return error_response
 
     if request.method == 'POST':
         return _create(request)
+    if request.method == 'DELETE':
+        clear_crawler_emissions()
+        return Response(status=204)
     return _list(request)
 
 

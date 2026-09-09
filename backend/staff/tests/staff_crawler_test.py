@@ -1,8 +1,9 @@
-"""Tests for the staff crawler debug-harness view (GET/POST /staff/crawler.json)."""
+"""Tests for the staff crawler debug-harness view (GET/POST/DELETE /staff/crawler.json)."""
 
 import json
 
 import pytest
+from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
 
@@ -43,6 +44,13 @@ class TestStaffCrawlerView:
         if token is not None:
             extra['HTTP_AUTHORIZATION'] = f'Token {token.key}'
         return client.get(f'/staff/crawler.json{query_string}', **extra)
+
+    def _delete(self, client, token=None):
+        """Issue a DELETE request to the staff crawler endpoint, optionally with a token."""
+        extra = {}
+        if token is not None:
+            extra['HTTP_AUTHORIZATION'] = f'Token {token.key}'
+        return client.delete('/staff/crawler.json', **extra)
 
     # -- staff-only access (POST) --
 
@@ -254,6 +262,47 @@ class TestStaffCrawlerView:
         )
         assert response.status_code == 200
         assert response.data == []
+
+    # -- clear (DELETE) --
+
+    def test_delete_unauthenticated_returns_401(self, client):
+        """Test that an unauthenticated DELETE returns 401."""
+        response = self._delete(client)
+        assert response.status_code == 401
+
+    def test_delete_non_staff_returns_403(self, client):
+        """Test that a regular authenticated user's DELETE gets a 403 response."""
+        response = self._delete(client, token=self.regular_token)
+        assert response.status_code == 403
+
+    def test_staff_user_can_clear_the_table(self, client):
+        """Test that a staff user can clear every recorded emission."""
+        for _ in range(3):
+            CrawlerDebugEmission.objects.create(source='a', type='b', payload={})
+        response = self._delete(client, token=self.staff_token)
+        assert response.status_code == 204
+        assert CrawlerDebugEmission.objects.count() == 0
+
+    def test_superuser_can_clear_the_table(self, client):
+        """Test that a superuser can clear every recorded emission."""
+        for _ in range(3):
+            CrawlerDebugEmission.objects.create(source='a', type='b', payload={})
+        response = self._delete(client, token=self.superuser_token)
+        assert response.status_code == 204
+        assert CrawlerDebugEmission.objects.count() == 0
+
+    def test_clear_does_not_affect_other_tables(self, client):
+        """Test that the clear only empties the emission table, leaving other rows intact."""
+        CrawlerDebugEmission.objects.create(source='a', type='b', payload={})
+        user_count_before = User.objects.count()
+        self._delete(client, token=self.staff_token)
+        assert CrawlerDebugEmission.objects.count() == 0
+        assert User.objects.count() == user_count_before
+
+    def test_delete_response_includes_skip_cache_header(self, client):
+        """Test that the DELETE response includes the X-Skip-Cache: true header."""
+        response = self._delete(client, token=self.staff_token)
+        assert response['X-Skip-Cache'] == 'true'
 
     # -- URL by name --
 
