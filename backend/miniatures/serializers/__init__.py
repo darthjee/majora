@@ -3,6 +3,7 @@
 from miniatures.serializers.collection import CollectionSerializer
 from miniatures.serializers.collection_create import CollectionCreateSerializer
 from miniatures.serializers.collection_detail import CollectionDetailSerializer
+from miniatures.serializers.collection_import import CollectionImportSerializer
 from miniatures.serializers.collection_list import CollectionListSerializer
 from miniatures.serializers.source import SourceSerializer
 from miniatures.serializers.source_create import SourceCreateSerializer
@@ -18,6 +19,7 @@ from miniatures.serializers.stl_model_update import StlModelUpdateSerializer
 __all__ = [
     'CollectionCreateSerializer',
     'CollectionDetailSerializer',
+    'CollectionImportSerializer',
     'CollectionListSerializer',
     'CollectionSerializer',
     'SourceCreateSerializer',
