@@ -19,8 +19,9 @@ declared on `StlModel`) — mirroring `StlModel.sources`'s own M2M shape. `sourc
 | List (`GET /miniatures/collections.json`) | **IsAuthenticated** — no `AllowAny` regular form |
 | Detail (`GET /miniatures/collections/<id>.json`) | **IsAuthenticated** |
 | Create (`POST /miniatures/collections.json`) | **Staff-or-superuser** (`require_staff`, see [common rules](common-rules.md)) |
+| Import/upsert (`POST /miniatures/collections/import.json`) | **Staff-or-superuser** (`require_staff`, same tier as create) — see [Import endpoint](#import-endpoint) below |
 | Photo upload (`POST /miniatures/collections/<id>/photo_upload.json`) | **Staff-or-superuser** (`require_staff`) — see [Upload](upload.md) |
-| Update/Delete | No dedicated update/delete endpoint on `Collection` itself, but `source` can be mutated indirectly — see "Indirect mutation via StlModel import" below |
+| Update/Delete | No dedicated update/delete endpoint on `Collection` itself, but `source`/`name`/`url` can be mutated indirectly — see "Indirect mutation via StlModel import" and "Import endpoint" below |
 
 ### Indirect mutation via StlModel import
 
@@ -38,6 +39,41 @@ whichever source was imported last (see `docs/guides/majora/miniatures.md`'s own
 Principles](principles.md#x-skip-cache-rule), any endpoint not open to `AllowAny` always sets
 this header; since every endpoint requires login, they all set it unconditionally, including on
 the detail endpoint's 404 response.
+
+## Import endpoint
+
+`POST /miniatures/collections/import.json` is a dedicated, single-item upsert endpoint for
+automated crawlers (e.g. the Lootstudios crawler), gated at the same **Staff-or-superuser** tier
+as create (`require_staff`) — the standalone counterpart to
+[StlModel](stl-model.md#import-endpoint)'s own import endpoint, for the case where a crawler needs
+to create/update a `Collection` with no sibling `StlModel` payload. Like that endpoint, a repeat
+call for an already-imported item is expected and updates the existing row instead of returning
+`400`.
+
+Accepts `name` (required), `external_id` (optional, opaque string — the source system's own
+stable id), `url` (optional, same field type as create but with no `UniqueValidator`, since a
+matching `url` is the expected upsert-match case here), and `source_name` (required —
+find-or-creates a [Source](source.md) by name and unconditionally (re)assigns it onto the matched/
+created `Collection`, same as the indirect-mutation path above).
+
+Upsert key: an existing `Collection` is matched by `external_id` first, then by `name` as a
+fallback (both matched globally, not scoped per `Source` — same known limitation as the indirect
+path above).
+
+- Found: `name`/`url` (whichever were sent) are refreshed on the matched row, in addition to the
+  `source` reassignment — this is how a `Collection` stub created via `StlModel` import's
+  `collection_external_id` (with no `name`) gets filled in with its real `name`/`url` by a later
+  call here, order-independent since both endpoints upsert by the same `external_id`. Unlike
+  `StlModel` import's own matched-row behavior, this refresh-on-match is opt-in
+  (`CollectionSync(update_existing=True)`), used only by this endpoint — the indirect path above
+  still only ever reassigns `source` on a match, never `name`/`url`.
+- Not found: a new `Collection` is created with the given `name` (required on this endpoint,
+  unlike the indirect path's optional `collection_name`, so the placeholder-name fallback
+  described above only ever triggers via the indirect `StlModel`-import path, never here).
+
+Responses: `201` (new `Collection` created), `200` (existing `Collection` matched and updated) —
+both with `CollectionDetailSerializer` shape, `400` (validation error, e.g. missing `name`/
+`source_name`), `401` (unauthenticated), `403` (authenticated but not staff/superuser).
 
 ## Fields
 
