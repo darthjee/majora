@@ -1,6 +1,7 @@
 """Views package for the miniatures app."""
 
 from .collection_detail import collection_detail
+from .collection_import import collection_import
 from .collection_photo_upload import collection_photo_upload
 from .collections_list import collections_list
 from .source_detail import source_detail
@@ -13,6 +14,7 @@ from .stl_models_list import stl_models_list
 
 __all__ = [
     'collection_detail',
+    'collection_import',
     'collection_photo_upload',
     'collections_list',
     'source_detail',

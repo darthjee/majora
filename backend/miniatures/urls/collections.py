@@ -16,6 +16,11 @@ urlpatterns = [
         name='miniatures-collections-detail',
     ),
     path(
+        'miniatures/collections/import.json',
+        views.collection_import,
+        name='miniatures-collections-import',
+    ),
+    path(
         'miniatures/collections/<int:collection_id>/photo_upload.json',
         views.collection_photo_upload,
         name='miniatures-collections-photo-upload',
