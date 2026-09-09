@@ -9,3 +9,10 @@ staff_dashboard:
   summary_load_error: Não foi possível carregar o resumo do cache.
   disk_cache_title: Cache em Disco
   disk_cache_load_error: Não foi possível carregar o tamanho do cache em disco.
+  crawler_debug_title: Depuração do Crawler
+  crawler_clear_tooltip: Limpar entradas
+  crawler_clear_success: Entradas do crawler limpas com sucesso.
+  crawler_clear_error: Falha ao limpar as entradas do crawler. Tente novamente.
+  crawler_summary_load_error: Não foi possível carregar o resumo do crawler.
+  crawler_summary_empty: Nenhuma entrada ainda.
+  crawler_summary_total: 'Total:'

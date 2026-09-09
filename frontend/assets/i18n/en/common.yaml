@@ -88,6 +88,11 @@ clear_cache_confirm_modal:
   body: This action cannot be undone.
   confirm: Clear Cache
   cancel: Cancel
+clear_crawler_confirm_modal:
+  title: Clear crawler entries
+  body: This clears every captured crawler debug entry. This action cannot be undone.
+  confirm: Clear entries
+  cancel: Cancel
 delete_photo_confirm_modal:
   title: Delete Photo
   body: Are you sure you want to delete this photo? This cannot be undone.

@@ -9,3 +9,10 @@ staff_dashboard:
   summary_load_error: Unable to load cache summary.
   disk_cache_title: Disk Cache
   disk_cache_load_error: Unable to load disk cache size.
+  crawler_debug_title: Crawler Debug
+  crawler_clear_tooltip: Clear entries
+  crawler_clear_success: Crawler entries cleared successfully.
+  crawler_clear_error: Failed to clear crawler entries. Please try again.
+  crawler_summary_load_error: Unable to load crawler summary.
+  crawler_summary_empty: No entries yet.
+  crawler_summary_total: 'Total:'
