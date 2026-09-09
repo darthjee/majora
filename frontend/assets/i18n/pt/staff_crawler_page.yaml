@@ -1,0 +1,5 @@
+staff_crawler_page:
+  title: Feed de Depuração do Crawler
+  loading: Carregando feed do crawler...
+  error: Não foi possível carregar o feed do crawler.
+  no_selection: Selecione um registro no feed para ver o payload completo.

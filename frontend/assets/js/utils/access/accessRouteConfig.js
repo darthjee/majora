@@ -75,6 +75,7 @@ const ROUTE_TEMPLATES = {
   treasureNew: [{ kind: 'staffOrSuperuser' }],
   treasures: [{ kind: 'staffOrSuperuser' }],
   staffDashboard: [{ kind: 'staffOrSuperuser' }],
+  staffCrawler: [{ kind: 'staffOrSuperuser' }],
   staffUsers: [{ kind: 'staffOrSuperuser' }],
   staffUser: [{ kind: 'staffOrSuperuser' }],
   staffUserEdit: [{ kind: 'staffOrSuperuser' }],
