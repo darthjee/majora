@@ -88,6 +88,11 @@ clear_cache_confirm_modal:
   body: Esta ação não pode ser desfeita.
   confirm: Limpar Cache
   cancel: Cancelar
+clear_crawler_confirm_modal:
+  title: Limpar entradas do crawler
+  body: Isso limpa todas as entradas de depuração do crawler capturadas. Esta ação não pode ser desfeita.
+  confirm: Limpar entradas
+  cancel: Cancelar
 delete_photo_confirm_modal:
   title: Excluir Foto
   body: Tem certeza de que deseja excluir esta foto? Esta ação não pode ser desfeita.
