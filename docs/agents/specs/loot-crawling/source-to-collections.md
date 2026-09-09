@@ -44,13 +44,13 @@ explicitly. Either the endpoint is genuinely unscoped/public, or the
 original finding carried an ambient session cookie without it being
 obvious.
 
-**Status: open — needs live verification.** This cannot be resolved by an
-autonomous agent without a real, logged-in Lootstudios account. **Exact test
-to run**: `curl -s 'https://app.lootstudios.com/wp-admin/admin-ajax.php?action=GetMyLootsCache'`
-from a genuinely clean environment (no cookie jar, no prior session —
-incognito or a fresh container) and check whether the response still
-contains the tester's owned bundles/miniatures, or comes back empty/
-generic/errors. Document the actual observed result here once run.
+**Status: resolved — no auth required.** Verified with a clean, cookie-less
+request (`curl -s 'https://app.lootstudios.com/wp-admin/admin-ajax.php?action=GetMyLootsCache'`)
+sent with no cookie jar or prior session. The response came back `HTTP 200`
+with a full catalog payload — 398 `bundleObjs` entries and 4967
+`miniatureObjs` entries. Every returned bundle's `ft_ownership` field was
+`"false"`, confirming this is the general public catalog rather than
+account-scoped "my loots" data — the endpoint's name is misleading.
 
 ## Open question 2 — pagination
 
@@ -58,16 +58,12 @@ Scrolling `/my-loots/` triggers additional network activity (including a
 request to `z.clarity.ms` — likely Microsoft Clarity analytics noise, not
 itself a data call, but evidence *something* happens on scroll).
 
-**Status: open — needs live verification.** Cannot be resolved without a
-real account with enough owned bundles to trigger pagination (if it exists).
-**Exact test to run**: on an account with many owned bundles, compare the
-`bundleObjs[]` count returned by a single `GetMyLootsCache` call against the
-count visible after fully scrolling `/my-loots/` in a browser. If they
-match, the endpoint returns everything in one shot and the scroll behavior
-is just front-end virtualization. If the page shows more after scrolling
-than the single call returned, pagination exists — capture the exact
-request it triggers (page param? cursor? a different endpoint?) via browser
-devtools' network tab.
+**Status: resolved — no pagination.** The clean `GetMyLootsCache` response
+verified above has exactly two top-level keys — `bundleObjs` and
+`miniatureObjs` — with no `page`/`cursor`/`total` metadata anywhere, and it
+already contained the full catalog (398 bundles) in that single call. The
+scroll behavior on `/my-loots/` is therefore front-end virtualization over
+one complete response, not evidence of a paginated endpoint.
 
 ## Navi extraction sketch
 
