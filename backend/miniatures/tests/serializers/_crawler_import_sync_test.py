@@ -86,3 +86,77 @@ class TestCollectionSync:
         assert collection == existing
         existing.refresh_from_db()
         assert existing.source == self.source
+
+    def test_creates_new_collection_by_external_id_only_falls_back_name(self):
+        """Test that creating with external_id and no name falls back to it as the name."""
+        collection = CollectionSync(source=self.source, external_id='ext-1').resolve()
+
+        assert collection.external_id == 'ext-1'
+        assert collection.name == 'ext-1'
+
+    def test_create_stores_url(self):
+        """Test that a newly created Collection also stores the given url."""
+        collection = CollectionSync(
+            source=self.source, name='Monster Pack', url='https://example.com/collection',
+        ).resolve()
+
+        assert collection.url == 'https://example.com/collection'
+
+    def test_resolve_sets_created_true_on_create(self):
+        """Test that resolve() sets sync.created to True when a new Collection was made."""
+        sync = CollectionSync(source=self.source, name='Monster Pack')
+        sync.resolve()
+
+        assert sync.created is True
+
+    def test_resolve_sets_created_false_on_match(self):
+        """Test that resolve() sets sync.created to False when an existing Collection matched."""
+        CollectionFactory(name='Monster Pack')
+
+        sync = CollectionSync(source=self.source, name='Monster Pack')
+        sync.resolve()
+
+        assert sync.created is False
+
+    def test_update_existing_false_does_not_change_name_or_url(self):
+        """Test that a match with update_existing=False (default) leaves name/url untouched."""
+        existing = CollectionFactory(
+            name='Old Name', external_id='ext-1', url='https://example.com/old',
+        )
+
+        CollectionSync(
+            source=self.source, external_id='ext-1', name='New Name',
+            url='https://example.com/new',
+        ).resolve()
+
+        existing.refresh_from_db()
+        assert existing.name == 'Old Name'
+        assert existing.url == 'https://example.com/old'
+
+    def test_update_existing_true_updates_name_and_url(self):
+        """Test that a match with update_existing=True refreshes name/url from the given ones."""
+        existing = CollectionFactory(
+            name='Old Name', external_id='ext-1', url='https://example.com/old',
+        )
+
+        collection = CollectionSync(
+            source=self.source, external_id='ext-1', name='New Name',
+            url='https://example.com/new', update_existing=True,
+        ).resolve()
+
+        assert collection.id == existing.id
+        existing.refresh_from_db()
+        assert existing.name == 'New Name'
+        assert existing.url == 'https://example.com/new'
+        assert existing.source == self.source
+
+    def test_update_existing_true_sets_created_false(self):
+        """Test that resolve() still sets sync.created to False when update_existing matches."""
+        CollectionFactory(name='Old Name', external_id='ext-1')
+
+        sync = CollectionSync(
+            source=self.source, external_id='ext-1', name='New Name', update_existing=True,
+        )
+        sync.resolve()
+
+        assert sync.created is False
