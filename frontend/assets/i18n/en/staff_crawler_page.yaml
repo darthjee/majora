@@ -1,0 +1,5 @@
+staff_crawler_page:
+  title: Crawler Debug Feed
+  loading: Loading crawler feed...
+  error: Unable to load crawler feed.
+  no_selection: Select a record from the feed to view its full payload.
