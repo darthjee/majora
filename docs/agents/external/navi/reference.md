@@ -1,5 +1,8 @@
 # Reference
 
+For the full field-by-field breakdown of every YAML config key, see
+[Configuration Schema](configuration-schema.md).
+
 ### CLI flags
 
 | Flag | Short | Default | Description |
