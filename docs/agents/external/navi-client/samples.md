@@ -11,5 +11,6 @@ section links to the matching guide for the full field reference.
 - [Load config from the same files the engine reads](samples/config-from-files.md) — library: `configFromFiles()` over the engine's own YAML/JSON, one call per namespace, local `$VAR` resolution.
 - [Kick off a run from a CI step (CLI)](samples/cli-ci-warmup.md) — CLI: `--action engine-start` in a GitHub Actions / CircleCI step, using the Docker image.
 - [Handle a failed API call](samples/error-handling.md) — catching `ApiRequestFailed` (`statusCode` / `url` / `body`) in the library and CLI.
+- [Run a resource with per-request parameter values](samples/parameterized-enqueue.md) — library: `engineStart()` with target-level and per-resource `parameters`, resolving `{:token}` placeholders at call time.
 
 [← Back to How to Use navi-hey-client](../HOW_TO_USE_NAVI-CLIENT.md)
