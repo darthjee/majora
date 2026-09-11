@@ -22,9 +22,22 @@ await client.engineStart({
   targets: [{ namespace: 'reports', resources: ['categories'] }],
 });
 
+// POST /api/engine/start — with per-request parameter values
+await client.engineStart({
+  targets: [
+    {
+      namespace: 'crawler',
+      parameters: { region: 'eu' },
+      resources: [{ name: 'collection', parameters: { slug: 'tidal-aberrations' } }],
+    },
+  ],
+});
+
 // POST /api/engine/stop
 await client.engineStop();
 ```
+
+A `resources[]` entry may still be a bare string (unchanged) or a `{ name, parameters }` object to run that resource with per-request parameter values instead of pushing a one-off definition via `POST /api/config`. A target-level `parameters` default is shallow-merged under any per-resource `parameters`, with per-resource values winning on key collisions — no client-side code changes are needed, the payload is forwarded to the engine as-is. See [the `/api` namespace documentation](../../agents/web-server.md#api-namespace) for the full merge/validation rules.
 
 You can also point the client directly at the same YAML/JSON config files a self-hosted Navi engine reads, instead of building the payload by hand:
 
