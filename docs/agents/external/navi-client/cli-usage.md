@@ -22,7 +22,13 @@ navi-client -b http://localhost:3000 -t $NAVI_API_TOKEN -a config \
 
 navi-client -b http://localhost:3000 -t $NAVI_API_TOKEN -a engine-start \
   -p '{"targets":[{"namespace":"reports"}]}'
+
+# -a engine-start — with per-request parameter values
+navi-client -b http://localhost:3000 -t $NAVI_API_TOKEN -a engine-start \
+  -p '{"targets":[{"namespace":"crawler","parameters":{"region":"eu"},"resources":[{"name":"collection","parameters":{"slug":"tidal-aberrations"}}]}]}'
 ```
+
+The payload shape is identical to the library's `engineStart(payload)` argument — no CLI-specific flag or parsing changed, `--payload` is passed straight through as the request body, same as it does today for the bare-string form.
 
 `--file`/`--json`/`--yaml` are repeatable and freely combinable with each other, in a single invocation, merged into one ordered path list in **literal command-line order**. They are mutually exclusive with `--payload` — passing both is a CLI validation error.
 
