@@ -1,6 +1,5 @@
 import { randomUUID } from 'node:crypto';
 import axios from 'axios';
-import { NaviClient } from 'navi-hey-client';
 import { RequestHandler } from 'navi-hey/extension';
 
 // Matches a Lootstudios bundle (collection) URL and captures its slug, e.g.
@@ -91,6 +90,21 @@ function buildResource (slug, bundleInid) {
   ];
 }
 
+// Posts to a Navi `/api/*` endpoint, attaching the same
+// `Authorization: Bearer <token>` header navi-hey-client's NaviClient would
+// have attached, without depending on that npm package (the Navi image does
+// not bundle it -- see docs/agents/external/navi/extending-navi.md's
+// "A backend route" section).
+async function naviApiPost (url, body) {
+  try {
+    return await axios.post(url, body, {
+      headers: { Authorization: `Bearer ${process.env.NAVI_API_TOKEN}` },
+    });
+  } catch (err) {
+    throw new Error(`Request to ${url} failed: ${err.message}`);
+  }
+}
+
 class EnqueueHandler extends RequestHandler {
   constructor (request, response) {
     super();
@@ -136,16 +150,11 @@ class EnqueueHandler extends RequestHandler {
     const namespace = `enqueue_${slug}_${randomUUID()}`;
 
     try {
-      const client = new NaviClient({
-        baseUrl: NAVI_BASE_URL,
-        token: process.env.NAVI_API_TOKEN,
-      });
-
-      await client.config({
+      await naviApiPost(`${NAVI_BASE_URL}/api/config`, {
         namespace,
         resources: { enqueue: buildResource(slug, bundle.obj_inid) },
       });
-      await client.engineStart({
+      await naviApiPost(`${NAVI_BASE_URL}/api/engine/start`, {
         targets: [{ namespace, resources: ['enqueue'] }],
       });
     } catch (err) {

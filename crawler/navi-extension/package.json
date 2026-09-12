@@ -10,9 +10,6 @@
   },
   "author": "darthjee",
   "license": "MIT",
-  "dependencies": {
-    "navi-hey-client": "^0.2.2"
-  },
   "devDependencies": {
     "@vitejs/plugin-react": "^5.1.1",
     "react": "^19.2.0",
