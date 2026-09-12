@@ -39,15 +39,15 @@ class TestStlModelImportView(TokenAuthRequestMixin):
         response = self.post(client, IMPORT_URL, BASE_DATA, token=self.regular_token)
         assert response.status_code == 403
 
-    def test_returns_201_on_create(self, client):
-        """Test that importing a new item returns 201."""
+    def test_returns_200_on_create(self, client):
+        """Test that importing a new item returns 200."""
         response = self.post(client, IMPORT_URL, BASE_DATA, token=self.superuser_token)
-        assert response.status_code == 201
+        assert response.status_code == 200
 
     def test_staff_can_import(self, client):
         """Test that a staff user (not just a superuser) can import."""
         response = self.post(client, IMPORT_URL, BASE_DATA, token=self.staff_token)
-        assert response.status_code == 201
+        assert response.status_code == 200
 
     def test_returns_200_on_update(self, client):
         """Test that re-importing an existing item (matched by external_id) returns 200."""

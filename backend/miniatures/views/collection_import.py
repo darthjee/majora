@@ -15,7 +15,7 @@ from ._shared import skip_cache
 def collection_import(request):
     """Upsert a single Collection from a crawler-import payload (staff-only).
 
-    Returns 201 (with detail data) when a new `Collection` was created, 200 when an existing
+    Returns 200 (with detail data) whether a new `Collection` was created or an existing
     one was matched (and possibly updated) instead.
     """
     error_response = require_staff(request)
@@ -29,5 +29,4 @@ def collection_import(request):
 
     collection = serializer.save()
     detail = CollectionDetailSerializer(collection)
-    status = 201 if serializer.created else 200
-    return skip_cache(Response(detail.data, status=status))
+    return skip_cache(Response(detail.data, status=200))

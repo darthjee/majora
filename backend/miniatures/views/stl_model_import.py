@@ -15,7 +15,7 @@ from ._shared import skip_cache
 def stl_model_import(request):
     """Upsert a single STL model from a crawler-import payload (staff-only).
 
-    Returns 201 (with detail data) when a new `StlModel` was created, 200 when an existing one
+    Returns 200 (with detail data) whether a new `StlModel` was created or an existing one
     was matched and updated.
     """
     error_response = require_staff(request)
@@ -29,5 +29,4 @@ def stl_model_import(request):
 
     stl_model = serializer.save()
     detail = StlModelDetailSerializer(stl_model)
-    status = 201 if serializer.created else 200
-    return skip_cache(Response(detail.data, status=status))
+    return skip_cache(Response(detail.data, status=200))
