@@ -1,0 +1,27 @@
+.loot-enqueue-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 32rem;
+}
+
+.loot-enqueue-form label {
+  font-weight: bold;
+}
+
+.loot-enqueue-form input {
+  padding: 0.4rem;
+}
+
+.loot-enqueue-form button {
+  align-self: flex-start;
+  padding: 0.4rem 1rem;
+}
+
+.loot-enqueue-confirmation {
+  color: green;
+}
+
+.loot-enqueue-error {
+  color: red;
+}
