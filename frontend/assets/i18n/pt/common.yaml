@@ -12,6 +12,7 @@ header:
   nav_collections: Coleções
   nav_staff_users: Usuários
   nav_staff_dashboard: Dashboard
+  nav_staff_crawler: Crawler
   nav_my_games: Meus Jogos
   login: Login
   logoff: Logoff
