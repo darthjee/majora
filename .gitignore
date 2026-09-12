@@ -40,6 +40,8 @@ docker_volumes/domain/
 .env
 .env.prod
 .env.production
+# Single-sourced Navi image tag, not a secret — see issue #1293.
+!crawler/navi-extension/.env
 
 # Production proxy host configuration (set only on production servers)
 proxy/prod_configuration/locals.php
