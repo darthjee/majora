@@ -24,6 +24,7 @@ frontend/node_modules/
 frontend/dist/
 frontend/.nyc_output/
 frontend/coverage/
+crawler/navi-extension/dist/
 docker_volumes/node_modules/
 docker_volumes/markdownlint_node_modules/
 docker_volumes/static/
@@ -39,6 +40,8 @@ docker_volumes/domain/
 .env
 .env.prod
 .env.production
+# Single-sourced Navi image tag, not a secret — see issue #1293.
+!crawler/navi-extension/.env
 
 # Production proxy host configuration (set only on production servers)
 proxy/prod_configuration/locals.php
