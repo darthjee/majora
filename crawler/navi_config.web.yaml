@@ -1,0 +1,25 @@
+# Web-enabled Navi entry config for the Lootstudios crawler's interactive
+# per-collection Enqueue UI (issue #1291). Includes the existing headless
+# config unchanged and adds only the web/worker wiring needed to boot with
+# a paused engine and a monitoring UI/API. Declares NO top-level
+# `namespace:` key — this file (and the clients it includes) must stay in
+# the implicit `default` namespace so every per-enqueue namespace #1295
+# pushes at runtime can reference `client: lootstudios` /
+# `emit.client: majora_api` by bare name and have them resolve via Navi's
+# cross-namespace fallback-to-default rule. See
+# docs/agents/specs/loot-crawling/interactive-collection-enqueue.md.
+
+include:
+  - navi_config.yaml
+
+workers:
+  quantity: 4
+  retry_cooldown: 2000
+  sleep: 500
+  max-retries: 3
+
+web:
+  port: 3000
+  autostart: false
+  api:
+    token: $NAVI_API_TOKEN
