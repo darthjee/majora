@@ -152,6 +152,7 @@ export const NAV_LINK_REGISTRY = [
   adminItem('treasures', 'treasures', 'header.nav_treasures'),
   adminItem('staff-users', 'staff/users', 'header.nav_staff_users'),
   adminItem('staff-dashboard', 'staff/dashboard', 'header.nav_staff_dashboard'),
+  adminItem('staff-crawler', 'staff/crawler', 'header.nav_staff_crawler'),
 
   gameItem('show', '', 'header.nav_game_show'),
   gameItem('pcs', '/pcs', 'game_page.player_characters'),
