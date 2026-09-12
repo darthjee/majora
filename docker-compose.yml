@@ -131,6 +131,18 @@ services:
     ports:
       - 0.0.0.0:3100:3000
 
+  crawler_navi_web:
+    build:
+      context: .
+      dockerfile: dockerfiles/navi_hey_loot_enqueue/Dockerfile
+    environment:
+      - MAJORA_API_TOKEN=$MAJORA_API_TOKEN
+      - MAJORA_API_BASE_URL=$MAJORA_API_BASE_URL
+      - LOOTSTUDIOS_SESSION_COOKIE=$LOOTSTUDIOS_SESSION_COOKIE
+      - NAVI_API_TOKEN=$NAVI_API_TOKEN
+    ports:
+      - 127.0.0.1:3110:3000
+
   markdownlint:
     container_name: majora_markdownlint
     build:
