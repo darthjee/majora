@@ -1,0 +1,10 @@
+# Runs this extension's Jasmine suite inside the shipped darthjee/navi-hey-test
+# image. `yarn test` is `docker compose run --rm extension_tests`; only src/ and
+# tests/ are mounted in, so no local test toolchain is needed.
+services:
+  extension_tests:
+    image: darthjee/navi-hey-test:${NAVI_TAG}   # pin to the darthjee/navi-hey tag this extension deploys FROM
+    volumes:
+      - ./src:/work/src:ro
+      - ./tests:/work/tests:ro
+      # - ./dist:/navi/extensions:ro   # optional built-output parity check
