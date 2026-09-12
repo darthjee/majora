@@ -9,9 +9,15 @@ page also settles the field names both sibling sketches flagged as
 
 ## The emission target
 
-`POST /miniatures/stl_models/import.json` (#1262 — contract decided, not
-yet implemented) is the **only** emission target for this crawler. Its
-request body accepts:
+Two emission targets exist for this crawler:
+
+- `POST /miniatures/stl_models/import.json` (#1262) — the primary target
+  described in this page.
+- `POST /miniatures/collections/import.json` (#1281) — a standalone
+  Collection-creation/upsert call, added after this page was originally
+  written (see "Standalone Collection import" below).
+
+`POST /miniatures/stl_models/import.json`'s request body accepts:
 
 | Field | Required | Description |
 | --- | --- | --- |
@@ -24,11 +30,21 @@ request body accepts:
 | `tags` | no | Optional tag list. |
 | `links` | no | A list of link entries (`url`, `link_type`, ...) attached to the `StlModel`. |
 
-Upsert order: match by `external_id` first, then by `url`. There is **no
-standalone Collection-creation call** — a `Collection` only ever comes into
-existence as a side effect of an `StlModel` import that carries
-`collection_name`/`collection_external_id`. This contract is authoritative
-and out of scope to redesign here.
+Upsert order: match by `external_id` first, then by `url`. A `Collection`
+can come into existence either as a side effect of an `StlModel` import that
+carries `collection_name`/`collection_external_id`, or directly via the
+standalone `POST /miniatures/collections/import.json` call below. This
+contract is authoritative and out of scope to redesign here.
+
+### Standalone Collection import
+
+`POST /miniatures/collections/import.json` (#1281) upserts a `Collection`
+directly, independent of any `StlModel` import — used by
+[`interactive-collection-enqueue.md`](interactive-collection-enqueue.md)'s
+bundle pass (see its "Per-collection resource shape") so that a bundle with
+zero currently-owned miniatures still produces a `Collection` row (see
+"Resolved gap — zero-miniature bundles" below). `crawler/navi_config.yaml`
+uses it too.
 
 ## Example payload
 
@@ -92,15 +108,16 @@ Field derivation:
 miniature records don't surface a per-miniature page URL, and no tag
 source has been identified yet.
 
-## Known gap — zero-miniature bundles produce no Collection
+## Resolved gap — zero-miniature bundles
 
-A bundle with zero currently-owned miniatures produces no `StlModel`
-emission, and therefore no `Collection` row in Majora, since #1262 has no
-standalone Collection-only creation call. This is a documented **limitation
-of the current design**, not a decision made by this spec. It is explicitly
-**out of scope** to fix here — closing it would mean redesigning #1262's
-contract (e.g. adding a standalone Collection-import endpoint), which is a
-separate concern.
+Previously, a bundle with zero currently-owned miniatures would produce no
+`StlModel` emission, and therefore no `Collection` row in Majora, since
+#1262 had no standalone Collection-only creation call. **This is resolved**:
+#1281's `POST /miniatures/collections/import.json` (see "Standalone
+Collection import" above) lets a bundle-side pass emit its `Collection`
+independently of any miniature — `crawler/navi_config.yaml`'s bundle pass
+does exactly this today, so every bundle produces a `Collection` row
+regardless of how many miniatures it currently has.
 
 ## No-op note — delisted/removed items
 
@@ -146,8 +163,8 @@ single set of names. In particular:
 
 - #1265's bundle-side `name` becomes this template's `collection_name`
   when the bundle is joined onto its miniatures (the bundle's own `name` is
-  only used directly by a hypothetical future standalone Collection call,
-  which doesn't exist per the "known gap" above).
+  also used directly by the standalone Collection call — see "Standalone
+  Collection import" above).
 - #1266's `collection_external_id` (renamed from `bnd_inid`) is reused
   as-is here.
 - `bundle_url` is a value produced by the join step from the bundle's

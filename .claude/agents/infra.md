@@ -31,6 +31,7 @@ source — delegate those tasks to the `proxy` agent).
 | `majora_mysql` | `mysql:9.3.0` | configurable | Database |
 | `majora_navi` | `darthjee/navi-hey:latest` | 3100 | Cache warmer (local) |
 | `majora_phpmyadmin` | `phpmyadmin/phpmyadmin` | 3050 | DB admin UI |
+| `crawler_navi_web` | built from `dockerfiles/navi_hey_loot_enqueue/` | 127.0.0.1:3110 | Lootstudios crawler interactive Enqueue UI (maintainer-run only, never deployed) |
 
 ### Shared volumes
 
@@ -53,6 +54,7 @@ source — delegate those tasks to the `proxy` agent).
 | `dockerfiles/vite_majora-base/` | Base Node image for frontend |
 | `dockerfiles/vite_majora/` | Frontend dev/build image |
 | `dockerfiles/circleci_majora-base/` | CI image (Python + Poetry) |
+| `dockerfiles/navi_hey_loot_enqueue/` | Derived `darthjee/navi-hey` image baking in the crawler Navi extension (backend route + frontend page) for the Lootstudios Enqueue UI |
 
 ## Tent proxy
 
@@ -110,6 +112,7 @@ All jobs run on every push. Release jobs run **only on version tags** matching `
 | `release` | `darthjee/vite_majora-base` | Finalize asset release on server |
 | `warm-up-cache` | `darthjee/navi-hey-client:latest` | Push resource/client config and trigger `engine-start` against the persistent Navi server via `navi-client` |
 | `wake-navi` | `cimg/base:current` | Runs in parallel with the `release` job chain (`requires:` the same test/check jobs as `build-and-release`); pings `$NAVI_URL` to wake the persistent Navi server, then keeps it warm with periodic pings before `warm-up-cache` needs it |
+| `crawler_extension_tests` | `machine` (runs `docker compose run extension_tests` in `crawler/navi-extension/`) | Lint + test the crawler Navi extension (`crawler/navi-extension/`) |
 
 ### CI setup pattern (backend/frontend jobs)
 

@@ -15,7 +15,20 @@ and **never deployed**.
 This page is the **contract** the other #1291 sub-issues build against:
 #1294 (web-enabled Navi config), #1295 (extension backend route), #1296
 (extension frontend page). It is **temporary** — per `docs/agents/specs.md`,
-it is removed once #1291 is fully implemented (#1300 retires it).
+it is removed once #1291 is fully implemented.
+
+> **Pending removal.** #1291 is now fully implemented (#1292–#1299 have all
+> landed) — this page's contract has been built exactly as specified.
+> Removing it (and its listing in
+> [`loot-crawling.md`](../loot-crawling.md)) is deferred to a later cleanup
+> pass rather than done as part of #1300, so it still exists for now; treat
+> it as historical/contract documentation rather than a live design
+> question.
+>
+> This page is complementary to
+> [`crawler-test-harness.md`](../crawler-test-harness.md): this one is an
+> on-demand *input* UI (crawl one collection into Majora), the other is an
+> *output*-side debug harness (inspect what a crawler run emitted).
 
 ## Enqueue mechanism
 
@@ -305,13 +318,9 @@ Extraction is `collection-to-stl-models.md`'s Approach A
 (`GetMyLootsCache`, filtered by `obj_slug`/`bnd_inid`) — this page only
 adds the "resolve once, then filter to one collection" wrapper described
 above. Emission payloads follow `emission-endpoint.md`'s field mapping and
-example bodies exactly. **Do not** read `emission-endpoint.md`'s "The
-emission target" section as still authoritative on two points it predates:
-it calls `stl_models/import.json` the "only emission target" and states
-"there is no standalone Collection-creation call" — #1281 added
-`POST /miniatures/collections/import.json` (used by the bundle pass above)
-after that page was written; #1300 will patch those stale claims when it
-retires this page.
+example bodies exactly, including its "Standalone Collection import"
+section covering `POST /miniatures/collections/import.json` (#1281, used
+by the bundle pass above).
 
 ## Deferred / out of scope
 
