@@ -62,14 +62,14 @@ Based on the exploration in
 on is a `PHPSESSID` cookie value obtained by logging into
 `https://app.lootstudios.com` in a regular browser and copying the
 `PHPSESSID` cookie (browser devtools → Application/Storage → Cookies).
-**However, whether it's actually required is still unverified**: the primary
-extraction approach (`GetMyLootsCache`, used by #1263) was observed
-responding without an explicit auth header/cookie in the exploration pass —
-whether it actually needs a session at all is an open question left
-unresolved in that spec page (`Open question 1`, tracked further by #1282).
-`crawler/navi_config.yaml` sends the cookie defensively regardless — harmless
-if it turns out not to be needed (an unset env var just substitutes an empty
-`Cookie` value, per Navi's environment-variable-substitution behavior):
+**This is no longer required in practice**: the primary extraction approach
+(`GetMyLootsCache`, used by `crawler/navi_config.yaml`) needs no auth at
+all — confirmed with a clean, cookie-less request in
+[`docs/agents/specs/loot-crawling/source-to-collections.md`](../docs/agents/specs/loot-crawling/source-to-collections.md)'s
+"Open question 1" (status: resolved). `crawler/navi_config.yaml` still sends
+the cookie defensively, in case that ever changes — harmless either way (an
+unset env var just substitutes an empty `Cookie` value, per Navi's
+environment-variable-substitution behavior):
 
 - **Environment variable name**: `LOOTSTUDIOS_SESSION_COOKIE` — substituted
   into the `lootstudios` client's `Cookie: PHPSESSID=$LOOTSTUDIOS_SESSION_COOKIE`
@@ -114,6 +114,40 @@ all — see #1282) shows up as a retried, then eventually dead-lettered job in
 the log output, distinguishable from a normal run by repeated retry-cooldown
 log lines followed by a "moved to dead queue" message for that job, instead
 of the run exiting cleanly once the queue drains.
+
+## Running it interactively (per-collection Enqueue)
+
+Alongside the headless whole-catalog run above, a Navi extension (backend
+route + frontend page, [#1291](https://github.com/darthjee/majora/issues/1291))
+lets a maintainer crawl a single Lootstudios collection on demand instead of
+the whole catalog:
+
+1. Build the extension frontend: `crawler/navi-extension/dist/` (see
+   `crawler/navi-extension/`'s own `package.json` for the build script).
+2. Start the derived `darthjee/navi-hey` image's compose service:
+   `docker compose up crawler_navi_web` — bound to `127.0.0.1:3110` only,
+   never a public interface.
+3. Open `http://127.0.0.1:3110` in a browser, paste a Lootstudios collection
+   URL (`https://app.lootstudios.com/bundle/<slug>/`), and click "Enqueue".
+4. Watch the job drain via Navi's stock Jobs/Logs screens
+   (`GET /jobs/:status.json`, `GET /emissions.json`) — the extension page
+   itself carries no live run-status UI (see
+   [`docs/agents/specs/loot-crawling/interactive-collection-enqueue.md`](../docs/agents/specs/loot-crawling/interactive-collection-enqueue.md)'s
+   "Deferred / out of scope").
+
+The Enqueue route's response tells you immediately whether the request was
+accepted, per its contract:
+
+| Case | Status | Meaning |
+| --- | --- | --- |
+| Accepted | `200` | The job was queued in Navi; watch it drain as above. |
+| Malformed `url` | `400` | The pasted URL isn't a `https://app.lootstudios.com/bundle/<slug>/` URL. |
+| Slug not found in the catalog | `404` | No bundle with that slug exists in `GetMyLootsCache`. |
+| Resolve/config/engine-start call failed | `502` | An underlying Navi or Lootstudios call failed — see the error message in the response body. |
+
+This mode is additive and local-maintainer-run only — it never changes the
+headless whole-catalog run's behavior, and the image is never deployed (see
+`interactive-collection-enqueue.md`'s "Security posture").
 
 ## Verifying it worked
 

@@ -54,6 +54,11 @@ docker-compose run --rm majora_fe yarn lint
 docker-compose run --rm majora_tests pytest
 ```
 
+The `crawler_navi_web` service (`docker-compose up crawler_navi_web`) runs the
+Lootstudios crawler's interactive Enqueue UI, bound to `127.0.0.1:3110` — see
+[`crawler/RUNNING.md`](crawler/RUNNING.md). Its extension code is covered by
+the `crawler_extension_tests` CI job.
+
 ## Conventions
 
 - All documentation and code comments must be written in **English**.

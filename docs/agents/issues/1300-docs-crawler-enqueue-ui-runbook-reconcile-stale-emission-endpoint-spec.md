@@ -1,6 +1,7 @@
 # Issue: Docs: crawler Enqueue UI runbook + reconcile stale emission-endpoint spec
 
 ## Description
+
 Part of #1291 (the Lootstudios Enqueue feature). #1291 added an interactive
 alternative to the headless whole-catalog Lootstudios crawler run (`npx
 navi-hey --config crawler/navi_config.yaml`): a Navi extension (backend route
@@ -15,6 +16,7 @@ status codes and #1299 added the extension's Jasmine suite plus the
 **after** the feature is fully built, to document it.
 
 ## Problem
+
 Several docs now contradict or omit what actually shipped:
 
 - `crawler/README.md` still describes the crawler as "Scaffold today — no
@@ -51,6 +53,7 @@ Several docs now contradict or omit what actually shipped:
   nor the new CI job.
 
 ## Expected Behavior
+
 - `crawler/README.md` and `crawler/RUNNING.md` describe both run modes
   (headless whole-catalog and interactive per-collection Enqueue) accurately,
   with no stale "scaffold"/"no dependencies"/"CI wiring out of scope"
@@ -68,6 +71,7 @@ Several docs now contradict or omit what actually shipped:
   `crawler_extension_tests` CI job.
 
 ## Solution
+
 - **`crawler/README.md` / `crawler/RUNNING.md`**: add the interactive mode —
   build `crawler/navi-extension/dist/`, `docker compose up crawler_navi_web`,
   open the page (bound to `127.0.0.1:3110` per #1298), paste a Lootstudios
@@ -109,6 +113,7 @@ Several docs now contradict or omit what actually shipped:
   `crawler_extension_tests` to the CI jobs table.
 
 ### Decisions from discussion
+
 - The SUB-1 spec page is **flagged, not deleted**, in this issue — actual
   removal of `interactive-collection-enqueue.md` (and its `loot-crawling.md`
   listing) is deferred to a later cleanup pass.
@@ -131,6 +136,7 @@ prior sub-issues (#1292–#1299, already landed). Blocks: nothing — this is
 the closing sub-issue of #1291.
 
 ## Benefits
+
 The runbook accurately reflects both ways to run the Lootstudios crawler,
 `emission-endpoint.md` no longer contradicts the two emission endpoints that
 actually exist, the SUB-1 spec is clearly marked for its eventual retirement

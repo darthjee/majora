@@ -17,11 +17,16 @@ Do NOT touch `backend/`, `frontend/`, `proxy/`, `docker-compose.yml`, `dockerfil
 
 ## Purpose
 
-The crawler will visit STL sites (sources) and create the corresponding
+The crawler visits STL sites (sources) and creates the corresponding
 `Source`/`StlModel` links in Majora automatically, instead of that data being entered
-manually through the app. It is currently a bare scaffold (`crawler/package.json`,
-`crawler/README.md`) — no crawling logic, dependencies, or CI/docker-compose wiring
-exist yet. That comes in a follow-up implementation issue.
+manually through the app. The first concrete instance is the Lootstudios crawler: a
+headless, whole-catalog Navi config (`crawler/navi_config.yaml`) plus
+`crawler/navi-extension/` — a real Node project (backend route + frontend page) baked
+into a derived `darthjee/navi-hey` image that lets a maintainer crawl one Lootstudios
+collection on demand, with its own dependencies, a docker-compose service
+(`crawler_navi_web`, owned by `infra`), and a CI job (`crawler_extension_tests`, also
+owned by `infra`). See [`crawler/README.md`](../../crawler/README.md) and
+[`crawler/RUNNING.md`](../../crawler/RUNNING.md) for the full runbook.
 
 ## Authentication
 

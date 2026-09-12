@@ -10,6 +10,12 @@ trusted end-to-end (see "Removal plan" below).
 Implemented by four sub-issues of #1260: record browsing (#1273 backend,
 #1274 frontend) and summary + clear (#1275 backend, #1276 frontend).
 
+This harness is complementary to
+[`loot-crawling/interactive-collection-enqueue.md`](loot-crawling/interactive-collection-enqueue.md):
+this one is an *output*-side debug harness (inspect what a crawler run
+emitted), the other is an on-demand *input* UI (crawl one collection into
+Majora).
+
 ## Storage: a temporary DB table, not literal in-process memory
 
 Production runs gunicorn with `--workers 4` (`backend/bin/server.sh`,
