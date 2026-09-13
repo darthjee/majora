@@ -84,4 +84,14 @@ export default [
       'jsdoc/require-description': 'off',
     },
   },
+  {
+    // This project's own eslint-plugin-security-node version does not enable
+    // (and, per an upstream bug, cannot even run) `detect-unhandled-async-errors`
+    // here, but Codacy's independent security scan flags this file's
+    // intentionally empty `catch` under that rule. Keep the justified
+    // eslint-disable comment for Codacy without ESLint auto-removing it here
+    // as an "unused directive".
+    files: ['specs/support/flushMicrotasks.js'],
+    linterOptions: { reportUnusedDisableDirectives: 'off' },
+  },
 ];
