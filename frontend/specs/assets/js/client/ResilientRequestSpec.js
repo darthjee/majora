@@ -1,22 +1,6 @@
 import ResilientRequest from '../../../../assets/js/client/ResilientRequest.js';
 import ResilienceEvents from '../../../../assets/js/utils/logging/ResilienceEvents.js';
-
-/**
- * Flushes a handful of pending microtasks, letting already-settled
- * promise chains (that do not depend on a timer) fully resolve.
- *
- * @param {number} [times] - number of microtask ticks to flush.
- * @returns {Promise<void>} resolves once every flush tick has run.
- */
-async function flushMicrotasks(times = 5) {
-  for (let i = 0; i < times; i += 1) {
-    try {
-      await Promise.resolve();
-    } catch {
-      // Promise.resolve() never rejects; this catch exists only to satisfy the linter.
-    }
-  }
-}
+import flushMicrotasks from '../../../support/flushMicrotasks.js';
 
 describe('ResilientRequest', function() {
   describe('#run', function() {

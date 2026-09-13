@@ -1,22 +1,6 @@
 import RecoverPasswordController
   from '../../../../../../../../assets/js/components/resources/account/pages/controllers/RecoverPasswordController.js';
-
-/**
- * Flushes a handful of pending microtasks, letting already-settled promise
- * chains (that do not depend on a timer) fully resolve.
- *
- * @param {number} [times] - number of microtask ticks to flush.
- * @returns {Promise<void>} resolves once every flush tick has run.
- */
-async function flushMicrotasks(times = 10) {
-  for (let i = 0; i < times; i += 1) {
-    try {
-      await Promise.resolve();
-    } catch {
-      // Promise.resolve() never rejects; this catch exists only to satisfy the linter.
-    }
-  }
-}
+import flushMicrotasks from '../../../../../../../support/flushMicrotasks.js';
 
 describe('RecoverPasswordController', function() {
   describe('getRecoverPasswordTokenFromHash', function() {
@@ -218,17 +202,17 @@ describe('RecoverPasswordController', function() {
         const controller = new RecoverPasswordController(setStatus, setErrorMessage, undefined, readyClient);
         const promise = controller.waitUntilReady(setReady);
 
-        await flushMicrotasks();
+        await flushMicrotasks(10);
 
         expect(readyClient.check).toHaveBeenCalledTimes(1);
         expect(setReady).not.toHaveBeenCalled();
 
         jasmine.clock().tick(4999);
-        await flushMicrotasks();
+        await flushMicrotasks(10);
         expect(readyClient.check).toHaveBeenCalledTimes(1);
 
         jasmine.clock().tick(1);
-        await flushMicrotasks();
+        await flushMicrotasks(10);
 
         expect(readyClient.check).toHaveBeenCalledTimes(2);
         expect(setReady).toHaveBeenCalledWith(true);
