@@ -1,4 +1,4 @@
-"""Tests for the game task detail view (PATCH update only, no GET)."""
+"""Tests for the game task detail view (GET retrieval and PATCH update)."""
 
 import json
 
@@ -11,7 +11,7 @@ from games.tests.factories import GameFactory, PlayerFactory, SuperUserFactory, 
 
 
 class TestGameTaskDetailPatchView(TestCase):
-    """Tests for the PATCH /games/<slug>/tasks/<id>.json endpoint."""
+    """Tests for the GET and PATCH /games/<slug>/tasks/<id>.json endpoint."""
 
     @classmethod
     def setUpTestData(cls):
@@ -39,6 +39,69 @@ class TestGameTaskDetailPatchView(TestCase):
         return client.patch(
             url, data=json.dumps(payload), content_type='application/json', **extra,
         )
+
+    def _get(self, client, token=None, game_slug=None, task_id=None):
+        """Issue a GET request to the task detail endpoint, optionally with a token."""
+        extra = {}
+        if token is not None:
+            extra['HTTP_AUTHORIZATION'] = f'Token {token.key}'
+        url = (
+            f'/games/{game_slug or self.game.game_slug}/tasks/'
+            f'{task_id if task_id is not None else self.task.id}.json'
+        )
+        return client.get(url, **extra)
+
+    def test_game_master_can_get(self):
+        """Test that a DM of the game can retrieve a task and receives 200."""
+        response = self._get(self.client, token=self.dm_token)
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['short_description'] == self.task.short_description
+
+    def test_superuser_can_get(self):
+        """Test that a superuser can retrieve a task and receives 200."""
+        response = self._get(self.client, token=self.superuser_token)
+        assert response.status_code == 200
+
+    def test_get_without_token_returns_401(self):
+        """Test that GET without a token returns 401."""
+        response = self._get(self.client)
+        assert response.status_code == 401
+
+    def test_get_with_non_game_master_returns_403(self):
+        """Test that GET from a non-DM, non-superuser returns 403."""
+        response = self._get(self.client, token=self.regular_token)
+        assert response.status_code == 403
+
+    def test_get_non_existent_task_returns_404(self):
+        """Test that GET on a non-existent task returns 404."""
+        response = self._get(self.client, token=self.dm_token, task_id=999999)
+        assert response.status_code == 404
+
+    def test_get_returns_404_for_unknown_game_slug(self):
+        """Test that 404 is returned for a non-existent game slug on GET."""
+        response = self._get(self.client, token=self.dm_token, game_slug='unknown-game')
+        assert response.status_code == 404
+
+    def test_get_returns_404_when_task_belongs_to_different_game(self):
+        """Test that 404 is returned when task_id does not belong to game_slug on GET."""
+        response = self._get(
+            self.client, token=self.dm_token, game_slug=self.other_game.game_slug,
+        )
+        assert response.status_code == 404
+
+    def test_get_returns_skip_cache_header(self):
+        """Test that the GET response includes the X-Skip-Cache: true header."""
+        response = self._get(self.client, token=self.dm_token)
+        assert response['X-Skip-Cache'] == 'true'
+
+    def test_url_by_name_for_get(self):
+        """Test that the view is accessible by URL name for GET."""
+        url = reverse(
+            'game-task-detail', kwargs={'game_slug': 'test-game', 'task_id': self.task.id},
+        )
+        response = self.client.get(url, HTTP_AUTHORIZATION=f'Token {self.dm_token.key}')
+        assert response.status_code == 200
 
     def test_game_master_can_patch(self):
         """Test that a DM of the game can update a task and receives 200."""
@@ -147,6 +210,13 @@ class TestGameTaskDetailPatchView(TestCase):
         self.task.refresh_from_db()
         assert self.task.game == self.game
 
+    def test_patch_returns_skip_cache_header(self):
+        """Test that the PATCH response includes the X-Skip-Cache: true header."""
+        response = self._patch(
+            self.client, {'short_description': 'New description'}, token=self.dm_token,
+        )
+        assert response['X-Skip-Cache'] == 'true'
+
     def test_url_by_name(self):
         """Test that the view is accessible by URL name."""
         url = reverse(
@@ -159,8 +229,3 @@ class TestGameTaskDetailPatchView(TestCase):
             HTTP_AUTHORIZATION=f'Token {self.dm_token.key}',
         )
         assert response.status_code == 200
-
-    def test_get_not_allowed(self):
-        """Test that GET is not supported on the task detail route."""
-        response = self.client.get(f'/games/test-game/tasks/{self.task.id}.json')
-        assert response.status_code == 405
