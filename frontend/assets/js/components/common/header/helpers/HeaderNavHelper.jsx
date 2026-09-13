@@ -8,6 +8,7 @@ const LOGGED_IN = { all: ['loggedIn'] };
 const IS_ADMIN = { any: ['isSuperUser', 'isStaff'] };
 const IS_GAME_PAGE = { all: ['isGamePage'] };
 const HAS_GAME_ACCESS = { all: ['isGamePage', 'hasGameAccess'] };
+const IS_DM_OR_ADMIN = { all: ['isGamePage', 'isDmOrAdmin'] };
 const IS_PC_PAGE = { all: ['isPcPage'] };
 const IS_NPC_PAGE = { all: ['isNpcPage'] };
 
@@ -71,7 +72,9 @@ function adminItem(id, path, labelKey) {
  * to the group's `isGamePage`-only gate; the Players/Polls/Sessions items pass the
  * stricter `HAS_GAME_ACCESS` rule instead, restricting them to the game's DM(s),
  * players, and admins (superuser/staff) — the same audience rule used by
- * `OpenPollsWidget`/`GamePollsController`.
+ * `OpenPollsWidget`/`GamePollsController`. The Tasks item is stricter still, passing
+ * `IS_DM_OR_ADMIN` to restrict it to the game's DM(s) and admins only (no players),
+ * matching `EndpointPermission`'s `'game_task', 'restricted', 'edit'` backend gate.
  *
  * @param {string} id - Entry id suffix (unique within the `game` group).
  * @param {string} path - URL segment appended after `#/games/:gameSlug` (empty for the "show" item).
@@ -165,6 +168,7 @@ export const NAV_LINK_REGISTRY = [
   gameItem('players', '/players', 'game_page.players', HAS_GAME_ACCESS),
   gameItem('polls', '/polls', 'game_page.polls_title', HAS_GAME_ACCESS),
   gameItem('sessions', '/sessions', 'game_page.sessions', HAS_GAME_ACCESS),
+  gameItem('tasks', '/tasks', 'game_page.tasks', IS_DM_OR_ADMIN),
   gameItem('photos', '/photos', 'game_page.see_all_photos'),
 
   ...characterItems('pc'),
