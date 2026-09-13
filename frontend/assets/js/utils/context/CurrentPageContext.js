@@ -13,7 +13,7 @@ export default class CurrentPageContext {
    *
    * @param {{route: ({page: (string|undefined), gameSlug: (string|undefined), characterId: (string|undefined)}|undefined), gameAccess: ({is_dm: boolean, is_player: boolean, is_superuser: boolean, is_staff: boolean}|undefined)}} state - Raw state to derive the context from.
    * @returns {object} `state`'s own fields, plus `isGamePage`, `isPcPage`, `isNpcPage`,
-   *   and `hasGameAccess` derived flags.
+   *   `hasGameAccess`, and `isDmOrAdmin` derived flags.
    */
   static build(state) {
     return {
@@ -22,6 +22,7 @@ export default class CurrentPageContext {
       isPcPage: Boolean(state.route?.page?.startsWith('pcCharacter')),
       isNpcPage: Boolean(state.route?.page?.startsWith('npcCharacter')),
       hasGameAccess: CurrentPageContext.#hasGameAccess(state.gameAccess),
+      isDmOrAdmin: CurrentPageContext.#isDmOrAdmin(state.gameAccess),
     };
   }
 
@@ -35,5 +36,16 @@ export default class CurrentPageContext {
     return Boolean(
       gameAccess?.is_dm || gameAccess?.is_player || gameAccess?.is_superuser || gameAccess?.is_staff,
     );
+  }
+
+  /**
+   * Derives whether `gameAccess` grants a DM or admin (staff/superuser) role —
+   * unlike {@link #hasGameAccess}, deliberately excludes `is_player`.
+   *
+   * @param {{is_dm: boolean, is_player: boolean, is_superuser: boolean, is_staff: boolean}|undefined} gameAccess - Game-level access flags, or `undefined` when unresolved.
+   * @returns {boolean} `true` when the DM, superuser, or staff flag is set.
+   */
+  static #isDmOrAdmin(gameAccess) {
+    return Boolean(gameAccess?.is_dm || gameAccess?.is_superuser || gameAccess?.is_staff);
   }
 }

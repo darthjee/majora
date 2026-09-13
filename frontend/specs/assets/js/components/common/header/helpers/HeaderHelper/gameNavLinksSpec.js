@@ -25,6 +25,7 @@ describe('HeaderHelper', function() {
         expect(html).not.toContain('href="#/games/epic-quest/players"');
         expect(html).not.toContain('href="#/games/epic-quest/polls"');
         expect(html).not.toContain('href="#/games/epic-quest/sessions"');
+        expect(html).not.toContain('href="#/games/epic-quest/tasks"');
       });
 
       it('does not render the Players/Polls/Sessions items when gameAccess is absent', function() {
@@ -33,6 +34,7 @@ describe('HeaderHelper', function() {
         expect(html).not.toContain('href="#/games/epic-quest/players"');
         expect(html).not.toContain('href="#/games/epic-quest/polls"');
         expect(html).not.toContain('href="#/games/epic-quest/sessions"');
+        expect(html).not.toContain('href="#/games/epic-quest/tasks"');
       });
 
       [
@@ -48,6 +50,27 @@ describe('HeaderHelper', function() {
           expect(html).toContain('href="#/games/epic-quest/polls"');
           expect(html).toContain('href="#/games/epic-quest/sessions"');
         });
+      });
+
+      [
+        { role: 'is_dm', gameAccess: { is_dm: true, is_player: false, is_superuser: false, is_staff: false } },
+        { role: 'is_superuser', gameAccess: { is_dm: false, is_player: false, is_superuser: true, is_staff: false } },
+        { role: 'is_staff', gameAccess: { is_dm: false, is_player: false, is_superuser: false, is_staff: true } },
+      ].forEach(({ role, gameAccess }) => {
+        it(`renders the Tasks item when the user is ${role}`, function() {
+          const html = render({ route: { page: 'game', gameSlug: 'epic-quest' }, gameAccess });
+
+          expect(html).toContain('href="#/games/epic-quest/tasks"');
+        });
+      });
+
+      it('does not render the Tasks item when the user is a player only', function() {
+        const html = render({
+          route: { page: 'game', gameSlug: 'epic-quest' },
+          gameAccess: { is_dm: false, is_player: true, is_superuser: false, is_staff: false },
+        });
+
+        expect(html).not.toContain('href="#/games/epic-quest/tasks"');
       });
 
       it('does not render the game nav dropdown on unrelated routes', function() {
@@ -82,6 +105,7 @@ describe('HeaderHelper', function() {
           '#/games/epic-quest/players"',
           '#/games/epic-quest/polls"',
           '#/games/epic-quest/sessions"',
+          '#/games/epic-quest/tasks"',
           '#/games/epic-quest/photos"',
         ];
         const indexes = hrefs.map((href) => html.indexOf(`href="${href}`));

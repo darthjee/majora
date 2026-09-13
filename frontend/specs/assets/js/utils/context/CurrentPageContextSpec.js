@@ -83,5 +83,31 @@ describe('CurrentPageContext', function() {
         expect(CurrentPageContext.build({}).hasGameAccess).toBe(false);
       });
     });
+
+    describe('isDmOrAdmin', function() {
+      ['is_dm', 'is_superuser', 'is_staff'].forEach((field) => {
+        it(`is true when gameAccess.${field} is true`, function() {
+          const gameAccess = { is_dm: false, is_player: false, is_superuser: false, is_staff: false, [field]: true };
+
+          expect(CurrentPageContext.build({ gameAccess }).isDmOrAdmin).toBe(true);
+        });
+      });
+
+      it('is false when only gameAccess.is_player is true', function() {
+        const gameAccess = { is_dm: false, is_player: true, is_superuser: false, is_staff: false };
+
+        expect(CurrentPageContext.build({ gameAccess }).isDmOrAdmin).toBe(false);
+      });
+
+      it('is false when every gameAccess role flag is false', function() {
+        const gameAccess = { is_dm: false, is_player: false, is_superuser: false, is_staff: false };
+
+        expect(CurrentPageContext.build({ gameAccess }).isDmOrAdmin).toBe(false);
+      });
+
+      it('is false when gameAccess is absent', function() {
+        expect(CurrentPageContext.build({}).isDmOrAdmin).toBe(false);
+      });
+    });
   });
 });
