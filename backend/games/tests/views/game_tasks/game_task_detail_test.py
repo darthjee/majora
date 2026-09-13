@@ -90,6 +90,11 @@ class TestGameTaskDetailPatchView(TestCase):
         )
         assert response.status_code == 404
 
+    def test_get_returns_skip_cache_header(self):
+        """Test that the GET response includes the X-Skip-Cache: true header."""
+        response = self._get(self.client, token=self.dm_token)
+        assert response['X-Skip-Cache'] == 'true'
+
     def test_url_by_name_for_get(self):
         """Test that the view is accessible by URL name for GET."""
         url = reverse(
@@ -204,6 +209,13 @@ class TestGameTaskDetailPatchView(TestCase):
         assert response.status_code == 200
         self.task.refresh_from_db()
         assert self.task.game == self.game
+
+    def test_patch_returns_skip_cache_header(self):
+        """Test that the PATCH response includes the X-Skip-Cache: true header."""
+        response = self._patch(
+            self.client, {'short_description': 'New description'}, token=self.dm_token,
+        )
+        assert response['X-Skip-Cache'] == 'true'
 
     def test_url_by_name(self):
         """Test that the view is accessible by URL name."""

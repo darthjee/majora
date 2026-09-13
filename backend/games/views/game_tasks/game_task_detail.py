@@ -7,11 +7,13 @@ from rest_framework.response import Response
 
 from permissions import EndpointPermission
 
+from ...decorators import restricted
 from ...models import Game, Task
 from ...serializers import GameTaskListSerializer, GameTaskUpdateSerializer
 from ..common import validated_or_error
 
 
+@restricted
 @api_view(['GET', 'PATCH'])
 # AllowAny: authorisation is enforced inline below via EndpointPermission.check(),
 # since Task has no public read path (GET is gated the same as PATCH).
