@@ -14,4 +14,6 @@ COPY crawler/navi_config.web.yaml crawler/navi_config.yaml /home/node/app/config
 
 ENV NAVI_EXTENSIONS_ENABLED=true
 
+USER node
+
 CMD ["navi-hey", "--config", "/home/node/app/config/navi_config.web.yaml"]
