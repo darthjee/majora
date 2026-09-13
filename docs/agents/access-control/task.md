@@ -11,11 +11,9 @@ resource in this codebase where read access requires the same authorization as w
 |--------|---------|
 | List (`GET /games/<slug>/tasks.json`) | **TaskEdit** — paginated, ordered by `id` (creation order) |
 | Create (`POST /games/<slug>/tasks.json`) | Same as List |
+| Detail (`GET /games/<slug>/tasks/<id>.json`) | Same as List |
 | Update (`PATCH /games/<slug>/tasks/<id>.json`) | Same as List |
 | Delete | Superuser only, via Django admin — no `DELETE` endpoint |
-
-There is no standalone detail-`GET` endpoint — since every viewer of a task is already an editor
-(List already returns the full item shape), a separate detail read path adds nothing.
 
 ## Fields
 
