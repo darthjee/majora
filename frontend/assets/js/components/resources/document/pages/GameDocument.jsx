@@ -92,22 +92,28 @@ export default function GameDocument({ ControllerClass = GameDocumentController 
         onGiveDocumentClick: () => setShowGiveDocumentModal(true),
       })}
       <GameDocumentModals
-        showUploadModal={showUploadModal}
-        showFileUploadModal={showFileUploadModal}
-        showGiveDocumentModal={showGiveDocumentModal}
         document={document}
         gameSlug={gameSlug}
-        canGiveHidden={canGiveHidden}
         selectedPhoto={selectedPhoto}
-        uploadPath={uploadPath}
-        fileUploadPath={fileUploadPath}
-        buildFilePhotoUploadPath={buildFilePhotoUploadPath}
-        onUploadSuccess={buildUploadSuccessHandler(setShowUploadModal)}
-        onFileUploadSuccess={buildUploadSuccessHandler(setShowFileUploadModal)}
-        onUploadClose={() => setShowUploadModal(false)}
-        onFileUploadClose={() => setShowFileUploadModal(false)}
         onSelectPhoto={setSelectedPhoto}
-        onGiveDocumentClose={() => setShowGiveDocumentModal(false)}
+        uploadModal={{
+          show: showUploadModal,
+          path: uploadPath,
+          onSuccess: buildUploadSuccessHandler(setShowUploadModal),
+          onClose: () => setShowUploadModal(false),
+        }}
+        fileUploadModal={{
+          show: showFileUploadModal,
+          path: fileUploadPath,
+          buildFilePhotoUploadPath,
+          onSuccess: buildUploadSuccessHandler(setShowFileUploadModal),
+          onClose: () => setShowFileUploadModal(false),
+        }}
+        giveDocumentModal={{
+          show: showGiveDocumentModal,
+          canGiveHidden,
+          onClose: () => setShowGiveDocumentModal(false),
+        }}
       />
     </>
   );
