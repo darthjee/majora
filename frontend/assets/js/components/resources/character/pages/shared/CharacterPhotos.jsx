@@ -138,23 +138,31 @@ function buildCharacterPhotosHandlers({
  * modals for {@link CharacterPhotos}.
  *
  * @param {object} props - Component props.
- * @param {object} props.character - Currently loaded character context.
+ * @param {object} props.characterContext - `{character, gameSlug, characterId, characterKind}`,
+ *   the character's identity/scope.
+ * @param {object} props.characterContext.character - Currently loaded character context.
+ * @param {string} props.characterContext.gameSlug - Game slug the character belongs to.
+ * @param {string|number} props.characterContext.characterId - Character id.
+ * @param {string} props.characterContext.characterKind - Character kind URL segment (`'pcs'` or
+ *   `'npcs'`).
  * @param {string} props.alt - Alt text for the photos (the character's name).
- * @param {string} props.gameSlug - Game slug the character belongs to.
- * @param {string|number} props.characterId - Character id.
- * @param {string} props.characterKind - Character kind URL segment (`'pcs'` or `'npcs'`).
+ * @param {object} props.photoView - `{selectedPhoto, setSelectedPhoto}`, the photo view modal's
+ *   selection state.
+ * @param {object|null} props.photoView.selectedPhoto - Currently selected photo (photo view
+ *   modal).
+ * @param {Function} props.photoView.setSelectedPhoto - Raw `setSelectedPhoto` setter.
  * @param {object} props.uploadModal - `{showUploadModal, openUploadModal, closeUploadModal,
  *   handleUploadSuccess}`, the photo-upload modal's state and handlers.
  * @param {object} props.profilePhotoActions - `useProfilePhotoActions()` result.
  * @param {object} props.deleteFlow - `useDeletePhotoFlow()` result.
- * @param {object|null} props.selectedPhoto - Currently selected photo (photo view modal).
- * @param {Function} props.setSelectedPhoto - Raw `setSelectedPhoto` setter.
  * @returns {React.ReactElement} The photos page's modals.
  */
 function CharacterPhotosModals({
-  character, alt, gameSlug, characterId, characterKind, uploadModal, profilePhotoActions, deleteFlow,
-  selectedPhoto, setSelectedPhoto,
+  characterContext, alt, photoView, uploadModal, profilePhotoActions, deleteFlow,
 }) {
+  const { character, gameSlug, characterId, characterKind } = characterContext;
+  const { selectedPhoto, setSelectedPhoto } = photoView;
+
   return (
     <>
       <PhotoUploadModal
@@ -248,16 +256,14 @@ export default function CharacterPhotos({ ControllerClass, getParamsFromHash, Ph
         }, alt, character.photo_id, handlers,
       )}
       <CharacterPhotosModals
-        character={character}
+        characterContext={{
+          character, gameSlug, characterId, characterKind,
+        }}
         alt={alt}
-        gameSlug={gameSlug}
-        characterId={characterId}
-        characterKind={characterKind}
+        photoView={{ selectedPhoto, setSelectedPhoto }}
         uploadModal={uploadModal}
         profilePhotoActions={profilePhotoActions}
         deleteFlow={deleteFlow}
-        selectedPhoto={selectedPhoto}
-        setSelectedPhoto={setSelectedPhoto}
       />
     </>
   );
