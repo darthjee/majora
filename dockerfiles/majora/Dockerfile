@@ -1,5 +1,5 @@
 FROM darthjee/scripts:0.8.0 as scripts
-FROM darthjee/majora-base:latest as base
+FROM darthjee/majora-base:0.1.0 as base
 
 COPY --chown=app:app \
   ./backend/pyproject.toml ./backend/poetry.lock* \

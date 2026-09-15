@@ -1,5 +1,5 @@
 FROM darthjee/scripts:0.8.0 as scripts
-FROM darthjee/production_majora-base:latest as base
+FROM darthjee/production_majora-base:0.1.0 as base
 
 ######################################
 
