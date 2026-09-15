@@ -2,7 +2,7 @@ FROM darthjee/scripts:0.8.0 as scripts
 FROM darthjee/circleci_django:0.1.0 as base
 
 USER root
-RUN apt-get update && apt-get install -y rsync && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends rsync=3.2.7-0ubuntu0.22.04.7 && rm -rf /var/lib/apt/lists/*
 USER circleci
 
 ######################################

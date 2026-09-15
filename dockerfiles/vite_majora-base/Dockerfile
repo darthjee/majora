@@ -2,7 +2,7 @@ FROM darthjee/scripts:0.8.0 as scripts
 FROM darthjee/node:0.2.1 as base
 
 USER root
-RUN apt-get update && apt-get install -y rsync && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends rsync=3.2.7-1+deb12u6 && rm -rf /var/lib/apt/lists/*
 USER node
 
 COPY --chown=node:node \
