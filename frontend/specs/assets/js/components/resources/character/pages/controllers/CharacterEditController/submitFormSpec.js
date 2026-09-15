@@ -6,21 +6,24 @@ import { KINDS } from './support.js';
  * submits the built fields payload" scenario, threading through the per-kind field values and
  * a single-link array.
  *
- * @param {object} params - Per-kind field values.
- * @param {string} params.name - Character name.
- * @param {string} params.role - Character role.
- * @param {string} params.description - Public description.
- * @param {string} params.privateAllegiance - Private allegiance.
- * @param {string} params.publicAllegiance - Public allegiance.
- * @param {boolean} params.publicSlain - Public slain flag.
- * @param {boolean} params.hidden - Hidden flag.
- * @param {boolean} params.incognito - Incognito flag.
+ * @param {object} params - Builder params.
+ * @param {object} params.characterFields - Per-kind field values.
+ * @param {string} params.characterFields.name - Character name.
+ * @param {string} params.characterFields.role - Character role.
+ * @param {string} params.characterFields.description - Public description.
+ * @param {string} params.characterFields.privateAllegiance - Private allegiance.
+ * @param {string} params.characterFields.publicAllegiance - Public allegiance.
+ * @param {boolean} params.characterFields.publicSlain - Public slain flag.
+ * @param {boolean} params.characterFields.hidden - Hidden flag.
+ * @param {boolean} params.characterFields.incognito - Incognito flag.
  * @param {object[]} params.links - Links array.
  * @returns {object} `submitForm`'s `fields` argument.
  */
-function buildSubmitFields({
-  name, role, description, privateAllegiance, publicAllegiance, publicSlain, hidden, incognito, links,
-}) {
+function buildSubmitFields({ characterFields, links }) {
+  const {
+    name, role, description, privateAllegiance, publicAllegiance, publicSlain, hidden, incognito,
+  } = characterFields;
+
   return {
     name,
     role,
@@ -40,22 +43,25 @@ function buildSubmitFields({
  * Builds the expected `RequestStore.mutate` `body` for the same scenario as
  * {@link buildSubmitFields}, including the NPC-only fields when `kind === 'npcs'`.
  *
- * @param {object} params - Per-kind field values.
+ * @param {object} params - Builder params.
  * @param {string} params.kind - Character kind (`'pcs'` or `'npcs'`).
- * @param {string} params.name - Character name.
- * @param {string} params.role - Character role.
- * @param {string} params.description - Public description.
+ * @param {object} params.characterFields - Per-kind field values.
+ * @param {string} params.characterFields.name - Character name.
+ * @param {string} params.characterFields.role - Character role.
+ * @param {string} params.characterFields.description - Public description.
+ * @param {string} params.characterFields.privateAllegiance - Private allegiance.
+ * @param {string} params.characterFields.publicAllegiance - Public allegiance.
+ * @param {boolean} params.characterFields.publicSlain - Public slain flag.
+ * @param {boolean} params.characterFields.hidden - Hidden flag.
+ * @param {boolean} params.characterFields.incognito - Incognito flag.
  * @param {object[]} params.links - Expected (delete-normalized) links array.
- * @param {string} params.privateAllegiance - Private allegiance.
- * @param {string} params.publicAllegiance - Public allegiance.
- * @param {boolean} params.publicSlain - Public slain flag.
- * @param {boolean} params.hidden - Hidden flag.
- * @param {boolean} params.incognito - Incognito flag.
  * @returns {object} Expected `RequestStore.mutate` call's `body`.
  */
-function buildExpectedFields({
-  kind, name, role, description, links, privateAllegiance, publicAllegiance, publicSlain, hidden, incognito,
-}) {
+function buildExpectedFields({ kind, characterFields, links }) {
+  const {
+    name, role, description, privateAllegiance, publicAllegiance, publicSlain, hidden, incognito,
+  } = characterFields;
+
   const expectedFields = {
     name,
     role,
@@ -115,11 +121,13 @@ KINDS.forEach(({
       try {
         const links = [{ id: 5, text: 'Wiki', url: 'https://example.com/wiki', link_type: '' }];
 
+        const characterFields = {
+          name, role, description, privateAllegiance, publicAllegiance, publicSlain, hidden, incognito,
+        };
+
         await controller.submitForm(
           event, 'demo', '2',
-          buildSubmitFields({
-            name, role, description, privateAllegiance, publicAllegiance, publicSlain, hidden, incognito, links,
-          }),
+          buildSubmitFields({ characterFields, links }),
           { setStatus, setFieldErrors },
         );
 
@@ -130,10 +138,7 @@ KINDS.forEach(({
         const expectedLinks = [{
           id: 5, text: 'Wiki', url: 'https://example.com/wiki', link_type: '', delete: false,
         }];
-        const expectedFields = buildExpectedFields({
-          kind, name, role, description, links: expectedLinks, privateAllegiance, publicAllegiance, publicSlain,
-          hidden, incognito,
-        });
+        const expectedFields = buildExpectedFields({ kind, characterFields, links: expectedLinks });
 
         expect(RequestStore.mutate).toHaveBeenCalledWith({
           componentName: 'BaseCharacterEditController',
