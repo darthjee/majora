@@ -4,15 +4,19 @@ import RequestStore from '../../../../../../../../../assets/js/utils/requests/Re
 import { buildSource, buildCollection } from '../../../../../../../../support/factories.js';
 
 function buildController(overrides = {}) {
+  const {
+    setName = jasmine.createSpy('setName'),
+    setType = jasmine.createSpy('setType'),
+    setSize = jasmine.createSpy('setSize'),
+    setRaces = jasmine.createSpy('setRaces'),
+    setRoles = jasmine.createSpy('setRoles'),
+    setSources = jasmine.createSpy('setSources'),
+    setCollections = jasmine.createSpy('setCollections'),
+    setTags = jasmine.createSpy('setTags'),
+  } = overrides;
+
   return new StlModelFiltersController(
-    overrides.setName ?? jasmine.createSpy('setName'),
-    overrides.setType ?? jasmine.createSpy('setType'),
-    overrides.setSize ?? jasmine.createSpy('setSize'),
-    overrides.setRaces ?? jasmine.createSpy('setRaces'),
-    overrides.setRoles ?? jasmine.createSpy('setRoles'),
-    overrides.setSources ?? jasmine.createSpy('setSources'),
-    overrides.setCollections ?? jasmine.createSpy('setCollections'),
-    overrides.setTags ?? jasmine.createSpy('setTags'),
+    setName, setType, setSize, setRaces, setRoles, setSources, setCollections, setTags,
   );
 }
 
