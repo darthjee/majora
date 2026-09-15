@@ -50,6 +50,7 @@ class SetClientIpMiddleware extends Middleware
      * @param array $attributes Unused; present to satisfy the base
      *                          Middleware::build() contract.
      * @return SetClientIpMiddleware The constructed middleware instance.
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public static function build(array $attributes): SetClientIpMiddleware
     {
@@ -64,6 +65,7 @@ class SetClientIpMiddleware extends Middleware
      * @param ProcessingRequest $request The request to process.
      * @return ProcessingRequest The request, with a single, trustworthy
      *                            `X-Forwarded-For` header set.
+     * @SuppressWarnings(PHPMD.Superglobals)
      */
     public function processRequest(ProcessingRequest $request): ProcessingRequest
     {
