@@ -155,7 +155,6 @@ class UploadContentValidator
         }
 
         $mimeType = finfo_file($finfo, $tmpName);
-        finfo_close($finfo);
 
         return ($mimeType === false ? null : $mimeType);
     }
