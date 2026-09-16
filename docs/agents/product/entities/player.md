@@ -13,7 +13,7 @@ MySQL, this project's database, doesn't support Django's conditional unique cons
 a plain constraint already suffices here, since MySQL's standard unique-index semantics
 already treat every `NULL` as distinct, so any number of NPCs/unowned PCs sharing
 `player=None` remain unaffected. A Player's `is_dm` flag marks them as that game's
-DM/GameMaster — see [GameMaster Role](#gamemaster-role) below.
+DM/GameMaster — see [GameMaster Role](ownership-and-roles.md#gamemaster-role) below.
 
 A game's full roster (its DM(s) and players, alongside each player's owned PC and linked
 `User`, if any) is exposed via `GET /games/:game_slug/players.json` — see
