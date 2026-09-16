@@ -45,9 +45,9 @@ make setup
 
 Backend runs on port `3030`, frontend dev server on `3010`, full stack proxy on `3000`.
 
-**Always run project commands through `docker-compose`.** (unless the user says otherwise).
-Never install packages or invoke tooling (`yarn`, `npm`, `poetry`, `pip`, `php`, etc.) directly on the host machine (unless the users says otherwise).
-the host may not even have the required runtime installed, and dependencies must stay reproducible inside the project's containers. Examples:
+**Always run project commands through `docker-compose`**, unless the user explicitly asks for a command to be run directly on the host machine.
+Never install packages or invoke tooling (`yarn`, `npm`, `poetry`, `pip`, `php`, etc.) directly on the host machine, unless the user explicitly asks for it.
+This keeps dependencies reproducible inside the project's containers — the host machine may not even have the required runtime installed. Examples:
 
 ```bash
 docker-compose run --rm majora_fe yarn lint
@@ -61,7 +61,7 @@ the `crawler_extension_tests` CI job.
 
 ## Conventions
 
-- All documentation and code comments must be written in **English**.
+- All documentation and code comments must be written in **English**, except for literal non-English user-facing strings (e.g. translation values under `frontend/assets/i18n/`), which are quoted as-is.
 - Backend code lives in `backend/`, frontend in `frontend/`.
 - Django apps are organized under `backend/` (e.g. `backend/games/`).
 - Frontend JS/JSX lives under `frontend/assets/js/`, specs under `frontend/specs/`.
