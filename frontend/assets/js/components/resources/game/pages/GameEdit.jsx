@@ -5,21 +5,7 @@ import GameHelper from './helpers/GameHelper.jsx';
 import GameEditModals from './elements/GameEditModals.jsx';
 import getCurrentHash from '../../../../utils/routing/currentHash.js';
 import useFormState from '../../../../utils/useFormState.js';
-
-/**
- * Whether the current user may reach the game edit page (full editor, any player of the game, or
- * any Staff account), matching the same `canReachEditPage` shape already used by the character
- * edit page (issue #891).
- *
- * @param {object} game - Loaded game data object.
- * @param {boolean} [game.can_edit] - Whether the current user is a full (dm/admin) editor.
- * @param {boolean} [game.is_player] - Whether the current user is a player of the game.
- * @param {boolean} [game.is_staff] - Whether the current user is a Staff account.
- * @returns {boolean} Whether the edit page is reachable for this game/user pair.
- */
-function canReachEditPage(game) {
-  return Boolean(game.can_edit || game.is_player || game.is_staff);
-}
+import useSyncGameFields from './hooks/useSyncGameFields.js';
 
 /**
  * Game edit page.
@@ -51,21 +37,7 @@ export default function GameEdit({ ControllerClass = GameEditController }) {
 
   useEffect(() => controller.buildEffect()(), [controller]);
 
-  useEffect(() => {
-    if (!game) return;
-
-    if (!canReachEditPage(game)) {
-      if (typeof window !== 'undefined') {
-        window.location.hash = `/games/${gameSlug}`;
-      }
-      return;
-    }
-
-    setField('name', game.name ?? '');
-    setField('description', game.description ?? '');
-    setLinks(game.links ?? []);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [game]);
+  useSyncGameFields(game, gameSlug, setField, setLinks);
 
   const handleUploadSuccess = () => {
     setShowUploadModal(false);
