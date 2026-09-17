@@ -96,8 +96,8 @@ function buildNpcSecondaryButtons(character, context) {
  * @param {{canEdit: boolean, isPlayer?: boolean, onUploadClick: Function, onSlainClick: Function,
  *   onPublicSlainClick: Function, onPlayerSlainClick?: Function}} context - Rendering context
  *   assembled by `ListPage`/`GameNpcs`.
- * @returns {{canEdit: boolean, onClick: Function, grayscale: boolean, dimmed: boolean,
- *   secondaryButtons: object[]}} Action-bar props for `ActionsOverlay`.
+ * @returns {{canEdit: boolean, onClick: Function, photoState: {grayscale: boolean,
+ *   dimmed: boolean}, secondaryButtons: object[]}} Action-bar props for `ActionsOverlay`.
  */
 function buildNpcActionBarProps(item, context) {
   const character = item.data;
@@ -105,8 +105,10 @@ function buildNpcActionBarProps(item, context) {
   return {
     canEdit: Boolean(context.canEdit) || Boolean(context.isPlayer),
     onClick: () => context.onUploadClick(character),
-    grayscale: Boolean(item.slain),
-    dimmed: Boolean(character.hidden),
+    photoState: {
+      grayscale: Boolean(item.slain),
+      dimmed: Boolean(character.hidden),
+    },
     secondaryButtons: buildNpcSecondaryButtons(character, context),
   };
 }

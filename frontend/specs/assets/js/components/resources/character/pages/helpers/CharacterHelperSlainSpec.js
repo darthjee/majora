@@ -48,7 +48,7 @@ describe('CharacterHelper slain/revive rendering', function() {
       const element = CharacterHelper.render(c, '#/games/demo/npcs');
       const overlay = findElement(element, (child) => child.type === ActionsOverlay);
 
-      expect(overlay.props.grayscale).toBe(true);
+      expect(overlay.props.photoState.grayscale).toBe(true);
     });
 
     it('does not pass grayscale to the overlay when the character is not slain', function() {
@@ -56,7 +56,7 @@ describe('CharacterHelper slain/revive rendering', function() {
       const element = CharacterHelper.render(c, '#/games/demo/npcs');
       const overlay = findElement(element, (child) => child.type === ActionsOverlay);
 
-      expect(overlay.props.grayscale).toBe(false);
+      expect(overlay.props.photoState.grayscale).toBe(false);
     });
 
     it('renders the real Mark as Slain button icon for an NPC with edit rights', function() {

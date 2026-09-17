@@ -55,7 +55,7 @@ function DocumentPhotoEdit({
       alt={name}
       canEdit
       onClick={handlers.onOpenUploadModal}
-      dimmed={hidden}
+      photoState={{ dimmed: hidden }}
     />
   );
 }
@@ -82,7 +82,7 @@ function DocumentPhotoNew({
       alt={name}
       canEdit
       onClick={handlers.onOpenUploadModal}
-      dimmed={hidden}
+      photoState={{ dimmed: hidden }}
     />
   );
 }

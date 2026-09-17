@@ -45,8 +45,10 @@ export default class CharacterAvatarHelper {
         alt={character.name}
         canEdit={character.can_edit || character.is_player || character.is_staff}
         onClick={handlers.onOpenUploadModal}
-        grayscale={resolveCharacterSlain(character)}
-        dimmed={!character.is_pc && Boolean(character.hidden)}
+        photoState={{
+          grayscale: resolveCharacterSlain(character),
+          dimmed: !character.is_pc && Boolean(character.hidden),
+        }}
         overlayItems={{
           secondaryButtons: CharacterAvatarHelper.#buildSecondaryButtons(character, handlers),
           infoBarItems: InfoBarRules.build(character),

@@ -45,8 +45,9 @@ const PHOTO_COMPONENTS = {
  * @param {string} props.alt - Alt text for the image.
  * @param {boolean} [props.canEdit] - Whether the current user may upload a new photo.
  * @param {Function} props.onClick - Handler invoked when the upload button is clicked.
- * @param {boolean} [props.grayscale] - Whether to render the photo in grayscale.
- * @param {boolean} [props.dimmed] - Whether to render the photo with reduced opacity
+ * @param {object} [props.photoState] - Optional visual-state flags for the underlying photo.
+ * @param {boolean} [props.photoState.grayscale] - Whether to render the photo in grayscale.
+ * @param {boolean} [props.photoState.dimmed] - Whether to render the photo with reduced opacity
  *   (e.g. a hidden NPC).
  * @param {object} [props.overlayItems] - Optional overlay content groups.
  * @param {{label: string, variant: string, icon: string, onClick: Function}[]} [props.overlayItems.secondaryButtons] -
@@ -60,8 +61,9 @@ const PHOTO_COMPONENTS = {
  * @returns {React.ReactElement} Rendered photo/avatar with optional upload/secondary overlay buttons.
  */
 export default function ActionsOverlay({
-  type, url, alt, canEdit, onClick, grayscale = false, dimmed = false, overlayItems = {}, photoClassName,
+  type, url, alt, canEdit, onClick, photoState = {}, overlayItems = {}, photoClassName,
 }) {
+  const { grayscale = false, dimmed = false } = photoState;
   const { secondaryButtons = [], infoBarItems = [] } = overlayItems;
   const Photo = PHOTO_COMPONENTS[type] || CardPhoto;
   const className = `actions-overlay${grayscale ? ' photo-grayscale' : ''}${dimmed ? ' photo-hidden' : ''}`;
