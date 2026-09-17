@@ -1,12 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import HeaderController from './controllers/HeaderController.js';
-import HeaderViewAsController from './controllers/HeaderViewAsController.js';
-import HeaderGameAccessController from './controllers/HeaderGameAccessController.js';
 import HeaderHelper from './helpers/HeaderHelper.jsx';
 import PendingApprovalPage from './PendingApprovalPage.jsx';
 import AccessStore from '../../../utils/access/store/AccessStore.js';
 import useHeaderAuthEffect from './hooks/useHeaderAuthEffect.js';
 import useDomainConfigEffect from './hooks/useDomainConfigEffect.js';
+import useHeaderControllers from './hooks/useHeaderControllers.js';
 
 /**
  * Pre-fetch domain configuration, rendered until `HeaderController#fetchDomainConfig`
@@ -40,34 +39,24 @@ export default function Header({ children }) {
   const [pendingApproval, setPendingApproval] = useState(false);
   const [domainConfig, setDomainConfig] = useState(DEFAULT_DOMAIN_CONFIG);
 
-  const controller = new HeaderController(
+  const { controller, viewAsController } = useHeaderControllers({
     setLoggedIn,
     setShowModal,
     setTestEmailStatus,
     setIsSuperUser,
-    undefined,
     setIsStaff,
     setRoute,
-    undefined,
-    undefined,
     setPendingApproval,
-    undefined,
-    setDomainConfig
-  );
-  const viewAsController = new HeaderViewAsController(setCanViewAs, setShowViewAsModal);
-  const gameAccessController = new HeaderGameAccessController(setGameAccess);
+    setDomainConfig,
+    setCanViewAs,
+    setShowViewAsModal,
+    setGameAccess,
+    gameSlug: route.gameSlug,
+  });
 
   useHeaderAuthEffect({
     controller, viewAsController, setFacadeEnabled, loggedIn,
   });
-
-  useEffect(() => gameAccessController.buildEffect(route.gameSlug)(),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [route.gameSlug]);
-
-  useEffect(() => { controller.fetchDomainConfig(); },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []);
 
   useDomainConfigEffect(domainConfig);
 
