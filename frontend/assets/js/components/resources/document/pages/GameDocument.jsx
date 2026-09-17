@@ -3,7 +3,6 @@ import DocumentDetailHelper from './helpers/DocumentDetailHelper.jsx';
 import GameDocumentController from './controllers/GameDocumentController.js';
 import GameDocumentModals from './elements/GameDocumentModals.jsx';
 import RequestStore from '../../../../utils/requests/RequestStore.js';
-import resourceConfig from '../../../../utils/requests/resourceConfig.js';
 import FacadeRefresh from '../../../../utils/access/useFacadeRefresh.js';
 import getCurrentHash from '../../../../utils/routing/currentHash.js';
 
@@ -76,12 +75,9 @@ export default function GameDocument({ ControllerClass = GameDocumentController 
   if (loading) return DocumentDetailHelper.renderLoading();
   if (error) return DocumentDetailHelper.renderError(error);
 
-  const editHref = `#/games/${gameSlug}/documents/${document?.id}/edit`;
-  const uploadPath = resourceConfig.get('POST', 'document', 'single').regular.path({ gameSlug, id: document?.id });
-  const fileUploadPath = resourceConfig.get('POST', 'document', 'file').regular.path({ gameSlug, id: document?.id });
-  const buildFilePhotoUploadPath = (fileId) => resourceConfig.get('POST', 'document', 'filePhoto').regular.path({
-    gameSlug, id: document?.id, fileId,
-  });
+  const {
+    editHref, uploadPath, fileUploadPath, buildFilePhotoUploadPath,
+  } = GameDocumentController.buildPaths(gameSlug, document);
 
   return (
     <>
