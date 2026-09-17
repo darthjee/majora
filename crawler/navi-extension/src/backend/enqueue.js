@@ -34,73 +34,82 @@ const LOOTSTUDIOS_HEADERS = {
 
 const NAVI_BASE_URL = 'http://localhost:3000';
 
+// Builds the bundle pass of the per-collection resource (bundle pass ->
+// Collection), narrowed to the resolved slug.
+function buildCollectionResource (slug) {
+  return {
+    url: '/wp-admin/admin-ajax.php?action=GetMyLootsCache',
+    status: 200,
+    client: 'lootstudios',
+    parser: {
+      type: 'json_path',
+      match: 'bundleObjs',
+      filter: [
+        { field: 'obj_type', equals: 'bundle' },
+        { field: 'obj_slug', equals: slug },
+      ],
+      fields: {
+        obj_inid: 'external_id',
+        obj_title: 'name',
+        obj_slug: 'slug',
+      },
+    },
+    emit: {
+      client: 'majora_api',
+      method: 'POST',
+      url: '/miniatures/collections/import.json',
+      status: 200,
+      body_template: {
+        name: '{:name}',
+        external_id: '{:external_id}',
+        url: 'https://app.lootstudios.com/bundle/{:slug}/',
+        source_name: 'Lootstudios',
+      },
+    },
+  };
+}
+
+// Builds the miniature pass of the per-collection resource (miniature pass
+// -> StlModels), narrowed to the resolved bundle obj_inid.
+function buildStlModelResource (bundleInid) {
+  return {
+    url: '/wp-admin/admin-ajax.php?action=GetMyLootsCache',
+    status: 200,
+    client: 'lootstudios',
+    parser: {
+      type: 'json_path',
+      match: 'bundleObjs',
+      filter: [
+        { field: 'obj_type', equals: 'miniature' },
+        { field: 'bnd_inid', equals: bundleInid },
+      ],
+      fields: {
+        obj_inid: 'external_id',
+        obj_title: 'name',
+        bnd_inid: 'collection_external_id',
+      },
+    },
+    emit: {
+      client: 'majora_api',
+      method: 'POST',
+      url: '/miniatures/stl_models/import.json',
+      status: 200,
+      body_template: {
+        name: '{:name}',
+        external_id: '{:external_id}',
+        source_name: 'Lootstudios',
+        collection_external_id: '{:collection_external_id}',
+      },
+    },
+  };
+}
+
 // Builds the per-collection two-pass resource (bundle pass -> Collection,
 // miniature pass -> StlModels), narrowed to the resolved slug/obj_inid, per
 // docs/agents/specs/loot-crawling/interactive-collection-enqueue.md's
 // "Per-collection resource shape".
 function buildResource (slug, bundleInid) {
-  return [
-    {
-      url: '/wp-admin/admin-ajax.php?action=GetMyLootsCache',
-      status: 200,
-      client: 'lootstudios',
-      parser: {
-        type: 'json_path',
-        match: 'bundleObjs',
-        filter: [
-          { field: 'obj_type', equals: 'bundle' },
-          { field: 'obj_slug', equals: slug },
-        ],
-        fields: {
-          obj_inid: 'external_id',
-          obj_title: 'name',
-          obj_slug: 'slug',
-        },
-      },
-      emit: {
-        client: 'majora_api',
-        method: 'POST',
-        url: '/miniatures/collections/import.json',
-        status: 200,
-        body_template: {
-          name: '{:name}',
-          external_id: '{:external_id}',
-          url: 'https://app.lootstudios.com/bundle/{:slug}/',
-          source_name: 'Lootstudios',
-        },
-      },
-    },
-    {
-      url: '/wp-admin/admin-ajax.php?action=GetMyLootsCache',
-      status: 200,
-      client: 'lootstudios',
-      parser: {
-        type: 'json_path',
-        match: 'bundleObjs',
-        filter: [
-          { field: 'obj_type', equals: 'miniature' },
-          { field: 'bnd_inid', equals: bundleInid },
-        ],
-        fields: {
-          obj_inid: 'external_id',
-          obj_title: 'name',
-          bnd_inid: 'collection_external_id',
-        },
-      },
-      emit: {
-        client: 'majora_api',
-        method: 'POST',
-        url: '/miniatures/stl_models/import.json',
-        status: 200,
-        body_template: {
-          name: '{:name}',
-          external_id: '{:external_id}',
-          source_name: 'Lootstudios',
-          collection_external_id: '{:collection_external_id}',
-        },
-      },
-    },
-  ];
+  return [buildCollectionResource(slug), buildStlModelResource(bundleInid)];
 }
 
 // Posts to a Navi `/api/*` endpoint, attaching the same
