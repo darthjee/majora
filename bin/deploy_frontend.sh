@@ -20,7 +20,7 @@ function run_build() {
 }
 
 function run_generate_ssh_key_file() {
-    echo "$SSH_PRIVATE_KEY" | sed -e "s/\\\n/\n/g" > "$SSH_KEY_FILE_PATH"
+    printf '%s\n' "${SSH_PRIVATE_KEY//\\n/$'\n'}" > "$SSH_KEY_FILE_PATH"
     chmod 600 "$SSH_KEY_FILE_PATH"
 }
 
