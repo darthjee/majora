@@ -6,6 +6,7 @@ import BasePageController from '../../../common/base/controllers/BasePageControl
 import Noop from '../../../../utils/Noop.js';
 import getCurrentHash from '../../../../utils/routing/currentHash.js';
 import useFormState from '../../../../utils/useFormState.js';
+import usePhotoPreviewUrl from '../../../../utils/usePhotoPreviewUrl.js';
 
 /**
  * Game-level common item creation page (issue #826): creates a bare `GameCommonItem` with no
@@ -36,16 +37,7 @@ export default function GameCommonItemNew() {
 
   useEffect(() => controller.buildEffect()(), [controller]);
 
-  const photoPreviewUrl = useMemo(
-    () => (photoFile ? URL.createObjectURL(photoFile) : null),
-    [photoFile],
-  );
-
-  useEffect(() => () => {
-    if (photoPreviewUrl) {
-      URL.revokeObjectURL(photoPreviewUrl);
-    }
-  }, [photoPreviewUrl]);
+  const photoPreviewUrl = usePhotoPreviewUrl(photoFile);
 
   const handleSubmit = (event) => controller.submitForm(
     event,
@@ -67,6 +59,16 @@ export default function GameCommonItemNew() {
     if (typeof window !== 'undefined') {
       window.location.hash = `/games/${gameSlug}/common_items`;
     }
+  };
+
+  const handlePhotoConfirmed = (file) => {
+    setPhotoFile(file);
+    setShowUploadModal(false);
+  };
+
+  const handlePriceConfirm = (newTotal) => {
+    setField('price', String(newTotal));
+    setShowPriceModal(false);
   };
 
   return (
@@ -91,16 +93,10 @@ export default function GameCommonItemNew() {
         showUploadModal={showUploadModal}
         showPriceModal={showPriceModal}
         price={fields.price}
-        onFileConfirmed={(file) => {
-          setPhotoFile(file);
-          setShowUploadModal(false);
-        }}
+        onFileConfirmed={handlePhotoConfirmed}
         onUploadClose={() => setShowUploadModal(false)}
         onPriceClose={() => setShowPriceModal(false)}
-        onPriceConfirm={(newTotal) => {
-          setField('price', String(newTotal));
-          setShowPriceModal(false);
-        }}
+        onPriceConfirm={handlePriceConfirm}
       />
     </>
   );

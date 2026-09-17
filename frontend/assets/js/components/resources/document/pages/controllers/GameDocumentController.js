@@ -1,6 +1,7 @@
 import GenericClient from '../../../../../client/GenericClient.js';
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
 import RequestStore from '../../../../../utils/requests/RequestStore.js';
+import resourceConfig from '../../../../../utils/requests/resourceConfig.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 
 /**
@@ -33,6 +34,32 @@ export default class GameDocumentController extends BasePageController {
     return BasePageController.extractParams(
       '/games/:game_slug/documents/:id', hash, ['game_slug', 'id'],
     );
+  }
+
+  /**
+   * Builds the edit link and upload paths derived from the current game/document pair, mirroring
+   * `getParamsFromHash`'s "static route-derivation helper" shape.
+   *
+   * @param {string} gameSlug - Current game's slug.
+   * @param {object} document - Loaded document data object, or `null` while still loading.
+   * @param {(number|string)} [document.id] - Document id.
+   * @returns {{editHref: string, uploadPath: string, fileUploadPath: string,
+   *   buildFilePhotoUploadPath: Function}} `editHref` — link to the document's edit page;
+   *   `uploadPath` — the document photo upload endpoint's path; `fileUploadPath` — the document
+   *   file upload endpoint's path; `buildFilePhotoUploadPath(fileId)` — builds the chained
+   *   file-photo upload endpoint's path for a newly created file id.
+   */
+  static buildPaths(gameSlug, document) {
+    const editHref = `#/games/${gameSlug}/documents/${document?.id}/edit`;
+    const uploadPath = resourceConfig.get('POST', 'document', 'single').regular.path({ gameSlug, id: document?.id });
+    const fileUploadPath = resourceConfig.get('POST', 'document', 'file').regular.path({ gameSlug, id: document?.id });
+    const buildFilePhotoUploadPath = (fileId) => resourceConfig.get('POST', 'document', 'filePhoto').regular.path({
+      gameSlug, id: document?.id, fileId,
+    });
+
+    return {
+      editHref, uploadPath, fileUploadPath, buildFilePhotoUploadPath,
+    };
   }
 
   /**

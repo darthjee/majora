@@ -4,6 +4,7 @@ import GameCommonItemEditController from './controllers/GameCommonItemEditContro
 import GameCommonItemEditModals from './elements/GameCommonItemEditModals.jsx';
 import getCurrentHash from '../../../../utils/routing/currentHash.js';
 import useFormState from '../../../../utils/useFormState.js';
+import useApplyLoadedCommonItem from './hooks/useApplyLoadedCommonItem.js';
 
 /**
  * Game common item edit page (issue #826): loads a `GameCommonItem` via
@@ -49,16 +50,7 @@ export default function GameCommonItemEdit({ ControllerClass = GameCommonItemEdi
 
   useEffect(() => controller.buildEffect()(), [controller]);
 
-  useEffect(() => {
-    controller.applyLoadedItem(commonItem, {
-      setName: (value) => setField('name', value),
-      setDescription: (value) => setField('description', value),
-      setPrice: (value) => setField('price', value),
-      setCategory: (value) => setField('category', value),
-      setHidden: (value) => setField('hidden', value),
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [commonItem]);
+  useApplyLoadedCommonItem(controller, commonItem, setField);
 
   const handleSubmit = (event) => controller.submitForm(
     event, gameSlug, commonItemId, fields, { setStatus, setFieldErrors },

@@ -4,6 +4,8 @@ import StlModelNewHelper from './helpers/StlModelNewHelper.jsx';
 import StlModelNewModals from './elements/StlModelNewModals.jsx';
 import Noop from '../../../../utils/Noop.js';
 import useFormState from '../../../../utils/useFormState.js';
+import usePhotoPreviewUrl from '../../../../utils/usePhotoPreviewUrl.js';
+import useTagsField from './hooks/useTagsField.js';
 import { TYPE_VALUES } from '../stlModelEnums.js';
 
 /**
@@ -45,7 +47,6 @@ export function buildTagsAfterAdd(tags, tagInput) {
 export default function StlModelNew() {
   const [fieldErrors, setFieldErrors] = useState({});
   const [status, setStatus] = useState('idle');
-  const [tagInput, setTagInput] = useState('');
   const [sources, setSources] = useState([]);
   const [collections, setCollections] = useState([]);
   const [photoFile, setPhotoFile] = useState(null);
@@ -62,31 +63,19 @@ export default function StlModelNew() {
     [],
   );
 
-  const photoPreviewUrl = useMemo(
-    () => (photoFile ? URL.createObjectURL(photoFile) : null),
-    [photoFile],
-  );
+  const photoPreviewUrl = usePhotoPreviewUrl(photoFile);
+
+  const {
+    tagInput, onTagInputChange, handleAddTag, handleRemoveTag,
+  } = useTagsField(fields.tags, setField);
 
   useEffect(() => controller.buildEffect()(), [controller]);
-
-  useEffect(() => () => {
-    if (photoPreviewUrl) {
-      URL.revokeObjectURL(photoPreviewUrl);
-    }
-  }, [photoPreviewUrl]);
 
   const handleSubmit = (event) => controller.submitForm(
     event,
     { ...fields, sources, collections, photoFile },
     { setStatus, setFieldErrors, setCreatedId },
   );
-
-  const handleAddTag = () => {
-    setField('tags', buildTagsAfterAdd(fields.tags, tagInput));
-    setTagInput('');
-  };
-
-  const handleRemoveTag = (tag) => setField('tags', fields.tags.filter((t) => t !== tag));
 
   const handleRetryPhotoUpload = () => controller.retryPhotoUpload(
     createdId,
@@ -115,7 +104,7 @@ export default function StlModelNew() {
           onRolesChange: (roles) => setField('roles', roles),
           onUrlChange: handleChange('url'),
           onSizeChange: handleChange('size'),
-          onTagInputChange: (event) => setTagInput(event.target.value),
+          onTagInputChange,
           onAddTag: handleAddTag,
           onRemoveTag: handleRemoveTag,
           onSourcesChange: setSources,
