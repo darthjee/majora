@@ -112,7 +112,7 @@ describe('ActionsOverlay', function() {
         alt: 'Epic Quest',
         canEdit: true,
         onClick: Noop.noop,
-        grayscale: true,
+        photoState: { grayscale: true },
       })
     );
 
@@ -139,7 +139,7 @@ describe('ActionsOverlay', function() {
         alt: 'Epic Quest',
         canEdit: true,
         onClick: Noop.noop,
-        dimmed: true,
+        photoState: { dimmed: true },
       })
     );
 
@@ -153,8 +153,7 @@ describe('ActionsOverlay', function() {
         alt: 'Epic Quest',
         canEdit: true,
         onClick: Noop.noop,
-        grayscale: true,
-        dimmed: true,
+        photoState: { grayscale: true, dimmed: true },
       })
     );
 

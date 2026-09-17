@@ -61,11 +61,11 @@ describe('PossessionPhoto', function() {
     });
 
     it('dims the photo when hidden is true', function() {
-      expect(PossessionPhoto.Edit(buildProps({ hidden: true })).props.dimmed).toBe(true);
+      expect(PossessionPhoto.Edit(buildProps({ hidden: true })).props.photoState.dimmed).toBe(true);
     });
 
     it('does not dim the photo when hidden is false', function() {
-      expect(PossessionPhoto.Edit(buildProps({ hidden: false })).props.dimmed).toBe(false);
+      expect(PossessionPhoto.Edit(buildProps({ hidden: false })).props.photoState.dimmed).toBe(false);
     });
 
     it('wires the upload click handler to handlers.onOpenUploadModal', function() {
@@ -90,11 +90,11 @@ describe('PossessionPhoto', function() {
     });
 
     it('dims the photo when hidden is true', function() {
-      expect(PossessionPhoto.New(buildProps({ hidden: true })).props.dimmed).toBe(true);
+      expect(PossessionPhoto.New(buildProps({ hidden: true })).props.photoState.dimmed).toBe(true);
     });
 
     it('does not dim the photo when hidden is false', function() {
-      expect(PossessionPhoto.New(buildProps({ hidden: false })).props.dimmed).toBe(false);
+      expect(PossessionPhoto.New(buildProps({ hidden: false })).props.photoState.dimmed).toBe(false);
     });
 
     it('wires the upload click handler to handlers.onOpenUploadModal', function() {

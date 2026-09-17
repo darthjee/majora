@@ -61,11 +61,11 @@ describe('DocumentPhoto', function() {
     });
 
     it('dims the photo when hidden is true', function() {
-      expect(DocumentPhoto.Edit(buildProps({ hidden: true })).props.dimmed).toBe(true);
+      expect(DocumentPhoto.Edit(buildProps({ hidden: true })).props.photoState.dimmed).toBe(true);
     });
 
     it('does not dim the photo when hidden is false', function() {
-      expect(DocumentPhoto.Edit(buildProps({ hidden: false })).props.dimmed).toBe(false);
+      expect(DocumentPhoto.Edit(buildProps({ hidden: false })).props.photoState.dimmed).toBe(false);
     });
 
     it('wires the upload click handler to handlers.onOpenUploadModal', function() {
@@ -90,11 +90,11 @@ describe('DocumentPhoto', function() {
     });
 
     it('dims the photo when hidden is true', function() {
-      expect(DocumentPhoto.New(buildProps({ hidden: true })).props.dimmed).toBe(true);
+      expect(DocumentPhoto.New(buildProps({ hidden: true })).props.photoState.dimmed).toBe(true);
     });
 
     it('does not dim the photo when hidden is false', function() {
-      expect(DocumentPhoto.New(buildProps({ hidden: false })).props.dimmed).toBe(false);
+      expect(DocumentPhoto.New(buildProps({ hidden: false })).props.photoState.dimmed).toBe(false);
     });
 
     it('wires the upload click handler to handlers.onOpenUploadModal', function() {

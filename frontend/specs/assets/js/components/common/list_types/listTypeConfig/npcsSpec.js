@@ -89,8 +89,8 @@ describe('listTypeConfig', function() {
       it('renders grayscale when slain and dimmed when hidden', function() {
         const props = npcs.buildActionBarProps(item, { canEdit: false });
 
-        expect(props.grayscale).toBe(true);
-        expect(props.dimmed).toBe(true);
+        expect(props.photoState.grayscale).toBe(true);
+        expect(props.photoState.dimmed).toBe(true);
       });
 
       it('builds the DM real/public slain secondary buttons when canEdit is true', function() {
