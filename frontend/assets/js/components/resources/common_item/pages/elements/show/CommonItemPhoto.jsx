@@ -57,7 +57,7 @@ function CommonItemPhotoEdit({
       alt={name}
       canEdit
       onClick={handlers.onOpenUploadModal}
-      dimmed={hidden}
+      photoState={{ dimmed: hidden }}
     />
   );
 }
@@ -84,7 +84,7 @@ function CommonItemPhotoNew({
       alt={name}
       canEdit
       onClick={handlers.onOpenUploadModal}
-      dimmed={hidden}
+      photoState={{ dimmed: hidden }}
     />
   );
 }

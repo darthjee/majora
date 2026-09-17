@@ -57,7 +57,7 @@ function PossessionPhotoEdit({
       alt={name}
       canEdit
       onClick={handlers.onOpenUploadModal}
-      dimmed={hidden}
+      photoState={{ dimmed: hidden }}
     />
   );
 }
@@ -84,7 +84,7 @@ function PossessionPhotoNew({
       alt={name}
       canEdit
       onClick={handlers.onOpenUploadModal}
-      dimmed={hidden}
+      photoState={{ dimmed: hidden }}
     />
   );
 }

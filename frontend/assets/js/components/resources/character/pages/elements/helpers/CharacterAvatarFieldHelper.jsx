@@ -24,7 +24,7 @@ export default class CharacterAvatarFieldHelper {
         alt={alt}
         canEdit={canEdit}
         onClick={onClick}
-        dimmed={dimmed}
+        photoState={{ dimmed }}
       />
     );
   }
