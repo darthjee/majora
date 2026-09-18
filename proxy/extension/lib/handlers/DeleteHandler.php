@@ -21,6 +21,7 @@ use Tent\Models\Response;
  */
 class DeleteHandler extends RequestHandler
 {
+
     /** @var BackendClient Client used for backend calls. */
     private BackendClient $client;
 

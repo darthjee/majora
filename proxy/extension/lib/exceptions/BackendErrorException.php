@@ -13,6 +13,7 @@ use RuntimeException;
  */
 class BackendErrorException extends RuntimeException
 {
+
     /** @var int HTTP status code to forward to the client. */
     private int $httpCode;
 

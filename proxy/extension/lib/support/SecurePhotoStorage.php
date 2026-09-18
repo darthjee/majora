@@ -24,6 +24,7 @@ use InvalidArgumentException;
  */
 class SecurePhotoStorage
 {
+
     /** @var string Base directory all destinations must resolve inside of. */
     private string $basePath;
 

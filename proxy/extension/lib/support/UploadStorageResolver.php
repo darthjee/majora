@@ -12,6 +12,7 @@ use Tent\Log\Logger;
  */
 class UploadStorageResolver
 {
+
     /** @var string The upload type ('image' or 'file'). */
     private string $uploadType;
 

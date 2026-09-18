@@ -15,6 +15,7 @@ namespace Tent\RequestHandlers;
  */
 class DirectorySizeCalculator
 {
+
     /** @var string Configured tool identifier (e.g. 'du', 'php_walk'). */
     private string $tool;
 

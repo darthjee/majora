@@ -13,6 +13,7 @@ use InvalidArgumentException;
  */
 class UnprocessableUploadException extends InvalidArgumentException
 {
+
     /** @var array|null The raw $_FILES entry that was rejected, or null when missing. */
     private ?array $uploadedFile;
 

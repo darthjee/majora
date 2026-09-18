@@ -15,6 +15,7 @@ use RuntimeException;
  */
 class ShellCommandFailedException extends RuntimeException
 {
+
     /** @var string The shell command that failed. */
     private string $command;
 
