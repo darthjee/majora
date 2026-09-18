@@ -12,15 +12,15 @@
 
 use Tent\Middlewares\CacheCleanupMapBuilder;
 
-$npcsCacheCleanupGroups = require __DIR__ . '/npcs.php';
-$pcsCacheCleanupGroups = require __DIR__ . '/pcs.php';
-$treasuresCacheCleanupGroups = require __DIR__ . '/treasures.php';
-$sessionsCacheCleanupGroups = require __DIR__ . '/sessions.php';
-$itemsCacheCleanupGroups = require __DIR__ . '/items.php';
-$documentsCacheCleanupGroups = require __DIR__ . '/documents.php';
-$factionsCacheCleanupGroups = require __DIR__ . '/factions.php';
-$possessionsCacheCleanupGroups = require __DIR__ . '/possessions.php';
-$gamesCacheCleanupGroups = require __DIR__ . '/games.php';
+$npcsCacheCleanupGroups = include __DIR__ . '/npcs.php';
+$pcsCacheCleanupGroups = include __DIR__ . '/pcs.php';
+$treasuresCacheCleanupGroups = include __DIR__ . '/treasures.php';
+$sessionsCacheCleanupGroups = include __DIR__ . '/sessions.php';
+$itemsCacheCleanupGroups = include __DIR__ . '/items.php';
+$documentsCacheCleanupGroups = include __DIR__ . '/documents.php';
+$factionsCacheCleanupGroups = include __DIR__ . '/factions.php';
+$possessionsCacheCleanupGroups = include __DIR__ . '/possessions.php';
+$gamesCacheCleanupGroups = include __DIR__ . '/games.php';
 
 $cacheCleanupGroups = array_merge(
     $npcsCacheCleanupGroups,
