@@ -123,7 +123,7 @@ class SecurePhotoStorage
 
         if (
             $normalizedDir !== $normalizedBase
-            && strncmp($normalizedDir, $normalizedBase . '/', strlen($normalizedBase) + 1) !== 0
+            && strncmp($normalizedDir, $normalizedBase . '/', (strlen($normalizedBase) + 1)) !== 0
         ) {
             throw new InvalidArgumentException(
                 'Resolved photo path escapes the base directory: ' . $dir

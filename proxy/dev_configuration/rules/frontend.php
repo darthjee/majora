@@ -40,7 +40,7 @@ if (getenv('FRONTEND_DEV_MODE') === 'true') {
         'middlewares' => [
             [
                 'class' => 'Tent\Middlewares\CacheControlMiddleware',
-                'maxAgeSeconds' => 60 * 60 * 24
+                'maxAgeSeconds' => (60 * 60 * 24)
             ]
         ]
         ]
@@ -61,7 +61,7 @@ if (getenv('FRONTEND_DEV_MODE') === 'true') {
             ],
             [
                 'class' => 'Tent\Middlewares\CacheControlMiddleware',
-                'maxAgeSeconds' => 60 * 60 * 24
+                'maxAgeSeconds' => (60 * 60 * 24)
             ]
         ]
         ]

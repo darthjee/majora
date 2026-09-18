@@ -117,7 +117,7 @@ class BackendClient
 
         $result = $this->httpClient->request($method, $url, $headers, $body);
 
-        if ($this->isGzipEncoded($result['headers'] ?? [])) {
+        if ($this->isGzipEncoded(($result['headers'] ?? []))) {
             $result['body'] = gzdecode($result['body']);
         }
 

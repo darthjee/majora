@@ -45,8 +45,8 @@ class CacheCleanupMapBuilder
         $map = [];
 
         foreach ($groups as $group) {
-            $targets = $group['targets'] ?? [];
-            $routes = $group['routes'] ?? [];
+            $targets = ($group['targets'] ?? []);
+            $routes = ($group['routes'] ?? []);
 
             foreach ($routes as $route) {
                 $map[$route] = $targets;

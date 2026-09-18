@@ -14,7 +14,7 @@ Configuration::buildRule(
     'middlewares' => [
         [
             'class' => 'Tent\\Middlewares\\CacheControlMiddleware',
-            'maxAgeSeconds' => 60 * 60 * 24 * 7
+            'maxAgeSeconds' => (60 * 60 * 24 * 7)
         ]
     ]
     ]
