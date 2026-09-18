@@ -62,8 +62,7 @@ class PathTraversalGuard
             );
         }
 
-        if (
-            $realPath !== $realBase
+        if ($realPath !== $realBase
             && strncmp($realPath, $realBase . '/', (strlen($realBase) + 1)) !== 0
         ) {
             throw new InvalidArgumentException(
