@@ -7,8 +7,8 @@ deliberately **source-agnostic**, not specific to Lootstudios. It exists only
 to unblock development; it is deleted once #1262's real import endpoint is
 trusted end-to-end (see "Removal plan" below).
 
-Implemented by four sub-issues of #1260: record browsing (#1273 backend,
-#1274 frontend) and summary + clear (#1275 backend, #1276 frontend).
+Implemented by four sub-issues of #1260: record browsing (#1273 backend, #1274
+frontend) and summary + clear (#1275 backend, #1276 frontend).
 
 This harness is complementary to
 [`loot-crawling/interactive-collection-enqueue.md`](loot-crawling/interactive-collection-enqueue.md):
@@ -139,8 +139,8 @@ rest of this harness.
 
 ## Removal plan
 
-The model, migration, endpoints, and frontend pages are all deleted once
-#1262's real import endpoint is trusted end-to-end. This spec doc is deleted
+The model, migration, endpoints, and frontend pages are all deleted once #1262's
+real import endpoint is trusted end-to-end. This spec doc is deleted
 at that point too, per `docs/agents/specs.md`'s own "deleted once the feature
 area is fully implemented" convention.
 

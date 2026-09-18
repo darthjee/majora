@@ -111,9 +111,9 @@ source has been identified yet.
 ## Resolved gap — zero-miniature bundles
 
 Previously, a bundle with zero currently-owned miniatures would produce no
-`StlModel` emission, and therefore no `Collection` row in Majora, since
-#1262 had no standalone Collection-only creation call. **This is resolved**:
-#1281's `POST /miniatures/collections/import.json` (see "Standalone
+`StlModel` emission, and therefore no `Collection` row in Majora, since #1262
+had no standalone Collection-only creation call. **This is resolved**: #1281's
+`POST /miniatures/collections/import.json` (see "Standalone
 Collection import" above) lets a bundle-side pass emit its `Collection`
 independently of any miniature — `crawler/navi_config.yaml`'s bundle pass
 does exactly this today, so every bundle produces a `Collection` row
@@ -121,9 +121,9 @@ regardless of how many miniatures it currently has.
 
 ## No-op note — delisted/removed items
 
-#1262's contract has no delete/deactivate semantics. An item absent from a
-future `GetMyLootsCache` response is simply not re-emitted on the next
-crawl; its existing Majora row (if one was previously created) is left
+Per #1262's contract, there is no delete/deactivate semantics. An item
+absent from a future `GetMyLootsCache` response is simply not re-emitted
+on the next crawl; its existing Majora row (if one was previously created) is left
 untouched. There is no deletion or flagging behavior today — this mirrors
 the "delisted/removed items" edge case #1266 flagged as open/unverified
 and has no import-time implications beyond "don't emit it."
