@@ -122,8 +122,7 @@ class SecurePhotoStorage
         $normalizedBase = $this->normalize($this->basePath);
         $normalizedDir  = $this->normalize($dir);
 
-        if (
-            $normalizedDir !== $normalizedBase
+        if ($normalizedDir !== $normalizedBase
             && strncmp($normalizedDir, $normalizedBase . '/', (strlen($normalizedBase) + 1)) !== 0
         ) {
             throw new InvalidArgumentException(
