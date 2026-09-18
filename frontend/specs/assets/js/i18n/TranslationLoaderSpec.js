@@ -29,13 +29,16 @@ const waitUntil = (predicate) => new Promise((resolve) => {
 
 // A rejected import settles into the `failed` state (never `loaded`), so it
 // can't be detected via a `!== undefined` predicate like a successful load —
-// `get()` reads `undefined` both before and after settling. Instead, give
-// the promise chain several macrotask ticks to fully drain before asserting.
-const flushAsync = async (rounds = 5) => {
-  for (let i = 0; i < rounds; i += 1) {
-    await new Promise((resolve) => setTimeout(resolve, 0));
-  }
-};
+// `get()` reads `undefined` both before and after settling. `MajoraLogger.warn`
+// is called synchronously right after the entry flips to `failed` (see
+// `TranslationLoader#load`'s `catch` block), so polling for that specific
+// namespace's warn call is a reliable settle signal for both. A fixed number
+// of macrotask ticks isn't: the rejection round-trips through a real dynamic
+// `import()` (genuine filesystem resolution), whose latency isn't bounded by
+// tick count under CI load, which made this flaky under random ordering.
+const waitForFailedLoad = (spy, namespace) => waitUntil(
+  () => spy.calls.all().some((call) => call.args[0]?.namespace === namespace)
+);
 
 const registerFakeChunk = (manifest, namespace, yaml) => {
   manifest.chunkLoaders[namespace] = jasmine.createSpy(namespace).and.returnValue(Promise.resolve({ default: yaml }));
@@ -88,27 +91,31 @@ describe('TranslationLoader', function() {
     });
 
     it('flips a rejected import to a failed state and returns undefined', async function() {
-      TranslationLoader.request('en', 'loader_spec_missing_namespace');
+      const namespace = 'loader_spec_missing_namespace';
 
-      await flushAsync();
+      TranslationLoader.request('en', namespace);
 
-      expect(TranslationLoader.get('en', 'loader_spec_missing_namespace')).toBeUndefined();
+      await waitForFailedLoad(warnSpy, namespace);
+
+      expect(TranslationLoader.get('en', namespace)).toBeUndefined();
 
       // A second request for the same (already-settled) key stays a no-op dedupe,
       // regardless of the failed state — there is no retry.
-      expect(() => TranslationLoader.request('en', 'loader_spec_missing_namespace')).not.toThrow();
-      expect(TranslationLoader.get('en', 'loader_spec_missing_namespace')).toBeUndefined();
+      expect(() => TranslationLoader.request('en', namespace)).not.toThrow();
+      expect(TranslationLoader.get('en', namespace)).toBeUndefined();
     });
 
     it('logs the rejected import at warn level with the language, namespace, and error', async function() {
-      TranslationLoader.request('en', 'loader_spec_missing_namespace_logging');
+      const namespace = 'loader_spec_missing_namespace_logging';
 
-      await flushAsync();
+      TranslationLoader.request('en', namespace);
+
+      await waitForFailedLoad(warnSpy, namespace);
 
       expect(warnSpy).toHaveBeenCalledWith({
         event: 'translation-chunk-load-failed',
         language: 'en',
-        namespace: 'loader_spec_missing_namespace_logging',
+        namespace,
         error: jasmine.any(Error),
       });
     });

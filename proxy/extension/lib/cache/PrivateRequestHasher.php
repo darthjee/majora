@@ -33,6 +33,7 @@ use Tent\Models\RequestInterface;
  */
 class PrivateRequestHasher implements RequestHasher
 {
+
     private string $headerName;
 
     /**

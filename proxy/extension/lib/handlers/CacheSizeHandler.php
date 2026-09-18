@@ -26,6 +26,7 @@ use Tent\Models\Response;
  */
 class CacheSizeHandler extends RequestHandler
 {
+
     /** @var BackendClient Client used for backend calls. */
     private BackendClient $client;
 

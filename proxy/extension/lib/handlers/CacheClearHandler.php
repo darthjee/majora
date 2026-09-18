@@ -29,6 +29,7 @@ use Tent\Models\Response;
  */
 class CacheClearHandler extends RequestHandler
 {
+
     /** @var BackendClient Client used for backend calls. */
     private BackendClient $client;
 

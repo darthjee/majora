@@ -31,6 +31,7 @@ use Tent\Utils\CurlUtils;
  */
 class BackendClient
 {
+
     /** @var string Backend host URL (e.g. http://backend:8080) */
     private string $host;
 

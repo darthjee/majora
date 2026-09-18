@@ -13,6 +13,7 @@ namespace Tent\RequestHandlers;
  */
 class UploadFilenameValidator
 {
+
     /**
      * Allow-list of extensions accepted for uploads, matched
      * case-insensitively.

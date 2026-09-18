@@ -15,6 +15,7 @@ namespace Tent\RequestHandlers;
  */
 class DuDirectorySizeStrategy implements DirectorySizeStrategyInterface
 {
+
     /** @var ShellExecutorInterface Executor used to run the `du` command. */
     private ShellExecutorInterface $shell;
 
