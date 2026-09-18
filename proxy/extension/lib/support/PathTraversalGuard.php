@@ -64,7 +64,7 @@ class PathTraversalGuard
 
         if (
             $realPath !== $realBase
-            && strncmp($realPath, $realBase . '/', strlen($realBase) + 1) !== 0
+            && strncmp($realPath, $realBase . '/', (strlen($realBase) + 1)) !== 0
         ) {
             throw new InvalidArgumentException(
                 'Resolved real path escapes the base directory: ' . $existingPath

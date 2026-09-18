@@ -55,7 +55,7 @@ class PrivateRequestHasher implements RequestHasher
     public function hash(RequestInterface $request): string
     {
         $headers = array_change_key_case($request->headers(), CASE_LOWER);
-        $token = $headers[strtolower($this->headerName)] ?? '';
+        $token = ($headers[strtolower($this->headerName)] ?? '');
 
         return 'private_' . hash('sha256', $token . '|' . $request->query());
     }
