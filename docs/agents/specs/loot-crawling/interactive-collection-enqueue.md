@@ -1,8 +1,8 @@
 # Interactive per-collection Enqueue (Lootstudios crawler)
 
 Design spec for #1291: an interactive alternative to the headless
-whole-catalog crawler run (`npx navi-hey --config crawler/navi_config.yaml`,
-#1263). A Navi *extension* — a backend route plus a frontend page, baked
+whole-catalog crawler run (`npx navi-hey --config crawler/navi_config.yaml`, #1263).
+A Navi *extension* — a backend route plus a frontend page, baked
 into a derived `darthjee/navi-hey` image — lets a maintainer paste one
 Lootstudios collection (bundle) URL and click "Enqueue" to crawl just that
 collection: extract its bundle and miniatures from `GetMyLootsCache`
@@ -12,8 +12,8 @@ collection: extract its bundle and miniatures from `GetMyLootsCache`
 byte-identical and primary; this mode is additive, local-maintainer-run,
 and **never deployed**.
 
-This page is the **contract** the other #1291 sub-issues build against:
-#1294 (web-enabled Navi config), #1295 (extension backend route), #1296
+This page is the **contract** the other #1291 sub-issues build against: #1294
+(web-enabled Navi config), #1295 (extension backend route), #1296
 (extension frontend page). It is **temporary** — per `docs/agents/specs.md`,
 it is removed once #1291 is fully implemented.
 
@@ -241,11 +241,11 @@ per-collection `filter` narrowing is the only difference from
 Each Enqueue becomes real jobs in Navi's worker pool (two `GET
 GetMyLootsCache` requests plus one `emit` per extracted item), so
 concurrent Enqueues run in parallel, bounded only by `workers.quantity`.
-Nothing in this design serializes enqueues on top of Navi's own scheduling.
-#1294's web config should set `workers.quantity` to at least `2` — this is
-a local, single-maintainer tool with a handful of Enqueue clicks expected
-at once (not a high-throughput service), so a small pool (e.g. `4`) is
-sufficient; #1294 may tune the exact value.
+Nothing in this design serializes enqueues on top of Navi's own
+scheduling. #1294's web config should set `workers.quantity` to at least
+`2` — this is a local, single-maintainer tool with a handful of Enqueue
+clicks expected at once (not a high-throughput service), so a small pool
+(e.g. `4`) is sufficient; #1294 may tune the exact value.
 
 ## Route contract
 
@@ -308,8 +308,8 @@ enqueued crawl's `emit` calls carry the container's own staff/admin
 `MAJORA_API_TOKEN` via the `majora_api` client's `Authorization: Token
 $MAJORA_API_TOKEN` header (same as the headless `crawler/navi_config.yaml`
 today). Mitigation: this image is **local-maintainer-run only, never
-deployed**, with its port bound to `127.0.0.1` in whatever compose wiring
-#1298 adds — never exposed on a public interface. No auth layer is added
+deployed**, with its port bound to `127.0.0.1` in whatever compose wiring #1298
+adds — never exposed on a public interface. No auth layer is added
 to the extension route itself.
 
 ## Extraction

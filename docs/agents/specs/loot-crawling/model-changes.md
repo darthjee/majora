@@ -28,8 +28,8 @@ unique column, so items imported without an external id don't collide with
 each other). Upsert precedence is `external_id` first, falling back to
 `url` (`StlModel`) or `name` (`Collection`).
 
-This exact field design was **settled directly in #1262's contract** —
-#1262 is the authoritative source of truth for the field definition and
+This exact field design was **settled directly in #1262's contract** — #1262
+is the authoritative source of truth for the field definition and
 upsert precedence. #1262 itself is still open as of this writing: the
 contract/spec is decided, but the migration and the `stl_models/import.json`
 endpoint it backs are not yet implemented. This page does not claim the

@@ -8,8 +8,8 @@ referenced below; this page covers the next step down.
 
 ## Approach A — `GetMyLootsCache` miniature records (primary)
 
-The same `GET /wp-admin/admin-ajax.php?action=GetMyLootsCache` call covered by
-#1265 (which documents the bundle/`Collection` side and the open
+The same `GET /wp-admin/admin-ajax.php?action=GetMyLootsCache` call covered by #1265
+(which documents the bundle/`Collection` side and the open
 auth/pagination questions) also returns miniature records in the same flat
 `bundleObjs[]` array, distinguished by `obj_type: "miniature"`:
 
@@ -79,8 +79,8 @@ Requires an authenticated session and two round trips:
    `inid` attribute.
 
 Richer to implement (HTML parsing, two requests, per-bundle, needs a live
-session) than Approach A — use only if A turns out to be insufficient (e.g.
-#1265's auth check finds `GetMyLootsCache` doesn't actually work
+session) than Approach A — use only if A turns out to be insufficient (e.g. #1265's
+auth check finds `GetMyLootsCache` doesn't actually work
 unauthenticated, or it stops returning full data).
 
 ## Approach C — image URL parsing (thinnest fallback)
@@ -149,5 +149,5 @@ parser:
 ```
 
 Final field names are subject to reconciliation with whatever #1267 settles
-as the exact emission payload shape — this sketch uses the names implied by
-#1262's contract.
+as the exact emission payload shape — this sketch uses the names implied by #1262's
+contract.
