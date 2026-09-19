@@ -23,7 +23,7 @@ declared on `StlModel`) — mirroring `StlModel.sources`'s own M2M shape. `sourc
 | Photo upload (`POST /miniatures/collections/<id>/photo_upload.json`) | **Staff-or-superuser** (`require_staff`) — see [Upload](upload.md) |
 | Update/Delete | No dedicated update/delete endpoint on `Collection` itself, but `source`/`name`/`url` can be mutated indirectly — see "Indirect mutation via StlModel import" and "Import endpoint" below |
 
-### Indirect mutation via StlModel import
+## Indirect mutation via StlModel import
 
 [StlModel](stl-model.md#import-endpoint)'s `POST /miniatures/stl_models/import.json` (same
 **Staff-or-superuser** tier as every other write here) find-or-creates a `Collection` by

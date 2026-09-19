@@ -59,7 +59,7 @@ below).
 
 ## Filters
 
-#### `GET /games/<slug>/pcs.json`
+### `GET /games/<slug>/pcs.json`
 
 - `name=` (case-insensitive substring match)
 
