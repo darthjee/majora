@@ -34,6 +34,7 @@ use Tent\Models\RequestInterface;
 class PrivateRequestHasher implements RequestHasher
 {
 
+    /** @var string Header name to read the cache token from. */
     private string $headerName;
 
     /**

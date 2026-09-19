@@ -58,7 +58,7 @@ class UploadContentValidator
     /** @var UploadFilenameValidator Validates uploads against this instance's extension allow-list. */
     private UploadFilenameValidator $filenameValidator;
 
-    /** @var bool Whether the '%PDF-' magic-bytes check runs on top of the fileinfo content check. */
+    /** @var boolean Whether the '%PDF-' magic-bytes check runs on top of the fileinfo content check. */
     private bool $checkPdfMagicBytes;
 
     /**

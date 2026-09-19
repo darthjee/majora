@@ -19,7 +19,7 @@ class ShellCommandFailedException extends RuntimeException
     /** @var string The shell command that failed. */
     private string $command;
 
-    /** @var int The exit code returned by the command. */
+    /** @var integer The exit code returned by the command. */
     private int $exitCode;
 
     /**

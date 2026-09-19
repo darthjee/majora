@@ -14,7 +14,7 @@ use RuntimeException;
 class BackendErrorException extends RuntimeException
 {
 
-    /** @var int HTTP status code to forward to the client. */
+    /** @var integer HTTP status code to forward to the client. */
     private int $httpCode;
 
     /** @var string Response body to forward to the client. */
