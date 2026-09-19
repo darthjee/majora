@@ -1,4 +1,6 @@
-# Ownership Chain
+# Ownership and Roles
+
+## Ownership Chain
 
 The owner of a character is the Django `User` reachable via:
 
@@ -18,7 +20,7 @@ This chain is the single source of truth for character ownership. Any code that 
 
 ---
 
-# GameMaster Role
+## GameMaster Role
 
 A user is a **GameMaster** (DM) for a game when a `Player` record exists with
 `player.game == character.game`, `player.user == user`, and `player.is_dm is True`.
@@ -30,7 +32,7 @@ any other game.
 
 ---
 
-# Staff Role
+## Staff Role
 
 A **Staff** account is a Django `User` with `is_staff is True` (Django's built-in field,
 introduced for product use by issue #286). Staff, like Superuser, is a **global** role —
@@ -74,7 +76,7 @@ Two explicit, named exceptions to this game-scoped carve-out exist:
 
 ---
 
-# Editing Rules
+## Editing Rules
 
 A user may edit a character when **any** of the following is true:
 
@@ -146,7 +148,7 @@ is removed entirely; the frontend now gates the money-edit UI on the existing `c
 
 ---
 
-# Summary Table
+## Summary Table
 
 | Concept | Key rule |
 |---------|---------|
