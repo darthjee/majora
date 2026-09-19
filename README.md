@@ -87,9 +87,9 @@ make dev-up
 
 The application will be available at:
 
-- **Full stack (proxy):** http://localhost:3000
-- **Backend API:** http://localhost:3030
-- **Frontend dev server:** http://localhost:3010
+- **Full stack (proxy):** <http://localhost:3000>
+- **Backend API:** <http://localhost:3030>
+- **Frontend dev server:** <http://localhost:3010>
 
 ### Development Shells
 
