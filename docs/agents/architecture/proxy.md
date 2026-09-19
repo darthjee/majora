@@ -17,7 +17,7 @@ proxy/
     └── tests/
 ```
 
-### Routing modes
+## Routing modes
 
 - Dev mode (`FRONTEND_DEV_MODE=true`): Tent proxies frontend requests to the Vite dev server (`majora_fe:8080`), including HMR paths (`/@vite/*`, `/@react-refresh`).
 - Production (flag unset): Tent serves frontend assets statically from its static folder.
