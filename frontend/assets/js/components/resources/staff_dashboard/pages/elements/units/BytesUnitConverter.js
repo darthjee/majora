@@ -1,10 +1,10 @@
 const THRESHOLDS = [
   { max: 921, unit: 'B', divisor: 1 },
-  { max: 943104, unit: 'KB', divisor: 1024.0 },
-  { max: 965738496, unit: 'MB', divisor: 1048576.0 },
+  { max: 921 * 1024, unit: 'KB', divisor: 1024 },
+  { max: 921 * 1024 ** 2, unit: 'MB', divisor: 1024 ** 2 },
 ];
 
-const LARGEST = { unit: 'GB', divisor: 1073741824.0 };
+const LARGEST = { unit: 'GB', divisor: 1024 ** 3 };
 
 /**
  * Converts a raw byte count into the most appropriate unit (`B`, `KB`, `MB`
