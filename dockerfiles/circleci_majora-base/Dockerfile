@@ -11,7 +11,7 @@ FROM base as builder
 
 COPY --chown=circleci:circleci \
   ./backend/pyproject.toml ./backend/poetry.lock* \
-  /home/circleci/project
+  /home/circleci/project/
 
 ENV HOME_DIR /home/circleci
 
