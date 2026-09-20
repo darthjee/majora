@@ -12,7 +12,7 @@ ENV HOME_DIR /home/app
 USER app
 COPY --chown=app:app --from=scripts /home/scripts/builder/poetry_builder.sh /usr/local/sbin/poetry_builder.sh
 RUN /bin/bash poetry_builder.sh --only main
-RUN rm -rf */tests
+RUN rm -rf ./*/tests
 
 #######################
 # FINAL IMAGE
