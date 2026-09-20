@@ -3,6 +3,9 @@ engines:
     exclude_paths:
       - "frontend/specs/**"
       - "backend/**/tests/**"
+  pmd:
+    exclude_paths:
+      - "frontend/specs/**"
   bandit:
     exclude_paths:
       - "backend/**/tests/**"
