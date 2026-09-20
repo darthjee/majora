@@ -5,12 +5,10 @@
  * @param {number} [times] - number of microtask ticks to flush.
  * @returns {Promise<void>} resolves once every flush tick has run.
  */
-export default async function flushMicrotasks(times = 5) {
+export default function flushMicrotasks(times = 5) {
+  let chain = Promise.resolve();
   for (let i = 0; i < times; i += 1) {
-    try {
-      await Promise.resolve();
-    } catch {
-      // eslint-disable-next-line security-node/detect-unhandled-async-errors -- Promise.resolve() never rejects; this catch exists only to flush pending microtasks in specs.
-    }
+    chain = chain.then(() => undefined);
   }
+  return chain;
 }
