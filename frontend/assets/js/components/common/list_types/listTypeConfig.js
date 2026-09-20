@@ -48,6 +48,17 @@ function fetchTreasures(gameSlug, hashResolver) {
 }
 
 /**
+ * Navigate to a treasure's game-scoped edit form by updating the window location hash.
+ *
+ * @param {string} gameSlug - Game slug.
+ * @param {number|string} treasureId - Treasure identifier.
+ * @returns {void} Nothing; navigation happens as a side effect.
+ */
+function navigateToTreasureEdit(gameSlug, treasureId) {
+  window.location.hash = `#/games/${gameSlug}/treasures/${treasureId}/edit`;
+}
+
+/**
  * Build a treasure's action-bar props: the upload-button gate/handler (manage access limited
  * to treasures exclusive to the current game, matching the prior
  * `canEdit && treasure.game_slug === gameSlug` check) plus, for manageable treasures, a
@@ -69,9 +80,7 @@ function buildActionBarProps(item, context) {
       label: Translator.t('game_treasures_page.edit'),
       icon: Icons.pencilFill,
       variant: 'outline-secondary',
-      onClick: () => {
-        window.location.hash = `#/games/${context.gameSlug}/treasures/${item.data.id}/edit`;
-      },
+      onClick: () => navigateToTreasureEdit(context.gameSlug, item.data.id),
     }] : [],
   };
 }
@@ -101,8 +110,7 @@ function buildItemHref(item) {
  * Fetch a page of a game's items through `RequestStore` (`item.collection`, `kind: 'game'`),
  * resolving the requester's edit permission first to pick between the full catalog
  * (`items/all.json`, dm/admin only) and the player-facing, hidden-filtered `items.json` —
- * mirroring `fetchTreasures`'s game-level permission check. Unlike treasures, items have no
- * filters in scope, so no filter params are read/sent.
+ * mirroring `fetchTreasures`. Unlike treasures, items have no filters, so none are sent.
  *
  * @param {string} gameSlug - Game slug.
  * @param {import('../../../utils/routing/HashRouteResolver.js').default} hashResolver -
@@ -126,8 +134,7 @@ function fetchGameItems(gameSlug, hashResolver) {
  * permission (`AccessStore.ensureCharacterPermissions` already resolves dm/owner/admin for a
  * PC, dm/admin for an NPC, per `characterKind`) to pick between the full, hidden-inclusive
  * `items/all.json` and the player-facing `items.json`. The character id is read from the
- * current hash rather than passed explicitly, since `ListPageController` only threads a
- * `gameSlug` through to `fetchList`.
+ * current hash, since `ListPageController` only threads a `gameSlug` through to `fetchList`.
  *
  * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`), used as the URL segment.
  * @returns {Function} A `fetchList(gameSlug, hashResolver)` function for this kind.
@@ -206,19 +213,14 @@ function buildCharacterItemItemHref(characterKind) {
  * `'npc-documents'`, `'possessions'`, `'pc-possessions'`, `'npc-possessions'`, `'commonItems'`,
  * `'games'`, `'my-games'`, `'players'`, `'pcs'`, `'npcs'`, `'pc-treasures'`, `'npc-treasures'`,
  * `'treasures-global'`, `'stlModels'`, `'sources'`, `'collections'`, `'factions'`), matching
- * the existing `PHOTO_COMPONENTS` precedent in `ActionsOverlay.jsx`. The `games`/`my-games`/
- * `players`/`pcs`/`npcs`/`pc-treasures`/`npc-treasures`/`treasures-global`/`documents`/
- * `pc-documents`/`npc-documents`/`possessions`/`pc-possessions`/`npc-possessions`/`commonItems`/
- * `stlModels`/`sources`/`collections`/`factions` entries live in `./configs/`, split out of this
- * file to keep it under the project's max-lines limit; they are merged into this object below.
+ * the existing `PHOTO_COMPONENTS` precedent in `ActionsOverlay.jsx`. Every entry other than
+ * `treasures`/`items`/`pc-items`/`npc-items` lives in `./configs/`, split out of this file to
+ * keep it under the project's max-lines limit; they are merged into this object below.
  * Each entry holds:
- * - `fetchList(gameSlug, hashResolver, client?)` — fetches one page of list data. Every type
- *   migrated onto `RequestStore` (issue #791, phase 3/N) ignores the `client` argument (kept
- *   only where a later positional argument, e.g. `gameClient`, still needs it); the handful of
- *   list types intentionally left on `fetchPermissionGatedIndex` (`documents`, `my-games`,
- *   `players`) still use it, as do `treasures-global` and `stlModels`, both fetched directly
- *   through `GenericClient` (issue #1107 moved `stlModels` off `RequestStore` for this, so its
- *   filters bar's multi-value fields can be serialized via `GenericClient#fetchIndex`).
+ * - `fetchList(gameSlug, hashResolver, client?)` — fetches one page of list data. Types
+ *   migrated onto `RequestStore` (issue #791) ignore `client`; `documents`, `my-games` and
+ *   `players` (`fetchPermissionGatedIndex`), `treasures-global` and `stlModels` (fetched via
+ *   `GenericClient#fetchIndex`, issue #1107, to serialize multi-value filters) still use it.
  * - `wrapperClass` — the `BaseListItem` subclass normalizing each raw entry.
  * - `filtersComponent` — filter bar rendered above the grid, or `null`.
  * - `photoType` — `ActionsOverlay`'s `type` prop for this entity's photo/avatar.
