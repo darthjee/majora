@@ -65,7 +65,7 @@ class UploadContentValidator
      * @param string[]                $allowedMimeTypes   Allow-list of MIME types.
      * @param UploadFilenameValidator $filenameValidator  Validates against the extension allow-list.
      * @param bool                    $checkPdfMagicBytes Whether to additionally check for the
-     *                                                     '%PDF-' magic header.
+     *                                                    '%PDF-' magic header.
      */
     private function __construct(
         array $allowedMimeTypes,
