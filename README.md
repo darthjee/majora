@@ -20,7 +20,7 @@ The application is structured as a Django REST API backend and a React single-pa
 
 ## Technology Stack
 
-**Backend**
+### Backend
 
 - **Python 3.11 / Django 5** — Application framework
 - **Django REST Framework** — API layer
@@ -30,7 +30,7 @@ The application is structured as a Django REST API backend and a React single-pa
 - **pytest + pytest-django** — Test suite
 - **ruff** — Linting (max line length: 100)
 
-**Frontend**
+### Frontend
 
 - **React 19 + React Bootstrap 5** — UI framework
 - **Vite** — Build tool and dev server
@@ -38,7 +38,7 @@ The application is structured as a Django REST API backend and a React single-pa
 - **ESLint** — Linting
 - **Yarn** — Package manager
 
-**Infrastructure**
+### Infrastructure
 
 - **Docker & Docker Compose** — Containerisation and orchestration
 - **[darthjee/tent](https://github.com/darthjee/tent)** — Reverse proxy (port 3000)
