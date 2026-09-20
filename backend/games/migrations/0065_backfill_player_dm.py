@@ -18,7 +18,7 @@ def _backfill_player_dm(apps, schema_editor):
     UserProfile = apps.get_model('games', 'UserProfile')
 
     for game_master in GameMaster.objects.all():
-        player, created = Player.objects.get_or_create(
+        player, _ = Player.objects.get_or_create(
             game=game_master.game,
             user=game_master.user,
             defaults={'name': _display_name_for(game_master.user, UserProfile)},
