@@ -3,8 +3,8 @@
 | Type | Location | Purpose |
 |------|----------|---------|
 | **Page** | `components/resources/<resource>/pages/` | Top-level route component. One per route. Has its own `controllers/` and `helpers/` sub-folders. |
-| **Element (resource-specific)** | `components/resources/<resource>/pages/elements/` | Reusable building block used only by that resource's pages (e.g. `resources/game/pages/elements/GameCard.jsx`). [...]
-| **Element (shared)** | `components/common/` | Reusable building block used across more than one resource, or from the app shell (e.g. `Pagination`, `Header`). Also has `controllers/` and `helpers/` [...]
+| **Element (resource-specific)** | `components/resources/<resource>/pages/elements/` | Reusable building block used only by that resource's pages (e.g. `resources/game/pages/elements/GameCard.jsx`). Also has `controllers/` and `helpers/` sub-folders when non-trivial. |
+| **Element (shared)** | `components/common/` | Reusable building block used across more than one resource, or from the app shell (e.g. `Pagination`, `Header`). Also has `controllers/` and `helpers/` sub-folders when non-trivial. |
 
 Before placing a new element under a resource's `pages/elements/`, grep for its actual (or
 anticipated) importers: if it's only ever imported from that resource's pages, it belongs there;
