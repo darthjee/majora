@@ -18,6 +18,7 @@ def _avatar_url_for(email):
     email_hash = hashlib.sha256(email.encode()).hexdigest()
     return f'{Settings.gravatar_base_url()}{email_hash}'
 
+
 TEST_PASSWORD = get_random_string(20)
 
 ACCOUNT_URL = '/account/account.json'
