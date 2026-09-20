@@ -26,6 +26,9 @@ Subpackage map (mirrors `docs/agents/serializers-organization.md`):
 import importlib
 import sys
 
+# pylint: disable=undefined-all-variable
+# Every name below is resolved lazily by `__getattr__` (PEP 562, see below) and is
+# intentionally not imported at module load time, so Pylint's static check is a false positive.
 __all__ = [
     'BaseAccessSerializer',
     'BasePermissionsSerializer',
@@ -145,6 +148,7 @@ __all__ = [
     'TreasurePermissionsSerializer',
     'TreasureUpdateSerializer',
 ]
+# pylint: enable=undefined-all-variable
 
 # Maps every public symbol name to the dotted submodule path (relative to this package)
 # that defines it, so `__getattr__` can import only what's actually requested.
