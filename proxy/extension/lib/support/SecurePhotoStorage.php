@@ -155,7 +155,7 @@ class SecurePhotoStorage
             if ($segment === '..') {
                 if (!empty($resolved) && end($resolved) !== '..') {
                     array_pop($resolved);
-                } elseif (!$isAbsolute) {
+                } else if (!$isAbsolute) {
                     $resolved[] = '..';
                 }
                 continue;
