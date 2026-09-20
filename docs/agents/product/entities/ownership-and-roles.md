@@ -59,13 +59,12 @@ Django-admin-only actions (e.g. Treasure or Game deletion — see
 [access-control.md](access-control.md)'s existing admin carve-out), regardless of how far
 the Staff role's endpoint-level parity with Superuser grows.
 
-Two explicit, named exceptions to this game-scoped carve-out exist:
+Three explicit, named exceptions to this game-scoped carve-out exist:
 
 - (Issue #619) Staff may upload a photo for a **PC**
   (`POST /games/:game_slug/pcs/:id/photo_upload.json`), for any game, without being a
-  player or GameMaster of that game. This does not extend to NPC photo upload
-  (`NpcPlayerEditPermission` is unchanged and still has no Staff bypass) nor to any other
-  game-scoped resource.
+  player or GameMaster of that game. This does not extend to any other PC endpoint. (NPC
+  routes are covered by the third exception below.)
 - (Issue #589) Staff may list a game's **players roster**
   (`GET /games/:game_slug/players.json`), for any game, without being a player or
   GameMaster of that game — `PlayerPermission`, the same `is_superuser or is_staff or
@@ -73,6 +72,9 @@ Two explicit, named exceptions to this game-scoped carve-out exist:
   `SessionMessagePermission`'s view checks. This is read-only (List is the only endpoint
   `Player` exposes) and does not grant Staff any edit capability over `Player` or
   `Character` rows.
+- (Issue #915) Staff may use the narrow NPC `PATCH`
+  (`PATCH /games/:game_slug/npcs/:id.json`, `NpcPlayerEditPermission`), for any game, without
+  being a player or GameMaster of that game; the same permission also gates NPC photo upload.
 
 ---
 
@@ -94,10 +96,10 @@ Separately, and narrower in scope (issue #416, widened by issue #445; wire keys 
 `allegiance`/`slain` to `public_allegiance`/`public_slain` by issue #861): a user who is a
 **player of the game** — the same `is_player` computation exposed on `.../access.json`
 endpoints, i.e. a `Player` record linked to `character.game` via `Player.games` whose `user`
-matches the requester — may update an NPC's `public_description`, `links`, `public_allegiance`,
-and `public_slain` through `PATCH /games/:game_slug/npcs/:id.json`, even without satisfying any
-of the three rules above. This is not a general editing right: it grants no access to `name`,
-`role`, `money`, `private_description`, `private_allegiance`, or `private_slain`, and does not
+matches the requester — may update an NPC's `name`, `role`, `public_description`, `links`,
+`public_allegiance`, `public_slain`, and `money` through `PATCH /games/:game_slug/npcs/:id.json`,
+even without satisfying any of the three rules above. This is not a general editing right: it
+grants no access to `private_description`, `private_allegiance`, or `private_slain`, and does not
 apply to PCs. It exists alongside (not instead of) the rules above, so a GameMaster/superuser can
 still use the same endpoint.
 
@@ -157,10 +159,10 @@ is removed entirely; the frontend now gates the money-edit UI on the existing `c
 | Editing rights | Superuser OR owner OR GameMaster of same game |
 | PC vs NPC | `npc=False` → PC (has player); `npc=True` → NPC (no player) |
 | Player account link | `Player.user` nullable — player without a login has no owner |
-| Player PC ownership | Zero or one — `unique_player_character` plain `UniqueConstraint` on `Character.player`, no `condition=` (MySQL doesn't support it; unnecessary anyway since MySQL already trea[...] |
-| Staff role | `user.is_staff` — global; full parity with Superuser on any non-game-scoped endpoint (User management, global Treasure management); no authority over game-scoped editing, with two nam[...] |
-| NPC narrow player PATCH | Any player of the game (via `Player.games`), in addition to the Editing rights above — NPC-only; `public_description`, `links`, `allegiance` (→`public_allegiance`), `sl[...] |
-| NPC photo upload (init/finalize) | Any player of the game (via `Player.games`), in addition to the Editing rights above — NPC-only, same `NpcPlayerEditPermission` as the narrow player PATCH row ab[...] |
-| PC photo upload (init) | Any player of the game (via `Player.games`), OR any Staff account (`user.is_staff`, global), in addition to the Editing rights above — PC-only, new `CharacterPhotoUploadPe[...] |
+| Player PC ownership | Zero or one — `unique_player_character` plain `UniqueConstraint` on `Character.player`, no `condition=` (MySQL doesn't support it; unnecessary anyway since MySQL already treats every `NULL` as distinct) (issue #589) |
+| Staff role | `user.is_staff` — global; full parity with Superuser on any non-game-scoped endpoint (User management, global Treasure management); no authority over game-scoped editing, with named exceptions: PC photo upload init (issue #619), Player roster List (issue #589, read-only) and — since issue #915 — the narrow NPC `PATCH` (which shares `NpcPlayerEditPermission` with NPC photo upload) |
+| NPC narrow player PATCH | Any player of the game (via `Player.games`), OR any Staff account (`user.is_staff`, global — added by issue #915), in addition to the Editing rights above — NPC-only; `name`, `role`, `public_description`, `links`, `allegiance` (→`public_allegiance`), `slain` (→`public_slain`) and `money` (added by issue #915) fields only |
+| NPC photo upload (init/finalize) | Any player of the game (via `Player.games`), OR any Staff account (`user.is_staff`, global), in addition to the Editing rights above — NPC-only, same `NpcPlayerEditPermission` as the narrow player PATCH row above (issue #429) |
+| PC photo upload (init) | Any player of the game (via `Player.games`), OR any Staff account (`user.is_staff`, global), in addition to the Editing rights above — PC-only, new `CharacterPhotoUploadPermission` (issue #619); full PC editing still uses `CharacterEditPermission` unchanged |
 | Character money edit | No dedicated endpoint (removed by issue #915) — folded into the regular narrow `PATCH` per kind: PC (`CharacterRegularEditPermission`, unchanged) or NPC (`NpcPlayerEditPermission`, now including Staff and `money`) |
-| Player roster List | Player of the game, GameMaster, Superuser, OR any Staff account (`user.is_staff`, global) — `PlayerPermission` (issue #589), gates `GET /games/:game_slug/players.json`; read-o[...] 
+| Player roster List | Player of the game, GameMaster, Superuser, OR any Staff account (`user.is_staff`, global) — `PlayerPermission` (issue #589), gates `GET /games/:game_slug/players.json`; read-only, List is the only endpoint `Player` exposes |
