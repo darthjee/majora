@@ -20,6 +20,37 @@ import StlModelFormFieldsHelper from './StlModelFormFieldsHelper.jsx';
  */
 export default class StlModelNewHelper {
   /**
+   * Build the plain field-change handlers for the "New STL model" form.
+   *
+   * @param {object} params - Handler dependencies.
+   * @param {Function} params.setField - Form-state setter, called as `setField(name, value)`.
+   * @param {Function} params.handleChange - Builds an `onChange` handler for a text/select
+   *   field, given the field name.
+   * @param {Function} params.handleCheckboxChange - Builds an `onChange` handler for a checkbox
+   *   field, given the field name.
+   * @param {Function} params.setSources - State setter for the selected sources.
+   * @param {Function} params.setCollections - State setter for the selected collections.
+   * @returns {object} The `onNameChange`, `onOwnedChange`, `onTypeChange`, `onRacesChange`,
+   *   `onRolesChange`, `onUrlChange`, `onSizeChange`, `onSourcesChange` and
+   *   `onCollectionsChange` handlers, ready to be merged into `render`'s handlers.
+   */
+  static buildFieldHandlers({
+    setField, handleChange, handleCheckboxChange, setSources, setCollections,
+  }) {
+    return {
+      onNameChange: handleChange('name'),
+      onOwnedChange: handleCheckboxChange('owned'),
+      onTypeChange: handleChange('type'),
+      onRacesChange: (races) => setField('races', races),
+      onRolesChange: (roles) => setField('roles', roles),
+      onUrlChange: handleChange('url'),
+      onSizeChange: handleChange('size'),
+      onSourcesChange: setSources,
+      onCollectionsChange: setCollections,
+    };
+  }
+
+  /**
    * Render the "New STL model" page.
    *
    * @param {{name: string, tags: string[], tagInput: string, owned: boolean, type: string,

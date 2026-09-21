@@ -39,6 +39,13 @@ export function buildTagsAfterAdd(tags, tagInput) {
 }
 
 /**
+ * Initial values of the "New STL model" form fields.
+ */
+const INITIAL_FIELDS = {
+  name: '', tags: [], owned: true, type: TYPE_VALUES[0], races: [], roles: [], url: '', size: '',
+};
+
+/**
  * "New STL model" page, restoring the pre-modal (`StlModelNewModal.jsx`) full-page creation flow
  * at `/#/miniatures/stl_models/new` (issue #1069). Owns the same create/photo-upload-saga form
  * state the modal used, plus the `owned`/`type`/`races`/`roles`/`url`/`size` fields.
@@ -53,9 +60,7 @@ export default function StlModelNew() {
   const [photoFile, setPhotoFile] = useState(null);
   const {
     state: fields, setField, handleChange, handleCheckboxChange,
-  } = useFormState({
-    name: '', tags: [], owned: true, type: TYPE_VALUES[0], races: [], roles: [], url: '', size: '',
-  });
+  } = useFormState(INITIAL_FIELDS);
 
   const controller = useMemo(
     () => new StlModelNewController(Noop.noop, setFieldErrors),
@@ -86,18 +91,12 @@ export default function StlModelNew() {
         },
         {
           ...handlers,
-          onNameChange: handleChange('name'),
-          onOwnedChange: handleCheckboxChange('owned'),
-          onTypeChange: handleChange('type'),
-          onRacesChange: (races) => setField('races', races),
-          onRolesChange: (roles) => setField('roles', roles),
-          onUrlChange: handleChange('url'),
-          onSizeChange: handleChange('size'),
+          ...StlModelNewHelper.buildFieldHandlers({
+            setField, handleChange, handleCheckboxChange, setSources, setCollections,
+          }),
           onTagInputChange,
           onAddTag: handleAddTag,
           onRemoveTag: handleRemoveTag,
-          onSourcesChange: setSources,
-          onCollectionsChange: setCollections,
         },
       )}
       <StlModelNewModals {...modalProps} setPhotoFile={setPhotoFile} />
