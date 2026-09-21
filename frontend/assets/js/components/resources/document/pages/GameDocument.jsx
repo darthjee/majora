@@ -2,9 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import DocumentDetailHelper from './helpers/DocumentDetailHelper.jsx';
 import GameDocumentController from './controllers/GameDocumentController.js';
 import GameDocumentModals from './elements/GameDocumentModals.jsx';
-import RequestStore from '../../../../utils/requests/RequestStore.js';
 import FacadeRefresh from '../../../../utils/access/useFacadeRefresh.js';
 import getCurrentHash from '../../../../utils/routing/currentHash.js';
+import useGameDocumentModals from './hooks/useGameDocumentModals.js';
 
 /**
  * Game document detail page (issue #758): loads a single `GameDocument` (via
@@ -38,9 +38,6 @@ export default function GameDocument({ ControllerClass = GameDocumentController 
   const [error, setError] = useState('');
   const [canUploadPhoto, setCanUploadPhoto] = useState(false);
   const [canGiveHidden, setCanGiveHidden] = useState(false);
-  const [showUploadModal, setShowUploadModal] = useState(false);
-  const [showFileUploadModal, setShowFileUploadModal] = useState(false);
-  const [showGiveDocumentModal, setShowGiveDocumentModal] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState(null);
 
   const controller = useMemo(
@@ -52,25 +49,11 @@ export default function GameDocument({ ControllerClass = GameDocumentController 
   useEffect(() => controller.buildEffect()(), [controller]);
   FacadeRefresh.useFacadeRefresh(controller);
 
+  const { clickHandlers, buildModalProps } = useGameDocumentModals(controller);
+
   const currentHash = getCurrentHash();
   const { game_slug: gameSlug } = GameDocumentController.getParamsFromHash(currentHash);
   const backHref = `#/games/${gameSlug}/documents`;
-
-  /**
-   * Builds an upload-success handler for a given modal setter.
-   *
-   * @description Purges before refetching: the upload saga doesn't go through
-   *   `RequestStore.mutate` (it's a two-step, non-JSON-body saga), so the cache purge must
-   *   happen explicitly here, mirroring `GameItem.jsx`'s own `handleUploadSuccess`. Shared by
-   *   both the photo and file upload modals (issue #726).
-   * @param {Function} setShow - State setter for the modal's visibility.
-   * @returns {Function} Success handler to pass as the modal's `onSuccess` prop.
-   */
-  const buildUploadSuccessHandler = (setShow) => () => {
-    setShow(false);
-    RequestStore.purge({ resource: 'document' });
-    controller.buildEffect()();
-  };
 
   if (loading) return DocumentDetailHelper.renderLoading();
   if (error) return DocumentDetailHelper.renderError(error);
@@ -82,34 +65,15 @@ export default function GameDocument({ ControllerClass = GameDocumentController 
   return (
     <>
       {DocumentDetailHelper.render(document, backHref, editHref, canUploadPhoto, gameSlug, {
-        onUploadClick: () => setShowUploadModal(true),
-        onFileUploadClick: () => setShowFileUploadModal(true),
+        ...clickHandlers,
         onSelectPhoto: setSelectedPhoto,
-        onGiveDocumentClick: () => setShowGiveDocumentModal(true),
       })}
       <GameDocumentModals
         document={document}
         gameSlug={gameSlug}
         selectedPhoto={selectedPhoto}
         onSelectPhoto={setSelectedPhoto}
-        uploadModal={{
-          show: showUploadModal,
-          path: uploadPath,
-          onSuccess: buildUploadSuccessHandler(setShowUploadModal),
-          onClose: () => setShowUploadModal(false),
-        }}
-        fileUploadModal={{
-          show: showFileUploadModal,
-          path: fileUploadPath,
-          buildFilePhotoUploadPath,
-          onSuccess: buildUploadSuccessHandler(setShowFileUploadModal),
-          onClose: () => setShowFileUploadModal(false),
-        }}
-        giveDocumentModal={{
-          show: showGiveDocumentModal,
-          canGiveHidden,
-          onClose: () => setShowGiveDocumentModal(false),
-        }}
+        {...buildModalProps({ uploadPath, fileUploadPath, buildFilePhotoUploadPath, canGiveHidden })}
       />
     </>
   );

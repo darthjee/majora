@@ -6,6 +6,7 @@ import GameEditModals from './elements/GameEditModals.jsx';
 import getCurrentHash from '../../../../utils/routing/currentHash.js';
 import useFormState from '../../../../utils/useFormState.js';
 import useSyncGameFields from './hooks/useSyncGameFields.js';
+import useGameEditModals from './hooks/useGameEditModals.js';
 
 /**
  * Game edit page.
@@ -22,8 +23,6 @@ export default function GameEdit({ ControllerClass = GameEditController }) {
   const [fieldErrors, setFieldErrors] = useState({});
   const [status, setStatus] = useState('idle');
   const [links, setLinks] = useState([]);
-  const [showUploadModal, setShowUploadModal] = useState(false);
-  const [showLinksModal, setShowLinksModal] = useState(false);
   const { state: fields, setField, handleChange } = useFormState({ name: '', description: '' });
 
   const controller = useMemo(
@@ -39,10 +38,7 @@ export default function GameEdit({ ControllerClass = GameEditController }) {
 
   useSyncGameFields(game, gameSlug, setField, setLinks);
 
-  const handleUploadSuccess = () => {
-    setShowUploadModal(false);
-    controller.buildEffect()();
-  };
+  const { modalProps, onOpenUploadModal, onOpenLinksModal } = useGameEditModals(controller, setLinks);
 
   const handleSubmit = (event) => controller.submitForm(
     event,
@@ -69,23 +65,11 @@ export default function GameEdit({ ControllerClass = GameEditController }) {
           onSubmit: handleSubmit,
           onNameChange: handleChange('name'),
           onDescriptionChange: handleChange('description'),
-          onOpenUploadModal: () => setShowUploadModal(true),
-          onOpenLinksModal: () => setShowLinksModal(true),
+          onOpenUploadModal,
+          onOpenLinksModal,
         },
       )}
-      <GameEditModals
-        showUploadModal={showUploadModal}
-        showLinksModal={showLinksModal}
-        gameSlug={gameSlug}
-        links={links}
-        onUploadClose={() => setShowUploadModal(false)}
-        onUploadSuccess={handleUploadSuccess}
-        onLinksClose={() => setShowLinksModal(false)}
-        onLinksConfirm={(newLinks) => {
-          setLinks(newLinks);
-          setShowLinksModal(false);
-        }}
-      />
+      <GameEditModals {...modalProps} gameSlug={gameSlug} links={links} />
     </>
   );
 }
