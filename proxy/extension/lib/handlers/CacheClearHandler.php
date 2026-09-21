@@ -117,9 +117,10 @@ class CacheClearHandler extends RequestHandler
 
             if ($entry->isDir()) {
                 rmdir($path);
-            } else {
-                unlink($path);
+                continue;
             }
+
+            unlink($path);
         }
     }
 }
