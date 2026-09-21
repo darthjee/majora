@@ -5,6 +5,7 @@ import GameCommonItemEditModals from './elements/GameCommonItemEditModals.jsx';
 import getCurrentHash from '../../../../utils/routing/currentHash.js';
 import useFormState from '../../../../utils/useFormState.js';
 import useApplyLoadedCommonItem from './hooks/useApplyLoadedCommonItem.js';
+import useCommonItemEditModals from './hooks/useCommonItemEditModals.js';
 
 /**
  * Game common item edit page (issue #826): loads a `GameCommonItem` via
@@ -27,8 +28,6 @@ export default function GameCommonItemEdit({ ControllerClass = GameCommonItemEdi
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
   const [status, setStatus] = useState('idle');
-  const [showUploadModal, setShowUploadModal] = useState(false);
-  const [showPriceModal, setShowPriceModal] = useState(false);
   const {
     state: fields, setField, handleChange, handleCheckboxChange,
   } = useFormState({
@@ -52,6 +51,8 @@ export default function GameCommonItemEdit({ ControllerClass = GameCommonItemEdi
 
   useApplyLoadedCommonItem(controller, commonItem, setField);
 
+  const { modalProps, onOpenUploadModal, onOpenPriceModal } = useCommonItemEditModals(controller, setField);
+
   const handleSubmit = (event) => controller.submitForm(
     event, gameSlug, commonItemId, fields, { setStatus, setFieldErrors },
   );
@@ -60,11 +61,6 @@ export default function GameCommonItemEdit({ ControllerClass = GameCommonItemEdi
   if (error) return CommonItemEditHelper.renderError(error);
 
   const uploadPath = `/games/${gameSlug}/common_items/${commonItemId}/photo_upload.json`;
-
-  const handleUploadSuccess = () => {
-    setShowUploadModal(false);
-    controller.buildEffect()();
-  };
 
   return (
     <>
@@ -76,23 +72,11 @@ export default function GameCommonItemEdit({ ControllerClass = GameCommonItemEdi
           onDescriptionChange: handleChange('description'),
           onCategoryChange: handleChange('category'),
           onHiddenChange: handleCheckboxChange('hidden'),
-          onOpenUploadModal: () => setShowUploadModal(true),
-          onOpenPriceModal: () => setShowPriceModal(true),
+          onOpenUploadModal,
+          onOpenPriceModal,
         }
       )}
-      <GameCommonItemEditModals
-        showUploadModal={showUploadModal}
-        showPriceModal={showPriceModal}
-        uploadPath={uploadPath}
-        price={fields.price}
-        onUploadClose={() => setShowUploadModal(false)}
-        onUploadSuccess={handleUploadSuccess}
-        onPriceClose={() => setShowPriceModal(false)}
-        onPriceConfirm={(newTotal) => {
-          setField('price', String(newTotal));
-          setShowPriceModal(false);
-        }}
-      />
+      <GameCommonItemEditModals {...modalProps} uploadPath={uploadPath} price={fields.price} />
     </>
   );
 }
