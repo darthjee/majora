@@ -1,18 +1,9 @@
-import { useState } from 'react';
-import HeaderController from './controllers/HeaderController.js';
 import HeaderHelper from './helpers/HeaderHelper.jsx';
 import PendingApprovalPage from './PendingApprovalPage.jsx';
-import AccessStore from '../../../utils/access/store/AccessStore.js';
+import useHeaderState from './hooks/useHeaderState.js';
 import useHeaderAuthEffect from './hooks/useHeaderAuthEffect.js';
 import useDomainConfigEffect from './hooks/useDomainConfigEffect.js';
 import useHeaderControllers from './hooks/useHeaderControllers.js';
-
-/**
- * Pre-fetch domain configuration, rendered until `HeaderController#fetchDomainConfig`
- * resolves. Mirrors `index.html`'s static `<title>Majora</title>`/favicon fallback, so
- * the navbar brand never flashes empty while the bootstrap request is in flight.
- */
-const DEFAULT_DOMAIN_CONFIG = { favicon: null, title: 'Majora', subTitle: 'RPG' };
 
 /**
  * Render application header, tracking authentication state and the login modal. Also gates the
@@ -26,57 +17,27 @@ const DEFAULT_DOMAIN_CONFIG = { favicon: null, title: 'Majora', subTitle: 'RPG' 
  * @returns {React.ReactElement} Header element.
  */
 export default function Header({ children }) {
-  const [loggedIn, setLoggedIn] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const [testEmailStatus, setTestEmailStatus] = useState(null);
-  const [isSuperUser, setIsSuperUser] = useState(false);
-  const [isStaff, setIsStaff] = useState(false);
-  const [route, setRoute] = useState(() => new HeaderController().getRoute());
-  const [gameAccess, setGameAccess] = useState(() => AccessStore.getGameAccess(route.gameSlug));
-  const [canViewAs, setCanViewAs] = useState(false);
-  const [showViewAsModal, setShowViewAsModal] = useState(false);
-  const [facadeEnabled, setFacadeEnabled] = useState(() => AccessStore.getFacade().enabled);
-  const [pendingApproval, setPendingApproval] = useState(false);
-  const [domainConfig, setDomainConfig] = useState(DEFAULT_DOMAIN_CONFIG);
+  const { state, pendingApproval, setters } = useHeaderState();
 
   const { controller, viewAsController } = useHeaderControllers({
-    setLoggedIn,
-    setShowModal,
-    setTestEmailStatus,
-    setIsSuperUser,
-    setIsStaff,
-    setRoute,
-    setPendingApproval,
-    setDomainConfig,
-    setCanViewAs,
-    setShowViewAsModal,
-    setGameAccess,
-    gameSlug: route.gameSlug,
+    ...setters,
+    gameSlug: state.route.gameSlug,
   });
 
   useHeaderAuthEffect({
-    controller, viewAsController, setFacadeEnabled, loggedIn,
+    controller,
+    viewAsController,
+    setFacadeEnabled: setters.setFacadeEnabled,
+    loggedIn: state.loggedIn,
   });
 
-  useDomainConfigEffect(domainConfig);
+  useDomainConfigEffect(state.domainConfig);
 
   return (
     <>
       {HeaderHelper.render(
-        {
-          loggedIn,
-          showModal,
-          testEmailStatus,
-          isSuperUser,
-          isStaff,
-          route,
-          gameAccess,
-          canViewAs: canViewAs || Boolean(gameAccess.is_dm),
-          showViewAsModal,
-          facadeEnabled,
-          domainConfig,
-        },
-        controller.buildHandlers(viewAsController, loggedIn)
+        { ...state, canViewAs: state.canViewAs || Boolean(state.gameAccess.is_dm) },
+        controller.buildHandlers(viewAsController, state.loggedIn)
       )}
       {pendingApproval ? <PendingApprovalPage /> : children}
     </>
