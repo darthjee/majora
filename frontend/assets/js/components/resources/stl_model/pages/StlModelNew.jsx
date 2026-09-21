@@ -6,6 +6,7 @@ import Noop from '../../../../utils/Noop.js';
 import useFormState from '../../../../utils/useFormState.js';
 import usePhotoPreviewUrl from '../../../../utils/usePhotoPreviewUrl.js';
 import useTagsField from './hooks/useTagsField.js';
+import useStlModelNewHandlers from './hooks/useStlModelNewHandlers.js';
 import { TYPE_VALUES } from '../stlModelEnums.js';
 
 /**
@@ -50,8 +51,6 @@ export default function StlModelNew() {
   const [sources, setSources] = useState([]);
   const [collections, setCollections] = useState([]);
   const [photoFile, setPhotoFile] = useState(null);
-  const [showUploadModal, setShowUploadModal] = useState(false);
-  const [createdId, setCreatedId] = useState(null);
   const {
     state: fields, setField, handleChange, handleCheckboxChange,
   } = useFormState({
@@ -71,23 +70,13 @@ export default function StlModelNew() {
 
   useEffect(() => controller.buildEffect()(), [controller]);
 
-  const handleSubmit = (event) => controller.submitForm(
-    event,
-    { ...fields, sources, collections, photoFile },
-    { setStatus, setFieldErrors, setCreatedId },
-  );
-
-  const handleRetryPhotoUpload = () => controller.retryPhotoUpload(
-    createdId,
+  const { handlers, modalProps } = useStlModelNewHandlers({
+    controller,
+    formData: { ...fields, sources, collections, photoFile },
     photoFile,
-    { setStatus, setCreatedId },
-  );
-
-  const handleSkipPhotoUpload = () => {
-    if (typeof window !== 'undefined') {
-      window.location.hash = `/miniatures/stl_models/${createdId}`;
-    }
-  };
+    setStatus,
+    setFieldErrors,
+  });
 
   return (
     <>
@@ -96,7 +85,7 @@ export default function StlModelNew() {
           ...fields, tagInput, sources, collections, status, fieldErrors, photoPreviewUrl,
         },
         {
-          onSubmit: handleSubmit,
+          ...handlers,
           onNameChange: handleChange('name'),
           onOwnedChange: handleCheckboxChange('owned'),
           onTypeChange: handleChange('type'),
@@ -109,16 +98,9 @@ export default function StlModelNew() {
           onRemoveTag: handleRemoveTag,
           onSourcesChange: setSources,
           onCollectionsChange: setCollections,
-          onOpenUploadModal: () => setShowUploadModal(true),
-          onRetryPhotoUpload: handleRetryPhotoUpload,
-          onSkipPhotoUpload: handleSkipPhotoUpload,
         },
       )}
-      <StlModelNewModals
-        showUploadModal={showUploadModal}
-        setPhotoFile={setPhotoFile}
-        onClose={() => setShowUploadModal(false)}
-      />
+      <StlModelNewModals {...modalProps} setPhotoFile={setPhotoFile} />
     </>
   );
 }
