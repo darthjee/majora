@@ -45,8 +45,14 @@ make setup
 
 Backend runs on port `3030`, frontend dev server on `3010`, full stack proxy on `3000`.
 
-**Always run project commands through `docker-compose`.** Never install packages or invoke any language runtime or package manager (e.g. `yarn`, `npm`, `poetry`, `pip`, `php`) directly on the host machine. The only exception is when the user asks, in the current conversation, for a specific command to be run on the host; that request covers only the command it names and does not carry over to later commands.
-This keeps dependencies reproducible inside the project's containers — the host machine may not even have the required runtime installed. Examples:
+**Always run project commands through `docker-compose`.**
+
+- Never install packages on the host machine.
+- Never invoke a language runtime or package manager (e.g. `yarn`, `npm`, `poetry`, `pip`, `php`) on the host.
+- The only exception is a request from the user, in the current conversation, to run a specific command on the host.
+- That request covers only the command it names. It does not carry over to later commands.
+
+This keeps dependencies reproducible inside the project's containers. The host machine may not even have the required runtime installed. Examples:
 
 ```bash
 docker-compose run --rm majora_fe yarn lint
