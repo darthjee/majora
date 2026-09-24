@@ -28,6 +28,10 @@ against
 | `/games/<slug>/common_items/<common_item_id>/photo_upload.json` | POST | `IsAuthenticated` + roles per [`game_common_item/endpoints.yml`](../../../backend/permissions/config/game_common_item/endpoints.yml) (`photo_upload`: staff + player) |
 | `/permissions/game_common_item.json` | GET | entity-agnostic, role-simulated `can_edit` (mirrors `permissions/game_possession.json`) |
 
+The UI create gate (Common Items create link and `/common_items/new` page) reads
+`can_create_common_item` from [`GET /permissions/game.json`](game.md) (issue #1426), whose roles
+match the `create` key above.
+
 Both index endpoints order by `id`; `description` is omitted from both (present on detail
 endpoints instead). `PATCH` shares the same route as `GET` on the plain detail endpoint; only
 `name`/`description`/`price`/`category`/`hidden` are writable — `photo` stays on its own upload
