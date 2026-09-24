@@ -341,6 +341,18 @@ game_treasures_page:
   edit: Edit
   available_units_label: 'Available: {{available}} / {{max}}'
   hidden_label: Hidden
+game_task:
+  category:
+    printing: Printing
+    crafting: Crafting
+    painting: Painting
+    planning: Planning
+    writing: Writing
+    research: Research
+    scheduling: Scheduling
+    buying: Buying
+    updating: Updating
+    other: Other
 errors:
   max_length: This field is too long.
   min_length: This field is too short.
