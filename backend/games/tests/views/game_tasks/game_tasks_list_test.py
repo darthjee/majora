@@ -127,6 +127,17 @@ class TestGameTasksListView(TestCase):
         response = self.client.get(url, HTTP_AUTHORIZATION=f'Token {self.dm_token.key}')
         assert response.status_code == 200
 
+    def test_get_returns_skip_cache_header(self):
+        """Test that the GET response includes the X-Skip-Cache: true header."""
+        response = self._get(self.client, token=self.dm_token)
+        assert response['X-Skip-Cache'] == 'true'
+
+    def test_forbidden_get_returns_skip_cache_header(self):
+        """Test that a permission-denied GET still includes the X-Skip-Cache: true header."""
+        response = self._get(self.client, token=self.regular_token)
+        assert response.status_code == 403
+        assert response['X-Skip-Cache'] == 'true'
+
     def test_list_is_ordered_by_creation(self):
         """Test that the list is ordered by id (creation order)."""
         first = Task.objects.create(game=self.game, short_description='First')
@@ -237,6 +248,21 @@ class TestGameTasksCreateView(TestCase):
         assert response.status_code == 403
         data = json.loads(response.content)
         assert 'detail' in data['errors']
+
+    def test_post_returns_skip_cache_header(self):
+        """Test that the POST response includes the X-Skip-Cache: true header."""
+        response = self._post(
+            self.client, {'short_description': 'Prep the ambush'}, token=self.dm_token
+        )
+        assert response['X-Skip-Cache'] == 'true'
+
+    def test_forbidden_post_returns_skip_cache_header(self):
+        """Test that a permission-denied POST still includes the X-Skip-Cache: true header."""
+        response = self._post(
+            self.client, {'short_description': 'Prep the ambush'}, token=self.regular_token
+        )
+        assert response.status_code == 403
+        assert response['X-Skip-Cache'] == 'true'
 
     def test_missing_short_description_returns_400(self):
         """Test that a POST without short_description returns 400."""
