@@ -20,7 +20,7 @@ describe('GameTasksController', function() {
     tasks = [{
       id: 1, short_description: 'Existing', long_description: '', completed: false, session: null,
     }];
-    formValues = { shortDescription: 'Prep encounter', longDescription: 'Some details' };
+    formValues = { category: 'painting', shortDescription: 'Prep encounter', longDescription: 'Some details' };
     mutateSpy = spyOn(RequestStore, 'mutate');
   });
 
@@ -53,6 +53,7 @@ describe('GameTasksController', function() {
         quantityType: 'collection',
         params: { gameSlug: 'demo' },
         body: {
+          category: 'painting',
           short_description: 'Prep encounter',
           long_description: 'Some details',
         },
@@ -90,6 +91,22 @@ describe('GameTasksController', function() {
 
       expect(setFieldErrors).toHaveBeenCalledWith({ short_description: ['is required'] });
       expect(setTasks).not.toHaveBeenCalledWith([...tasks, jasmine.anything()]);
+      expect(resetForm).not.toHaveBeenCalled();
+    });
+
+    it('sets category field errors on a 400 response without resetting the form', async function() {
+      mutateSpy.and.returnValue(Promise.resolve({
+        status: 400,
+        json: () => Promise.resolve({ errors: { category: ['invalid_choice'] } }),
+      }));
+
+      const controller = new GameTasksController(null, null, null, null);
+      await controller.handleCreateTask(undefined, 'demo', formValues, tasks, {
+        setTasks, setFieldErrors, setError, resetForm,
+      });
+
+      expect(setFieldErrors).toHaveBeenCalledWith({ category: ['invalid_choice'] });
+      expect(resetForm).not.toHaveBeenCalled();
     });
 
     it('sets a general error on a non-201/400 failure', async function() {

@@ -98,6 +98,12 @@ describe('SingleResourcePickerFieldHelper', function() {
       expect(element.props.onBlur).toBe(handlers.onBlur);
     });
 
+    it('sets the given id on the field wrapper', function() {
+      const element = SingleResourcePickerFieldHelper.render(buildState({ id: 'task-category' }), buildHandlers());
+
+      expect(element.props.id).toBe('task-category');
+    });
+
     it('renders the errors through FieldErrors', function() {
       const element = SingleResourcePickerFieldHelper.render(
         buildState({ errors: ['invalid_choice'] }), buildHandlers(),

@@ -50,6 +50,12 @@ describe('SingleResourcePickerField', function() {
     expect(state.errors).toEqual(['invalid_choice']);
   });
 
+  it('passes the given id through', function() {
+    const { state } = renderField({ id: 'game-tasks-new-category' });
+
+    expect(state.id).toBe('game-tasks-new-category');
+  });
+
   it('passes a constant-mode picker through', function() {
     const translateOption = (value) => value.toUpperCase();
     const picker = { values: ['painting', 'other'], translateOption };

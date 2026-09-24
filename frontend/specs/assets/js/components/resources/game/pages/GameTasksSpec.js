@@ -1,6 +1,7 @@
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import GameTasks from '../../../../../../../assets/js/components/resources/game/pages/GameTasks.jsx';
+import GameTasks, { EMPTY_FORM, resetTaskFormValues }
+  from '../../../../../../../assets/js/components/resources/game/pages/GameTasks.jsx';
 import GameTasksHelper from '../../../../../../../assets/js/components/resources/game/pages/helpers/GameTasksHelper.jsx';
 import GameTasksController from '../../../../../../../assets/js/components/resources/game/pages/controllers/GameTasksController.js';
 import FacadeRefresh from '../../../../../../../assets/js/utils/access/useFacadeRefresh.js';
@@ -55,7 +56,7 @@ describe('GameTasks', function() {
           pagination,
           basePath: '#/games/demo/tasks',
           backHref: '#/games/demo',
-          formValues: { shortDescription: '', longDescription: '' },
+          formValues: EMPTY_FORM,
           fieldErrors: {},
         },
         handlers,
@@ -64,5 +65,17 @@ describe('GameTasks', function() {
 
     expect(html).toContain('Prep encounter');
     expect(html).toContain('Add task');
+  });
+
+  it('starts the add form at the other category with empty descriptions', function() {
+    expect(EMPTY_FORM).toEqual({ category: 'other', shortDescription: '', longDescription: '' });
+  });
+
+  it('keeps the last picked category and resets the descriptions after a create', function() {
+    const previous = { category: 'painting', shortDescription: 'Paint minis', longDescription: 'Goblins' };
+
+    expect(resetTaskFormValues(previous)).toEqual({
+      category: 'painting', shortDescription: '', longDescription: '',
+    });
   });
 });

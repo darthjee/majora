@@ -12,9 +12,9 @@ export default class SingleResourcePickerFieldHelper {
    * handler that cancels re-picking when focus leaves the field.
    *
    * @param {{picker: object, value: ({id: (number|string), name: string}|null), label: string,
-   *   searchPlaceholder: string, searching: boolean, errors: string[]}} state - Field state;
-   *   `picker` is either `{resource, maxEntries}` (API mode) or `{values, translateOption}`
-   *   (constant mode).
+   *   searchPlaceholder: string, searching: boolean, errors: string[], id: (string|undefined)}}
+   *   state - Field state; `picker` is either `{resource, maxEntries}` (API mode) or
+   *   `{values, translateOption}` (constant mode), and `id` is the wrapper's optional DOM id.
    * @param {{onSelect: Function, onReopenSearch: Function, onCancel: Function,
    *   onBlur: Function}} handlers - Selection handler (search core), click handler to re-open
    *   the search from the badge view, `Escape` cancel handler, and the wrapper's blur handler.
@@ -22,7 +22,7 @@ export default class SingleResourcePickerFieldHelper {
    */
   static render(state, handlers) {
     return (
-      <div className="mb-3" onBlur={handlers.onBlur}>
+      <div id={state.id} className="mb-3" onBlur={handlers.onBlur}>
         <span className="form-label d-block">{state.label}</span>
         {SingleResourcePickerFieldHelper.#renderBody(state, handlers)}
         <FieldErrors errors={state.errors} />

@@ -1,10 +1,14 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import GameTasksHelper from '../../../../../../../../assets/js/components/resources/game/pages/helpers/GameTasksHelper.jsx';
 import Noop from '../../../../../../../../assets/js/utils/Noop.js';
+import SingleResourcePickerField
+  from '../../../../../../../../assets/js/components/common/forms/SingleResourcePickerField.jsx';
+import FormField from '../../../../../../../../assets/js/components/common/forms/FormField.jsx';
+import { findElement } from '../../../../common/forms/helpers/support.js';
 
 describe('GameTasksHelper', function() {
   const pagination = { page: 1, pages: 3, perPage: 10 };
-  const formValues = { shortDescription: '', longDescription: '' };
+  const formValues = { category: 'other', shortDescription: '', longDescription: '' };
   const handlers = {
     onToggle: Noop.noop,
     onFormChange: Noop.noop,
@@ -72,7 +76,12 @@ describe('GameTasksHelper', function() {
       const html = renderToStaticMarkup(
         GameTasksHelper.render(
           {
-            tasks, pagination, basePath: '#/games/demo/tasks', backHref: '#/games/demo', formValues, fieldErrors: {},
+            tasks,
+            pagination,
+            basePath: '#/games/demo/tasks',
+            backHref: '#/games/demo',
+            formValues: { ...formValues, category: 'buying' },
+            fieldErrors: {},
           },
           handlers,
         ),
@@ -156,6 +165,86 @@ describe('GameTasksHelper', function() {
       );
 
       expect(html).toContain('is required');
+    });
+
+    describe('category picker', function() {
+      const renderForm = (overrides = {}, formHandlers = handlers) => {
+        const element = GameTasksHelper.render(
+          {
+            tasks: [],
+            pagination,
+            basePath: '#/games/demo/tasks',
+            backHref: '#/games/demo',
+            formValues,
+            fieldErrors: {},
+            ...overrides,
+          },
+          formHandlers,
+        );
+
+        return findElement(element, (node) => node.type === 'form');
+      };
+
+      it('is the first field of the add form, before the short description', function() {
+        const form = renderForm();
+        const [first, second] = form.props.children;
+
+        expect(first.type).toBe(SingleResourcePickerField);
+        expect(first.props.id).toBe('game-tasks-new-category');
+        expect(second.type).toBe(FormField);
+        expect(second.props.id).toBe('game-tasks-new-short-description');
+      });
+
+      it('lists the task categories in constant mode, with translated labels', function() {
+        const picker = findElement(renderForm(), (node) => node.type === SingleResourcePickerField);
+
+        expect(picker.props.picker.values[0]).toBe('printing');
+        expect(picker.props.picker.values[9]).toBe('other');
+        expect(picker.props.picker.translateOption('painting')).toBe('Painting');
+        expect(picker.props.label).toBe('Category');
+        expect(picker.props.searchPlaceholder).toBe('Search category...');
+      });
+
+      it('starts at the other category', function() {
+        const picker = findElement(renderForm(), (node) => node.type === SingleResourcePickerField);
+
+        expect(picker.props.value).toEqual({ id: 'other', name: 'Other' });
+      });
+
+      it('calls onFormChange with the picked category', function() {
+        const onFormChange = jasmine.createSpy('onFormChange');
+        const form = renderForm({}, { ...handlers, onFormChange });
+        const picker = findElement(form, (node) => node.type === SingleResourcePickerField);
+
+        picker.props.onChange({ id: 'painting', name: 'Painting' });
+
+        expect(onFormChange).toHaveBeenCalledWith({ ...formValues, category: 'painting' });
+      });
+
+      it('passes the category field errors', function() {
+        const form = renderForm({ fieldErrors: { category: ['invalid_choice'] } });
+        const picker = findElement(form, (node) => node.type === SingleResourcePickerField);
+
+        expect(picker.props.errors).toEqual(['invalid_choice']);
+      });
+
+      it('renders the category field errors', function() {
+        const html = renderToStaticMarkup(
+          GameTasksHelper.render(
+            {
+              tasks: [],
+              pagination,
+              basePath: '#/games/demo/tasks',
+              backHref: '#/games/demo',
+              formValues,
+              fieldErrors: { category: ['cooking is not valid'] },
+            },
+            handlers,
+          ),
+        );
+
+        expect(html).toContain('cooking is not valid');
+      });
     });
 
     it('renders pagination', function() {

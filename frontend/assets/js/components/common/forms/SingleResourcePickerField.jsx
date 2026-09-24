@@ -48,10 +48,11 @@ export function buildFieldBlurHandler(onCancel) {
  * @param {string} props.label - Translated field label.
  * @param {string} props.searchPlaceholder - Translated placeholder for the search input.
  * @param {string[]} [props.errors] - Field-level error codes, rendered through `FieldErrors`.
+ * @param {string} [props.id] - Optional DOM id for the field's wrapper.
  * @returns {React.ReactElement} Rendered single resource picker field.
  */
 export default function SingleResourcePickerField({
-  picker, value, onChange, label, searchPlaceholder, errors = [],
+  picker, value, onChange, label, searchPlaceholder, errors = [], id,
 }) {
   const [searching, setSearching] = useState(false);
   const handleCancel = () => setSearching(false);
@@ -63,7 +64,7 @@ export default function SingleResourcePickerField({
 
   return SingleResourcePickerFieldHelper.render(
     {
-      picker, value, label, searchPlaceholder, searching, errors,
+      picker, value, label, searchPlaceholder, searching, errors, id,
     },
     {
       onSelect: handleSelect,
