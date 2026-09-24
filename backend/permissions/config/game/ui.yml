@@ -6,6 +6,9 @@ regular_edit:
 create_item:
   - staff
   - player
+create_common_item:
+  - staff
+  - player
 create_document:
   - staff
   - player

@@ -90,6 +90,10 @@ endpoints](common-rules.md#edit-permission-endpoints-permissionsjson). Beyond `c
 - `can_create_item` — **GameItemCreatePermission**: roles per
   [`game_item/endpoints.yml`](../../../backend/games/permissions/config/game_item/endpoints.yml)
   (`create`) — broader than `can_edit`. See [GameItem](game-item.md#item-creation-endpoint).
+- `can_create_common_item` (issue #1426) — same shape, roles per
+  [`game_common_item/endpoints.yml`](../../../backend/permissions/config/game_common_item/endpoints.yml)
+  (`create`: staff + player). Gates the frontend Common Items create link and
+  `/common_items/new` page. See [GameCommonItem](game-common-item.md).
 - `can_create_document` — same shape, roles per
   [`game_document/endpoints.yml`](../../../backend/games/permissions/config/game_document/endpoints.yml)
   (`create`). See [GameDocument](game-document.md#document-creation-endpoint).
