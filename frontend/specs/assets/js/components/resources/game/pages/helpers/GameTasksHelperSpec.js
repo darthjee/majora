@@ -36,6 +36,52 @@ describe('GameTasksHelper', function() {
       expect(html).toContain('Buy snacks');
     });
 
+    it('renders each task translated category badge', function() {
+      const tasks = [
+        {
+          id: 1, short_description: 'Prep encounter', long_description: '', completed: false, session: null, category: 'painting',
+        },
+        {
+          id: 2, short_description: 'Buy snacks', long_description: '', completed: false, session: null, category: 'buying',
+        },
+      ];
+
+      const html = renderToStaticMarkup(
+        GameTasksHelper.render(
+          {
+            tasks, pagination, basePath: '#/games/demo/tasks', backHref: '#/games/demo', formValues, fieldErrors: {},
+          },
+          handlers,
+        ),
+      );
+
+      expect(html).toContain('<span class="badge bg-secondary">Painting</span>');
+      expect(html).toContain('<span class="badge bg-secondary">Buying</span>');
+    });
+
+    it('renders the other label for a missing or unknown category', function() {
+      const tasks = [
+        {
+          id: 1, short_description: 'Prep encounter', long_description: '', completed: false, session: null,
+        },
+        {
+          id: 2, short_description: 'Buy snacks', long_description: '', completed: false, session: null, category: 'cooking',
+        },
+      ];
+
+      const html = renderToStaticMarkup(
+        GameTasksHelper.render(
+          {
+            tasks, pagination, basePath: '#/games/demo/tasks', backHref: '#/games/demo', formValues, fieldErrors: {},
+          },
+          handlers,
+        ),
+      );
+
+      expect(html.match(/<span class="badge bg-secondary">Other<\/span>/g).length).toBe(2);
+      expect(html).not.toContain('game_task.category');
+    });
+
     it('marks completed tasks as checked', function() {
       const tasks = [{
         id: 1, short_description: 'Prep encounter', long_description: '', completed: true, session: null,

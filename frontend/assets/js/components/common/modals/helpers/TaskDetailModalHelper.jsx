@@ -1,5 +1,7 @@
 import Modal from 'react-bootstrap/cjs/Modal.js';
 import Translator from '../../../../i18n/Translator.js';
+import Badge from '../../badges/Badge.jsx';
+import { translateTaskCategory } from '../../../resources/game/pages/taskCategories.js';
 
 /**
  * Renders the task detail (view/edit) modal shell.
@@ -39,7 +41,14 @@ export default class TaskDetailModalHelper {
   }
 
   static #renderView(state) {
-    return <p style={{ whiteSpace: 'pre-wrap' }}>{state.task?.long_description}</p>;
+    return (
+      <>
+        <div className="mb-2">
+          <Badge text={translateTaskCategory(state.task?.category)} />
+        </div>
+        <p style={{ whiteSpace: 'pre-wrap' }}>{state.task?.long_description}</p>
+      </>
+    );
   }
 
   static #renderViewActions(handlers) {

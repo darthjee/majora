@@ -1,4 +1,5 @@
 import React from 'react';
+import Badge from '../../../../common/badges/Badge.jsx';
 import ErrorAlert from '../../../../common/misc/ErrorAlert.jsx';
 import FormField from '../../../../common/forms/FormField.jsx';
 import LoadingMessage from '../../../../common/misc/LoadingMessage.jsx';
@@ -7,6 +8,7 @@ import Pagination from '../../../../common/pagination/Pagination.jsx';
 import SubmitButton from '../../../../common/buttons/SubmitButton.jsx';
 import TextareaField from '../../../../common/forms/TextareaField.jsx';
 import Translator from '../../../../../i18n/Translator.js';
+import { translateTaskCategory } from '../taskCategories.js';
 
 /**
  * Rendering helper for the Game Tasks listing page.
@@ -92,6 +94,9 @@ export default class GameTasksHelper {
           <label className="form-check-label" htmlFor={`game-task-${task.id}`}>
             {task.short_description}
           </label>
+          <span className="ms-2">
+            <Badge text={translateTaskCategory(task.category)} />
+          </span>
         </div>
         <button
           type="button"
