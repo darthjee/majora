@@ -18,10 +18,13 @@ resource in this codebase where read access requires the same authorization as w
 ## Fields
 
 List/create-response/update-response (all share one shape): `id`, `short_description`,
-`long_description`, `completed`, `session` (nullable `GameSession` id).
+`long_description`, `completed`, `session` (nullable `GameSession` id), `category`.
 
 **Write fields** (create/update): `short_description` (required for create), `long_description`
 (optional), `completed` (optional, defaults to `False`), `session` (optional, nullable —
-settable/changeable/clearable). `game` is always server-assigned. `session`, when non-null, must
+settable/changeable/clearable), `category` (optional; one of `printing`, `crafting`, `painting`,
+`planning`, `writing`, `research`, `scheduling`, `buying`, `updating`, `other`; defaults to
+`other` on create and is left unchanged when omitted from a `PATCH`; any other value, `null` or
+`""` gives `400`). `game` is always server-assigned. `session`, when non-null, must
 belong to the same game as the task, or `400`. Deleting a `GameSession` detaches (not deletes) its
 tasks (`session` set to `null`) — a task outlives the session it was scoped to.
