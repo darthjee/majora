@@ -87,7 +87,7 @@ describe('HeaderHelper', function() {
         expect(html).not.toContain('/sessions"');
       });
 
-      it('renders items in Show/PCs/NPCs/Treasures/Items/Possessions/Factions/Documents/Players/Polls/Sessions/Photos order', function() {
+      it('renders items in Show/PCs/NPCs/Treasures/Items/Common Items/Possessions/Factions/Documents/Players/Polls/Sessions/Photos order', function() {
         const html = render({
           route: { page: 'game', gameSlug: 'epic-quest' },
           gameAccess: { is_dm: true, is_player: false, is_superuser: false, is_staff: false },
@@ -99,6 +99,7 @@ describe('HeaderHelper', function() {
           '#/games/epic-quest/npcs"',
           '#/games/epic-quest/treasures"',
           '#/games/epic-quest/items"',
+          '#/games/epic-quest/common_items"',
           '#/games/epic-quest/possessions"',
           '#/games/epic-quest/factions"',
           '#/games/epic-quest/documents"',
