@@ -11,7 +11,11 @@ import TextareaField from '../../../../common/forms/TextareaField.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 import { TASK_CATEGORY_VALUES, toTaskCategoryPick, translateTaskCategory } from '../taskCategories.js';
 
-const CATEGORY_PICKER = { values: TASK_CATEGORY_VALUES, translateOption: translateTaskCategory };
+const CATEGORY_PICKER = {
+  values: TASK_CATEGORY_VALUES,
+  translateOption: translateTaskCategory,
+  maxEntries: TASK_CATEGORY_VALUES.length,
+};
 
 /**
  * Rendering helper for the Game Tasks listing page.

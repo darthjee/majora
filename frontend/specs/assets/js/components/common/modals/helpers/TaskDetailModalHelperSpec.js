@@ -130,6 +130,8 @@ describe('TaskDetailModalHelper', function() {
       expect(first.props.id).toBe('task-detail-category');
       expect(first.props.value).toEqual({ id: 'painting', name: 'Painting' });
       expect(first.props.picker.values[9]).toBe('other');
+      expect(first.props.picker.maxEntries).toBe(10);
+      expect(first.props.picker.maxEntries).toBe(first.props.picker.values.length);
       expect(first.props.label).toBe('Category');
       expect(first.props.searchPlaceholder).toBe('Search category...');
     });

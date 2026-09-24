@@ -200,6 +200,8 @@ describe('GameTasksHelper', function() {
 
         expect(picker.props.picker.values[0]).toBe('printing');
         expect(picker.props.picker.values[9]).toBe('other');
+        expect(picker.props.picker.maxEntries).toBe(10);
+        expect(picker.props.picker.maxEntries).toBe(picker.props.picker.values.length);
         expect(picker.props.picker.translateOption('painting')).toBe('Painting');
         expect(picker.props.label).toBe('Category');
         expect(picker.props.searchPlaceholder).toBe('Search category...');

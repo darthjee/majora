@@ -114,6 +114,22 @@ describe('ResourcePickerSearch', function() {
 
       expect(state.results.every((item) => values.includes(item.id))).toBe(true);
     });
+
+    it('caps results at the default of 5 when maxEntries is not given', function() {
+      const values = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
+      const translateOption = (value) => value;
+      const { state } = renderPicker({ values, translateOption, maxEntries: undefined });
+
+      expect(state.results.map((item) => item.id)).toEqual(['a', 'b', 'c', 'd', 'e']);
+    });
+
+    it('uses maxEntries as the cap when given', function() {
+      const values = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
+      const translateOption = (value) => value;
+      const { state } = renderPicker({ values, translateOption, maxEntries: values.length });
+
+      expect(state.results.map((item) => item.id)).toEqual(values);
+    });
   });
 
   describe('.filterConstantResults', function() {
@@ -177,6 +193,24 @@ describe('ResourcePickerSearch', function() {
         { id: 'alpha3', name: 'alpha3' }, { id: 'alpha4', name: 'alpha4' },
         { id: 'alpha5', name: 'alpha5' },
       ]);
+    });
+
+    it('caps results at the given maxEntries instead of the default', function() {
+      const values = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
+      const translateOption = (value) => value;
+
+      const results = filterConstantResults({ values, translateOption, searchTerm: '', maxEntries: 7 });
+
+      expect(results.map((item) => item.id)).toEqual(['a', 'b', 'c', 'd', 'e', 'f', 'g']);
+    });
+
+    it('allows maxEntries below the default', function() {
+      const values = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
+      const translateOption = (value) => value;
+
+      const results = filterConstantResults({ values, translateOption, searchTerm: '', maxEntries: 2 });
+
+      expect(results.map((item) => item.id)).toEqual(['a', 'b']);
     });
 
     it('returns all matches without truncation when 5 or fewer match', function() {

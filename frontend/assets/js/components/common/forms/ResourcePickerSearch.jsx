@@ -30,11 +30,10 @@ export function fetchResourcePickerResults({ resource, maxEntries, searchTerm })
 }
 
 /**
- * Maximum number of entries returned by `filterConstantResults`. Internal to constant mode only —
- * unrelated to the API-mode `maxEntries` prop (which maps to `per_page` and is ignored in
- * constant mode), hence the distinct name.
+ * Default maximum number of entries returned by `filterConstantResults`, used when no
+ * `maxEntries` is given in constant mode (in API mode, `maxEntries` maps to `per_page` instead).
  */
-const MAX_CONSTANT_RESULTS = 5;
+export const MAX_CONSTANT_RESULTS = 5;
 
 /**
  * Filter a local constant `values` list by substring match (case-insensitive) against each
@@ -42,23 +41,28 @@ const MAX_CONSTANT_RESULTS = 5;
  * `fetchResourcePickerResults` resolves to, so both modes render through the same
  * `ResourcePickerSearchHelper`. `id` is the raw constant string itself; there is never a value
  * outside `values`, so — unlike the API-backed mode — there is no equivalent of "create new" to
- * guard against. Results are capped at `MAX_CONSTANT_RESULTS` entries. Exported as a plain, named
+ * guard against. Results are capped at `maxEntries` entries (`MAX_CONSTANT_RESULTS` when absent).
+ * Exported as a plain, named
  * function so it can be exercised directly in specs.
  *
  * @param {object} params - Params.
  * @param {string[]} params.values - Constant list of raw `db_value`s to filter/offer.
  * @param {Function} params.translateOption - `(value) => label string` for each entry.
  * @param {string} params.searchTerm - Current name filter.
- * @returns {{id: string, name: string}[]} Up to `MAX_CONSTANT_RESULTS` matching entries, in
- *   `values`' original order.
+ * @param {number} [params.maxEntries] - Maximum entries returned. Defaults to
+ *   `MAX_CONSTANT_RESULTS`.
+ * @returns {{id: string, name: string}[]} Up to `maxEntries` matching entries, in `values`'
+ *   original order.
  */
-export function filterConstantResults({ values, translateOption, searchTerm }) {
+export function filterConstantResults({
+  values, translateOption, searchTerm, maxEntries = MAX_CONSTANT_RESULTS,
+}) {
   const term = searchTerm.trim().toLowerCase();
 
   return values
     .map((value) => ({ id: value, name: translateOption(value) }))
     .filter((item) => item.name.toLowerCase().includes(term))
-    .slice(0, MAX_CONSTANT_RESULTS);
+    .slice(0, maxEntries);
 }
 
 /**
@@ -97,8 +101,8 @@ export function buildCancelKeyDownHandler(onCancel) {
  * @param {object} props - Component props.
  * @param {string} [props.resource] - Resource name to search (e.g. `'source'`, `'collection'`).
  *   Ignored when `values` is given.
- * @param {number} [props.maxEntries] - Maximum results fetched per search. Ignored when `values`
- *   is given.
+ * @param {number} [props.maxEntries] - Maximum results per search: fetched per page in API mode,
+ *   or listed in constant mode (defaults to `MAX_CONSTANT_RESULTS` there when absent).
  * @param {string[]} [props.values] - Constant list of raw `db_value`s to filter/offer, switching
  *   this component into constant mode.
  * @param {Function} [props.translateOption] - `(value) => label string` for each `values` entry.
@@ -142,7 +146,7 @@ export default function ResourcePickerSearch({
   }, [isConstantMode, resource, maxEntries, searchTerm]);
 
   const results = isConstantMode
-    ? filterConstantResults({ values, translateOption, searchTerm })
+    ? filterConstantResults({ values, translateOption, searchTerm, maxEntries })
     : apiResults;
 
   return ResourcePickerSearchHelper.render(

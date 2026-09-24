@@ -6,7 +6,11 @@ import {
   TASK_CATEGORY_VALUES, toTaskCategoryPick, translateTaskCategory,
 } from '../../../resources/game/pages/taskCategories.js';
 
-const CATEGORY_PICKER = { values: TASK_CATEGORY_VALUES, translateOption: translateTaskCategory };
+const CATEGORY_PICKER = {
+  values: TASK_CATEGORY_VALUES,
+  translateOption: translateTaskCategory,
+  maxEntries: TASK_CATEGORY_VALUES.length,
+};
 
 /**
  * Renders the task detail (view/edit) modal shell.

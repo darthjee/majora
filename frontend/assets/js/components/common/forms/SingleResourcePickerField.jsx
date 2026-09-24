@@ -37,8 +37,8 @@ export function buildFieldBlurHandler(onCancel) {
  *   (`resource`/`maxEntries`) or constant mode (`values`/`translateOption`).
  * @param {string} [props.picker.resource] - Resource name to search (e.g. `'source'`). Ignored
  *   when `values` is given.
- * @param {number} [props.picker.maxEntries] - Maximum results fetched per search. Ignored when
- *   `values` is given.
+ * @param {number} [props.picker.maxEntries] - Maximum results per search: fetched per page in
+ *   API mode, or listed in constant mode (defaults to 5 there when absent).
  * @param {string[]} [props.picker.values] - Constant list of raw values to pick from, switching
  *   this field into constant mode.
  * @param {Function} [props.picker.translateOption] - `(value) => label string` for each `values`
