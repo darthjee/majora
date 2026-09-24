@@ -146,11 +146,12 @@ export default class GameTasksController extends BasePageController {
   }
 
   /**
-   * Saves edits to a task's short/long description.
+   * Saves edits to a task's category and short/long description.
    *
    * @param {string} gameSlug - Game slug.
    * @param {object} task - Task being edited.
-   * @param {{shortDescription: string, longDescription: string}} formValues - Edited values.
+   * @param {{category: string, shortDescription: string, longDescription: string}} formValues -
+   *   Edited values; `category` is the raw category value (e.g. `'painting'`).
    * @param {object[]} tasks - Current tasks list.
    * @param {Function} setTasks - Tasks setter.
    * @returns {Promise<object|null>} The updated task on success, or null on failure.
@@ -164,6 +165,7 @@ export default class GameTasksController extends BasePageController {
         quantityType: 'single',
         params: { gameSlug, id: task.id },
         body: {
+          category: formValues.category,
           short_description: formValues.shortDescription,
           long_description: formValues.longDescription,
         },

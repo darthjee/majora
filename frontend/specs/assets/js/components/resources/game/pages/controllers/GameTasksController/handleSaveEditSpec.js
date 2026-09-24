@@ -23,7 +23,7 @@ describe('GameTasksController', function() {
   describe('#handleSaveEdit', function() {
     it('updates the matching task in local state on success', async function() {
       const updated = {
-        id: 1, short_description: 'New', long_description: 'New details', completed: false, session: null,
+        id: 1, short_description: 'New', long_description: 'New details', completed: false, session: null, category: 'painting',
       };
       mutateSpy.and.returnValue(Promise.resolve({
         ok: true,
@@ -32,7 +32,7 @@ describe('GameTasksController', function() {
 
       const controller = new GameTasksController(null, null, null, null);
       const result = await controller.handleSaveEdit(
-        'demo', tasks[0], { shortDescription: 'New', longDescription: 'New details' }, tasks, setTasks,
+        'demo', tasks[0], { category: 'painting', shortDescription: 'New', longDescription: 'New details' }, tasks, setTasks,
       );
 
       expect(mutateSpy).toHaveBeenCalledWith({
@@ -42,6 +42,7 @@ describe('GameTasksController', function() {
         quantityType: 'single',
         params: { gameSlug: 'demo', id: 1 },
         body: {
+          category: 'painting',
           short_description: 'New',
           long_description: 'New details',
         },
@@ -55,7 +56,7 @@ describe('GameTasksController', function() {
 
       const controller = new GameTasksController(null, null, null, null);
       const result = await controller.handleSaveEdit(
-        'demo', tasks[0], { shortDescription: 'New', longDescription: 'New details' }, tasks, setTasks,
+        'demo', tasks[0], { category: 'painting', shortDescription: 'New', longDescription: 'New details' }, tasks, setTasks,
       );
 
       expect(setTasks).not.toHaveBeenCalled();
@@ -67,7 +68,7 @@ describe('GameTasksController', function() {
 
       const controller = new GameTasksController(null, null, null, null);
       const result = await controller.handleSaveEdit(
-        'demo', tasks[0], { shortDescription: 'New', longDescription: 'New details' }, tasks, setTasks,
+        'demo', tasks[0], { category: 'painting', shortDescription: 'New', longDescription: 'New details' }, tasks, setTasks,
       );
 
       expect(setTasks).not.toHaveBeenCalled();

@@ -1,7 +1,12 @@
 import Modal from 'react-bootstrap/cjs/Modal.js';
 import Translator from '../../../../i18n/Translator.js';
 import Badge from '../../badges/Badge.jsx';
-import { translateTaskCategory } from '../../../resources/game/pages/taskCategories.js';
+import SingleResourcePickerField from '../../forms/SingleResourcePickerField.jsx';
+import {
+  TASK_CATEGORY_VALUES, toTaskCategoryPick, translateTaskCategory,
+} from '../../../resources/game/pages/taskCategories.js';
+
+const CATEGORY_PICKER = { values: TASK_CATEGORY_VALUES, translateOption: translateTaskCategory };
 
 /**
  * Renders the task detail (view/edit) modal shell.
@@ -14,10 +19,11 @@ export default class TaskDetailModalHelper {
    * @param {object} state - Modal state.
    * @param {object|null} state.task - Task being viewed/edited, or null when none is selected.
    * @param {boolean} state.editing - Whether the modal is in edit mode.
+   * @param {string} state.category - Current (possibly edited) raw category value.
    * @param {string} state.shortDescription - Current (possibly edited) short description.
    * @param {string} state.longDescription - Current (possibly edited) long description.
    * @param {object} handlers - Modal event handlers (`onClose`, `onEdit`, `onCancel`, `onSave`,
-   *   `onShortDescriptionChange`, `onLongDescriptionChange`).
+   *   `onCategoryChange`, `onShortDescriptionChange`, `onLongDescriptionChange`).
    * @returns {React.ReactElement} Rendered task detail modal.
    */
   static render(show, state, handlers) {
@@ -62,6 +68,14 @@ export default class TaskDetailModalHelper {
   static #renderEditForm(state, handlers) {
     return (
       <>
+        <SingleResourcePickerField
+          id="task-detail-category"
+          picker={CATEGORY_PICKER}
+          value={toTaskCategoryPick(state.category)}
+          onChange={handlers.onCategoryChange}
+          label={Translator.t('game_task_edit_modal.category_label')}
+          searchPlaceholder={Translator.t('game_task_edit_modal.category_search_placeholder')}
+        />
         <div className="mb-3">
           <label className="form-label" htmlFor="task-detail-short-description">
             {Translator.t('game_task_edit_modal.short_description_label')}
