@@ -16,11 +16,14 @@ class GameTaskCreateSerializer(serializers.ModelSerializer):
         """Metadata for the GameTaskCreateSerializer."""
 
         model = Task
-        fields = ['short_description', 'long_description', 'completed', 'session']
+        fields = [
+            'short_description', 'long_description', 'completed', 'session', 'category',
+        ]
         extra_kwargs = {
             'short_description': {'required': True},
             'long_description': {'required': False},
             'completed': {'required': False},
+            'category': {'required': False},
         }
 
     def validate_session(self, value):

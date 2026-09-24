@@ -1,6 +1,8 @@
 """Tests for the Task model."""
 
+import pytest
 from django.contrib.auth.models import AnonymousUser
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 
 from games.models import GameSession, Task
@@ -27,6 +29,34 @@ class TestTask(TestCase):
         """Test that a task defaults to completed=False."""
         task = Task.objects.create(game=self.game, short_description='Prep the ambush')
         assert task.completed is False
+
+    def test_task_defaults_to_other_category(self):
+        """Test that a new task defaults to the `other` category."""
+        task = Task.objects.create(game=self.game, short_description='Prep the ambush')
+        assert task.category == Task.CATEGORY_OTHER
+
+    def test_task_can_be_saved_with_each_category(self):
+        """Test that a task can be saved with every category in the choices."""
+        for value, _label in Task.CATEGORY_CHOICES:
+            task = Task.objects.create(
+                game=self.game, short_description='Prep', category=value,
+            )
+            task.refresh_from_db()
+            assert task.category == value
+
+    def test_category_choices_order(self):
+        """Test that the category choices follow the fixed order with `other` last."""
+        assert [value for value, _label in Task.CATEGORY_CHOICES] == [
+            'printing', 'crafting', 'painting', 'planning', 'writing',
+            'research', 'scheduling', 'buying', 'updating', 'other',
+        ]
+
+    def test_full_clean_rejects_unknown_category(self):
+        """Test that full_clean rejects a category outside the choices."""
+        task = Task(game=self.game, short_description='Prep', category='cooking')
+        with pytest.raises(ValidationError) as error:
+            task.full_clean()
+        assert 'category' in error.value.message_dict
 
     def test_task_creation_with_session(self):
         """Test that a task can be linked to a session of the same game."""

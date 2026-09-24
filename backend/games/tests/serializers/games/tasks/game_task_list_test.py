@@ -38,6 +38,18 @@ class TestGameTaskListSerializer(TestCase):
         data = GameTaskListSerializer(self.task).data
         assert data['completed'] is False
 
+    def test_serializes_category_default(self):
+        """Test that the category field is serialized with its default value."""
+        data = GameTaskListSerializer(self.task).data
+        assert data['category'] == 'other'
+
+    def test_serializes_category_when_set(self):
+        """Test that a set category is serialized."""
+        self.task.category = Task.CATEGORY_PAINTING
+        self.task.save()
+        data = GameTaskListSerializer(self.task).data
+        assert data['category'] == 'painting'
+
     def test_serializes_session_as_none_when_unset(self):
         """Test that session is null when the task has no session."""
         data = GameTaskListSerializer(self.task).data
@@ -52,8 +64,8 @@ class TestGameTaskListSerializer(TestCase):
         assert data['session'] == session.id
 
     def test_only_exposes_expected_fields(self):
-        """Test that only id, short_description, long_description, completed, session appear."""
+        """Test that only the task fields (including category) appear."""
         data = GameTaskListSerializer(self.task).data
         assert set(data.keys()) == {
-            'id', 'short_description', 'long_description', 'completed', 'session',
+            'id', 'short_description', 'long_description', 'completed', 'session', 'category',
         }

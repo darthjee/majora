@@ -101,3 +101,43 @@ class TestGameTaskUpdateSerializer(TestCase):
         updated = serializer.save()
         assert updated.short_description == 'Prep the escape'
         assert updated.game == self.game
+
+    def _build(self, data):
+        """Build a partial update serializer for the task with the given data."""
+        return GameTaskUpdateSerializer(
+            self.task, data=data, partial=True, context={'game': self.game},
+        )
+
+    def test_category_can_be_changed(self):
+        """Test that a valid category change is saved."""
+        serializer = self._build({'category': 'writing'})
+        assert serializer.is_valid()
+        task = serializer.save()
+        assert task.category == 'writing'
+
+    def test_category_unchanged_when_omitted(self):
+        """Test that omitting category keeps the current value."""
+        self.task.category = Task.CATEGORY_BUYING
+        self.task.save()
+        serializer = self._build({'completed': True})
+        assert serializer.is_valid()
+        task = serializer.save()
+        assert task.category == 'buying'
+
+    def test_unknown_category_is_rejected(self):
+        """Test that an unknown category is rejected with invalid_choice."""
+        serializer = self._build({'category': 'cooking'})
+        assert not serializer.is_valid()
+        assert [error.code for error in serializer.errors['category']] == ['invalid_choice']
+
+    def test_null_category_is_rejected(self):
+        """Test that a null category is rejected."""
+        serializer = self._build({'category': None})
+        assert not serializer.is_valid()
+        assert [error.code for error in serializer.errors['category']] == ['null']
+
+    def test_blank_category_is_rejected(self):
+        """Test that an empty category is rejected."""
+        serializer = self._build({'category': ''})
+        assert not serializer.is_valid()
+        assert [error.code for error in serializer.errors['category']] == ['invalid_choice']

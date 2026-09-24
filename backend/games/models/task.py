@@ -6,6 +6,30 @@ from django.db import models
 class Task(models.Model):
     """Model representing a DM-private checklist item scoped to a game (and optionally session)."""
 
+    CATEGORY_PRINTING = 'printing'
+    CATEGORY_CRAFTING = 'crafting'
+    CATEGORY_PAINTING = 'painting'
+    CATEGORY_PLANNING = 'planning'
+    CATEGORY_WRITING = 'writing'
+    CATEGORY_RESEARCH = 'research'
+    CATEGORY_SCHEDULING = 'scheduling'
+    CATEGORY_BUYING = 'buying'
+    CATEGORY_UPDATING = 'updating'
+    CATEGORY_OTHER = 'other'
+
+    CATEGORY_CHOICES = [
+        (CATEGORY_PRINTING, 'Printing'),
+        (CATEGORY_CRAFTING, 'Crafting'),
+        (CATEGORY_PAINTING, 'Painting'),
+        (CATEGORY_PLANNING, 'Planning'),
+        (CATEGORY_WRITING, 'Writing'),
+        (CATEGORY_RESEARCH, 'Research'),
+        (CATEGORY_SCHEDULING, 'Scheduling'),
+        (CATEGORY_BUYING, 'Buying'),
+        (CATEGORY_UPDATING, 'Updating'),
+        (CATEGORY_OTHER, 'Other'),
+    ]
+
     game = models.ForeignKey('games.Game', on_delete=models.CASCADE, related_name='tasks')
     session = models.ForeignKey(
         'games.GameSession', on_delete=models.SET_NULL, null=True, blank=True,
@@ -14,6 +38,9 @@ class Task(models.Model):
     short_description = models.CharField(max_length=200)
     long_description = models.TextField(blank=True, default='')
     completed = models.BooleanField(default=False)
+    category = models.CharField(
+        max_length=16, choices=CATEGORY_CHOICES, default=CATEGORY_OTHER,
+    )
 
     class Meta:
         """Metadata for the Task model."""
