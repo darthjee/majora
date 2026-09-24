@@ -3,5 +3,7 @@ game_task_edit_modal:
   edit: Edit
   save: Save
   cancel: Cancel
+  category_label: Category
+  category_search_placeholder: Search category...
   short_description_label: Short description
   long_description_label: Long description

@@ -7,11 +7,13 @@ from rest_framework.response import Response
 
 from permissions import EndpointPermission
 
+from ...decorators import restricted
 from ...models import Game
 from ...serializers import GameTaskCreateSerializer, GameTaskListSerializer
 from ..common import paginated_list_response, validated_or_error
 
 
+@restricted
 @api_view(['GET', 'POST'])
 # AllowAny: authorisation is enforced inline below via EndpointPermission.check(),
 # since Tasks have no public read path (unlike GameSession/Treasure, GET is also gated).

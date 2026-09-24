@@ -86,6 +86,7 @@ class TestGameTasksListView(TestCase):
         assert data[0]['long_description'] == 'Some notes'
         assert data[0]['completed'] is True
         assert data[0]['session'] == session.id
+        assert data[0]['category'] == 'other'
 
     def test_returns_404_for_unknown_game_slug(self):
         """Test that 404 is returned for a non-existent game slug."""
@@ -125,6 +126,17 @@ class TestGameTasksListView(TestCase):
         url = reverse('game-tasks-list', kwargs={'game_slug': 'test-game'})
         response = self.client.get(url, HTTP_AUTHORIZATION=f'Token {self.dm_token.key}')
         assert response.status_code == 200
+
+    def test_get_returns_skip_cache_header(self):
+        """Test that the GET response includes the X-Skip-Cache: true header."""
+        response = self._get(self.client, token=self.dm_token)
+        assert response['X-Skip-Cache'] == 'true'
+
+    def test_forbidden_get_returns_skip_cache_header(self):
+        """Test that a permission-denied GET still includes the X-Skip-Cache: true header."""
+        response = self._get(self.client, token=self.regular_token)
+        assert response.status_code == 403
+        assert response['X-Skip-Cache'] == 'true'
 
     def test_list_is_ordered_by_creation(self):
         """Test that the list is ordered by id (creation order)."""
@@ -192,6 +204,35 @@ class TestGameTasksCreateView(TestCase):
         assert data['session'] is None
         assert 'id' in data
 
+    def test_create_without_category_defaults_to_other(self):
+        """Test that a POST without category creates the task as `other`."""
+        response = self._post(
+            self.client, {'short_description': 'Prep the ambush'}, token=self.dm_token
+        )
+        assert json.loads(response.content)['category'] == 'other'
+        assert Task.objects.get(short_description='Prep the ambush').category == 'other'
+
+    def test_create_with_category_saves_it(self):
+        """Test that a POST with a valid category saves and returns it."""
+        response = self._post(
+            self.client,
+            {'short_description': 'Prep the ambush', 'category': 'printing'},
+            token=self.dm_token,
+        )
+        assert response.status_code == 201
+        assert json.loads(response.content)['category'] == 'printing'
+        assert Task.objects.get(short_description='Prep the ambush').category == 'printing'
+
+    def test_create_with_invalid_category_returns_400(self):
+        """Test that a POST with an unknown category returns 400 with invalid_choice."""
+        response = self._post(
+            self.client,
+            {'short_description': 'Prep the ambush', 'category': 'cooking'},
+            token=self.dm_token,
+        )
+        assert response.status_code == 400
+        assert json.loads(response.content)['errors']['category'] == ['invalid_choice']
+
     def test_unauthenticated_post_returns_401(self):
         """Test that a POST without a token returns 401."""
         response = self._post(self.client, {'short_description': 'Prep the ambush'})
@@ -207,6 +248,21 @@ class TestGameTasksCreateView(TestCase):
         assert response.status_code == 403
         data = json.loads(response.content)
         assert 'detail' in data['errors']
+
+    def test_post_returns_skip_cache_header(self):
+        """Test that the POST response includes the X-Skip-Cache: true header."""
+        response = self._post(
+            self.client, {'short_description': 'Prep the ambush'}, token=self.dm_token
+        )
+        assert response['X-Skip-Cache'] == 'true'
+
+    def test_forbidden_post_returns_skip_cache_header(self):
+        """Test that a permission-denied POST still includes the X-Skip-Cache: true header."""
+        response = self._post(
+            self.client, {'short_description': 'Prep the ambush'}, token=self.regular_token
+        )
+        assert response.status_code == 403
+        assert response['X-Skip-Cache'] == 'true'
 
     def test_missing_short_description_returns_400(self):
         """Test that a POST without short_description returns 400."""

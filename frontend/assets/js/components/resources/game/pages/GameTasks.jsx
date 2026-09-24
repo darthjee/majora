@@ -3,8 +3,24 @@ import GameTasksController from './controllers/GameTasksController.js';
 import GameTasksHelper from './helpers/GameTasksHelper.jsx';
 import TaskDetailModal from '../../../common/modals/TaskDetailModal.jsx';
 import FacadeRefresh from '../../../../utils/access/useFacadeRefresh.js';
+import { DEFAULT_TASK_CATEGORY } from './taskCategories.js';
 
-const EMPTY_FORM = { shortDescription: '', longDescription: '' };
+/**
+ * Initial add-form values: category `other` and empty descriptions.
+ */
+export const EMPTY_FORM = { category: DEFAULT_TASK_CATEGORY, shortDescription: '', longDescription: '' };
+
+/**
+ * Add-form values after a successful create: the descriptions reset, but the last picked
+ * category is kept so several tasks of the same kind can be added in a row. Nothing is
+ * persisted — a fresh page mount starts from `EMPTY_FORM` again.
+ *
+ * @param {{category: string}} previous - Form values at the time of the reset.
+ * @returns {{category: string, shortDescription: string, longDescription: string}} Reset values.
+ */
+export function resetTaskFormValues(previous) {
+  return { ...EMPTY_FORM, category: previous.category };
+}
 
 /**
  * Game Tasks index page, listing checklist-style tasks for a game with an
@@ -41,7 +57,7 @@ export default function GameTasks() {
     setTasks,
     setFieldErrors,
     setError,
-    resetForm: () => setFormValues(EMPTY_FORM),
+    resetForm: () => setFormValues(resetTaskFormValues),
   });
 
   const handleSaveEdit = (task, values) => controller.handleSaveEdit(gameSlug, task, values, tasks, setTasks);

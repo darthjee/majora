@@ -30,11 +30,10 @@ export function fetchResourcePickerResults({ resource, maxEntries, searchTerm })
 }
 
 /**
- * Maximum number of entries returned by `filterConstantResults`. Internal to constant mode only —
- * unrelated to the API-mode `maxEntries` prop (which maps to `per_page` and is ignored in
- * constant mode), hence the distinct name.
+ * Default maximum number of entries returned by `filterConstantResults`, used when no
+ * `maxEntries` is given in constant mode (in API mode, `maxEntries` maps to `per_page` instead).
  */
-const MAX_CONSTANT_RESULTS = 5;
+export const MAX_CONSTANT_RESULTS = 5;
 
 /**
  * Filter a local constant `values` list by substring match (case-insensitive) against each
@@ -42,23 +41,49 @@ const MAX_CONSTANT_RESULTS = 5;
  * `fetchResourcePickerResults` resolves to, so both modes render through the same
  * `ResourcePickerSearchHelper`. `id` is the raw constant string itself; there is never a value
  * outside `values`, so — unlike the API-backed mode — there is no equivalent of "create new" to
- * guard against. Results are capped at `MAX_CONSTANT_RESULTS` entries. Exported as a plain, named
+ * guard against. Results are capped at `maxEntries` entries (`MAX_CONSTANT_RESULTS` when absent).
+ * Exported as a plain, named
  * function so it can be exercised directly in specs.
  *
  * @param {object} params - Params.
  * @param {string[]} params.values - Constant list of raw `db_value`s to filter/offer.
  * @param {Function} params.translateOption - `(value) => label string` for each entry.
  * @param {string} params.searchTerm - Current name filter.
- * @returns {{id: string, name: string}[]} Up to `MAX_CONSTANT_RESULTS` matching entries, in
- *   `values`' original order.
+ * @param {number} [params.maxEntries] - Maximum entries returned. Defaults to
+ *   `MAX_CONSTANT_RESULTS`.
+ * @returns {{id: string, name: string}[]} Up to `maxEntries` matching entries, in `values`'
+ *   original order.
  */
-export function filterConstantResults({ values, translateOption, searchTerm }) {
+export function filterConstantResults({
+  values, translateOption, searchTerm, maxEntries = MAX_CONSTANT_RESULTS,
+}) {
   const term = searchTerm.trim().toLowerCase();
 
   return values
     .map((value) => ({ id: value, name: translateOption(value) }))
     .filter((item) => item.name.toLowerCase().includes(term))
-    .slice(0, MAX_CONSTANT_RESULTS);
+    .slice(0, maxEntries);
+}
+
+/**
+ * Build the search input's `keydown` handler: on `Escape`, calls `onCancel` (when given) and
+ * stops the event there, so an enclosing modal is not closed by the same key press. Any other
+ * key, or a missing `onCancel`, is left untouched. Exported as a plain, named function so it can
+ * be exercised directly in specs.
+ *
+ * @param {Function} [onCancel] - Called when `Escape` is pressed in the search input.
+ * @returns {Function} `(event) => void` keydown handler.
+ */
+export function buildCancelKeyDownHandler(onCancel) {
+  return (event) => {
+    if (event.key !== 'Escape' || !onCancel) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    onCancel();
+  };
 }
 
 /**
@@ -76,19 +101,22 @@ export function filterConstantResults({ values, translateOption, searchTerm }) {
  * @param {object} props - Component props.
  * @param {string} [props.resource] - Resource name to search (e.g. `'source'`, `'collection'`).
  *   Ignored when `values` is given.
- * @param {number} [props.maxEntries] - Maximum results fetched per search. Ignored when `values`
- *   is given.
+ * @param {number} [props.maxEntries] - Maximum results per search: fetched per page in API mode,
+ *   or listed in constant mode (defaults to `MAX_CONSTANT_RESULTS` there when absent).
  * @param {string[]} [props.values] - Constant list of raw `db_value`s to filter/offer, switching
  *   this component into constant mode.
  * @param {Function} [props.translateOption] - `(value) => label string` for each `values` entry.
  *   Required when `values` is given.
  * @param {Function} props.onSelect - Called with the picked result item when a row is clicked.
+ * @param {Function} [props.onCancel] - Called when `Escape` is pressed in the search input.
+ * @param {boolean} [props.autoFocus] - Whether the search input grabs focus when mounted.
  * @param {string} props.searchPlaceholder - Caller-supplied translated placeholder for the
  *   search input (no built-in i18n, matching `Badge`/`TagsField`'s convention).
  * @returns {React.ReactElement} Rendered search input and results list.
  */
 export default function ResourcePickerSearch({
-  resource, maxEntries, values, translateOption, onSelect, searchPlaceholder,
+  resource, maxEntries, values, translateOption, onSelect, searchPlaceholder, onCancel,
+  autoFocus = false,
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [apiResults, setApiResults] = useState([]);
@@ -118,11 +146,11 @@ export default function ResourcePickerSearch({
   }, [isConstantMode, resource, maxEntries, searchTerm]);
 
   const results = isConstantMode
-    ? filterConstantResults({ values, translateOption, searchTerm })
+    ? filterConstantResults({ values, translateOption, searchTerm, maxEntries })
     : apiResults;
 
   return ResourcePickerSearchHelper.render(
-    { searchTerm, results, searchPlaceholder },
-    { onSearchChange: setSearchTerm, onSelect },
+    { searchTerm, results, searchPlaceholder, autoFocus },
+    { onSearchChange: setSearchTerm, onSelect, onKeyDown: buildCancelKeyDownHandler(onCancel) },
   );
 }

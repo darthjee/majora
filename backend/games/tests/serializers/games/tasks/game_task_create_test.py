@@ -72,3 +72,45 @@ class TestGameTaskCreateSerializer(TestCase):
         )
         assert serializer.is_valid()
         assert 'game' not in serializer.validated_data
+
+    def _build(self, **extra):
+        """Build a serializer with a valid short_description plus the given fields."""
+        return GameTaskCreateSerializer(
+            data={'short_description': 'Prep the ambush', **extra}, context={'game': self.game}
+        )
+
+    def _category_codes(self, value):
+        """Return the error codes produced for the given category value."""
+        serializer = self._build(category=value)
+        assert not serializer.is_valid()
+        return [error.code for error in serializer.errors['category']]
+
+    def test_category_defaults_to_other_when_omitted(self):
+        """Test that omitting category saves the task as `other`."""
+        serializer = self._build()
+        assert serializer.is_valid()
+        task = serializer.save(game=self.game)
+        assert task.category == 'other'
+
+    def test_valid_category_is_saved(self):
+        """Test that a valid category is saved."""
+        serializer = self._build(category='painting')
+        assert serializer.is_valid()
+        task = serializer.save(game=self.game)
+        assert task.category == 'painting'
+
+    def test_unknown_category_is_invalid_choice(self):
+        """Test that an unknown category is rejected with invalid_choice."""
+        assert self._category_codes('cooking') == ['invalid_choice']
+
+    def test_wrong_case_category_is_invalid_choice(self):
+        """Test that a category with a different case is rejected with invalid_choice."""
+        assert self._category_codes('Painting') == ['invalid_choice']
+
+    def test_null_category_is_rejected(self):
+        """Test that a null category is rejected with the null code."""
+        assert self._category_codes(None) == ['null']
+
+    def test_blank_category_is_rejected(self):
+        """Test that an empty category is rejected, never converted to `other`."""
+        assert self._category_codes('') == ['invalid_choice']

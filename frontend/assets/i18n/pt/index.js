@@ -56,6 +56,7 @@ const commonNamespaces = [
   'faction_exchange_modal',
   'recruit_modal',
   'game_treasures_page',
+  'game_task',
   'errors',
 ];
 

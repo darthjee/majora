@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import React from 'react';
-import SingleResourcePickerField
+import SingleResourcePickerField, { buildFieldBlurHandler }
   from '../../../../../../assets/js/components/common/forms/SingleResourcePickerField.jsx';
 import SingleResourcePickerFieldHelper
   from '../../../../../../assets/js/components/common/forms/helpers/SingleResourcePickerFieldHelper.jsx';
@@ -17,8 +17,7 @@ describe('SingleResourcePickerField', function() {
     });
 
     renderToStaticMarkup(React.createElement(SingleResourcePickerField, {
-      resource: 'source',
-      maxEntries: 4,
+      picker: { resource: 'source', maxEntries: 4 },
       value: null,
       onChange: jasmine.createSpy('onChange'),
       label: 'Source',
@@ -32,12 +31,37 @@ describe('SingleResourcePickerField', function() {
   it('passes the given props and starts not searching', function() {
     const { state } = renderField();
 
-    expect(state.resource).toBe('source');
-    expect(state.maxEntries).toBe(4);
+    expect(state.picker).toEqual({ resource: 'source', maxEntries: 4 });
     expect(state.value).toBeNull();
     expect(state.label).toBe('Source');
     expect(state.searchPlaceholder).toBe('Search sources...');
     expect(state.searching).toBe(false);
+  });
+
+  it('defaults errors to an empty array', function() {
+    const { state } = renderField();
+
+    expect(state.errors).toEqual([]);
+  });
+
+  it('passes the given errors through', function() {
+    const { state } = renderField({ errors: ['invalid_choice'] });
+
+    expect(state.errors).toEqual(['invalid_choice']);
+  });
+
+  it('passes the given id through', function() {
+    const { state } = renderField({ id: 'game-tasks-new-category' });
+
+    expect(state.id).toBe('game-tasks-new-category');
+  });
+
+  it('passes a constant-mode picker through', function() {
+    const translateOption = (value) => value.toUpperCase();
+    const picker = { values: ['painting', 'other'], translateOption };
+    const { state } = renderField({ picker });
+
+    expect(state.picker).toBe(picker);
   });
 
   it('calls onChange with the picked item when onSelect is triggered', function() {
@@ -50,9 +74,68 @@ describe('SingleResourcePickerField', function() {
     expect(onChange).toHaveBeenCalledWith(item);
   });
 
+  it('calls onChange with a constant-mode {id, name} item when onSelect is triggered', function() {
+    const onChange = jasmine.createSpy('onChange');
+    const { handlers } = renderField({
+      onChange, picker: { values: ['painting'], translateOption: () => 'Pintura' },
+    });
+
+    handlers.onSelect({ id: 'painting', name: 'Pintura' });
+
+    expect(onChange).toHaveBeenCalledWith({ id: 'painting', name: 'Pintura' });
+  });
+
   it('does not throw when onReopenSearch is triggered', function() {
     const { handlers } = renderField();
 
     expect(() => handlers.onReopenSearch()).not.toThrow();
+  });
+
+  it('does not call onChange when onCancel is triggered', function() {
+    const onChange = jasmine.createSpy('onChange');
+    const { handlers } = renderField({ onChange, value: { id: 1, name: 'Wyrmwood' } });
+
+    expect(() => handlers.onCancel()).not.toThrow();
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('does not call onChange when focus leaves the field', function() {
+    const onChange = jasmine.createSpy('onChange');
+    const { handlers } = renderField({ onChange, value: { id: 1, name: 'Wyrmwood' } });
+    const event = { currentTarget: { contains: () => false }, relatedTarget: null };
+
+    expect(() => handlers.onBlur(event)).not.toThrow();
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  describe('.buildFieldBlurHandler', function() {
+    it('cancels when focus moves outside the field', function() {
+      const onCancel = jasmine.createSpy('onCancel');
+      const outside = {};
+      const event = { currentTarget: { contains: (node) => node !== outside }, relatedTarget: outside };
+
+      buildFieldBlurHandler(onCancel)(event);
+
+      expect(onCancel).toHaveBeenCalled();
+    });
+
+    it('cancels when focus leaves to nothing (click-away)', function() {
+      const onCancel = jasmine.createSpy('onCancel');
+      const event = { currentTarget: { contains: (node) => node !== null && node !== undefined }, relatedTarget: null };
+
+      buildFieldBlurHandler(onCancel)(event);
+
+      expect(onCancel).toHaveBeenCalled();
+    });
+
+    it('does not cancel when focus moves inside the field (e.g. to a result row)', function() {
+      const onCancel = jasmine.createSpy('onCancel');
+      const resultRow = {};
+      const event = { currentTarget: { contains: (node) => node === resultRow }, relatedTarget: resultRow };
+
+      buildFieldBlurHandler(onCancel)(event);
+
+      expect(onCancel).not.toHaveBeenCalled();
+    });
   });
 });

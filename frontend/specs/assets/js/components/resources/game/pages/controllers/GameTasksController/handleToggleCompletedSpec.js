@@ -12,7 +12,7 @@ describe('GameTasksController', function() {
     setTasks = jasmine.createSpy('setTasks');
     tasks = [
       {
-        id: 1, short_description: 'Prep encounter', long_description: '', completed: false, session: null,
+        id: 1, short_description: 'Prep encounter', long_description: '', completed: false, session: null, category: 'painting',
       },
       {
         id: 2, short_description: 'Buy snacks', long_description: '', completed: false, session: null,

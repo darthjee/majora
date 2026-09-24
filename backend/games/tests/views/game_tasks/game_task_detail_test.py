@@ -57,6 +57,7 @@ class TestGameTaskDetailPatchView(TestCase):
         assert response.status_code == 200
         data = json.loads(response.content)
         assert data['short_description'] == self.task.short_description
+        assert data['category'] == 'other'
 
     def test_superuser_can_get(self):
         """Test that a superuser can retrieve a task and receives 200."""
@@ -172,6 +173,30 @@ class TestGameTaskDetailPatchView(TestCase):
         self.task.refresh_from_db()
         assert self.task.short_description == 'Partial Update'
         assert self.task.completed is False
+
+    def test_patch_can_change_category(self):
+        """Test that PATCH can change the task's category."""
+        response = self._patch(self.client, {'category': 'research'}, token=self.dm_token)
+        assert response.status_code == 200
+        assert json.loads(response.content)['category'] == 'research'
+        self.task.refresh_from_db()
+        assert self.task.category == 'research'
+
+    def test_patch_completed_keeps_category(self):
+        """Test that toggling completed via PATCH keeps the existing category."""
+        self.task.category = Task.CATEGORY_PAINTING
+        self.task.save()
+        response = self._patch(self.client, {'completed': True}, token=self.dm_token)
+        assert response.status_code == 200
+        self.task.refresh_from_db()
+        assert self.task.completed is True
+        assert self.task.category == 'painting'
+
+    def test_patch_invalid_category_returns_400(self):
+        """Test that PATCH with an unknown category returns 400 with invalid_choice."""
+        response = self._patch(self.client, {'category': 'cooking'}, token=self.dm_token)
+        assert response.status_code == 400
+        assert json.loads(response.content)['errors']['category'] == ['invalid_choice']
 
     def test_patch_can_set_session(self):
         """Test that PATCH can set the task's session to one belonging to the same game."""

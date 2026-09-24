@@ -1,5 +1,8 @@
 import TaskDetailModalHelper from '../../../../../../../assets/js/components/common/modals/helpers/TaskDetailModalHelper.jsx';
 import Modal from 'react-bootstrap/cjs/Modal.js';
+import Badge from '../../../../../../../assets/js/components/common/badges/Badge.jsx';
+import SingleResourcePickerField
+  from '../../../../../../../assets/js/components/common/forms/SingleResourcePickerField.jsx';
 
 const findElement = (node, matcher) => {
   if (!node) {
@@ -30,19 +33,20 @@ const findElement = (node, matcher) => {
 };
 
 describe('TaskDetailModalHelper', function() {
-  const task = { id: 1, short_description: 'Prep encounter', long_description: 'Line 1\nLine 2', completed: false };
+  const task = { id: 1, short_description: 'Prep encounter', long_description: 'Line 1\nLine 2', completed: false, category: 'painting' };
 
   const buildHandlers = () => ({
     onClose: jasmine.createSpy('onClose'),
     onEdit: jasmine.createSpy('onEdit'),
     onCancel: jasmine.createSpy('onCancel'),
     onSave: jasmine.createSpy('onSave'),
+    onCategoryChange: jasmine.createSpy('onCategoryChange'),
     onShortDescriptionChange: jasmine.createSpy('onShortDescriptionChange'),
     onLongDescriptionChange: jasmine.createSpy('onLongDescriptionChange'),
   });
 
   const buildState = (overrides = {}) => ({
-    task, editing: false, shortDescription: task.short_description, longDescription: task.long_description, ...overrides,
+    task, editing: false, category: task.category, shortDescription: task.short_description, longDescription: task.long_description, ...overrides,
   });
 
   describe('.render', function() {
@@ -69,6 +73,21 @@ describe('TaskDetailModalHelper', function() {
       expect(paragraph.props.children).toBe(task.long_description);
     });
 
+    it('renders the translated category badge in view mode', function() {
+      const element = TaskDetailModalHelper.render(true, buildState(), buildHandlers());
+      const badge = findElement(element, (child) => child.type === Badge);
+
+      expect(badge.props.text).toBe('Painting');
+    });
+
+    it('renders the other label for an unknown category in view mode', function() {
+      const state = buildState({ task: { ...task, category: 'cooking' } });
+      const element = TaskDetailModalHelper.render(true, state, buildHandlers());
+      const badge = findElement(element, (child) => child.type === Badge);
+
+      expect(badge.props.text).toBe('Other');
+    });
+
     it('renders an Edit button in view mode', function() {
       const handlers = buildHandlers();
       const element = TaskDetailModalHelper.render(true, buildState(), handlers);
@@ -93,6 +112,39 @@ describe('TaskDetailModalHelper', function() {
 
       expect(input.props.value).toBe(task.short_description);
       expect(textarea.props.value).toBe(task.long_description);
+    });
+
+    it('does not render the category picker in view mode', function() {
+      const element = TaskDetailModalHelper.render(true, buildState(), buildHandlers());
+      const picker = findElement(element, (child) => child.type === SingleResourcePickerField);
+
+      expect(picker).toBeNull();
+    });
+
+    it('renders the category picker as the first edit field, showing the current category', function() {
+      const element = TaskDetailModalHelper.render(true, buildState({ editing: true }), buildHandlers());
+      const body = findElement(element, (child) => child.type === Modal.Body);
+      const [first] = body.props.children.props.children;
+
+      expect(first.type).toBe(SingleResourcePickerField);
+      expect(first.props.id).toBe('task-detail-category');
+      expect(first.props.value).toEqual({ id: 'painting', name: 'Painting' });
+      expect(first.props.picker.values[9]).toBe('other');
+      expect(first.props.picker.maxEntries).toBe(10);
+      expect(first.props.picker.maxEntries).toBe(first.props.picker.values.length);
+      expect(first.props.label).toBe('Category');
+      expect(first.props.searchPlaceholder).toBe('Search category...');
+    });
+
+    it('wires the category picker change to onCategoryChange', function() {
+      const handlers = buildHandlers();
+      const element = TaskDetailModalHelper.render(true, buildState({ editing: true, category: 'buying' }), handlers);
+      const picker = findElement(element, (child) => child.type === SingleResourcePickerField);
+
+      picker.props.onChange({ id: 'writing', name: 'Writing' });
+
+      expect(picker.props.value).toEqual({ id: 'buying', name: 'Buying' });
+      expect(handlers.onCategoryChange).toHaveBeenCalledWith({ id: 'writing', name: 'Writing' });
     });
 
     it('wires the short description input change to onShortDescriptionChange', function() {

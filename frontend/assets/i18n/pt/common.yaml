@@ -341,6 +341,18 @@ game_treasures_page:
   edit: Editar
   available_units_label: 'Disponível: {{available}} / {{max}}'
   hidden_label: Oculto
+game_task:
+  category:
+    printing: Impressão
+    crafting: Confecção
+    painting: Pintura
+    planning: Planejamento
+    writing: Escrita
+    research: Pesquisa
+    scheduling: Agendamento
+    buying: Comprar
+    updating: Atualizar
+    other: Outro
 errors:
   max_length: Este campo é muito longo.
   min_length: Este campo é muito curto.

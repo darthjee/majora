@@ -1,12 +1,21 @@
 import React from 'react';
+import Badge from '../../../../common/badges/Badge.jsx';
 import ErrorAlert from '../../../../common/misc/ErrorAlert.jsx';
 import FormField from '../../../../common/forms/FormField.jsx';
 import LoadingMessage from '../../../../common/misc/LoadingMessage.jsx';
 import PageActions from '../../../../common/list_page/PageActions.jsx';
 import Pagination from '../../../../common/pagination/Pagination.jsx';
+import SingleResourcePickerField from '../../../../common/forms/SingleResourcePickerField.jsx';
 import SubmitButton from '../../../../common/buttons/SubmitButton.jsx';
 import TextareaField from '../../../../common/forms/TextareaField.jsx';
 import Translator from '../../../../../i18n/Translator.js';
+import { TASK_CATEGORY_VALUES, toTaskCategoryPick, translateTaskCategory } from '../taskCategories.js';
+
+const CATEGORY_PICKER = {
+  values: TASK_CATEGORY_VALUES,
+  translateOption: translateTaskCategory,
+  maxEntries: TASK_CATEGORY_VALUES.length,
+};
 
 /**
  * Rendering helper for the Game Tasks listing page.
@@ -21,7 +30,8 @@ export default class GameTasksHelper {
    * @param {object} state.pagination - Pagination metadata (`page`, `pages`, `perPage`).
    * @param {string} state.basePath - Base hash path used for pagination links.
    * @param {string} state.backHref - Hash path to the parent game page.
-   * @param {{shortDescription: string, longDescription: string}} state.formValues - Add-form values.
+   * @param {{category: string, shortDescription: string, longDescription: string}} state.formValues -
+   *   Add-form values.
    * @param {object} state.fieldErrors - Per-field validation errors from the add form.
    * @param {object} handlers - Page event handlers (`onToggle`, `onFormChange`, `onCreate`, `onView`).
    * @returns {React.ReactElement} Rendered tasks page.
@@ -92,6 +102,9 @@ export default class GameTasksHelper {
           <label className="form-check-label" htmlFor={`game-task-${task.id}`}>
             {task.short_description}
           </label>
+          <span className="ms-2">
+            <Badge text={translateTaskCategory(task.category)} />
+          </span>
         </div>
         <button
           type="button"
@@ -107,6 +120,15 @@ export default class GameTasksHelper {
   static #renderAddForm(formValues, fieldErrors, handlers) {
     return (
       <form className="mb-4" onSubmit={handlers.onCreate}>
+        <SingleResourcePickerField
+          id="game-tasks-new-category"
+          picker={CATEGORY_PICKER}
+          value={toTaskCategoryPick(formValues.category)}
+          onChange={(item) => handlers.onFormChange({ ...formValues, category: item.id })}
+          label={Translator.t('game_tasks_page.new_category_label')}
+          searchPlaceholder={Translator.t('game_tasks_page.new_category_search_placeholder')}
+          errors={fieldErrors.category ?? []}
+        />
         <FormField
           id="game-tasks-new-short-description"
           type="text"

@@ -12,4 +12,6 @@ class GameTaskListSerializer(serializers.ModelSerializer):
         """Metadata for the GameTaskListSerializer."""
 
         model = Task
-        fields = ['id', 'short_description', 'long_description', 'completed', 'session']
+        fields = [
+            'id', 'short_description', 'long_description', 'completed', 'session', 'category',
+        ]
