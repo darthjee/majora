@@ -62,6 +62,27 @@ export function filterConstantResults({ values, translateOption, searchTerm }) {
 }
 
 /**
+ * Build the search input's `keydown` handler: on `Escape`, calls `onCancel` (when given) and
+ * stops the event there, so an enclosing modal is not closed by the same key press. Any other
+ * key, or a missing `onCancel`, is left untouched. Exported as a plain, named function so it can
+ * be exercised directly in specs.
+ *
+ * @param {Function} [onCancel] - Called when `Escape` is pressed in the search input.
+ * @returns {Function} `(event) => void` keydown handler.
+ */
+export function buildCancelKeyDownHandler(onCancel) {
+  return (event) => {
+    if (event.key !== 'Escape' || !onCancel) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    onCancel();
+  };
+}
+
+/**
  * Shared resource-picker search core: a name-search text input plus its results list. Supports
  * two mutually exclusive result sources, selected by which prop pair is given:
  * - API mode (`resource`/`maxEntries`): a debounced (300ms) `RequestStore`-backed search
@@ -83,12 +104,15 @@ export function filterConstantResults({ values, translateOption, searchTerm }) {
  * @param {Function} [props.translateOption] - `(value) => label string` for each `values` entry.
  *   Required when `values` is given.
  * @param {Function} props.onSelect - Called with the picked result item when a row is clicked.
+ * @param {Function} [props.onCancel] - Called when `Escape` is pressed in the search input.
+ * @param {boolean} [props.autoFocus] - Whether the search input grabs focus when mounted.
  * @param {string} props.searchPlaceholder - Caller-supplied translated placeholder for the
  *   search input (no built-in i18n, matching `Badge`/`TagsField`'s convention).
  * @returns {React.ReactElement} Rendered search input and results list.
  */
 export default function ResourcePickerSearch({
-  resource, maxEntries, values, translateOption, onSelect, searchPlaceholder,
+  resource, maxEntries, values, translateOption, onSelect, searchPlaceholder, onCancel,
+  autoFocus = false,
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [apiResults, setApiResults] = useState([]);
@@ -122,7 +146,7 @@ export default function ResourcePickerSearch({
     : apiResults;
 
   return ResourcePickerSearchHelper.render(
-    { searchTerm, results, searchPlaceholder },
-    { onSearchChange: setSearchTerm, onSelect },
+    { searchTerm, results, searchPlaceholder, autoFocus },
+    { onSearchChange: setSearchTerm, onSelect, onKeyDown: buildCancelKeyDownHandler(onCancel) },
   );
 }

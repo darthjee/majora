@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import React from 'react';
-import ResourcePickerSearch, { fetchResourcePickerResults, filterConstantResults }
+import ResourcePickerSearch, { buildCancelKeyDownHandler, fetchResourcePickerResults, filterConstantResults }
   from '../../../../../../assets/js/components/common/forms/ResourcePickerSearch.jsx';
 import ResourcePickerSearchHelper
   from '../../../../../../assets/js/components/common/forms/helpers/ResourcePickerSearchHelper.jsx';
@@ -49,6 +49,55 @@ describe('ResourcePickerSearch', function() {
     expect(() => handlers.onSearchChange('goblin')).not.toThrow();
   });
 
+  it('passes autoFocus (default false) to the helper', function() {
+    expect(renderPicker().state.autoFocus).toBe(false);
+  });
+
+  it('passes autoFocus true to the helper when given', function() {
+    expect(renderPicker({ autoFocus: true }).state.autoFocus).toBe(true);
+  });
+
+  it('calls onCancel when Escape is pressed in the search input', function() {
+    const onCancel = jasmine.createSpy('onCancel');
+    const { handlers } = renderPicker({ onCancel });
+    const event = jasmine.createSpyObj('event', ['preventDefault', 'stopPropagation'], { key: 'Escape' });
+
+    handlers.onKeyDown(event);
+
+    expect(onCancel).toHaveBeenCalled();
+  });
+
+  describe('.buildCancelKeyDownHandler', function() {
+    it('calls onCancel and stops the event on Escape', function() {
+      const onCancel = jasmine.createSpy('onCancel');
+      const event = jasmine.createSpyObj('event', ['preventDefault', 'stopPropagation'], { key: 'Escape' });
+
+      buildCancelKeyDownHandler(onCancel)(event);
+
+      expect(onCancel).toHaveBeenCalled();
+      expect(event.preventDefault).toHaveBeenCalled();
+      expect(event.stopPropagation).toHaveBeenCalled();
+    });
+
+    it('ignores other keys', function() {
+      const onCancel = jasmine.createSpy('onCancel');
+      const event = jasmine.createSpyObj('event', ['preventDefault', 'stopPropagation'], { key: 'a' });
+
+      buildCancelKeyDownHandler(onCancel)(event);
+
+      expect(onCancel).not.toHaveBeenCalled();
+      expect(event.stopPropagation).not.toHaveBeenCalled();
+    });
+
+    it('leaves Escape untouched when no onCancel is given', function() {
+      const event = jasmine.createSpyObj('event', ['preventDefault', 'stopPropagation'], { key: 'Escape' });
+
+      buildCancelKeyDownHandler(undefined)(event);
+
+      expect(event.stopPropagation).not.toHaveBeenCalled();
+    });
+  });
+
   describe('constant mode (values/translateOption)', function() {
     it('computes results via filterConstantResults instead of fetching', function() {
       const values = ['elf', 'orc'];
@@ -84,6 +133,16 @@ describe('ResourcePickerSearch', function() {
 
       expect(filterConstantResults({ values, translateOption, searchTerm: 'ELF' })).toEqual([
         { id: 'elf', name: 'Elf' }, { id: 'half-elf', name: 'Half-Elf' },
+      ]);
+    });
+
+    it('matches the translated label rather than the raw value', function() {
+      const labels = { painting: 'Pintura', printing: 'Impressão', other: 'Outro' };
+      const values = ['printing', 'painting', 'other'];
+      const translateOption = (value) => labels[value];
+
+      expect(filterConstantResults({ values, translateOption, searchTerm: 'pint' })).toEqual([
+        { id: 'painting', name: 'Pintura' },
       ]);
     });
 

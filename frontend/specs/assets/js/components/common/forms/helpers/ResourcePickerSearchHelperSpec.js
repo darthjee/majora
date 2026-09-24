@@ -7,12 +7,14 @@ describe('ResourcePickerSearchHelper', function() {
     searchTerm: '',
     results: [],
     searchPlaceholder: 'Search sources...',
+    autoFocus: false,
     ...overrides,
   });
 
   const buildHandlers = () => ({
     onSearchChange: jasmine.createSpy('onSearchChange'),
     onSelect: jasmine.createSpy('onSelect'),
+    onKeyDown: jasmine.createSpy('onKeyDown'),
   });
 
   describe('.render', function() {
@@ -68,6 +70,26 @@ describe('ResourcePickerSearchHelper', function() {
       button.props.onClick();
 
       expect(handlers.onSelect).toHaveBeenCalledWith(item);
+    });
+
+    it('binds the keydown handler and autofocus on the search input', function() {
+      const handlers = buildHandlers();
+      const element = ResourcePickerSearchHelper.render(buildState({ autoFocus: true }), handlers);
+      const input = findElement(element, (node) => node.type === 'input');
+
+      expect(input.props.onKeyDown).toBe(handlers.onKeyDown);
+      expect(input.props.autoFocus).toBe(true);
+    });
+
+    it('prevents the default mousedown on a result row so the input keeps focus', function() {
+      const item = { id: 'painting', name: 'Pintura' };
+      const element = ResourcePickerSearchHelper.render(buildState({ results: [item] }), buildHandlers());
+      const button = findElement(element, (node) => node.type === 'button');
+      const event = jasmine.createSpyObj('event', ['preventDefault']);
+
+      button.props.onMouseDown(event);
+
+      expect(event.preventDefault).toHaveBeenCalled();
     });
   });
 });

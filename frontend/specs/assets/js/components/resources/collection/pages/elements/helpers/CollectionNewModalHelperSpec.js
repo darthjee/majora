@@ -140,8 +140,7 @@ describe('CollectionNewModalHelper', function() {
       const picker = findElement(element, (child) => child.type === SingleResourcePickerField);
 
       expect(picker).not.toBeNull();
-      expect(picker.props.resource).toBe('source');
-      expect(picker.props.maxEntries).toBe(4);
+      expect(picker.props.picker).toEqual({ resource: 'source', maxEntries: 4 });
       expect(picker.props.value).toBe(source);
       expect(picker.props.onChange).toBe(handlers.onSourceChange);
     });

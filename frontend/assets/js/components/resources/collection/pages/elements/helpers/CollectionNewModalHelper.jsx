@@ -58,8 +58,7 @@ export default class CollectionNewModalHelper {
               errors={formState.fieldErrors.url ?? []}
             />
             <SingleResourcePickerField
-              resource="source"
-              maxEntries={4}
+              picker={{ resource: 'source', maxEntries: 4 }}
               value={formState.source}
               onChange={handlers.onSourceChange}
               label={Translator.t('collection_new_page.source_label')}
