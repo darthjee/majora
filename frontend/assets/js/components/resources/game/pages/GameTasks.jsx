@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import GameTasksController from './controllers/GameTasksController.js';
 import GameTasksHelper from './helpers/GameTasksHelper.jsx';
+import TaskFilters from './elements/TaskFilters.jsx';
 import TaskDetailModal from '../../../common/modals/TaskDetailModal.jsx';
 import FacadeRefresh from '../../../../utils/access/useFacadeRefresh.js';
+import HashRouteResolver from '../../../../utils/routing/HashRouteResolver.js';
 import { DEFAULT_TASK_CATEGORY } from './taskCategories.js';
 
 /**
@@ -20,6 +22,28 @@ export const EMPTY_FORM = { category: DEFAULT_TASK_CATEGORY, shortDescription: '
  */
 export function resetTaskFormValues(previous) {
   return { ...EMPTY_FORM, category: previous.category };
+}
+
+/**
+ * Build the Query/Clear handlers for the tasks filter bar: Query moves the hash to the filtered
+ * first page, Clear moves it back to the unfiltered base path; both then re-run the page effect
+ * so the list is refetched with the new hash filters.
+ *
+ * @param {{buildEffect: Function}} controller - Page controller whose effect refetches the tasks.
+ * @param {string} basePath - Base hash path of the tasks index (e.g. `#/games/demo/tasks`).
+ * @returns {{onQuery: Function, onClear: Function}} Filter bar handlers.
+ */
+export function buildTaskFilterHandlers(controller, basePath) {
+  return {
+    onQuery: (filters) => {
+      window.location.hash = GameTasksController.buildFilterQueryHash(basePath, filters);
+      controller.buildEffect()();
+    },
+    onClear: () => {
+      window.location.hash = basePath;
+      controller.buildEffect()();
+    },
+  };
 }
 
 /**
@@ -50,6 +74,9 @@ export default function GameTasks() {
   const gameSlug = GameTasksController.getGameSlugFromTasksHash(window.location.hash);
   const basePath = `#/games/${gameSlug}/tasks`;
   const backHref = `#/games/${gameSlug}`;
+  const activeFilters = Object.fromEntries(new HashRouteResolver().getFilterParams());
+
+  const filterHandlers = buildTaskFilterHandlers(controller, basePath);
 
   const handleToggle = (task) => controller.handleToggleCompleted(gameSlug, task, tasks, setTasks);
 
@@ -69,7 +96,14 @@ export default function GameTasks() {
     <>
       {GameTasksHelper.render(
         {
-          tasks, pagination, basePath, backHref, formValues, fieldErrors,
+          tasks,
+          pagination,
+          basePath,
+          backHref,
+          formValues,
+          fieldErrors,
+          activeFilters,
+          filters: <TaskFilters onQuery={filterHandlers.onQuery} onClear={filterHandlers.onClear} />,
         },
         {
           onToggle: handleToggle,
