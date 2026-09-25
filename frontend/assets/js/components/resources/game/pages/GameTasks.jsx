@@ -47,6 +47,31 @@ export function buildTaskFilterHandlers(controller, basePath) {
 }
 
 /**
+ * Build the task-edit save handler for the detail modal. It saves through the controller and,
+ * on success, replaces the modal's selected task with the updated one — only when that task is
+ * still the selected one, so a modal closed mid-save is not reopened. The result is returned so
+ * the modal can decide whether to leave edit mode.
+ *
+ * @param {{handleSaveEdit: Function}} controller - Page controller performing the save.
+ * @param {string} gameSlug - Slug of the game owning the tasks.
+ * @param {Array<object>} tasks - Current task list.
+ * @param {Function} setTasks - Setter for the task list.
+ * @param {Function} setSelectedTask - Setter for the task shown in the detail modal.
+ * @returns {Function} Async `(task, values)` handler resolving to the updated task or `null`.
+ */
+export function buildSaveEditHandler(controller, gameSlug, tasks, setTasks, setSelectedTask) {
+  return async (task, values) => {
+    const updated = await controller.handleSaveEdit(gameSlug, task, values, tasks, setTasks);
+
+    if (updated) {
+      setSelectedTask((current) => (current && current.id === updated.id ? updated : current));
+    }
+
+    return updated;
+  };
+}
+
+/**
  * Game Tasks index page, listing checklist-style tasks for a game with an
  * inline add form and a per-task view/edit modal. Gated client-side to the
  * game's GameMaster (or a superuser), since the underlying endpoints 401/403
@@ -87,7 +112,7 @@ export default function GameTasks() {
     resetForm: () => setFormValues(resetTaskFormValues),
   });
 
-  const handleSaveEdit = (task, values) => controller.handleSaveEdit(gameSlug, task, values, tasks, setTasks);
+  const handleSaveEdit = buildSaveEditHandler(controller, gameSlug, tasks, setTasks, setSelectedTask);
 
   if (loading) return GameTasksHelper.renderLoading();
   if (error) return GameTasksHelper.renderError(error);
