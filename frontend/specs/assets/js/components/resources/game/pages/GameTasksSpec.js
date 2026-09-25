@@ -1,6 +1,8 @@
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import GameTasks, { EMPTY_FORM, buildTaskFilterHandlers, resetTaskFormValues }
+import GameTasks, {
+  EMPTY_FORM, buildSaveEditHandler, buildTaskFilterHandlers, resetTaskFormValues,
+}
   from '../../../../../../../assets/js/components/resources/game/pages/GameTasks.jsx';
 import GameTasksHelper from '../../../../../../../assets/js/components/resources/game/pages/helpers/GameTasksHelper.jsx';
 import GameTasksController from '../../../../../../../assets/js/components/resources/game/pages/controllers/GameTasksController.js';
@@ -105,6 +107,78 @@ describe('GameTasks', function() {
 
       expect(globalThis.window.location.hash).toBe('#/games/demo/tasks');
       expect(effect).toHaveBeenCalled();
+    });
+  });
+
+  describe('buildSaveEditHandler', function() {
+    const task = { id: 1, short_description: 'Old', category: 'painting' };
+    const values = { category: 'buying', shortDescription: 'New', longDescription: 'Long' };
+    const tasks = [task];
+    let controller;
+    let setTasks;
+    let setSelectedTask;
+    let handler;
+
+    beforeEach(function() {
+      controller = { handleSaveEdit: jasmine.createSpy('handleSaveEdit') };
+      setTasks = jasmine.createSpy('setTasks');
+      setSelectedTask = jasmine.createSpy('setSelectedTask');
+      handler = buildSaveEditHandler(controller, 'demo', tasks, setTasks, setSelectedTask);
+    });
+
+    it('forwards the save to the controller', async function() {
+      controller.handleSaveEdit.and.returnValue(Promise.resolve(null));
+
+      await handler(task, values);
+
+      expect(controller.handleSaveEdit).toHaveBeenCalledWith('demo', task, values, tasks, setTasks);
+    });
+
+    describe('when the save succeeds', function() {
+      const updated = { ...task, short_description: 'New', category: 'buying' };
+      let result;
+      let updater;
+
+      beforeEach(async function() {
+        controller.handleSaveEdit.and.returnValue(Promise.resolve(updated));
+        result = await handler(task, values);
+        updater = setSelectedTask.calls.mostRecent().args[0];
+      });
+
+      it('resolves to the updated task', function() {
+        expect(result).toBe(updated);
+      });
+
+      it('replaces the selected task when it is the saved one', function() {
+        expect(updater(task)).toBe(updated);
+      });
+
+      it('keeps a different selected task', function() {
+        const other = { id: 2 };
+
+        expect(updater(other)).toBe(other);
+      });
+
+      it('keeps a closed (null) selection', function() {
+        expect(updater(null)).toBeNull();
+      });
+    });
+
+    describe('when the save fails', function() {
+      let result;
+
+      beforeEach(async function() {
+        controller.handleSaveEdit.and.returnValue(Promise.resolve(null));
+        result = await handler(task, values);
+      });
+
+      it('resolves to null', function() {
+        expect(result).toBeNull();
+      });
+
+      it('does not touch the selected task', function() {
+        expect(setSelectedTask).not.toHaveBeenCalled();
+      });
     });
   });
 });
