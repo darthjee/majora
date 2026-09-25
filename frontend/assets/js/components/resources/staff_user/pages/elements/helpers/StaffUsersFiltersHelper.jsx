@@ -1,4 +1,5 @@
 import React from 'react';
+import FilterActions from '../../../../../common/forms/FilterActions.jsx';
 import Translator from '../../../../../../i18n/Translator.js';
 
 /**
@@ -18,7 +19,7 @@ export default class StaffUsersFiltersHelper {
       <div className="row g-2 align-items-end mb-4" data-testid="staff-users-filters">
         {StaffUsersFiltersHelper.#renderStatusFilter(state, handlers)}
         {StaffUsersFiltersHelper.#renderSearchFilter(state, handlers)}
-        {StaffUsersFiltersHelper.#renderActions(handlers)}
+        <FilterActions onQuery={handlers.onQuery} onClear={handlers.onClear} testIdPrefix="staff-users" />
       </div>
     );
   }
@@ -61,33 +62,6 @@ export default class StaffUsersFiltersHelper {
           onChange={(event) => handlers.onSearchChange(event.target.value)}
         />
       </div>
-    );
-  }
-
-  static #renderActions(handlers) {
-    return (
-      <>
-        <div className="col-auto">
-          <button
-            type="button"
-            className="btn btn-primary"
-            data-testid="staff-users-filter-query"
-            onClick={handlers.onQuery}
-          >
-            {Translator.t('staff_users_page.filter_query')}
-          </button>
-        </div>
-        <div className="col-auto">
-          <button
-            type="button"
-            className="btn btn-outline-secondary"
-            data-testid="staff-users-filter-clear"
-            onClick={handlers.onClear}
-          >
-            {Translator.t('staff_users_page.filter_clear')}
-          </button>
-        </div>
-      </>
     );
   }
 }

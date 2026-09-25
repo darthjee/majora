@@ -1,4 +1,5 @@
 import React from 'react';
+import FilterActions from '../../../../../common/forms/FilterActions.jsx';
 import FilterSelect from '../../../../../common/forms/FilterSelect.jsx';
 import Translator from '../../../../../../i18n/Translator.js';
 
@@ -27,7 +28,7 @@ export default class NpcFiltersHelper {
         {NpcFiltersHelper.#renderHiddenFilter(state, handlers)}
         {NpcFiltersHelper.#renderPrivateFilters(state, handlers)}
         {NpcFiltersHelper.#renderNameField(state, handlers)}
-        {NpcFiltersHelper.#renderActions(handlers)}
+        <FilterActions onQuery={handlers.onQuery} onClear={handlers.onClear} testIdPrefix="npc" />
       </div>
     );
   }
@@ -91,39 +92,6 @@ export default class NpcFiltersHelper {
           onChange={(event) => handlers.onNameChange(event.target.value)}
         />
       </div>
-    );
-  }
-
-  /**
-   * Renders the Query and Clear buttons.
-   *
-   * @param {{onQuery: Function, onClear: Function}} handlers - filters event handlers.
-   * @returns {React.ReactElement} rendered Query/Clear buttons.
-   */
-  static #renderActions(handlers) {
-    return (
-      <>
-        <div className="col-auto">
-          <button
-            type="button"
-            className="btn btn-primary"
-            data-testid="npc-filter-query"
-            onClick={handlers.onQuery}
-          >
-            {Translator.t('game_npcs_page.filter_query')}
-          </button>
-        </div>
-        <div className="col-auto">
-          <button
-            type="button"
-            className="btn btn-outline-secondary"
-            data-testid="npc-filter-clear"
-            onClick={handlers.onClear}
-          >
-            {Translator.t('game_npcs_page.filter_clear')}
-          </button>
-        </div>
-      </>
     );
   }
 
