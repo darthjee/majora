@@ -124,7 +124,7 @@ describe('TaskDetailModalHelper', function() {
     it('renders the category picker as the first edit field, showing the current category', function() {
       const element = TaskDetailModalHelper.render(true, buildState({ editing: true }), buildHandlers());
       const body = findElement(element, (child) => child.type === Modal.Body);
-      const [first] = body.props.children.props.children;
+      const [first] = body.props.children.props.children.filter(Boolean);
 
       expect(first.type).toBe(SingleResourcePickerField);
       expect(first.props.id).toBe('task-detail-category');
@@ -178,6 +178,42 @@ describe('TaskDetailModalHelper', function() {
 
       expect(handlers.onCancel).toHaveBeenCalled();
       expect(handlers.onSave).toHaveBeenCalled();
+    });
+
+    it('does not render an error alert when there is no error', function() {
+      const element = TaskDetailModalHelper.render(true, buildState({ editing: true, error: '' }), buildHandlers());
+      const alert = findElement(element, (child) => child.props?.className === 'alert alert-danger');
+
+      expect(alert).toBeNull();
+    });
+
+    it('renders the error alert above the fields when there is an error', function() {
+      const element = TaskDetailModalHelper.render(true, buildState({ editing: true, error: 'Unable to save task.' }), buildHandlers());
+      const body = findElement(element, (child) => child.type === Modal.Body);
+      const [first] = body.props.children.props.children;
+
+      expect(first.props.className).toBe('alert alert-danger');
+      expect(first.props.children).toBe('Unable to save task.');
+    });
+
+    it('renders enabled Save/Cancel buttons with the Save label when not saving', function() {
+      const element = TaskDetailModalHelper.render(true, buildState({ editing: true, saving: false }), buildHandlers());
+      const footer = findElement(element, (child) => child.type === Modal.Footer);
+      const [cancel, save] = footer.props.children.props.children;
+
+      expect(cancel.props.disabled).toBe(false);
+      expect(save.props.disabled).toBe(false);
+      expect(save.props.children).toBe('Save');
+    });
+
+    it('disables Save/Cancel and shows the saving label while saving', function() {
+      const element = TaskDetailModalHelper.render(true, buildState({ editing: true, saving: true }), buildHandlers());
+      const footer = findElement(element, (child) => child.type === Modal.Footer);
+      const [cancel, save] = footer.props.children.props.children;
+
+      expect(cancel.props.disabled).toBe(true);
+      expect(save.props.disabled).toBe(true);
+      expect(save.props.children).toBe('Saving…');
     });
   });
 });

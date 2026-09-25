@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import TaskDetailModalHelper from './helpers/TaskDetailModalHelper.jsx';
+import Translator from '../../../i18n/Translator.js';
 import { DEFAULT_TASK_CATEGORY } from '../../resources/game/pages/taskCategories.js';
 
 /**
@@ -20,6 +21,43 @@ export function buildTaskEditValues(task) {
 }
 
 /**
+ * Save the edited task values and update the modal state from the result. Clears any previous
+ * error and flags the modal as saving while `onSave` runs. On a truthy result it leaves edit
+ * mode; on a falsy result (or a rejected `onSave`) it stays in edit mode, keeping the typed
+ * values, and sets the translated save error. `saving` is always cleared afterwards. Exported
+ * as a plain, named function so it can be exercised directly in specs.
+ *
+ * @param {Function} onSave - Save handler; resolves to the saved task, or a falsy value on failure.
+ * @param {{category: string, shortDescription: string, longDescription: string}} values - Edited
+ *   form values passed to `onSave`.
+ * @param {object} setters - State setters of the modal.
+ * @param {Function} setters.setSaving - Setter for the `saving` flag.
+ * @param {Function} setters.setEditing - Setter for the `editing` flag.
+ * @param {Function} setters.setError - Setter for the error message.
+ * @returns {Promise<void>} Resolves once the modal state has been updated.
+ */
+export async function submitTaskEdit(onSave, values, { setSaving, setEditing, setError }) {
+  setError('');
+  setSaving(true);
+
+  let result = null;
+
+  try {
+    result = await onSave(values);
+  } catch {
+    result = null;
+  } finally {
+    setSaving(false);
+  }
+
+  if (result) {
+    setEditing(false);
+  } else {
+    setError(Translator.t('game_task_edit_modal.save_error'));
+  }
+}
+
+/**
  * View/edit modal for a single game task's category and short/long description.
  * Starts in read-only view mode showing the category and the full `long_description`; the
  * Edit button switches to editable fields with Save/Cancel actions.
@@ -29,7 +67,9 @@ export function buildTaskEditValues(task) {
  * @param {object|null} props.task - Task being viewed/edited, or null when none is selected.
  * @param {Function} props.onClose - Handler invoked when the modal is dismissed.
  * @param {Function} props.onSave - Handler invoked with
- *   `{category, shortDescription, longDescription}` when the edited task is saved.
+ *   `{category, shortDescription, longDescription}` when the edited task is saved. It may
+ *   return (a promise of) the saved task; a falsy result keeps the modal in edit mode with an
+ *   error message.
  * @returns {React.ReactElement} Rendered task detail modal.
  */
 export default function TaskDetailModal({
@@ -37,6 +77,8 @@ export default function TaskDetailModal({
 }) {
   const initial = buildTaskEditValues(task);
   const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
   const [category, setCategory] = useState(initial.category);
   const [shortDescription, setShortDescription] = useState(initial.shortDescription);
   const [longDescription, setLongDescription] = useState(initial.longDescription);
@@ -52,27 +94,34 @@ export default function TaskDetailModal({
     const values = buildTaskEditValues(task);
 
     setEditing(false);
+    setSaving(false);
+    setError('');
     setCategory(values.category);
     setShortDescription(values.shortDescription);
     setLongDescription(values.longDescription);
   }, [show, task]);
 
-  const handleEdit = () => setEditing(true);
+  const handleEdit = () => {
+    setError('');
+    setEditing(true);
+  };
 
   const handleCancel = () => {
     applyValues(buildTaskEditValues(task));
+    setError('');
     setEditing(false);
   };
 
-  const handleSave = () => {
-    onSave({ category, shortDescription, longDescription });
-    setEditing(false);
-  };
+  const handleSave = () => submitTaskEdit(
+    onSave,
+    { category, shortDescription, longDescription },
+    { setSaving, setEditing, setError },
+  );
 
   return TaskDetailModalHelper.render(
     show,
     {
-      task, editing, category, shortDescription, longDescription,
+      task, editing, saving, error, category, shortDescription, longDescription,
     },
     {
       onClose,

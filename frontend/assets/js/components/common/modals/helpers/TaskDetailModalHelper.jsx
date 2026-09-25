@@ -23,6 +23,8 @@ export default class TaskDetailModalHelper {
    * @param {object} state - Modal state.
    * @param {object|null} state.task - Task being viewed/edited, or null when none is selected.
    * @param {boolean} state.editing - Whether the modal is in edit mode.
+   * @param {boolean} state.saving - Whether a save is in progress (disables Save/Cancel).
+   * @param {string} state.error - Save error message to display in edit mode, or empty.
    * @param {string} state.category - Current (possibly edited) raw category value.
    * @param {string} state.shortDescription - Current (possibly edited) short description.
    * @param {string} state.longDescription - Current (possibly edited) long description.
@@ -43,7 +45,7 @@ export default class TaskDetailModalHelper {
         </Modal.Body>
         <Modal.Footer>
           {state.editing
-            ? TaskDetailModalHelper.#renderEditActions(handlers)
+            ? TaskDetailModalHelper.#renderEditActions(state, handlers)
             : TaskDetailModalHelper.#renderViewActions(handlers)}
         </Modal.Footer>
       </Modal>
@@ -69,9 +71,18 @@ export default class TaskDetailModalHelper {
     );
   }
 
+  static #renderError(state) {
+    if (!state.error) {
+      return null;
+    }
+
+    return <div className="alert alert-danger">{state.error}</div>;
+  }
+
   static #renderEditForm(state, handlers) {
     return (
       <>
+        {TaskDetailModalHelper.#renderError(state)}
         <SingleResourcePickerField
           id="task-detail-category"
           picker={CATEGORY_PICKER}
@@ -107,14 +118,26 @@ export default class TaskDetailModalHelper {
     );
   }
 
-  static #renderEditActions(handlers) {
+  static #renderEditActions(state, handlers) {
+    const saveKey = state.saving ? 'saving' : 'save';
+
     return (
       <>
-        <button type="button" className="btn btn-secondary" onClick={handlers.onCancel}>
+        <button
+          type="button"
+          className="btn btn-secondary"
+          onClick={handlers.onCancel}
+          disabled={state.saving}
+        >
           {Translator.t('game_task_edit_modal.cancel')}
         </button>
-        <button type="button" className="btn btn-primary" onClick={handlers.onSave}>
-          {Translator.t('game_task_edit_modal.save')}
+        <button
+          type="button"
+          className="btn btn-primary"
+          onClick={handlers.onSave}
+          disabled={state.saving}
+        >
+          {Translator.t(`game_task_edit_modal.${saveKey}`)}
         </button>
       </>
     );

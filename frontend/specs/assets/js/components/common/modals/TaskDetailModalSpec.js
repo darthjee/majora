@@ -1,6 +1,6 @@
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import TaskDetailModal, { buildTaskEditValues }
+import TaskDetailModal, { buildTaskEditValues, submitTaskEdit }
   from '../../../../../../assets/js/components/common/modals/TaskDetailModal.jsx';
 import TaskDetailModalHelper from '../../../../../../assets/js/components/common/modals/helpers/TaskDetailModalHelper.jsx';
 
@@ -24,7 +24,7 @@ describe('TaskDetailModal', function() {
         show: true,
         task,
         onClose: jasmine.createSpy('onClose'),
-        onSave: jasmine.createSpy('onSave'),
+        onSave: jasmine.createSpy('onSave').and.returnValue(Promise.resolve(task)),
         ...props,
       }),
     );
@@ -40,6 +40,13 @@ describe('TaskDetailModal', function() {
     expect(state.shortDescription).toBe('Prep encounter');
     expect(state.longDescription).toBe('Details');
     expect(state.category).toBe('painting');
+  });
+
+  it('starts not saving and without an error', function() {
+    const { state } = renderModal();
+
+    expect(state.saving).toBe(false);
+    expect(state.error).toBe('');
   });
 
   it('shows the category of whichever task it is opened with', function() {
@@ -71,11 +78,11 @@ describe('TaskDetailModal', function() {
     expect(onClose).toHaveBeenCalled();
   });
 
-  it('calls onSave with the current short/long description values', function() {
-    const onSave = jasmine.createSpy('onSave');
+  it('calls onSave with the current short/long description values', async function() {
+    const onSave = jasmine.createSpy('onSave').and.returnValue(Promise.resolve(task));
     const { handlers } = renderModal({ onSave });
 
-    handlers.onSave();
+    await handlers.onSave();
 
     expect(onSave).toHaveBeenCalledWith({
       category: 'painting', shortDescription: 'Prep encounter', longDescription: 'Details',
@@ -93,6 +100,91 @@ describe('TaskDetailModal', function() {
 
   it('handles a null task without throwing', function() {
     expect(() => renderModal({ task: null, show: false })).not.toThrow();
+  });
+
+  describe('.submitTaskEdit', function() {
+    const values = {
+      category: 'buying', shortDescription: 'New short', longDescription: 'New long',
+    };
+    let setters;
+    let savingCalls;
+
+    beforeEach(function() {
+      savingCalls = [];
+      setters = {
+        setSaving: jasmine.createSpy('setSaving').and.callFake((value) => savingCalls.push(value)),
+        setEditing: jasmine.createSpy('setEditing'),
+        setError: jasmine.createSpy('setError'),
+      };
+    });
+
+    it('calls onSave with the given values', async function() {
+      const onSave = jasmine.createSpy('onSave').and.returnValue(Promise.resolve(task));
+
+      await submitTaskEdit(onSave, values, setters);
+
+      expect(onSave).toHaveBeenCalledWith(values);
+    });
+
+    describe('when onSave resolves to a task', function() {
+      beforeEach(async function() {
+        const onSave = jasmine.createSpy('onSave').and.returnValue(Promise.resolve(task));
+
+        await submitTaskEdit(onSave, values, setters);
+      });
+
+      it('leaves edit mode', function() {
+        expect(setters.setEditing).toHaveBeenCalledWith(false);
+      });
+
+      it('flags saving and then clears it', function() {
+        expect(savingCalls).toEqual([true, false]);
+      });
+
+      it('only clears the error', function() {
+        expect(setters.setError.calls.allArgs()).toEqual([['']]);
+      });
+    });
+
+    describe('when onSave resolves to null', function() {
+      beforeEach(async function() {
+        const onSave = jasmine.createSpy('onSave').and.returnValue(Promise.resolve(null));
+
+        await submitTaskEdit(onSave, values, setters);
+      });
+
+      it('stays in edit mode', function() {
+        expect(setters.setEditing).not.toHaveBeenCalled();
+      });
+
+      it('sets the save error', function() {
+        expect(setters.setError).toHaveBeenCalledWith('Unable to save task.');
+      });
+
+      it('clears the saving flag', function() {
+        expect(savingCalls).toEqual([true, false]);
+      });
+    });
+
+    describe('when onSave rejects', function() {
+      beforeEach(async function() {
+        const onSave = jasmine.createSpy('onSave').and.returnValue(Promise.reject(new Error('boom')));
+
+        await submitTaskEdit(onSave, values, setters);
+      });
+
+      it('stays in edit mode', function() {
+        expect(setters.setEditing).not.toHaveBeenCalled();
+      });
+
+      it('sets the save error', function() {
+        expect(setters.setError).toHaveBeenCalledWith('Unable to save task.');
+      });
+
+      it('clears the saving flag', function() {
+        expect(savingCalls).toEqual([true, false]);
+      });
+    });
   });
 
   describe('.buildTaskEditValues', function() {
