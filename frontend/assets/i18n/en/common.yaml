@@ -125,6 +125,9 @@ slain_confirm_modal:
   cancel: Cancel
 back_button:
   label: Back
+filter_actions:
+  query: Query
+  clear: Clear
 pagination:
   aria_label: Games pages
   previous: Previous

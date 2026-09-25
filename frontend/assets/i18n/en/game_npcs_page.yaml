@@ -21,5 +21,3 @@ game_npcs_page:
   filter_private_allegiance_neutral: Neutral
   filter_name_label: Name
   filter_name_placeholder: Search by name...
-  filter_query: Query
-  filter_clear: Clear

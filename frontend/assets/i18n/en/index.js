@@ -39,6 +39,7 @@ const commonNamespaces = [
   'kick_confirm_modal',
   'slain_confirm_modal',
   'back_button',
+  'filter_actions',
   'pagination',
   'description_box',
   'markdown_editor',

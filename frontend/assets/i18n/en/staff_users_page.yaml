@@ -19,5 +19,3 @@ staff_users_page:
   filter_status_all: All
   filter_search_label: Search
   filter_search_placeholder: Search by name, display name or email...
-  filter_query: Query
-  filter_clear: Clear

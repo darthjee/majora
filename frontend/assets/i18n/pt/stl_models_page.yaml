@@ -20,5 +20,3 @@ stl_models_page:
   filter_size_label: Tamanho
   filter_size_none_option: Nenhum
   filter_remove_label: Remover
-  filter_query: Filtrar
-  filter_clear: Limpar
