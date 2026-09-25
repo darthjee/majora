@@ -115,6 +115,7 @@ const FILTER_KEYS = [
   'public_slain', 'private_slain', 'name', 'public_allegiance', 'private_allegiance', 'status',
   'hidden', 'game_type', 'min_value', 'max_value', 'search',
   'type', 'race', 'roles', 'source', 'collection', 'tags', 'size',
+  'category', 'completed',
 ];
 
 /**

@@ -33,25 +33,31 @@ export default class GameTasksHelper {
    * @param {{category: string, shortDescription: string, longDescription: string}} state.formValues -
    *   Add-form values.
    * @param {object} state.fieldErrors - Per-field validation errors from the add form.
+   * @param {object} [state.activeFilters] - Currently active filter query params (`category`,
+   *   `completed`), preserved in pagination links and used to pick the empty-list message.
+   * @param {React.ReactNode} [state.filters] - Filter bar element (`TaskFilters`), rendered
+   *   between the title and the list.
    * @param {object} handlers - Page event handlers (`onToggle`, `onFormChange`, `onCreate`, `onView`).
    * @returns {React.ReactElement} Rendered tasks page.
    */
   static render(state, handlers) {
     const {
-      tasks, pagination, basePath, backHref, formValues, fieldErrors,
+      tasks, pagination, basePath, backHref, formValues, fieldErrors, activeFilters = {}, filters = null,
     } = state;
 
     return (
       <div className="container mt-4">
         <PageActions backHref={backHref} />
         <h1 className="mb-4">{Translator.t('game_tasks_page.title')}</h1>
-        {GameTasksHelper.#renderList(tasks, handlers)}
+        {filters}
+        {GameTasksHelper.#renderList(tasks, activeFilters, handlers)}
         {GameTasksHelper.#renderAddForm(formValues, fieldErrors, handlers)}
         <Pagination
           currentPage={pagination.page}
           totalPages={pagination.pages}
           perPage={pagination.perPage}
           basePath={basePath}
+          extraParams={activeFilters}
         />
       </div>
     );
@@ -76,9 +82,9 @@ export default class GameTasksHelper {
     return <ErrorAlert error={error} />;
   }
 
-  static #renderList(tasks, handlers) {
+  static #renderList(tasks, activeFilters, handlers) {
     if (tasks.length === 0) {
-      return <p className="text-muted">{Translator.t('game_tasks_page.empty')}</p>;
+      return GameTasksHelper.#renderEmpty(activeFilters);
     }
 
     return (
@@ -86,6 +92,12 @@ export default class GameTasksHelper {
         {tasks.map((task) => GameTasksHelper.#renderTaskItem(task, handlers))}
       </ul>
     );
+  }
+
+  static #renderEmpty(activeFilters) {
+    const key = Object.keys(activeFilters).length > 0 ? 'empty_filtered' : 'empty';
+
+    return <p className="text-muted">{Translator.t(`game_tasks_page.${key}`)}</p>;
   }
 
   static #renderTaskItem(task, handlers) {

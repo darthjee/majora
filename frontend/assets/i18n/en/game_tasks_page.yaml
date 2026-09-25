@@ -9,3 +9,8 @@ game_tasks_page:
   add: Add task
   error: Unable to load tasks.
   view: View
+  filter_category_label: Category
+  filter_completed_label: Status
+  filter_completed_pending: Pending
+  filter_completed_done: Completed
+  empty_filtered: No tasks match the filters.

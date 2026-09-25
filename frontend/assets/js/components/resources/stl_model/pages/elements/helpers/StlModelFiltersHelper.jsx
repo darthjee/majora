@@ -1,4 +1,5 @@
 import React from 'react';
+import FilterActions from '../../../../../common/forms/FilterActions.jsx';
 import EnumSelectField from '../../../../../common/forms/EnumSelectField.jsx';
 import MultiResourcePickerField from '../../../../../common/forms/MultiResourcePickerField.jsx';
 import TagsField from '../../../../../common/forms/TagsField.jsx';
@@ -157,26 +158,7 @@ export default class StlModelFiltersHelper {
   static #renderActions(handlers) {
     return (
       <div className="row g-2">
-        <div className="col-auto">
-          <button
-            type="button"
-            className="btn btn-primary"
-            data-testid="stl-model-filter-query"
-            onClick={handlers.onQuery}
-          >
-            {Translator.t('stl_models_page.filter_query')}
-          </button>
-        </div>
-        <div className="col-auto">
-          <button
-            type="button"
-            className="btn btn-outline-secondary"
-            data-testid="stl-model-filter-clear"
-            onClick={handlers.onClear}
-          >
-            {Translator.t('stl_models_page.filter_clear')}
-          </button>
-        </div>
+        <FilterActions onQuery={handlers.onQuery} onClear={handlers.onClear} testIdPrefix="stl-model" />
       </div>
     );
   }

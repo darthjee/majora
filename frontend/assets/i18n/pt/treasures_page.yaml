@@ -6,5 +6,3 @@ treasures_page:
   filter_max_value_label: Valor máximo
   filter_name_label: Nome
   filter_name_placeholder: Buscar por nome...
-  filter_query: Filtrar
-  filter_clear: Limpar

@@ -1,6 +1,7 @@
 import AccessStore from '../../../../../utils/access/store/AccessStore.js';
 import RequestStore from '../../../../../utils/requests/RequestStore.js';
 import HashRouteResolver from '../../../../../utils/routing/HashRouteResolver.js';
+import buildFilteredHref from '../../../../../utils/routing/buildFilteredHref.js';
 import getCurrentHash from '../../../../../utils/routing/currentHash.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 
@@ -20,6 +21,18 @@ export default class GameTasksController extends BasePageController {
    */
   static getGameSlugFromTasksHash(hash = '') {
     return BasePageController.extractParam('/games/:game_slug/tasks', 'game_slug', hash);
+  }
+
+  /**
+   * Build the hash URL for applying task filters, resetting pagination to page 1.
+   *
+   * @param {string} basePath - Base hash path of the tasks index (e.g. `#/games/demo/tasks`).
+   * @param {{category?: string, completed?: string}} filters - Filters to apply, as built by
+   *   `TaskFiltersController#buildQuery`.
+   * @returns {string} Hash including the reset page and the active filters.
+   */
+  static buildFilterQueryHash(basePath, filters) {
+    return buildFilteredHref(basePath, filters);
   }
 
   /**
@@ -197,14 +210,17 @@ export default class GameTasksController extends BasePageController {
   }
 
   #fetchTasks(gameSlug, safeSet) {
-    const params = new HashRouteResolver().getPaginationParams();
+    const hashResolver = new HashRouteResolver();
 
     RequestStore.ensure({
       componentName: 'GameTasksController',
       resource: 'task',
       quantityType: 'collection',
       params: { gameSlug },
-      query: Object.fromEntries(params),
+      query: {
+        ...Object.fromEntries(hashResolver.getPaginationParams()),
+        ...Object.fromEntries(hashResolver.getFilterParams()),
+      },
     })
       .then(({ data, pagination }) => {
         safeSet(this.setTasks, Array.isArray(data) ? data : []);

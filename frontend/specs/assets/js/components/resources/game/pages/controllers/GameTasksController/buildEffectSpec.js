@@ -69,6 +69,26 @@ describe('GameTasksController', function() {
       cleanup();
     });
 
+    it('sends the hash category/completed filters alongside the pagination params', async function() {
+      fakeWindow.location.hash = '#/games/demo/tasks?page=2&category=painting&completed=false';
+      spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+
+      const cleanup = new GameTasksController(
+        setTasks, setPagination, setLoading, setError,
+      ).buildEffect()();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(ensureSpy).toHaveBeenCalledWith({
+        componentName: 'GameTasksController',
+        resource: 'task',
+        quantityType: 'collection',
+        params: { gameSlug: 'demo' },
+        query: { page: '2', category: 'painting', completed: 'false' },
+      });
+
+      cleanup();
+    });
+
     it('redirects to the game page when the user cannot edit the game', async function() {
       spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
 

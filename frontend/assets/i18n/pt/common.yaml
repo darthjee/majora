@@ -125,6 +125,9 @@ slain_confirm_modal:
   cancel: Cancelar
 back_button:
   label: Voltar
+filter_actions:
+  query: Filtrar
+  clear: Limpar
 pagination:
   aria_label: Pagina de Jogos
   previous: Anterior

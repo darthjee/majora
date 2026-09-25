@@ -1,4 +1,5 @@
 import React from 'react';
+import FilterActions from '../../../../../common/forms/FilterActions.jsx';
 import Translator from '../../../../../../i18n/Translator.js';
 
 /**
@@ -33,26 +34,7 @@ export default class PollFiltersHelper {
             <option value="closed">{Translator.t('game_polls_page.status_closed')}</option>
           </select>
         </div>
-        <div className="col-auto">
-          <button
-            type="button"
-            className="btn btn-primary"
-            data-testid="poll-filter-query"
-            onClick={handlers.onQuery}
-          >
-            {Translator.t('game_polls_page.filter_query')}
-          </button>
-        </div>
-        <div className="col-auto">
-          <button
-            type="button"
-            className="btn btn-outline-secondary"
-            data-testid="poll-filter-clear"
-            onClick={handlers.onClear}
-          >
-            {Translator.t('game_polls_page.filter_clear')}
-          </button>
-        </div>
+        <FilterActions onQuery={handlers.onQuery} onClear={handlers.onClear} testIdPrefix="poll" />
       </div>
     );
   }

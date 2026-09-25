@@ -1,6 +1,6 @@
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import GameTasks, { EMPTY_FORM, resetTaskFormValues }
+import GameTasks, { EMPTY_FORM, buildTaskFilterHandlers, resetTaskFormValues }
   from '../../../../../../../assets/js/components/resources/game/pages/GameTasks.jsx';
 import GameTasksHelper from '../../../../../../../assets/js/components/resources/game/pages/helpers/GameTasksHelper.jsx';
 import GameTasksController from '../../../../../../../assets/js/components/resources/game/pages/controllers/GameTasksController.js';
@@ -76,6 +76,35 @@ describe('GameTasks', function() {
 
     expect(resetTaskFormValues(previous)).toEqual({
       category: 'painting', shortDescription: '', longDescription: '',
+    });
+  });
+
+  describe('buildTaskFilterHandlers', function() {
+    let effect;
+    let controller;
+
+    beforeEach(function() {
+      effect = jasmine.createSpy('effect');
+      controller = { buildEffect: jasmine.createSpy('buildEffect').and.returnValue(effect) };
+    });
+
+    it('sets the filtered first-page hash and refetches on Query', function() {
+      const handlers = buildTaskFilterHandlers(controller, '#/games/demo/tasks');
+
+      handlers.onQuery({ category: 'painting', completed: 'false' });
+
+      expect(globalThis.window.location.hash).toBe('#/games/demo/tasks?page=1&category=painting&completed=false');
+      expect(effect).toHaveBeenCalled();
+    });
+
+    it('resets the hash to the base path and refetches on Clear', function() {
+      globalThis.window.location.hash = '#/games/demo/tasks?page=1&category=painting';
+      const handlers = buildTaskFilterHandlers(controller, '#/games/demo/tasks');
+
+      handlers.onClear();
+
+      expect(globalThis.window.location.hash).toBe('#/games/demo/tasks');
+      expect(effect).toHaveBeenCalled();
     });
   });
 });

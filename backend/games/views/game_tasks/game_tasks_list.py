@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from permissions import EndpointPermission
 
 from ...decorators import restricted
-from ...models import Game
+from ...models import Game, Task
 from ...serializers import GameTaskCreateSerializer, GameTaskListSerializer
 from ..common import paginated_list_response, validated_or_error
 
@@ -31,7 +31,30 @@ def game_tasks_list(request, game_slug):
     if request.method == 'POST':
         return _create_task(request, game)
 
-    return paginated_list_response(request, game.tasks.all(), GameTaskListSerializer)
+    return _list_tasks(request, game)
+
+
+def _list_tasks(request, game):
+    """Return a paginated list of the game's tasks, narrowed by `category` and `completed`."""
+    queryset = _filter_by_category(request, game.tasks.all())
+    queryset = _filter_by_completed(request, queryset)
+    return paginated_list_response(request, queryset, GameTaskListSerializer)
+
+
+def _filter_by_category(request, queryset):
+    """Narrow `queryset` by the `category` param when it is a known `Task` category."""
+    category = request.query_params.get('category')
+    if category in {value for value, _ in Task.CATEGORY_CHOICES}:
+        return queryset.filter(category=category)
+    return queryset
+
+
+def _filter_by_completed(request, queryset):
+    """Narrow `queryset` by the `completed` param when it is `true`/`false` (any case)."""
+    completed = request.query_params.get('completed')
+    if completed is not None and completed.lower() in ('true', 'false'):
+        return queryset.filter(completed=(completed.lower() == 'true'))
+    return queryset
 
 
 def _create_task(request, game):

@@ -1,4 +1,5 @@
 import React from 'react';
+import FilterActions from '../../../../../common/forms/FilterActions.jsx';
 import Translator from '../../../../../../i18n/Translator.js';
 
 /**
@@ -24,7 +25,7 @@ export default class TreasureFiltersHelper {
         {TreasureFiltersHelper.#renderGameType(state, handlers, showGameType)}
         {TreasureFiltersHelper.#renderMinMaxValue(state, handlers)}
         {TreasureFiltersHelper.#renderNameFilter(state, handlers)}
-        {TreasureFiltersHelper.#renderActions(handlers)}
+        <FilterActions onQuery={handlers.onQuery} onClear={handlers.onClear} testIdPrefix="treasure" />
       </div>
     );
   }
@@ -78,33 +79,6 @@ export default class TreasureFiltersHelper {
           onChange={(event) => handlers.onNameChange(event.target.value)}
         />
       </div>
-    );
-  }
-
-  static #renderActions(handlers) {
-    return (
-      <>
-        <div className="col-auto">
-          <button
-            type="button"
-            className="btn btn-primary"
-            data-testid="treasure-filter-query"
-            onClick={handlers.onQuery}
-          >
-            {Translator.t('treasures_page.filter_query')}
-          </button>
-        </div>
-        <div className="col-auto">
-          <button
-            type="button"
-            className="btn btn-outline-secondary"
-            data-testid="treasure-filter-clear"
-            onClick={handlers.onClear}
-          >
-            {Translator.t('treasures_page.filter_clear')}
-          </button>
-        </div>
-      </>
     );
   }
 
