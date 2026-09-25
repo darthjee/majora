@@ -147,6 +147,103 @@ class TestGameTasksListView(TestCase):
         assert [item['id'] for item in data] == [first.id, second.id]
 
 
+class TestGameTasksListFiltersView(TestCase):
+    """Tests for the `category` / `completed` filters on GET /games/<slug>/tasks.json."""
+
+    @classmethod
+    def setUpTestData(cls):
+        """Set up a game with tasks across categories and completion states."""
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.other_game = GameFactory(name='Other Game', game_slug='other-game')
+        cls.dm_user = UserFactory(username='dm_user', password='secret-password')
+        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
+        cls.dm_token = Token.objects.create(user=cls.dm_user)
+        cls.painting_done = Task.objects.create(
+            game=cls.game, short_description='Paint done', category='painting', completed=True,
+        )
+        cls.painting_pending = Task.objects.create(
+            game=cls.game, short_description='Paint pending', category='painting',
+        )
+        cls.printing_done = Task.objects.create(
+            game=cls.game, short_description='Print done', category='printing', completed=True,
+        )
+        cls.other_pending = Task.objects.create(game=cls.game, short_description='Other pending')
+        Task.objects.create(
+            game=cls.other_game, short_description='Foreign paint', category='painting',
+        )
+
+    def _get(self, query=''):
+        """Issue an authenticated GET request to the game tasks list endpoint."""
+        return self.client.get(
+            f'/games/{self.game.game_slug}/tasks.json{query}',
+            HTTP_AUTHORIZATION=f'Token {self.dm_token.key}',
+        )
+
+    def _ids(self, query=''):
+        """Return the ids of the tasks listed for `query`."""
+        response = self._get(query)
+        assert response.status_code == 200
+        return [item['id'] for item in json.loads(response.content)]
+
+    def _all_ids(self):
+        """Return the ids of every task of the game, in list order."""
+        return [
+            self.painting_done.id, self.painting_pending.id,
+            self.printing_done.id, self.other_pending.id,
+        ]
+
+    def test_no_params_returns_every_task(self):
+        """Test that without filters every task of the game is returned."""
+        assert self._ids() == self._all_ids()
+
+    def test_category_filter_narrows_results(self):
+        """Test that ?category= returns only tasks of that category."""
+        assert self._ids('?category=painting') == [
+            self.painting_done.id, self.painting_pending.id,
+        ]
+
+    def test_completed_true_filter_narrows_results(self):
+        """Test that ?completed=true returns only completed tasks."""
+        assert self._ids('?completed=true') == [self.painting_done.id, self.printing_done.id]
+
+    def test_completed_false_filter_narrows_results(self):
+        """Test that ?completed=false returns only pending tasks."""
+        assert self._ids('?completed=false') == [
+            self.painting_pending.id, self.other_pending.id,
+        ]
+
+    def test_completed_filter_is_case_insensitive(self):
+        """Test that ?completed=True is treated like ?completed=true."""
+        assert self._ids('?completed=True') == [self.painting_done.id, self.printing_done.id]
+
+    def test_category_and_completed_are_combined(self):
+        """Test that category and completed filters are combined with AND."""
+        assert self._ids('?category=painting&completed=false') == [self.painting_pending.id]
+
+    def test_unknown_category_is_ignored(self):
+        """Test that an unknown category returns the unfiltered list."""
+        assert self._ids('?category=cooking') == self._all_ids()
+
+    def test_category_filter_is_case_sensitive(self):
+        """Test that a category differing only in case is ignored."""
+        assert self._ids('?category=Painting') == self._all_ids()
+
+    def test_unknown_completed_is_ignored(self):
+        """Test that an unknown completed value returns the unfiltered list."""
+        assert self._ids('?completed=maybe') == self._all_ids()
+
+    def test_filters_do_not_leak_other_game_tasks(self):
+        """Test that filtering never returns tasks from another game."""
+        foreign = Task.objects.get(short_description='Foreign paint')
+        assert foreign.id not in self._ids('?category=painting&completed=false')
+
+    def test_pagination_reflects_filtered_count(self):
+        """Test that the pages header is computed over the filtered queryset."""
+        response = self._get('?category=painting&per_page=1')
+        assert response['pages'] == '2'
+        assert len(json.loads(response.content)) == 1
+
+
 class TestGameTasksCreateView(TestCase):
     """Tests for the POST /games/<slug>/tasks.json endpoint."""
 
