@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "majora"
-version = "1.0.1"
+version = "1.0.2"
 description = "Majora - RPG Campaign Management System"
 authors = ["darthjee"]
 license = "MIT"
