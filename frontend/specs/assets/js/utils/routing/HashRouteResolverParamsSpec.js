@@ -52,6 +52,16 @@ describe('HashRouteResolver params', function() {
     expect(params.toString()).toBe('status=open');
   });
 
+  it('extracts the task category and completed filter params', function() {
+    const params = new HashRouteResolver(
+      () => '#/games/demo/tasks?page=2&category=painting&completed=false',
+    ).getFilterParams();
+    expect(params.get('category')).toBe('painting');
+    expect(params.get('completed')).toBe('false');
+    expect(params.has('page')).toBeFalse();
+    expect(params.toString()).toBe('category=painting&completed=false');
+  });
+
   it('extracts the STL model scalar filter params (name/type/size)', function() {
     const params = new HashRouteResolver(
       () => '#/miniatures/stl_models?name=gob&type=creature&size=small&page=2',
