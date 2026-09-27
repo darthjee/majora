@@ -198,6 +198,21 @@ class TestGameTaskDetailPatchView(TestCase):
         assert response.status_code == 400
         assert json.loads(response.content)['errors']['category'] == ['invalid_choice']
 
+    def test_get_returns_null_session_when_unset(self):
+        """Test that GET returns `session: null` when the task has no session."""
+        response = self._get(self.client, token=self.dm_token)
+        assert json.loads(response.content)['session'] is None
+
+    def test_get_returns_nested_session_when_set(self):
+        """Test that GET returns the task's session as a nested `{id, title}`."""
+        session = GameSession.objects.create(game=self.game, title='Session One')
+        self.task.session = session
+        self.task.save()
+        response = self._get(self.client, token=self.dm_token)
+        assert json.loads(response.content)['session'] == {
+            'id': session.id, 'title': 'Session One',
+        }
+
     def test_patch_can_set_session(self):
         """Test that PATCH can set the task's session to one belonging to the same game."""
         session = GameSession.objects.create(game=self.game, title='Session One')
@@ -205,6 +220,8 @@ class TestGameTaskDetailPatchView(TestCase):
         assert response.status_code == 200
         self.task.refresh_from_db()
         assert self.task.session == session
+        data = json.loads(response.content)
+        assert data['session'] == {'id': session.id, 'title': 'Session One'}
 
     def test_patch_can_clear_session(self):
         """Test that PATCH can clear the task's session by passing null."""
@@ -215,6 +232,7 @@ class TestGameTaskDetailPatchView(TestCase):
         assert response.status_code == 200
         self.task.refresh_from_db()
         assert self.task.session is None
+        assert json.loads(response.content)['session'] is None
 
     def test_patch_session_from_different_game_returns_400(self):
         """Test that a session belonging to a different game is rejected with 400."""

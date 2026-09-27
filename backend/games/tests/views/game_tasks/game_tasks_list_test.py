@@ -85,7 +85,7 @@ class TestGameTasksListView(TestCase):
         assert data[0]['short_description'] == 'Prep the ambush'
         assert data[0]['long_description'] == 'Some notes'
         assert data[0]['completed'] is True
-        assert data[0]['session'] == session.id
+        assert data[0]['session'] == {'id': session.id, 'title': 'Session One'}
         assert data[0]['category'] == 'other'
 
     def test_returns_404_for_unknown_game_slug(self):
@@ -300,6 +300,18 @@ class TestGameTasksCreateView(TestCase):
         assert data['completed'] is True
         assert data['session'] is None
         assert 'id' in data
+
+    def test_create_with_session_returns_nested_session(self):
+        """Test that a POST with a same-game session id returns the nested `{id, title}`."""
+        session = GameSession.objects.create(game=self.game, title='Session One')
+        response = self._post(
+            self.client,
+            {'short_description': 'Prep the ambush', 'session': session.id},
+            token=self.dm_token,
+        )
+        assert response.status_code == 201
+        data = json.loads(response.content)
+        assert data['session'] == {'id': session.id, 'title': 'Session One'}
 
     def test_create_without_category_defaults_to_other(self):
         """Test that a POST without category creates the task as `other`."""

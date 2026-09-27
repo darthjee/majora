@@ -55,13 +55,13 @@ class TestGameTaskListSerializer(TestCase):
         data = GameTaskListSerializer(self.task).data
         assert data['session'] is None
 
-    def test_serializes_session_id_when_set(self):
-        """Test that session is serialized as the linked session's id."""
+    def test_serializes_session_as_nested_object_when_set(self):
+        """Test that session is serialized as the linked session's `{id, title}`."""
         session = GameSession.objects.create(game=self.game, title='Session One')
         self.task.session = session
         self.task.save()
         data = GameTaskListSerializer(self.task).data
-        assert data['session'] == session.id
+        assert data['session'] == {'id': session.id, 'title': 'Session One'}
 
     def test_only_exposes_expected_fields(self):
         """Test that only the task fields (including category) appear."""
