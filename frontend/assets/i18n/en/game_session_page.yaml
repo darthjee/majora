@@ -7,3 +7,8 @@ game_session_page:
   messages_content_label: Message
   messages_submit: Send
   messages_load_more: Load more messages
+  tasks_title: Tasks
+  tasks_loading: Loading tasks...
+  tasks_empty: No tasks for this session.
+  tasks_error: Unable to load tasks.
+  tasks_see_all: 'See all ({{count}})'
