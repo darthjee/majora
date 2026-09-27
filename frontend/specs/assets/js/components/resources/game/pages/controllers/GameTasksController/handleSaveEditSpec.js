@@ -43,12 +43,33 @@ describe('GameTasksController', function() {
         params: { gameSlug: 'demo', id: 1 },
         body: {
           category: 'painting',
+          session: null,
           short_description: 'New',
           long_description: 'New details',
         },
       });
       expect(setTasks).toHaveBeenCalledWith([updated]);
       expect(result).toEqual(updated);
+    });
+
+    it('sends the picked session id in the PATCH body', async function() {
+      mutateSpy.and.returnValue(Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ ...tasks[0], session: { id: 3, title: 'Session 3' } }),
+      }));
+
+      const controller = new GameTasksController(null, null, null, null);
+      await controller.handleSaveEdit(
+        'demo',
+        tasks[0],
+        {
+          category: 'painting', session: { id: 3, name: 'Session 3' }, shortDescription: 'New', longDescription: 'New details',
+        },
+        tasks,
+        setTasks,
+      );
+
+      expect(mutateSpy.calls.mostRecent().args[0].body.session).toBe(3);
     });
 
     it('does not update local state and returns null when the response is not ok', async function() {

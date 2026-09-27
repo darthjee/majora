@@ -69,15 +69,19 @@ describe('GameTasks', function() {
     expect(html).toContain('Add task');
   });
 
-  it('starts the add form at the other category with empty descriptions', function() {
-    expect(EMPTY_FORM).toEqual({ category: 'other', shortDescription: '', longDescription: '' });
+  it('starts the add form at the other category with no session and empty descriptions', function() {
+    expect(EMPTY_FORM).toEqual({
+      category: 'other', session: null, shortDescription: '', longDescription: '',
+    });
   });
 
-  it('keeps the last picked category and resets the descriptions after a create', function() {
-    const previous = { category: 'painting', shortDescription: 'Paint minis', longDescription: 'Goblins' };
+  it('keeps the last picked category and resets the session and descriptions after a create', function() {
+    const previous = {
+      category: 'painting', session: { id: 3, name: 'Session 3' }, shortDescription: 'Paint minis', longDescription: 'Goblins',
+    };
 
     expect(resetTaskFormValues(previous)).toEqual({
-      category: 'painting', shortDescription: '', longDescription: '',
+      category: 'painting', session: null, shortDescription: '', longDescription: '',
     });
   });
 

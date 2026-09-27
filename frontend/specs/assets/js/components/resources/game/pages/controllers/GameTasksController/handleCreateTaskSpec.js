@@ -54,10 +54,25 @@ describe('GameTasksController', function() {
         params: { gameSlug: 'demo' },
         body: {
           category: 'painting',
+          session: null,
           short_description: 'Prep encounter',
           long_description: 'Some details',
         },
       });
+    });
+
+    it('sends the picked session id in the POST body', async function() {
+      mutateSpy.and.returnValue(Promise.resolve({
+        status: 201,
+        json: () => Promise.resolve({ id: 2, session: { id: 3, title: 'Session 3' } }),
+      }));
+
+      const controller = new GameTasksController(null, null, null, null);
+      await controller.handleCreateTask(undefined, 'demo', { ...formValues, session: { id: 3, name: 'Session 3' } }, tasks, {
+        setTasks, setFieldErrors, setError, resetForm,
+      });
+
+      expect(mutateSpy.calls.mostRecent().args[0].body.session).toBe(3);
     });
 
     it('appends the created task and resets the form on success', async function() {

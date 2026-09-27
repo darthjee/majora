@@ -2,19 +2,22 @@ import { useEffect, useState } from 'react';
 import TaskDetailModalHelper from './helpers/TaskDetailModalHelper.jsx';
 import Translator from '../../../i18n/Translator.js';
 import { DEFAULT_TASK_CATEGORY } from '../../resources/game/pages/taskCategories.js';
+import { toTaskSessionPick } from '../../resources/game/pages/taskSessions.js';
 
 /**
- * Build the edit-form values for a task: its category (defaulting to `other` when missing) and
- * its short/long descriptions (defaulting to empty strings). Used both to initialize the form
- * and to discard edits (cancel, or opening another task). Exported as a plain, named function so
- * it can be exercised directly in specs.
+ * Build the edit-form values for a task: its category (defaulting to `other` when missing), its
+ * session as a picker item (or null) and its short/long descriptions (defaulting to empty
+ * strings). Used both to initialize the form and to discard edits (cancel, or opening another
+ * task). Exported as a plain, named function so it can be exercised directly in specs.
  *
  * @param {object|null} task - Task being viewed/edited, or null when none is selected.
- * @returns {{category: string, shortDescription: string, longDescription: string}} Form values.
+ * @returns {{category: string, session: ({id: number, name: string}|null),
+ *   shortDescription: string, longDescription: string}} Form values.
  */
 export function buildTaskEditValues(task) {
   return {
     category: task?.category ?? DEFAULT_TASK_CATEGORY,
+    session: toTaskSessionPick(task?.session),
     shortDescription: task?.short_description ?? '',
     longDescription: task?.long_description ?? '',
   };
@@ -28,8 +31,8 @@ export function buildTaskEditValues(task) {
  * as a plain, named function so it can be exercised directly in specs.
  *
  * @param {Function} onSave - Save handler; resolves to the saved task, or a falsy value on failure.
- * @param {{category: string, shortDescription: string, longDescription: string}} values - Edited
- *   form values passed to `onSave`.
+ * @param {{category: string, session: ({id: number, name: string}|null), shortDescription: string,
+ *   longDescription: string}} values - Edited form values passed to `onSave`.
  * @param {object} setters - State setters of the modal.
  * @param {Function} setters.setSaving - Setter for the `saving` flag.
  * @param {Function} setters.setEditing - Setter for the `editing` flag.
@@ -58,33 +61,36 @@ export async function submitTaskEdit(onSave, values, { setSaving, setEditing, se
 }
 
 /**
- * View/edit modal for a single game task's category and short/long description.
- * Starts in read-only view mode showing the category and the full `long_description`; the
- * Edit button switches to editable fields with Save/Cancel actions.
+ * View/edit modal for a single game task's category, session and short/long description.
+ * Starts in read-only view mode showing the category, the session and the full
+ * `long_description`; the Edit button switches to editable fields with Save/Cancel actions.
  *
  * @param {object} props - Component props.
  * @param {boolean} props.show - Whether the modal is visible.
  * @param {object|null} props.task - Task being viewed/edited, or null when none is selected.
+ * @param {string} props.gameSlug - Slug of the task's game, used to scope the session picker.
  * @param {Function} props.onClose - Handler invoked when the modal is dismissed.
  * @param {Function} props.onSave - Handler invoked with
- *   `{category, shortDescription, longDescription}` when the edited task is saved. It may
+ *   `{category, session, shortDescription, longDescription}` when the edited task is saved. It may
  *   return (a promise of) the saved task; a falsy result keeps the modal in edit mode with an
  *   error message.
  * @returns {React.ReactElement} Rendered task detail modal.
  */
 export default function TaskDetailModal({
-  show, task, onClose, onSave,
+  show, task, gameSlug, onClose, onSave,
 }) {
   const initial = buildTaskEditValues(task);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [category, setCategory] = useState(initial.category);
+  const [session, setSession] = useState(initial.session);
   const [shortDescription, setShortDescription] = useState(initial.shortDescription);
   const [longDescription, setLongDescription] = useState(initial.longDescription);
 
   const applyValues = (values) => {
     setCategory(values.category);
+    setSession(values.session);
     setShortDescription(values.shortDescription);
     setLongDescription(values.longDescription);
   };
@@ -97,6 +103,7 @@ export default function TaskDetailModal({
     setSaving(false);
     setError('');
     setCategory(values.category);
+    setSession(values.session);
     setShortDescription(values.shortDescription);
     setLongDescription(values.longDescription);
   }, [show, task]);
@@ -114,14 +121,16 @@ export default function TaskDetailModal({
 
   const handleSave = () => submitTaskEdit(
     onSave,
-    { category, shortDescription, longDescription },
+    {
+      category, session, shortDescription, longDescription,
+    },
     { setSaving, setEditing, setError },
   );
 
   return TaskDetailModalHelper.render(
     show,
     {
-      task, editing, saving, error, category, shortDescription, longDescription,
+      task, gameSlug, editing, saving, error, category, session, shortDescription, longDescription,
     },
     {
       onClose,
@@ -129,6 +138,8 @@ export default function TaskDetailModal({
       onCancel: handleCancel,
       onSave: handleSave,
       onCategoryChange: (item) => setCategory(item.id),
+      onSessionChange: setSession,
+      onSessionClear: () => setSession(null),
       onShortDescriptionChange: setShortDescription,
       onLongDescriptionChange: setLongDescription,
     },

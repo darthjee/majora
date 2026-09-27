@@ -185,14 +185,15 @@ describe('GameTasksHelper', function() {
         return findElement(element, (node) => node.type === 'form');
       };
 
-      it('is the first field of the add form, before the short description', function() {
+      it('is the first field of the add form, before the session and short description', function() {
         const form = renderForm();
-        const [first, second] = form.props.children;
+        const [first, second, third] = form.props.children;
 
         expect(first.type).toBe(SingleResourcePickerField);
         expect(first.props.id).toBe('game-tasks-new-category');
-        expect(second.type).toBe(FormField);
-        expect(second.props.id).toBe('game-tasks-new-short-description');
+        expect(second.props.id).toBe('game-tasks-new-session');
+        expect(third.type).toBe(FormField);
+        expect(third.props.id).toBe('game-tasks-new-short-description');
       });
 
       it('lists the task categories in constant mode, with translated labels', function() {
