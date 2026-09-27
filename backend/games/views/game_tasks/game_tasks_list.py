@@ -35,9 +35,10 @@ def game_tasks_list(request, game_slug):
 
 
 def _list_tasks(request, game):
-    """Return a paginated list of the game's tasks, narrowed by `category` and `completed`."""
-    queryset = _filter_by_category(request, game.tasks.all())
+    """Return a paginated list of the game's tasks, narrowed by its query filters."""
+    queryset = _filter_by_category(request, game.tasks.select_related('session'))
     queryset = _filter_by_completed(request, queryset)
+    queryset = _filter_by_session(request, queryset)
     return paginated_list_response(request, queryset, GameTaskListSerializer)
 
 
@@ -54,6 +55,18 @@ def _filter_by_completed(request, queryset):
     completed = request.query_params.get('completed')
     if completed is not None and completed.lower() in ('true', 'false'):
         return queryset.filter(completed=(completed.lower() == 'true'))
+    return queryset
+
+
+def _filter_by_session(request, queryset):
+    """Narrow `queryset` by the `session` param: a session id, or `none` (any case) for unset."""
+    session = request.query_params.get('session')
+    if session is None:
+        return queryset
+    if session.isdecimal():
+        return queryset.filter(session_id=int(session))
+    if session.lower() == 'none':
+        return queryset.filter(session__isnull=True)
     return queryset
 
 
