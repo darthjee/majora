@@ -1,5 +1,4 @@
 import React from 'react';
-import Badge from '../../../../common/badges/Badge.jsx';
 import ErrorAlert from '../../../../common/misc/ErrorAlert.jsx';
 import FormField from '../../../../common/forms/FormField.jsx';
 import LoadingMessage from '../../../../common/misc/LoadingMessage.jsx';
@@ -7,6 +6,7 @@ import PageActions from '../../../../common/list_page/PageActions.jsx';
 import Pagination from '../../../../common/pagination/Pagination.jsx';
 import SingleResourcePickerField from '../../../../common/forms/SingleResourcePickerField.jsx';
 import SubmitButton from '../../../../common/buttons/SubmitButton.jsx';
+import TaskListItem from '../elements/TaskListItem.jsx';
 import TextareaField from '../../../../common/forms/TextareaField.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 import { TASK_CATEGORY_VALUES, toTaskCategoryPick, translateTaskCategory } from '../taskCategories.js';
@@ -92,7 +92,9 @@ export default class GameTasksHelper {
 
     return (
       <ul className="list-group mb-4">
-        {tasks.map((task) => GameTasksHelper.#renderTaskItem(task, handlers))}
+        {tasks.map((task) => (
+          <TaskListItem key={task.id} task={task} onToggle={handlers.onToggle} onView={handlers.onView} />
+        ))}
       </ul>
     );
   }
@@ -101,44 +103,6 @@ export default class GameTasksHelper {
     const key = Object.keys(activeFilters).length > 0 ? 'empty_filtered' : 'empty';
 
     return <p className="text-muted">{Translator.t(`game_tasks_page.${key}`)}</p>;
-  }
-
-  static #renderTaskItem(task, handlers) {
-    return (
-      <li key={task.id} className="list-group-item d-flex justify-content-between align-items-center">
-        <div className="form-check">
-          <input
-            id={`game-task-${task.id}`}
-            type="checkbox"
-            className="form-check-input"
-            checked={task.completed}
-            onChange={() => handlers.onToggle(task)}
-          />
-          <label className="form-check-label" htmlFor={`game-task-${task.id}`}>
-            {task.short_description}
-          </label>
-          <span className="ms-2">
-            <Badge text={translateTaskCategory(task.category)} />
-          </span>
-          {GameTasksHelper.#renderTaskSession(task)}
-        </div>
-        <button
-          type="button"
-          className="btn btn-sm btn-outline-secondary"
-          onClick={() => handlers.onView(task)}
-        >
-          {Translator.t('game_tasks_page.view')}
-        </button>
-      </li>
-    );
-  }
-
-  static #renderTaskSession(task) {
-    if (!task.session) {
-      return null;
-    }
-
-    return <small className="task-session ms-2 text-muted">{task.session.title}</small>;
   }
 
   static #renderAddForm(gameSlug, formValues, fieldErrors, handlers) {

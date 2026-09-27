@@ -7,3 +7,8 @@ game_session_page:
   messages_content_label: Mensagem
   messages_submit: Enviar
   messages_load_more: Carregar mais mensagens
+  tasks_title: Tarefas
+  tasks_loading: Carregando tarefas...
+  tasks_empty: Nenhuma tarefa para esta sessão.
+  tasks_error: Não foi possível carregar as tarefas.
+  tasks_see_all: 'Ver todas ({{count}})'

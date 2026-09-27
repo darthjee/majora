@@ -4,6 +4,7 @@ import ErrorAlert from '../../../../common/misc/ErrorAlert.jsx';
 import LoadingMessage from '../../../../common/misc/LoadingMessage.jsx';
 import PageActions from '../../../../common/list_page/PageActions.jsx';
 import SessionMessagesHelper from './SessionMessagesHelper.jsx';
+import SessionTasksWidget from '../elements/SessionTasksWidget.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 
 /**
@@ -20,6 +21,8 @@ export default class GameSessionHelper {
    * @param {string} session.game_slug - Game slug the session belongs to.
    * @param {boolean} [session.can_edit_session] - Whether the current user can edit this session
    *   (or create a date poll for it).
+   * @param {boolean} [session.can_edit] - Whether the current user may manage the game's tasks
+   *   (DM/superuser); gates the session tasks widget, which renders nothing otherwise.
    * @param {string} [session.description] - Session description text.
    * @param {{messages: Array, nextEntryId: (number|string|null), loadingMore: boolean,
    *   content: string, posting: boolean, fieldErrors: object}} [messagesState] - Session
@@ -48,6 +51,7 @@ export default class GameSessionHelper {
         {session.description && (
           <p className="mt-3 text-pre-wrap">{session.description}</p>
         )}
+        <SessionTasksWidget session={session} />
         {SessionMessagesHelper.render(messagesState, messagesHandlers)}
       </div>
     );

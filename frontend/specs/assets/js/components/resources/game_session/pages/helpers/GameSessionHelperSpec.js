@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import GameSessionHelper from '../../../../../../../../assets/js/components/resources/game_session/pages/helpers/GameSessionHelper.jsx';
 import Noop from '../../../../../../../../assets/js/utils/Noop.js';
+import RequestStore from '../../../../../../../../assets/js/utils/requests/RequestStore.js';
 
 // Function components (e.g. PageActions, EditButton) are rendered by calling
 // them with their props so the search can traverse into their output.
@@ -109,6 +110,33 @@ describe('GameSessionHelper', function() {
     it('renders the messages section', function() {
       const html = renderToStaticMarkup(GameSessionHelper.render(session, messagesState, messagesHandlers));
       expect(html).toContain('Messages');
+    });
+
+    describe('session tasks widget', function() {
+      let ensureSpy;
+
+      beforeEach(function() {
+        ensureSpy = spyOn(RequestStore, 'ensure').and.returnValue(new Promise(Noop.noop));
+      });
+
+      it('renders the tasks section before the messages when can_edit is true', function() {
+        const html = renderToStaticMarkup(
+          GameSessionHelper.render({ ...session, can_edit: true }, messagesState, messagesHandlers),
+        );
+        const tasksIndex = html.indexOf('data-testid="session-tasks"');
+
+        expect(tasksIndex).toBeGreaterThan(-1);
+        expect(tasksIndex).toBeLessThan(html.indexOf('Messages'));
+      });
+
+      it('does not render the tasks section when can_edit is false', function() {
+        const html = renderToStaticMarkup(
+          GameSessionHelper.render({ ...session, can_edit: false }, messagesState, messagesHandlers),
+        );
+
+        expect(html).not.toContain('data-testid="session-tasks"');
+        expect(ensureSpy).not.toHaveBeenCalled();
+      });
     });
 
     it('renders a Create Pool button when can_edit_session is true and there is no date', function() {
