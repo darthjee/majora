@@ -237,8 +237,23 @@ describe('ResourcePickerSearch', function() {
         resource: 'source',
         quantityType: 'collection',
         query: { per_page: 4, name: 'wyrm' },
+        params: {},
       }));
       expect(results).toEqual([{ id: 1, name: 'Wyrmwood' }]);
+    });
+
+    it('forwards the given path params to RequestStore.ensure', async function() {
+      spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({ data: [], pagination: { page: 1, pages: 1 } }));
+
+      await fetchResourcePickerResults({
+        resource: 'session', maxEntries: 5, searchTerm: 'crypt', params: { gameSlug: 'the-crypt' },
+      });
+
+      expect(RequestStore.ensure).toHaveBeenCalledWith(jasmine.objectContaining({
+        resource: 'session',
+        params: { gameSlug: 'the-crypt' },
+        query: { per_page: 5, name: 'crypt' },
+      }));
     });
 
     it('defaults to an empty array when the response data is not an array', async function() {

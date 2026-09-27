@@ -4,6 +4,10 @@ import TaskFiltersHelper
 import { TASK_CATEGORY_VALUES }
   from '../../../../../../../../../assets/js/components/resources/game/pages/taskCategories.js';
 import Noop from '../../../../../../../../../assets/js/utils/Noop.js';
+import SingleResourcePickerField
+  from '../../../../../../../../../assets/js/components/common/forms/SingleResourcePickerField.jsx';
+import Translator from '../../../../../../../../../assets/js/i18n/Translator.js';
+import { findElement } from '../../../../../common/forms/helpers/support.js';
 
 describe('TaskFiltersHelper', function() {
   describe('.render', function() {
@@ -62,6 +66,58 @@ describe('TaskFiltersHelper', function() {
       const select = selectMarkup(render({ category: '', completed: 'true' }), 'task-filter-completed');
 
       expect(select).toContain('<option value="true" selected="">');
+    });
+
+    describe('session filter', function() {
+      const sessionHandlers = {
+        ...handlers,
+        onSessionModeChange: jasmine.createSpy('onSessionModeChange'),
+        onSessionPick: jasmine.createSpy('onSessionPick'),
+        onSessionClear: jasmine.createSpy('onSessionClear'),
+      };
+      const buildState = (overrides = {}) => ({
+        category: '', completed: '', sessionMode: '', sessionPick: null, gameSlug: 'demo', ...overrides,
+      });
+      const findPicker = (state) => findElement(
+        TaskFiltersHelper.render(state, sessionHandlers), (node) => node.type === SingleResourcePickerField,
+      );
+
+      it('renders the session mode select with blank, none and specific options', function() {
+        const html = renderToStaticMarkup(TaskFiltersHelper.render(buildState(), sessionHandlers));
+        const select = selectMarkup(html, 'task-filter-session');
+        const values = [...select.matchAll(/value="([^"]*)"/g)].map((match) => match[1]);
+
+        expect(values).toEqual(['', 'none', 'specific']);
+        expect(select).toContain(`>${Translator.t('game_tasks_page.filter_session_none')}</option>`);
+        expect(html).toContain(`>${Translator.t('game_tasks_page.filter_session_label')}</label>`);
+      });
+
+      it('renders the current session mode as selected', function() {
+        const html = renderToStaticMarkup(TaskFiltersHelper.render(buildState({ sessionMode: 'none' }), sessionHandlers));
+
+        expect(selectMarkup(html, 'task-filter-session')).toContain('<option value="none" selected="">');
+      });
+
+      it('does not render the session picker in the blank mode', function() {
+        expect(findPicker(buildState())).toBeNull();
+      });
+
+      it('does not render the session picker in the none mode', function() {
+        expect(findPicker(buildState({ sessionMode: 'none' }))).toBeNull();
+      });
+
+      it('renders the game session picker in the specific mode', function() {
+        const sessionPick = { id: 3, name: 'Session 3' };
+        const picker = findPicker(buildState({ sessionMode: 'specific', sessionPick }));
+
+        expect(picker.props.id).toBe('task-filter-session-pick');
+        expect(picker.props.picker).toEqual({ resource: 'session', maxEntries: 5, params: { gameSlug: 'demo' } });
+        expect(picker.props.value).toEqual(sessionPick);
+        expect(picker.props.onChange).toBe(sessionHandlers.onSessionPick);
+        expect(picker.props.onClear).toBe(sessionHandlers.onSessionClear);
+        expect(picker.props.searchPlaceholder)
+          .toBe(Translator.t('game_tasks_page.filter_session_search_placeholder'));
+      });
     });
   });
 });

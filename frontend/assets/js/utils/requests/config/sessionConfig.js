@@ -9,9 +9,13 @@
  *   restricted/private variant (a session's edit rights mirror its game's,
  *   resolved separately via the existing `/permissions/game.json`
  *   endpoint, not embedded in this response) — so `private` points at the
- *   exact same `path`/`permission` object as `regular`. No `collection` `GET`
- *   entry is configured: the past/future/unscheduled list endpoints are not
- *   fetched through `RequestStore` by this issue.
+ *   exact same `path`/`permission` object as `regular`.
+ *
+ *   `GET.collection` (issue #1432) is the public (`AllowAny`), name-searchable
+ *   `GET /games/:game_slug/sessions.json` list used by the task session
+ *   picker (`?name=<term>&per_page=5`); like `single`, it has no private
+ *   variant. The past/future/unscheduled list endpoints are still not fetched
+ *   through `RequestStore`.
  *
  *   `POST.collection` (create, `permission: 'can_edit'`) and `PATCH.single`
  *   (update) are `GameEditPermission`-gated on the backend (DM-only); neither
@@ -26,6 +30,7 @@
  *   server-side), so `regular`/`private` point at the exact same object.
  */
 const single = { path: ({ gameSlug, id }) => `/games/${gameSlug}/sessions/${id}.json`, permission: null };
+const collection = { path: ({ gameSlug }) => `/games/${gameSlug}/sessions.json`, permission: null };
 const create = { path: ({ gameSlug }) => `/games/${gameSlug}/sessions.json`, permission: 'can_edit' };
 const patch = { path: single.path, permission: null };
 const message = { path: ({ gameSlug, id }) => `/games/${gameSlug}/sessions/${id}/messages.json`, permission: null };
@@ -34,6 +39,7 @@ const pollProposal = { path: ({ gameSlug, id }) => `/games/${gameSlug}/sessions/
 export default {
   GET: {
     single: { regular: single, private: single },
+    collection: { regular: collection, private: collection },
   },
   POST: {
     collection: { regular: create, private: create },

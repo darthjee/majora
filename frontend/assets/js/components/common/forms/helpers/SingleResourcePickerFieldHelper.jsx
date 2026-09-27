@@ -1,6 +1,7 @@
 import ResourcePickerSearch from '../ResourcePickerSearch.jsx';
 import FieldErrors from '../FieldErrors.jsx';
 import Badge from '../../badges/Badge.jsx';
+import Translator from '../../../../i18n/Translator.js';
 
 /**
  * Rendering helper for the `SingleResourcePickerField` element.
@@ -13,11 +14,13 @@ export default class SingleResourcePickerFieldHelper {
    *
    * @param {{picker: object, value: ({id: (number|string), name: string}|null), label: string,
    *   searchPlaceholder: string, searching: boolean, errors: string[], id: (string|undefined)}}
-   *   state - Field state; `picker` is either `{resource, maxEntries}` (API mode) or
+   *   state - Field state; `picker` is either `{resource, maxEntries, params}` (API mode) or
    *   `{values, translateOption}` (constant mode), and `id` is the wrapper's optional DOM id.
    * @param {{onSelect: Function, onReopenSearch: Function, onCancel: Function,
-   *   onBlur: Function}} handlers - Selection handler (search core), click handler to re-open
-   *   the search from the badge view, `Escape` cancel handler, and the wrapper's blur handler.
+   *   onBlur: Function, onClear: (Function|undefined)}} handlers - Selection handler (search
+   *   core), click handler to re-open the search from the badge view, `Escape` cancel handler,
+   *   the wrapper's blur handler, and the optional clear handler (renders the clear button next
+   *   to the picked badge when given).
    * @returns {React.ReactElement} Rendered single resource picker field.
    */
   static render(state, handlers) {
@@ -40,19 +43,45 @@ export default class SingleResourcePickerFieldHelper {
     }
 
     return (
-      <button type="button" className="btn btn-link p-0" onClick={handlers.onReopenSearch}>
-        <Badge text={state.value.name} />
+      <span className="d-inline-flex align-items-center">
+        <button type="button" className="btn btn-link p-0" onClick={handlers.onReopenSearch}>
+          <Badge text={state.value.name} />
+        </button>
+        {SingleResourcePickerFieldHelper.#renderClearButton(handlers)}
+      </span>
+    );
+  }
+
+  static #renderClearButton(handlers) {
+    if (!handlers.onClear) {
+      return null;
+    }
+
+    const clearLabel = Translator.t('resource_picker.clear');
+
+    return (
+      <button
+        type="button"
+        className="btn btn-link btn-sm p-0 ms-1 text-decoration-none"
+        aria-label={clearLabel}
+        title={clearLabel}
+        onClick={() => handlers.onClear()}
+      >
+        ×
       </button>
     );
   }
 
   static #renderSearch(state, handlers, repicking) {
-    const { resource, maxEntries, values, translateOption } = state.picker;
+    const {
+      resource, maxEntries, params, values, translateOption,
+    } = state.picker;
 
     return (
       <ResourcePickerSearch
         resource={resource}
         maxEntries={maxEntries}
+        params={params}
         values={values}
         translateOption={translateOption}
         searchPlaceholder={state.searchPlaceholder}

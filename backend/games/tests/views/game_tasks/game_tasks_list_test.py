@@ -85,7 +85,7 @@ class TestGameTasksListView(TestCase):
         assert data[0]['short_description'] == 'Prep the ambush'
         assert data[0]['long_description'] == 'Some notes'
         assert data[0]['completed'] is True
-        assert data[0]['session'] == session.id
+        assert data[0]['session'] == {'id': session.id, 'title': 'Session One'}
         assert data[0]['category'] == 'other'
 
     def test_returns_404_for_unknown_game_slug(self):
@@ -244,6 +244,78 @@ class TestGameTasksListFiltersView(TestCase):
         assert len(json.loads(response.content)) == 1
 
 
+class TestGameTasksListSessionFilterView(TestCase):
+    """Tests for the `session` filter on GET /games/<slug>/tasks.json."""
+
+    @classmethod
+    def setUpTestData(cls):
+        """Set up a game with tasks linked to different sessions, or to none."""
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.dm_user = UserFactory(username='dm_user', password='secret-password')
+        PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
+        cls.dm_token = Token.objects.create(user=cls.dm_user)
+        cls.session = GameSession.objects.create(game=cls.game, title='Session One')
+        cls.other_session = GameSession.objects.create(game=cls.game, title='Session Two')
+        cls.session_done = Task.objects.create(
+            game=cls.game, short_description='Session done', category='painting',
+            completed=True, session=cls.session,
+        )
+        cls.session_pending = Task.objects.create(
+            game=cls.game, short_description='Session pending', category='painting',
+            session=cls.session,
+        )
+        cls.other_session_task = Task.objects.create(
+            game=cls.game, short_description='Other session', session=cls.other_session,
+        )
+        cls.no_session_task = Task.objects.create(game=cls.game, short_description='No session')
+
+    def _ids(self, query=''):
+        """Return the ids of the tasks listed for `query`."""
+        response = self.client.get(
+            f'/games/{self.game.game_slug}/tasks.json{query}',
+            HTTP_AUTHORIZATION=f'Token {self.dm_token.key}',
+        )
+        assert response.status_code == 200
+        return [item['id'] for item in json.loads(response.content)]
+
+    def _all_ids(self):
+        """Return the ids of every task of the game, in list order."""
+        return [
+            self.session_done.id, self.session_pending.id,
+            self.other_session_task.id, self.no_session_task.id,
+        ]
+
+    def test_session_id_filter_narrows_results(self):
+        """Test that ?session=<id> returns only tasks linked to that session."""
+        assert self._ids(f'?session={self.session.id}') == [
+            self.session_done.id, self.session_pending.id,
+        ]
+
+    def test_session_none_filter_returns_tasks_without_session(self):
+        """Test that ?session=none returns only tasks with no session."""
+        assert self._ids('?session=none') == [self.no_session_task.id]
+
+    def test_session_none_filter_is_case_insensitive(self):
+        """Test that ?session=NONE is treated like ?session=none."""
+        assert self._ids('?session=NONE') == [self.no_session_task.id]
+
+    def test_unknown_session_value_is_ignored(self):
+        """Test that an unrecognised session value returns the unfiltered list."""
+        assert self._ids('?session=abc') == self._all_ids()
+
+    def test_session_id_from_other_game_returns_empty_list(self):
+        """Test that filtering by another game's session id returns no tasks."""
+        foreign_game = GameFactory(name='Other Game', game_slug='other-game')
+        foreign = GameSession.objects.create(game=foreign_game, title='Foreign')
+        Task.objects.create(game=foreign_game, short_description='Foreign', session=foreign)
+        assert self._ids(f'?session={foreign.id}') == []
+
+    def test_session_combines_with_category_and_completed(self):
+        """Test that session, category and completed filters are combined with AND."""
+        query = f'?session={self.session.id}&category=painting&completed=false'
+        assert self._ids(query) == [self.session_pending.id]
+
+
 class TestGameTasksCreateView(TestCase):
     """Tests for the POST /games/<slug>/tasks.json endpoint."""
 
@@ -300,6 +372,18 @@ class TestGameTasksCreateView(TestCase):
         assert data['completed'] is True
         assert data['session'] is None
         assert 'id' in data
+
+    def test_create_with_session_returns_nested_session(self):
+        """Test that a POST with a same-game session id returns the nested `{id, title}`."""
+        session = GameSession.objects.create(game=self.game, title='Session One')
+        response = self._post(
+            self.client,
+            {'short_description': 'Prep the ambush', 'session': session.id},
+            token=self.dm_token,
+        )
+        assert response.status_code == 201
+        data = json.loads(response.content)
+        assert data['session'] == {'id': session.id, 'title': 'Session One'}
 
     def test_create_without_category_defaults_to_other(self):
         """Test that a POST without category creates the task as `other`."""

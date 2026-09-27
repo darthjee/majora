@@ -22,8 +22,8 @@ from ..views.game import (
 )
 from ..views.game_sessions import (
     game_session_detail,
-    game_sessions_create,
     game_sessions_future,
+    game_sessions_list,
     game_sessions_past,
     game_sessions_unscheduled,
     session_messages_list,
@@ -393,7 +393,7 @@ urlpatterns = [
     path('games/<slug:game_slug>/photos.json', game_photos, name='game-photos'),
     path(
         'games/<slug:game_slug>/sessions.json',
-        game_sessions_create,
+        game_sessions_list,
         name='game-sessions-list',
     ),
     path(

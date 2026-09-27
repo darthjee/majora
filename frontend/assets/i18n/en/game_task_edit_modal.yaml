@@ -5,6 +5,9 @@ game_task_edit_modal:
   cancel: Cancel
   category_label: Category
   category_search_placeholder: Search category...
+  session_label: Session
+  session_search_placeholder: Search sessions…
+  no_session: No session
   short_description_label: Short description
   long_description_label: Long description
   save_error: Unable to save task.

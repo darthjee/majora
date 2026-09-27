@@ -34,6 +34,13 @@ describe('MultiResourcePickerField', function() {
     expect(search.props.searchPlaceholder).toBe('Search sources...');
   });
 
+  it('forwards picker params to the search core', function() {
+    const element = MultiResourcePickerField(buildProps({ picker: { params: { gameSlug: 'the-crypt' } } }));
+    const search = findElement(element, (node) => node.type === ResourcePickerSearch);
+
+    expect(search.props.params).toEqual({ gameSlug: 'the-crypt' });
+  });
+
   it('appends the picked item to value when the search core selects one', function() {
     const onChange = jasmine.createSpy('onChange');
     const element = MultiResourcePickerField(buildProps({ onChange, value: [{ id: 1, name: 'Wyrmwood' }] }));

@@ -3,6 +3,7 @@ import Modal from 'react-bootstrap/cjs/Modal.js';
 import Badge from '../../../../../../../assets/js/components/common/badges/Badge.jsx';
 import SingleResourcePickerField
   from '../../../../../../../assets/js/components/common/forms/SingleResourcePickerField.jsx';
+import Translator from '../../../../../../../assets/js/i18n/Translator.js';
 
 const findElement = (node, matcher) => {
   if (!node) {
@@ -41,6 +42,8 @@ describe('TaskDetailModalHelper', function() {
     onCancel: jasmine.createSpy('onCancel'),
     onSave: jasmine.createSpy('onSave'),
     onCategoryChange: jasmine.createSpy('onCategoryChange'),
+    onSessionChange: jasmine.createSpy('onSessionChange'),
+    onSessionClear: jasmine.createSpy('onSessionClear'),
     onShortDescriptionChange: jasmine.createSpy('onShortDescriptionChange'),
     onLongDescriptionChange: jasmine.createSpy('onLongDescriptionChange'),
   });
@@ -86,6 +89,22 @@ describe('TaskDetailModalHelper', function() {
       const badge = findElement(element, (child) => child.type === Badge);
 
       expect(badge.props.text).toBe('Other');
+    });
+
+    it('renders the session title in view mode when the task has a session', function() {
+      const state = buildState({ task: { ...task, session: { id: 3, title: 'Session 3 — The Crypt' } } });
+      const element = TaskDetailModalHelper.render(true, state, buildHandlers());
+      const session = findElement(element, (child) => child.props?.className?.includes('task-session'));
+
+      expect(session.props.children).toBe('Session 3 — The Crypt');
+    });
+
+    it('renders the no-session label in view mode when the task has no session', function() {
+      const state = buildState({ task: { ...task, session: null } });
+      const element = TaskDetailModalHelper.render(true, state, buildHandlers());
+      const session = findElement(element, (child) => child.props?.className?.includes('task-session'));
+
+      expect(session.props.children).toBe(Translator.t('game_task_edit_modal.no_session'));
     });
 
     it('renders an Edit button in view mode', function() {
@@ -145,6 +164,36 @@ describe('TaskDetailModalHelper', function() {
 
       expect(picker.props.value).toEqual({ id: 'buying', name: 'Buying' });
       expect(handlers.onCategoryChange).toHaveBeenCalledWith({ id: 'writing', name: 'Writing' });
+    });
+
+    it('renders the session picker scoped to the game, showing the current session', function() {
+      const session = { id: 3, name: 'Session 3' };
+      const element = TaskDetailModalHelper.render(
+        true, buildState({ editing: true, gameSlug: 'demo', session }), buildHandlers(),
+      );
+      const picker = findElement(
+        element, (child) => child.type === SingleResourcePickerField && child.props.id === 'task-detail-session',
+      );
+
+      expect(picker.props.picker).toEqual({ resource: 'session', maxEntries: 5, params: { gameSlug: 'demo' } });
+      expect(picker.props.value).toEqual(session);
+      expect(picker.props.label).toBe(Translator.t('game_task_edit_modal.session_label'));
+      expect(picker.props.searchPlaceholder).toBe(Translator.t('game_task_edit_modal.session_search_placeholder'));
+    });
+
+    it('wires the session picker change and clear handlers', function() {
+      const handlers = buildHandlers();
+      const element = TaskDetailModalHelper.render(true, buildState({ editing: true, session: null }), handlers);
+      const picker = findElement(
+        element, (child) => child.type === SingleResourcePickerField && child.props.id === 'task-detail-session',
+      );
+
+      picker.props.onChange({ id: 3, name: 'Session 3' });
+      picker.props.onClear();
+
+      expect(picker.props.value).toBeNull();
+      expect(handlers.onSessionChange).toHaveBeenCalledWith({ id: 3, name: 'Session 3' });
+      expect(handlers.onSessionClear).toHaveBeenCalled();
     });
 
     it('wires the short description input change to onShortDescriptionChange', function() {

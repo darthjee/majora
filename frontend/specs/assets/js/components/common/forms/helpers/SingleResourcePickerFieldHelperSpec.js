@@ -73,6 +73,55 @@ describe('SingleResourcePickerFieldHelper', function() {
       expect(handlers.onReopenSearch).toHaveBeenCalled();
     });
 
+    it('forwards picker params to the search core', function() {
+      const picker = { resource: 'session', maxEntries: 5, params: { gameSlug: 'the-crypt' } };
+      const element = SingleResourcePickerFieldHelper.render(buildState({ picker }), buildHandlers());
+      const search = findElement(element, (node) => node.type === ResourcePickerSearch);
+
+      expect(search.props.params).toEqual({ gameSlug: 'the-crypt' });
+    });
+
+    describe('clear button', function() {
+      const value = { id: 1, name: 'Wyrmwood' };
+      const findClearButton = (element) => findElement(
+        element, (node) => node.type === 'button' && node.props['aria-label'] !== undefined,
+      );
+
+      it('is not rendered without onClear', function() {
+        const element = SingleResourcePickerFieldHelper.render(buildState({ value }), buildHandlers());
+
+        expect(findClearButton(element)).toBeNull();
+      });
+
+      it('is not rendered with onClear but no value', function() {
+        const handlers = { ...buildHandlers(), onClear: jasmine.createSpy('onClear') };
+        const element = SingleResourcePickerFieldHelper.render(buildState(), handlers);
+
+        expect(findClearButton(element)).toBeNull();
+      });
+
+      it('is not rendered while re-picking', function() {
+        const handlers = { ...buildHandlers(), onClear: jasmine.createSpy('onClear') };
+        const element = SingleResourcePickerFieldHelper.render(buildState({ value, searching: true }), handlers);
+
+        expect(findClearButton(element)).toBeNull();
+      });
+
+      it('is rendered with onClear and a value, and calls onClear when clicked', function() {
+        const handlers = { ...buildHandlers(), onClear: jasmine.createSpy('onClear') };
+        const element = SingleResourcePickerFieldHelper.render(buildState({ value }), handlers);
+        const button = findClearButton(element);
+
+        expect(button).not.toBeNull();
+        expect(button.props.title).toBe(button.props['aria-label']);
+
+        button.props.onClick();
+
+        expect(handlers.onClear).toHaveBeenCalled();
+        expect(handlers.onReopenSearch).not.toHaveBeenCalled();
+      });
+    });
+
     it('does not wire onCancel nor autofocus the search when no value is picked', function() {
       const element = SingleResourcePickerFieldHelper.render(buildState(), buildHandlers());
       const search = findElement(element, (node) => node.type === ResourcePickerSearch);

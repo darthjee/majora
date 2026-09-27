@@ -10,6 +10,7 @@ import SubmitButton from '../../../../common/buttons/SubmitButton.jsx';
 import TextareaField from '../../../../common/forms/TextareaField.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 import { TASK_CATEGORY_VALUES, toTaskCategoryPick, translateTaskCategory } from '../taskCategories.js';
+import { buildSessionPicker } from '../taskSessions.js';
 
 const CATEGORY_PICKER = {
   values: TASK_CATEGORY_VALUES,
@@ -28,10 +29,12 @@ export default class GameTasksHelper {
    * @param {object} state - Page state.
    * @param {object[]} state.tasks - List of task objects.
    * @param {object} state.pagination - Pagination metadata (`page`, `pages`, `perPage`).
+   * @param {string} state.gameSlug - Slug of the game, used to scope the session picker.
    * @param {string} state.basePath - Base hash path used for pagination links.
    * @param {string} state.backHref - Hash path to the parent game page.
-   * @param {{category: string, shortDescription: string, longDescription: string}} state.formValues -
-   *   Add-form values.
+   * @param {{category: string, session: ({id: number, name: string}|null), shortDescription: string,
+   *   longDescription: string}} state.formValues - Add-form values; `session` is the picked
+   *   session item, or null.
    * @param {object} state.fieldErrors - Per-field validation errors from the add form.
    * @param {object} [state.activeFilters] - Currently active filter query params (`category`,
    *   `completed`), preserved in pagination links and used to pick the empty-list message.
@@ -42,7 +45,7 @@ export default class GameTasksHelper {
    */
   static render(state, handlers) {
     const {
-      tasks, pagination, basePath, backHref, formValues, fieldErrors, activeFilters = {}, filters = null,
+      tasks, pagination, gameSlug, basePath, backHref, formValues, fieldErrors, activeFilters = {}, filters = null,
     } = state;
 
     return (
@@ -51,7 +54,7 @@ export default class GameTasksHelper {
         <h1 className="mb-4">{Translator.t('game_tasks_page.title')}</h1>
         {filters}
         {GameTasksHelper.#renderList(tasks, activeFilters, handlers)}
-        {GameTasksHelper.#renderAddForm(formValues, fieldErrors, handlers)}
+        {GameTasksHelper.#renderAddForm(gameSlug, formValues, fieldErrors, handlers)}
         <Pagination
           currentPage={pagination.page}
           totalPages={pagination.pages}
@@ -117,6 +120,7 @@ export default class GameTasksHelper {
           <span className="ms-2">
             <Badge text={translateTaskCategory(task.category)} />
           </span>
+          {GameTasksHelper.#renderTaskSession(task)}
         </div>
         <button
           type="button"
@@ -129,7 +133,15 @@ export default class GameTasksHelper {
     );
   }
 
-  static #renderAddForm(formValues, fieldErrors, handlers) {
+  static #renderTaskSession(task) {
+    if (!task.session) {
+      return null;
+    }
+
+    return <small className="task-session ms-2 text-muted">{task.session.title}</small>;
+  }
+
+  static #renderAddForm(gameSlug, formValues, fieldErrors, handlers) {
     return (
       <form className="mb-4" onSubmit={handlers.onCreate}>
         <SingleResourcePickerField
@@ -140,6 +152,16 @@ export default class GameTasksHelper {
           label={Translator.t('game_tasks_page.new_category_label')}
           searchPlaceholder={Translator.t('game_tasks_page.new_category_search_placeholder')}
           errors={fieldErrors.category ?? []}
+        />
+        <SingleResourcePickerField
+          id="game-tasks-new-session"
+          picker={buildSessionPicker(gameSlug)}
+          value={formValues.session ?? null}
+          onChange={(item) => handlers.onFormChange({ ...formValues, session: item })}
+          onClear={() => handlers.onFormChange({ ...formValues, session: null })}
+          label={Translator.t('game_tasks_page.new_session_label')}
+          searchPlaceholder={Translator.t('game_tasks_page.new_session_search_placeholder')}
+          errors={fieldErrors.session ?? []}
         />
         <FormField
           id="game-tasks-new-short-description"

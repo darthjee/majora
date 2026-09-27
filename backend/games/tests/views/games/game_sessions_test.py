@@ -1,5 +1,6 @@
-"""Tests for the game sessions create view (POST create)."""
+"""Tests for the game sessions list view (GET search / POST create)."""
 
+import datetime
 import json
 
 from django.test import TestCase
@@ -115,14 +116,82 @@ class TestGameSessionsCreateView(TestCase):
         data = json.loads(response.content)
         assert data['description'] == 'Some notes.'
 
-    def test_get_is_not_allowed(self):
-        """Test that GET on the create-only endpoint returns 405."""
-        response = self.client.get('/games/test-game/sessions.json')
-        assert response.status_code == 405
-
     def test_url_by_name_accepts_post(self):
         """Test that the create endpoint is reachable via its URL name."""
         url = reverse('game-sessions-list', kwargs={'game_slug': 'test-game'})
         response = self._post(self.client, {'title': 'Session One'}, token=self.dm_token)
         assert url == '/games/test-game/sessions.json'
         assert response.status_code == 201
+
+
+class TestGameSessionsSearchView(TestCase):
+    """Tests for the GET /games/<slug>/sessions.json search endpoint."""
+
+    @classmethod
+    def setUpTestData(cls):
+        """Set up a game with dated and dateless sessions, plus another game's session."""
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.other_game = GameFactory(name='Other Game', game_slug='other-game')
+        cls.older = GameSession.objects.create(
+            game=cls.game, title='The Crypt', date=datetime.date(2026, 1, 10),
+        )
+        cls.newer = GameSession.objects.create(
+            game=cls.game, title='The Tower', date=datetime.date(2026, 5, 20),
+        )
+        cls.unscheduled = GameSession.objects.create(game=cls.game, title='Crypt Revisited')
+        GameSession.objects.create(
+            game=cls.other_game, title='Foreign Crypt', date=datetime.date(2026, 3, 1),
+        )
+
+    def _get(self, query='', game_slug='test-game'):
+        """Issue an anonymous GET request to the game sessions search endpoint."""
+        return self.client.get(f'/games/{game_slug}/sessions.json{query}')
+
+    def _ids(self, query=''):
+        """Return the ids of the sessions listed for `query`."""
+        response = self._get(query)
+        assert response.status_code == 200
+        return [item['id'] for item in json.loads(response.content)]
+
+    def test_anonymous_get_returns_200(self):
+        """Test that the search endpoint is public."""
+        assert self._get().status_code == 200
+
+    def test_returns_only_game_sessions_most_recent_first(self):
+        """Test that only the game's sessions are listed, dated ones newest first, then dateless."""
+        assert self._ids() == [self.newer.id, self.older.id, self.unscheduled.id]
+
+    def test_dateless_sessions_are_ordered_by_newest_id(self):
+        """Test that dateless sessions are listed last, most recently created first."""
+        latest = GameSession.objects.create(game=self.game, title='Later Unscheduled')
+        assert self._ids()[-2:] == [latest.id, self.unscheduled.id]
+
+    def test_name_filter_is_case_insensitive_substring_on_title(self):
+        """Test that ?name= matches a case-insensitive substring of the title."""
+        assert self._ids('?name=cRyPt') == [self.older.id, self.unscheduled.id]
+
+    def test_blank_name_returns_every_session(self):
+        """Test that a blank ?name= does not filter the list."""
+        assert self._ids('?name=') == [self.newer.id, self.older.id, self.unscheduled.id]
+
+    def test_per_page_caps_results(self):
+        """Test that ?per_page= caps the number of returned sessions."""
+        for index in range(6):
+            GameSession.objects.create(game=self.game, title=f'Extra {index}')
+        response = self._get('?per_page=5')
+        assert len(json.loads(response.content)) == 5
+        assert response['per_page'] == '5'
+
+    def test_returns_picker_item_shape(self):
+        """Test that each item exposes id, name, title and date."""
+        data = json.loads(self._get('?name=tower').content)
+        assert data == [{
+            'id': self.newer.id,
+            'name': 'The Tower',
+            'title': 'The Tower',
+            'date': '2026-05-20',
+        }]
+
+    def test_returns_404_for_unknown_game_slug(self):
+        """Test that GET returns 404 for a non-existent game slug."""
+        assert self._get(game_slug='unknown-game').status_code == 404

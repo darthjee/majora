@@ -8,17 +8,20 @@ import HashRouteResolver from '../../../../utils/routing/HashRouteResolver.js';
 import { DEFAULT_TASK_CATEGORY } from './taskCategories.js';
 
 /**
- * Initial add-form values: category `other` and empty descriptions.
+ * Initial add-form values: category `other`, no session and empty descriptions.
  */
-export const EMPTY_FORM = { category: DEFAULT_TASK_CATEGORY, shortDescription: '', longDescription: '' };
+export const EMPTY_FORM = {
+  category: DEFAULT_TASK_CATEGORY, session: null, shortDescription: '', longDescription: '',
+};
 
 /**
- * Add-form values after a successful create: the descriptions reset, but the last picked
- * category is kept so several tasks of the same kind can be added in a row. Nothing is
- * persisted — a fresh page mount starts from `EMPTY_FORM` again.
+ * Add-form values after a successful create: the descriptions and the session reset, but the
+ * last picked category is kept so several tasks of the same kind can be added in a row. Nothing
+ * is persisted — a fresh page mount starts from `EMPTY_FORM` again.
  *
  * @param {{category: string}} previous - Form values at the time of the reset.
- * @returns {{category: string, shortDescription: string, longDescription: string}} Reset values.
+ * @returns {{category: string, session: null, shortDescription: string, longDescription: string}}
+ *   Reset values.
  */
 export function resetTaskFormValues(previous) {
   return { ...EMPTY_FORM, category: previous.category };
@@ -123,12 +126,15 @@ export default function GameTasks() {
         {
           tasks,
           pagination,
+          gameSlug,
           basePath,
           backHref,
           formValues,
           fieldErrors,
           activeFilters,
-          filters: <TaskFilters onQuery={filterHandlers.onQuery} onClear={filterHandlers.onClear} />,
+          filters: (
+            <TaskFilters gameSlug={gameSlug} onQuery={filterHandlers.onQuery} onClear={filterHandlers.onClear} />
+          ),
         },
         {
           onToggle: handleToggle,
@@ -140,6 +146,7 @@ export default function GameTasks() {
       <TaskDetailModal
         show={Boolean(selectedTask)}
         task={selectedTask}
+        gameSlug={gameSlug}
         onClose={() => setSelectedTask(null)}
         onSave={(values) => handleSaveEdit(selectedTask, values)}
       />

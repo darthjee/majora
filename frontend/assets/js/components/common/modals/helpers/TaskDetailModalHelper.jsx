@@ -5,6 +5,7 @@ import SingleResourcePickerField from '../../forms/SingleResourcePickerField.jsx
 import {
   TASK_CATEGORY_VALUES, toTaskCategoryPick, translateTaskCategory,
 } from '../../../resources/game/pages/taskCategories.js';
+import { buildSessionPicker } from '../../../resources/game/pages/taskSessions.js';
 
 const CATEGORY_PICKER = {
   values: TASK_CATEGORY_VALUES,
@@ -25,11 +26,15 @@ export default class TaskDetailModalHelper {
    * @param {boolean} state.editing - Whether the modal is in edit mode.
    * @param {boolean} state.saving - Whether a save is in progress (disables Save/Cancel).
    * @param {string} state.error - Save error message to display in edit mode, or empty.
+   * @param {string} state.gameSlug - Slug of the task's game, used to scope the session picker.
    * @param {string} state.category - Current (possibly edited) raw category value.
+   * @param {{id: number, name: string}|null} state.session - Current (possibly edited) session
+   *   picker item, or null.
    * @param {string} state.shortDescription - Current (possibly edited) short description.
    * @param {string} state.longDescription - Current (possibly edited) long description.
    * @param {object} handlers - Modal event handlers (`onClose`, `onEdit`, `onCancel`, `onSave`,
-   *   `onCategoryChange`, `onShortDescriptionChange`, `onLongDescriptionChange`).
+   *   `onCategoryChange`, `onSessionChange`, `onSessionClear`, `onShortDescriptionChange`,
+   *   `onLongDescriptionChange`).
    * @returns {React.ReactElement} Rendered task detail modal.
    */
   static render(show, state, handlers) {
@@ -58,9 +63,16 @@ export default class TaskDetailModalHelper {
         <div className="mb-2">
           <Badge text={translateTaskCategory(state.task?.category)} />
         </div>
+        {TaskDetailModalHelper.#renderSession(state.task?.session)}
         <p style={{ whiteSpace: 'pre-wrap' }}>{state.task?.long_description}</p>
       </>
     );
+  }
+
+  static #renderSession(session) {
+    const text = session ? session.title : Translator.t('game_task_edit_modal.no_session');
+
+    return <div className="task-session mb-2 text-muted small">{text}</div>;
   }
 
   static #renderViewActions(handlers) {
@@ -90,6 +102,15 @@ export default class TaskDetailModalHelper {
           onChange={handlers.onCategoryChange}
           label={Translator.t('game_task_edit_modal.category_label')}
           searchPlaceholder={Translator.t('game_task_edit_modal.category_search_placeholder')}
+        />
+        <SingleResourcePickerField
+          id="task-detail-session"
+          picker={buildSessionPicker(state.gameSlug)}
+          value={state.session ?? null}
+          onChange={handlers.onSessionChange}
+          onClear={handlers.onSessionClear}
+          label={Translator.t('game_task_edit_modal.session_label')}
+          searchPlaceholder={Translator.t('game_task_edit_modal.session_search_placeholder')}
         />
         <div className="mb-3">
           <label className="form-label" htmlFor="task-detail-short-description">

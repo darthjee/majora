@@ -1,6 +1,16 @@
 namespace: $NAVI_NAMEPACE
 resources:
   game_sessions:
+    - url: /games/{:slug}/sessions.json
+      status: 200
+      paginated_actions:
+        - resource: paginated_game_sessions
+          pagination:
+            - pages: headers['pages']
+            - page_key: page
+            - zero_indexed: false
+          parameters:
+            per_page: headers['per_page']
     - url: /games/{:slug}/sessions/past.json
       status: 200
       paginated_actions:
@@ -31,6 +41,14 @@ resources:
             - zero_indexed: false
           parameters:
             per_page: headers['per_page']
+
+  # paginated_game_sessions warms the plain (unfiltered) sessions.json listing only.
+  # Picker searches (`?name=...&per_page=5`) are ad-hoc and never warmed. No `session`
+  # detail action here: its items carry no `game_slug`, and every session detail is
+  # already warmed via the past/future/unscheduled chains below.
+  paginated_game_sessions:
+    - url: /games/{:slug}/sessions.json?page={:page}&per_page={:per_page}
+      status: 200
 
   paginated_game_sessions_past:
     - url: /games/{:slug}/sessions/past.json?page={:page}&per_page={:per_page}

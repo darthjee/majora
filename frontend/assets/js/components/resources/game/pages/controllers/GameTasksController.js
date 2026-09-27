@@ -27,7 +27,8 @@ export default class GameTasksController extends BasePageController {
    * Build the hash URL for applying task filters, resetting pagination to page 1.
    *
    * @param {string} basePath - Base hash path of the tasks index (e.g. `#/games/demo/tasks`).
-   * @param {{category?: string, completed?: string}} filters - Filters to apply, as built by
+   * @param {{category?: string, completed?: string, session?: string}} filters - Filters to
+   *   apply (`session` is a session id or `'none'`), as built by
    *   `TaskFiltersController#buildQuery`.
    * @returns {string} Hash including the reset page and the active filters.
    */
@@ -123,8 +124,9 @@ export default class GameTasksController extends BasePageController {
    *
    * @param {Event|undefined} event - Form submit event, if any.
    * @param {string} gameSlug - Game slug.
-   * @param {{category: string, shortDescription: string, longDescription: string}} formValues -
-   *   Raw form values; `category` is the raw category value (e.g. `'painting'`).
+   * @param {{category: string, session: ({id: number}|null), shortDescription: string,
+   *   longDescription: string}} formValues - Raw form values; `category` is the raw category
+   *   value (e.g. `'painting'`) and `session` the picked session item (sent as its id), or null.
    * @param {object[]} tasks - Current tasks list.
    * @param {{setTasks: Function, setFieldErrors: Function, setError: Function,
    *   resetForm: Function}} setters - Page state setters.
@@ -147,6 +149,7 @@ export default class GameTasksController extends BasePageController {
         params: { gameSlug },
         body: {
           category: formValues.category,
+          session: formValues.session?.id ?? null,
           short_description: formValues.shortDescription,
           long_description: formValues.longDescription,
         },
@@ -159,12 +162,13 @@ export default class GameTasksController extends BasePageController {
   }
 
   /**
-   * Saves edits to a task's category and short/long description.
+   * Saves edits to a task's category, session and short/long description.
    *
    * @param {string} gameSlug - Game slug.
    * @param {object} task - Task being edited.
-   * @param {{category: string, shortDescription: string, longDescription: string}} formValues -
-   *   Edited values; `category` is the raw category value (e.g. `'painting'`).
+   * @param {{category: string, session: ({id: number}|null), shortDescription: string,
+   *   longDescription: string}} formValues - Edited values; `category` is the raw category value
+   *   (e.g. `'painting'`) and `session` the picked session item (sent as its id), or null.
    * @param {object[]} tasks - Current tasks list.
    * @param {Function} setTasks - Tasks setter.
    * @returns {Promise<object|null>} The updated task on success, or null on failure.
@@ -179,6 +183,7 @@ export default class GameTasksController extends BasePageController {
         params: { gameSlug, id: task.id },
         body: {
           category: formValues.category,
+          session: formValues.session?.id ?? null,
           short_description: formValues.shortDescription,
           long_description: formValues.longDescription,
         },

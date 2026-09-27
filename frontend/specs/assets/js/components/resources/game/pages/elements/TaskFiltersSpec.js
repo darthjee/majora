@@ -33,6 +33,7 @@ describe('TaskFilters', function() {
 
     renderToStaticMarkup(
       React.createElement(TaskFilters, {
+        gameSlug: 'demo',
         onQuery: jasmine.createSpy('onQuery'), onClear: jasmine.createSpy('onClear'), ...props,
       }),
     );
@@ -43,19 +44,63 @@ describe('TaskFilters', function() {
   it('renders blank draft values when the hash has no filter params', function() {
     const captured = renderWithHash('#/games/demo/tasks');
 
-    expect(captured.state).toEqual({ category: '', completed: '' });
+    expect(captured.state).toEqual({
+      category: '', completed: '', sessionMode: '', sessionPick: null, gameSlug: 'demo',
+    });
   });
 
   it('pre-populates the draft values from the hash query params (deep link)', function() {
     const captured = renderWithHash('#/games/demo/tasks?category=painting&completed=false');
 
-    expect(captured.state).toEqual({ category: 'painting', completed: 'false' });
+    expect(captured.state).toEqual({
+      category: 'painting', completed: 'false', sessionMode: '', sessionPick: null, gameSlug: 'demo',
+    });
   });
 
   it('leaves the selects blank when the hash has unknown values', function() {
-    const captured = renderWithHash('#/games/demo/tasks?category=dancing&completed=maybe');
+    const captured = renderWithHash('#/games/demo/tasks?category=dancing&completed=maybe&session=abc');
 
-    expect(captured.state).toEqual({ category: '', completed: '' });
+    expect(captured.state).toEqual({
+      category: '', completed: '', sessionMode: '', sessionPick: null, gameSlug: 'demo',
+    });
+  });
+
+  it('starts in the none session mode for session=none', function() {
+    const captured = renderWithHash('#/games/demo/tasks?session=none');
+
+    expect(captured.state.sessionMode).toBe('none');
+    expect(captured.state.sessionPick).toBeNull();
+  });
+
+  it('starts in the specific session mode, with the pick pending, for session=<id>', function() {
+    const captured = renderWithHash('#/games/demo/tasks?session=3');
+
+    expect(captured.state.sessionMode).toBe('specific');
+    expect(captured.state.sessionPick).toBeNull();
+  });
+
+  it('passes the session none filter to onQuery', function() {
+    const onQuery = jasmine.createSpy('onQuery');
+    const captured = renderWithHash('#/games/demo/tasks?session=none', { onQuery });
+
+    captured.handlers.onQuery();
+
+    expect(onQuery).toHaveBeenCalledWith({ session: 'none' });
+  });
+
+  it('wires the session handlers to the controller', function() {
+    spyOn(TaskFiltersController.prototype, 'handleSessionModeChange');
+    spyOn(TaskFiltersController.prototype, 'handleSessionPick');
+    const captured = renderWithHash('#/games/demo/tasks');
+
+    captured.handlers.onSessionModeChange('specific');
+    captured.handlers.onSessionPick({ id: 3, name: 'Session 3' });
+    captured.handlers.onSessionClear();
+
+    expect(TaskFiltersController.prototype.handleSessionModeChange).toHaveBeenCalledWith('specific');
+    expect(TaskFiltersController.prototype.handleSessionPick.calls.allArgs()).toEqual([
+      [{ id: 3, name: 'Session 3' }], [null],
+    ]);
   });
 
   it('calls onQuery with the built query when the Query handler runs', function() {
