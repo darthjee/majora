@@ -4,6 +4,7 @@ import HashRouteResolver from '../../../../../utils/routing/HashRouteResolver.js
 import buildFilteredHref from '../../../../../utils/routing/buildFilteredHref.js';
 import getCurrentHash from '../../../../../utils/routing/currentHash.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
+import { saveTaskEdit, toggleTaskCompleted } from '../taskMutations.js';
 
 /**
  * Controller for the game tasks index page.
@@ -93,30 +94,7 @@ export default class GameTasksController extends BasePageController {
    * @returns {Promise<void>} Resolves when the request handling finishes.
    */
   async handleToggleCompleted(gameSlug, task, tasks, setTasks) {
-    const nextCompleted = !task.completed;
-
-    setTasks(GameTasksController.#replaceTask(tasks, task.id, { ...task, completed: nextCompleted }));
-
-    try {
-      const response = await RequestStore.mutate({
-        componentName: 'GameTasksController',
-        resource: 'task',
-        method: 'PATCH',
-        quantityType: 'single',
-        params: { gameSlug, id: task.id },
-        body: { completed: nextCompleted },
-      });
-
-      if (!response.ok) {
-        setTasks(tasks);
-        return;
-      }
-
-      const data = await response.json();
-      setTasks(GameTasksController.#replaceTask(tasks, task.id, data));
-    } catch {
-      setTasks(tasks);
-    }
+    await toggleTaskCompleted('GameTasksController', gameSlug, task, tasks, setTasks);
   }
 
   /**
@@ -173,36 +151,8 @@ export default class GameTasksController extends BasePageController {
    * @param {Function} setTasks - Tasks setter.
    * @returns {Promise<object|null>} The updated task on success, or null on failure.
    */
-  async handleSaveEdit(gameSlug, task, formValues, tasks, setTasks) {
-    try {
-      const response = await RequestStore.mutate({
-        componentName: 'GameTasksController',
-        resource: 'task',
-        method: 'PATCH',
-        quantityType: 'single',
-        params: { gameSlug, id: task.id },
-        body: {
-          category: formValues.category,
-          session: formValues.session?.id ?? null,
-          short_description: formValues.shortDescription,
-          long_description: formValues.longDescription,
-        },
-      });
-
-      if (!response.ok) {
-        return null;
-      }
-
-      const data = await response.json();
-      setTasks(GameTasksController.#replaceTask(tasks, task.id, data));
-      return data;
-    } catch {
-      return null;
-    }
-  }
-
-  static #replaceTask(tasks, id, updatedTask) {
-    return tasks.map((item) => (item.id === id ? updatedTask : item));
+  handleSaveEdit(gameSlug, task, formValues, tasks, setTasks) {
+    return saveTaskEdit('GameTasksController', gameSlug, task, formValues, tasks, setTasks);
   }
 
   #handlePermissions(permissions, gameSlug, safeSet) {
