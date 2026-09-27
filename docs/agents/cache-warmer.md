@@ -45,9 +45,10 @@ list from twelve files under [`navi/resources/`](../../navi/resources/):
   `game_document_files`, `game_document_photos`, `game_document_pages`,
   `paginated_game_document_pages`, `short_game_document_files`,
   `short_game_document_photos`).
-- `sessions.yml` — a game's past/future/unscheduled sessions listings and session detail
-  (`game_sessions`, `paginated_game_sessions_past`, `paginated_game_sessions_future`,
-  `paginated_game_sessions_unscheduled`, `session`).
+- `sessions.yml` — a game's full/past/future/unscheduled sessions listings and session detail
+  (`game_sessions`, `paginated_game_sessions`, `paginated_game_sessions_past`,
+  `paginated_game_sessions_future`, `paginated_game_sessions_unscheduled`, `session`). Only the
+  plain `sessions.json` listing is warmed; the session picker's `?name=` searches are not.
 - `permissions.yml` — the entity-agnostic `permissions_*` resources (see below).
 - `clients.yml` — the `clients.default` block (base URL, timeout, headers) used to make every
   request in the other eleven files.
