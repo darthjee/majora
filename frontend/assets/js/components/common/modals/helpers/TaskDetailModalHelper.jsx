@@ -58,9 +58,16 @@ export default class TaskDetailModalHelper {
         <div className="mb-2">
           <Badge text={translateTaskCategory(state.task?.category)} />
         </div>
+        {TaskDetailModalHelper.#renderSession(state.task?.session)}
         <p style={{ whiteSpace: 'pre-wrap' }}>{state.task?.long_description}</p>
       </>
     );
+  }
+
+  static #renderSession(session) {
+    const text = session ? session.title : Translator.t('game_task_edit_modal.no_session');
+
+    return <div className="task-session mb-2 text-muted small">{text}</div>;
   }
 
   static #renderViewActions(handlers) {

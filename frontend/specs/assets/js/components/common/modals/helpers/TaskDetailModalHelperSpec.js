@@ -3,6 +3,7 @@ import Modal from 'react-bootstrap/cjs/Modal.js';
 import Badge from '../../../../../../../assets/js/components/common/badges/Badge.jsx';
 import SingleResourcePickerField
   from '../../../../../../../assets/js/components/common/forms/SingleResourcePickerField.jsx';
+import Translator from '../../../../../../../assets/js/i18n/Translator.js';
 
 const findElement = (node, matcher) => {
   if (!node) {
@@ -86,6 +87,22 @@ describe('TaskDetailModalHelper', function() {
       const badge = findElement(element, (child) => child.type === Badge);
 
       expect(badge.props.text).toBe('Other');
+    });
+
+    it('renders the session title in view mode when the task has a session', function() {
+      const state = buildState({ task: { ...task, session: { id: 3, title: 'Session 3 — The Crypt' } } });
+      const element = TaskDetailModalHelper.render(true, state, buildHandlers());
+      const session = findElement(element, (child) => child.props?.className?.includes('task-session'));
+
+      expect(session.props.children).toBe('Session 3 — The Crypt');
+    });
+
+    it('renders the no-session label in view mode when the task has no session', function() {
+      const state = buildState({ task: { ...task, session: null } });
+      const element = TaskDetailModalHelper.render(true, state, buildHandlers());
+      const session = findElement(element, (child) => child.props?.className?.includes('task-session'));
+
+      expect(session.props.children).toBe(Translator.t('game_task_edit_modal.no_session'));
     });
 
     it('renders an Edit button in view mode', function() {

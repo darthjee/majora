@@ -117,6 +117,7 @@ export default class GameTasksHelper {
           <span className="ms-2">
             <Badge text={translateTaskCategory(task.category)} />
           </span>
+          {GameTasksHelper.#renderTaskSession(task)}
         </div>
         <button
           type="button"
@@ -127,6 +128,14 @@ export default class GameTasksHelper {
         </button>
       </li>
     );
+  }
+
+  static #renderTaskSession(task) {
+    if (!task.session) {
+      return null;
+    }
+
+    return <small className="task-session ms-2 text-muted">{task.session.title}</small>;
   }
 
   static #renderAddForm(formValues, fieldErrors, handlers) {
