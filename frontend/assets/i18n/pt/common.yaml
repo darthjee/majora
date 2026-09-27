@@ -125,6 +125,8 @@ slain_confirm_modal:
   cancel: Cancelar
 back_button:
   label: Voltar
+resource_picker:
+  clear: Limpar
 filter_actions:
   query: Filtrar
   clear: Limpar
