@@ -132,7 +132,9 @@ export default function GameTasks() {
           formValues,
           fieldErrors,
           activeFilters,
-          filters: <TaskFilters onQuery={filterHandlers.onQuery} onClear={filterHandlers.onClear} />,
+          filters: (
+            <TaskFilters gameSlug={gameSlug} onQuery={filterHandlers.onQuery} onClear={filterHandlers.onClear} />
+          ),
         },
         {
           onToggle: handleToggle,

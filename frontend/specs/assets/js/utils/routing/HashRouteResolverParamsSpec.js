@@ -62,6 +62,11 @@ describe('HashRouteResolver params', function() {
     expect(params.toString()).toBe('category=painting&completed=false');
   });
 
+  it('extracts the task session filter param', function() {
+    const params = new HashRouteResolver(() => '#/games/demo/tasks?page=2&session=none').getFilterParams();
+    expect(params.toString()).toBe('session=none');
+  });
+
   it('extracts the STL model scalar filter params (name/type/size)', function() {
     const params = new HashRouteResolver(
       () => '#/miniatures/stl_models?name=gob&type=creature&size=small&page=2',
