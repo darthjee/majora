@@ -27,7 +27,8 @@ export default class GameTasksController extends BasePageController {
    * Build the hash URL for applying task filters, resetting pagination to page 1.
    *
    * @param {string} basePath - Base hash path of the tasks index (e.g. `#/games/demo/tasks`).
-   * @param {{category?: string, completed?: string}} filters - Filters to apply, as built by
+   * @param {{category?: string, completed?: string, session?: string}} filters - Filters to
+   *   apply (`session` is a session id or `'none'`), as built by
    *   `TaskFiltersController#buildQuery`.
    * @returns {string} Hash including the reset page and the active filters.
    */
