@@ -49,7 +49,9 @@ export function appendResourcePick(value, item) {
 export default function MultiResourcePickerField({
   picker, value, onChange, label, searchPlaceholder, removeLabel,
 }) {
-  const { resource, maxEntries, values, translateOption } = picker;
+  const {
+    resource, maxEntries, params, values, translateOption,
+  } = picker;
 
   return (
     <div className="mb-3">
@@ -57,6 +59,7 @@ export default function MultiResourcePickerField({
       <ResourcePickerSearch
         resource={resource}
         maxEntries={maxEntries}
+        params={params}
         values={values}
         translateOption={translateOption}
         searchPlaceholder={searchPlaceholder}

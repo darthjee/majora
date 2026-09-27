@@ -18,13 +18,18 @@ export const SEARCH_DEBOUNCE_MS = 300;
  * @param {string} params.resource - Resource name (e.g. `'source'`, `'collection'`).
  * @param {number} params.maxEntries - Maximum results to fetch, used as `per_page`.
  * @param {string} params.searchTerm - Current name filter.
+ * @param {object} [params.params] - Path params forwarded to `RequestStore.ensure` (e.g.
+ *   `{ gameSlug }` for game-scoped resources such as `'session'`). Defaults to `{}`.
  * @returns {Promise<object[]>} Resolves to the fetched results, defaulting to an empty array.
  */
-export function fetchResourcePickerResults({ resource, maxEntries, searchTerm }) {
+export function fetchResourcePickerResults({
+  resource, maxEntries, searchTerm, params = {},
+}) {
   return RequestStore.ensure({
     componentName: 'ResourcePickerSearch',
     resource,
     quantityType: 'collection',
+    params,
     query: { per_page: maxEntries, name: searchTerm },
   }).then(({ data }) => (Array.isArray(data) ? data : []));
 }
@@ -103,6 +108,8 @@ export function buildCancelKeyDownHandler(onCancel) {
  *   Ignored when `values` is given.
  * @param {number} [props.maxEntries] - Maximum results per search: fetched per page in API mode,
  *   or listed in constant mode (defaults to `MAX_CONSTANT_RESULTS` there when absent).
+ * @param {object} [props.params] - Path params forwarded to `RequestStore.ensure` in API mode
+ *   (e.g. `{ gameSlug }`). Ignored in constant mode.
  * @param {string[]} [props.values] - Constant list of raw `db_value`s to filter/offer, switching
  *   this component into constant mode.
  * @param {Function} [props.translateOption] - `(value) => label string` for each `values` entry.
@@ -115,12 +122,14 @@ export function buildCancelKeyDownHandler(onCancel) {
  * @returns {React.ReactElement} Rendered search input and results list.
  */
 export default function ResourcePickerSearch({
-  resource, maxEntries, values, translateOption, onSelect, searchPlaceholder, onCancel,
+  resource, maxEntries, params, values, translateOption, onSelect, searchPlaceholder, onCancel,
   autoFocus = false,
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [apiResults, setApiResults] = useState([]);
   const isConstantMode = Array.isArray(values);
+  // Serialized so callers can pass an inline `params` object without re-triggering the search.
+  const paramsKey = JSON.stringify(params ?? {});
 
   useEffect(() => {
     if (isConstantMode) {
@@ -130,7 +139,9 @@ export default function ResourcePickerSearch({
     let cancelled = false;
 
     const timeoutId = setTimeout(() => {
-      fetchResourcePickerResults({ resource, maxEntries, searchTerm })
+      fetchResourcePickerResults({
+        resource, maxEntries, searchTerm, params: JSON.parse(paramsKey),
+      })
         .then((data) => {
           if (!cancelled) setApiResults(data);
         })
@@ -143,7 +154,7 @@ export default function ResourcePickerSearch({
       cancelled = true;
       clearTimeout(timeoutId);
     };
-  }, [isConstantMode, resource, maxEntries, searchTerm]);
+  }, [isConstantMode, resource, maxEntries, searchTerm, paramsKey]);
 
   const results = isConstantMode
     ? filterConstantResults({ values, translateOption, searchTerm, maxEntries })

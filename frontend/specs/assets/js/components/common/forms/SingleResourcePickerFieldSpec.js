@@ -64,6 +64,28 @@ describe('SingleResourcePickerField', function() {
     expect(state.picker).toBe(picker);
   });
 
+  it('passes an API-mode picker with params through', function() {
+    const picker = { resource: 'session', maxEntries: 5, params: { gameSlug: 'the-crypt' } };
+    const { state } = renderField({ picker });
+
+    expect(state.picker).toBe(picker);
+  });
+
+  it('passes the given onClear through as a handler', function() {
+    const onClear = jasmine.createSpy('onClear');
+    const { handlers } = renderField({ onClear, value: { id: 1, name: 'Wyrmwood' } });
+
+    handlers.onClear();
+
+    expect(onClear).toHaveBeenCalled();
+  });
+
+  it('leaves the onClear handler undefined when not given', function() {
+    const { handlers } = renderField();
+
+    expect(handlers.onClear).toBeUndefined();
+  });
+
   it('calls onChange with the picked item when onSelect is triggered', function() {
     const onChange = jasmine.createSpy('onChange');
     const { handlers } = renderField({ onChange });
