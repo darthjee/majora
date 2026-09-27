@@ -286,13 +286,16 @@ describe('resourceConfig', function() {
   });
 
   describe('session', function() {
-    it('has no separate private endpoint for single, and no collection entry', function() {
+    it('has no separate private endpoint for single or collection', function() {
       const single = resourceConfig.get('GET', 'session', 'single');
+      const collection = resourceConfig.get('GET', 'session', 'collection');
 
       expect(single.regular).toBe(single.private);
       expect(single.regular.path({ gameSlug: 'demo', id: '3' })).toBe('/games/demo/sessions/3.json');
       expect(single.regular.permission).toBeNull();
-      expect(resourceConfig.get('GET', 'session', 'collection')).toBeNull();
+      expect(collection.regular).toBe(collection.private);
+      expect(collection.regular.path({ gameSlug: 'demo' })).toBe('/games/demo/sessions.json');
+      expect(collection.regular.permission).toBeNull();
     });
   });
 
