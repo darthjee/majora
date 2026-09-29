@@ -51,6 +51,8 @@ regardless of any other rule listed below.
 - [GameCommonItem](access-control/game-common-item.md)
 - [GameRecipe](access-control/game-recipe.md) — per-game crafting recipes producing a
   `GameCommonItem`; hidden-output masking and the `?category=` filter
+- [CharacterRecipe](access-control/character-recipe.md) — a PC/NPC knowing a `GameRecipe`;
+  caller-dependent output masking and the `hidden`-only PATCH
 - [CharacterItem](access-control/character-item.md)
 - [GameDocument](access-control/game-document.md)
 - [CharacterDocument](access-control/character-document.md)

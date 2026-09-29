@@ -12,6 +12,11 @@ Majora (nothing is consumed or added to an inventory).
   `common_item.recipes`). The output is required, must belong to the same game, and is not
   unique: several recipes may produce the same item (e.g. different methods for the same
   potion). Deleting the output item deletes its recipes (cascade).
+- `Character` N — N `GameRecipe` through **`CharacterRecipe`** (`character.character_recipes`,
+  `recipe.character_recipes`): a PC or NPC that knows the recipe. The join stores only its own
+  `hidden` flag (independent of the recipe's); deleting the character, the recipe or its output
+  item deletes the link. See
+  [access-control/character-recipe.md](../../access-control/character-recipe.md).
 
 ## Fields
 
