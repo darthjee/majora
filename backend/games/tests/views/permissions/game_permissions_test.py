@@ -38,6 +38,7 @@ class TestGamePermissionsView(TokenAuthRequestMixin, TestCase):
             'can_edit_session': False,
             'can_create_npc': False,
             'can_create_faction': False,
+            'can_create_recipe': False,
         }
 
     def _all_true(self):
@@ -52,6 +53,7 @@ class TestGamePermissionsView(TokenAuthRequestMixin, TestCase):
             'can_edit_session': True,
             'can_create_npc': True,
             'can_create_faction': True,
+            'can_create_recipe': True,
         }
 
     def test_no_role_returns_all_false(self):
@@ -96,6 +98,7 @@ class TestGamePermissionsView(TokenAuthRequestMixin, TestCase):
             'can_edit_session': True,
             'can_create_npc': True,
             'can_create_faction': True,
+            'can_create_recipe': True,
         }
 
     def test_staff_cannot_edit_but_can_create_and_edit_session(self):
@@ -112,6 +115,7 @@ class TestGamePermissionsView(TokenAuthRequestMixin, TestCase):
             'can_edit_session': True,
             'can_create_npc': True,
             'can_create_faction': True,
+            'can_create_recipe': True,
         }
 
     def test_owner_cannot_edit_regular(self):

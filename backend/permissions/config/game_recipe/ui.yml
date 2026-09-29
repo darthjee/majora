@@ -1,0 +1,4 @@
+# Config for GameRecipePermissionsSerializer (issue #1446).
+edit:
+  - staff
+  - player

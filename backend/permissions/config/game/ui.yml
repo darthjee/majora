@@ -24,3 +24,6 @@ create_npc:
 create_faction:
   - staff
   - player
+create_recipe:
+  - staff
+  - player

@@ -16,6 +16,7 @@ from ..views.permissions import (
     game_pc_permissions,
     game_permissions,
     game_possession_permissions,
+    game_recipe_permissions,
     game_treasure_permissions,
     treasure_permissions,
 )
@@ -50,5 +51,10 @@ urlpatterns = [
         'permissions/game_document.json',
         game_document_permissions,
         name='permissions-game-document',
+    ),
+    path(
+        'permissions/game_recipe.json',
+        game_recipe_permissions,
+        name='permissions-game-recipe',
     ),
 ]

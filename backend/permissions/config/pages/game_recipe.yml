@@ -1,0 +1,3 @@
+# GameRecipePermissionsSerializer's response shape (page_key='game_recipe').
+game_recipe:
+  edit: can_edit
