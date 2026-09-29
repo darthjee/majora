@@ -46,6 +46,9 @@ resources:
         - resource: game_sessions
           parameters:
             slug: parsedBody.game_slug
+        - resource: game_recipes
+          parameters:
+            slug: parsedBody.game_slug
 
   game_detail:
     - url: /games/{:slug}.json

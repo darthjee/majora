@@ -1,0 +1,55 @@
+namespace: $NAVI_NAMEPACE
+resources:
+  game_recipes:
+    - url: /games/{:slug}/recipes.json
+      status: 200
+      paginated_actions:
+        - resource: paginated_game_recipes
+          pagination:
+            - pages: headers['pages']
+            - page_key: page
+            - zero_indexed: false
+          parameters:
+            per_page: headers['per_page']
+
+  paginated_game_recipes:
+    - url: /games/{:slug}/recipes.json?page={:page}&per_page={:per_page}
+      status: 200
+      actions:
+        - resource: game_recipe_detail
+          parameters:
+            slug: parameters.slug
+            id: parsedBody.id
+
+  game_recipe_detail:
+    - url: /games/{:slug}/recipes/{:id}.json
+      status: 200
+      actions:
+        - resource: game_recipe_characters
+          parameters:
+            slug: parameters.slug
+            id: parameters.id
+        - resource: short_recipe_characters
+          parameters:
+            slug: parameters.slug
+            id: parameters.id
+
+  game_recipe_characters:
+    - url: /games/{:slug}/recipes/{:id}/characters.json
+      status: 200
+      paginated_actions:
+        - resource: paginated_game_recipe_characters
+          pagination:
+            - pages: headers['pages']
+            - page_key: page
+            - zero_indexed: false
+          parameters:
+            per_page: headers['per_page']
+
+  paginated_game_recipe_characters:
+    - url: /games/{:slug}/recipes/{:id}/characters.json?page={:page}&per_page={:per_page}
+      status: 200
+
+  short_recipe_characters:
+    - url: /games/{:slug}/recipes/{:id}/characters.json?per_page=5
+      status: 200
