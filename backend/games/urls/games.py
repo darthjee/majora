@@ -20,6 +20,10 @@ from ..views.game import (
     game_pc_treasure_summary,
     game_pc_treasure_summary_all,
 )
+from ..views.game.recipes.detail.game_recipe_detail_full import game_recipe_detail_full
+from ..views.game.recipes.game_recipe_detail import game_recipe_detail
+from ..views.game.recipes.game_recipes import game_recipes
+from ..views.game.recipes.game_recipes_all import game_recipes_all
 from ..views.game_sessions import (
     game_session_detail,
     game_sessions_future,
@@ -389,6 +393,26 @@ urlpatterns = [
         'games/<slug:game_slug>/common_items/<int:common_item_id>/photo_upload.json',
         game_common_item_photo_upload,
         name='game-common-item-photo-upload',
+    ),
+    path(
+        'games/<slug:game_slug>/recipes.json',
+        game_recipes,
+        name='game-recipes',
+    ),
+    path(
+        'games/<slug:game_slug>/recipes/all.json',
+        game_recipes_all,
+        name='game-recipes-all',
+    ),
+    path(
+        'games/<slug:game_slug>/recipes/<int:recipe_id>.json',
+        game_recipe_detail,
+        name='game-recipe-detail',
+    ),
+    path(
+        'games/<slug:game_slug>/recipes/<int:recipe_id>/full.json',
+        game_recipe_detail_full,
+        name='game-recipe-detail-full',
     ),
     path('games/<slug:game_slug>/photos.json', game_photos, name='game-photos'),
     path(
