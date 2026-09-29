@@ -139,3 +139,10 @@ class TestGameNpcPermissionsView(TokenAuthRequestMixin):
         CharacterFactory(name='Saruman', game=self.game, npc=True)
         response_after = self.get(client, self._url(query='role=staff'))
         assert response_before.content == response_after.content
+
+    def test_can_exchange_recipe_follows_regular_create(self, client):
+        """Test that can_exchange_recipe is True for staff/player and False for owner/anonymous."""
+        expectations = {'role=staff': True, 'role=player': True, 'role=owner': False, '': False}
+        for query, expected in expectations.items():
+            data = json.loads(self.get(client, self._url(query=query)).content)
+            assert data['can_exchange_recipe'] is expected, query
