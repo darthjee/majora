@@ -5,6 +5,7 @@ game_page:
   treasures: Treasures
   items: Items
   common_items: Common Items
+  recipes: Recipes
   possessions: Possessions
   documents: Documents
   factions: Factions

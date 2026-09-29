@@ -1,0 +1,17 @@
+recipe_new_page:
+  title: New Recipe
+  name_label: Name
+  output_label: Output
+  output_placeholder: Search for a common item...
+  yield_label: Yield
+  crafting_time_label: Crafting time
+  crafting_cost_label: Crafting cost
+  crafting_cost_edit_button: Edit crafting cost
+  description_label: Description
+  ingredients_label: Ingredients
+  checks_label: Checks
+  hidden_label: Hidden
+  submit: Create Recipe
+  hidden_notice: Hidden recipes are only visible to game editors.
+  errors:
+    invalid_output: The selected output item is invalid. Please choose another common item.

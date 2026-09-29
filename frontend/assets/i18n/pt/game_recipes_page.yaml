@@ -1,0 +1,10 @@
+game_recipes_page:
+  title: Receitas
+  loading: Carregando receitas...
+  new_button: Nova Receita
+  hidden_label: Oculta
+  unknown_output: Item desconhecido
+  yield_format: '{{output}} × {{yield}}'
+  category_filter_label: Categoria
+  category_filter_all: Todas
+  empty: Nenhuma receita encontrada.
