@@ -52,8 +52,10 @@ plain endpoints exclude hidden rows and never expose `hidden`; `/all.json` and
 
 ## NPCs
 
-The hidden-NPC gate and incognito cascade apply to NPC recipe endpoints as for
-other character sub-resources.
+The hidden-NPC gate applies to every NPC recipe endpoint as for other
+character sub-resources. NPC `incognito` has no effect on the character recipe
+endpoints (as for the `CharacterDocument` / `CharacterPossession` indexes); it
+only excludes the NPC from `recipes/<id>/characters.json` (see below).
 
 ## Recipe → characters who know it
 

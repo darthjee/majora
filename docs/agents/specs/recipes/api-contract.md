@@ -63,7 +63,7 @@ The output `GameCommonItem` is embedded as a nested object:
   `common_items/<id>/recipes/all.json`, `recipes/available/all.json`, `recipes/acquire/all.json`,
   NPC `/all.json` / `/full.json`, and write responses for `GameEdit` callers (see E2).
 - On the PC `CharacterEdit` variants (`pcs/<id>/recipes/all.json`, `.../full.json`, the PC
-  `hidden` PATCH response, `remove/all.json`), a caller without `GameEdit` (the PC's owning
+  `hidden` PATCH response), a caller without `GameEdit` (the PC's owning
   player) still gets `output: null` when the output item is hidden: owning a character never
   grants visibility of a hidden `GameCommonItem`.
 - `output.photo_path` is the output common item's own existing photo — the only image on a
