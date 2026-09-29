@@ -1,0 +1,9 @@
+# GameRecipe create/edit permissions (issue #1446): dm/admin shortcut, plus staff and any player
+# of the game. `edit` applies the same rule to the PATCH endpoint. Recipes have no photo upload.
+regular:
+  create:
+    - staff
+    - player
+  edit:
+    - staff
+    - player
