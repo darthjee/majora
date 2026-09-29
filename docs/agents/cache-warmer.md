@@ -17,7 +17,7 @@ for that client's reference.
 The Navi configuration entry file lives at
 [`navi/navi_config.yaml`](../../navi/navi_config.yaml). It holds the `web`, `workers`, and
 `failure` sections, and pulls in the `resources`/`clients` sections via a top-level `include:`
-list from twelve files under [`navi/resources/`](../../navi/resources/):
+list from fourteen files under [`navi/resources/`](../../navi/resources/):
 
 - `treasures.yml` — top-level `/treasures.json` chain, plus a game's `game_treasures` listing
   (and its `paginated_game_treasures`/`game_treasure_detail` chain).
@@ -28,18 +28,30 @@ list from twelve files under [`navi/resources/`](../../navi/resources/):
 - `games.yml` — `/games.json` chain down through each game's detail and photos listing (and the
   fan-out into every other per-game resource file below).
 - `pcs.yml` — a game's PCs listing (`game_pcs`/`paginated_game_pcs`/`short_game_pcs`) plus a
-  PC's detail and its nested photos/treasures/items/documents/factions (the character-centric
-  `CharacterFaction` listing, `pc_factions`/`paginated_pc_factions`/`short_pc_factions` —
-  distinct from `factions.yml`'s game-centric `GameFaction` catalog).
+  PC's detail and its nested photos/treasures/items/documents/factions/possessions/recipes (the
+  character-centric `CharacterFaction` listing, `pc_factions`/`paginated_pc_factions`/
+  `short_pc_factions` — distinct from `factions.yml`'s game-centric `GameFaction` catalog; and the
+  `CharacterRecipe` listing, `pc_recipes`/`paginated_pc_recipes`/`pc_recipe_detail`/
+  `short_pc_recipes`, whose detail URL carries the `CharacterRecipe` row id as `{:recipe_id}`).
 - `npcs.yml` — a game's NPCs listing (`game_npcs`/`paginated_game_npcs`/`short_game_npcs`) plus
-  an NPC's detail and its nested photos/treasures/items/documents/factions (`npc_factions`/
-  `paginated_npc_factions`/`short_npc_factions`, same character-centric shape as `pcs.yml`'s).
+  an NPC's detail and its nested photos/treasures/items/documents/factions/possessions/recipes
+  (`npc_factions`/`paginated_npc_factions`/`short_npc_factions` and `npc_recipes`/
+  `paginated_npc_recipes`/`npc_recipe_detail`/`short_npc_recipes`, same character-centric shape as
+  `pcs.yml`'s).
 - `items.yml` — a game's items listing (`game_items`/`paginated_game_items`/`game_item_detail`).
 - `factions.yml` — a game's factions listing and each faction's detail/characters chain
   (`game_factions`, `paginated_game_factions`, `game_faction_detail`, `game_faction_characters`,
   `paginated_game_faction_characters`).
 - `possessions.yml` — a game's possessions listing (`game_possessions`/
   `paginated_game_possessions`/`game_possession_detail`).
+- `common_items.yml` — a game's common items catalog and each common item's detail plus the
+  recipes producing it (`game_common_items`, `paginated_game_common_items`,
+  `game_common_item_detail`, `game_common_item_recipes`, `paginated_game_common_item_recipes`,
+  `short_common_item_recipes`).
+- `recipes.yml` — a game's recipes listing and each recipe's detail plus the characters who know
+  it (`game_recipes`, `paginated_game_recipes`, `game_recipe_detail`, `game_recipe_characters`,
+  `paginated_game_recipe_characters`, `short_recipe_characters`). The `/all.json`, `/full.json`
+  and PC/NPC `recipes/available*.json` variants are restricted and never warmed.
 - `documents.yml` — a game's documents listing and each document's detail/files/photos/pages
   chain (`game_documents`, `paginated_game_documents`, `game_document_details`,
   `game_document_files`, `game_document_photos`, `game_document_pages`,
@@ -51,9 +63,9 @@ list from twelve files under [`navi/resources/`](../../navi/resources/):
   plain `sessions.json` listing is warmed; the session picker's `?name=` searches are not.
 - `permissions.yml` — the entity-agnostic `permissions_*` resources (see below).
 - `clients.yml` — the `clients.default` block (base URL, timeout, headers) used to make every
-  request in the other eleven files.
+  request in the other thirteen files.
 
-Every one of these twelve files declares a top-level `namespace: $NAVI_NAMEPACE` key, so every
+Every one of these fourteen files declares a top-level `namespace: $NAVI_NAMEPACE` key, so every
 resource/client they declare resolves into the `$NAVI_NAMEPACE` namespace instead of the
 implicit `default` one. This is a literal, unresolved placeholder in the committed YAML —
 it's resolved at read time by whoever loads the files (see "CI (CircleCI)" and "Local testing"
@@ -65,9 +77,9 @@ files together.
 
 Within `games.yml`, the chain runs from `/games.json` down through each game's detail and photos
 listing, and fans out from `paginated_games` into every other per-game listing (PCs, NPCs,
-treasures, items, factions, possessions, documents, sessions) living in its own file. From the
+treasures, items, factions, possessions, common items, recipes, documents, sessions) living in its own file. From the
 PCs/NPCs listings (via `pcs.yml`/`npcs.yml`) the chain continues to each character's detail (and
-its nested photos/files/treasures/items/factions); from the documents listing (via
+its nested photos/files/treasures/items/factions/possessions/recipes); from the documents listing (via
 `documents.yml`) it continues to each document's detail (and its nested files/photos/pages) — the
 `slug` extracted at the top of the chain is inherited by every resource below it, so it never
 needs re-extracting. See the files under `navi/resources/` for the exact resource names and URL
@@ -75,7 +87,8 @@ patterns.
 
 It also covers the entity-agnostic `permissions_*` resources (`permissions_game`,
 `permissions_treasure`, `permissions_game_treasure`, `permissions_game_pc`,
-`permissions_game_npc`), which warm `/permissions/<entity_type>.json` for each of the 5
+`permissions_game_npc`, `permissions_game_possession`, `permissions_game_item`,
+`permissions_game_faction`, `permissions_game_document`, `permissions_game_recipe`), which warm `/permissions/<entity_type>.json` for each of the 5
 canonical `?role=` combinations. These are
 standalone, unparameterized top-level resources — unlike the chained resources above, they
 don't need a `slug`/`id` from `parsedBody`/`parameters.*` since the response depends only on
@@ -141,7 +154,7 @@ documents the flow as it affects the files this agent owns.
 
 Local dev is unaffected by the CI change above: `docker-compose up majora_navi` still runs the
 standalone `darthjee/navi-hey` server against `navi/navi_config.yaml`, which now also pulls in
-`resources/clients.yml` through the same `include:` chain as the other eleven resource files.
+`resources/clients.yml` through the same `include:` chain as the other thirteen resource files.
 
 To test the cache warmer locally, set `MAJORA_PRODUCTION_URL` in your `.env` file (defaults to
 `http://localhost:3000` in `.env.dev.sample`) and run:
