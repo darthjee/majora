@@ -17,7 +17,8 @@ is re-decided.
   category-filter masking, hidden default on link
 - [Deletion](recipes/deletion.md) — cascade and remove behavior
 - [Permissions](recipes/permissions.md) — permissions summary
-- API contract (`recipes/api-contract.md`) — pending, added by #1443
+- [API contract](recipes/api-contract.md) — routes, tiers, request/response
+  shapes, error codes, caching and Navi needs
 - Frontend (`recipes/frontend.md`) — pending, added by #1444
 
 ## Out of scope
