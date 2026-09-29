@@ -24,6 +24,7 @@ class TestPagePermissionConfigStore:
                 'edit_session': 'can_edit_session',
                 'create_npc': 'can_create_npc',
                 'create_faction': 'can_create_faction',
+                'create_recipe': 'can_create_recipe',
             },
         }
 
