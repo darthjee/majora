@@ -49,6 +49,8 @@ regardless of any other rule listed below.
 - [GamePossession](access-control/game-possession.md)
 - [CharacterPossession](access-control/character-possession.md)
 - [GameCommonItem](access-control/game-common-item.md)
+- [GameRecipe](access-control/game-recipe.md) — per-game crafting recipes producing a
+  `GameCommonItem`; hidden-output masking and the `?category=` filter
 - [CharacterItem](access-control/character-item.md)
 - [GameDocument](access-control/game-document.md)
 - [CharacterDocument](access-control/character-document.md)

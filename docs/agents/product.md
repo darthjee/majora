@@ -14,7 +14,8 @@ The Core Entities section has been split into individual files under:
 - docs/agents/product/entities/
 
 See that directory for per-entity definitions (game, player, conversation, user, character,
-gamemaster, treasure, game-item, game-document, poll) and ownership/permissions details.
+gamemaster, treasure, game-item, game-document, game-recipe, poll) and ownership/permissions
+details.
 
 Of particular note, [ownership-and-roles.md](product/entities/ownership-and-roles.md) defines the
 character ownership chain (`character.player.user`), the GameMaster/DM and Staff roles, and the
