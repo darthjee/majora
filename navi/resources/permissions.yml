@@ -107,3 +107,15 @@ resources:
       status: 200
     - url: /permissions/game_document.json?role=staff&role=dm&role=player&role=logged
       status: 200
+
+  permissions_game_recipe:
+    - url: /permissions/game_recipe.json
+      status: 200
+    - url: /permissions/game_recipe.json?role=player&role=logged
+      status: 200
+    - url: /permissions/game_recipe.json?role=dm&role=player&role=logged
+      status: 200
+    - url: /permissions/game_recipe.json?role=staff&role=player&role=logged
+      status: 200
+    - url: /permissions/game_recipe.json?role=staff&role=dm&role=player&role=logged
+      status: 200

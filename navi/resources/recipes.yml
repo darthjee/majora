@@ -1,10 +1,10 @@
 namespace: $NAVI_NAMEPACE
 resources:
-  game_common_items:
-    - url: /games/{:slug}/common_items.json
+  game_recipes:
+    - url: /games/{:slug}/recipes.json
       status: 200
       paginated_actions:
-        - resource: paginated_game_common_items
+        - resource: paginated_game_recipes
           pagination:
             - pages: headers['pages']
             - page_key: page
@@ -12,33 +12,33 @@ resources:
           parameters:
             per_page: headers['per_page']
 
-  paginated_game_common_items:
-    - url: /games/{:slug}/common_items.json?page={:page}&per_page={:per_page}
+  paginated_game_recipes:
+    - url: /games/{:slug}/recipes.json?page={:page}&per_page={:per_page}
       status: 200
       actions:
-        - resource: game_common_item_detail
+        - resource: game_recipe_detail
           parameters:
             slug: parameters.slug
             id: parsedBody.id
 
-  game_common_item_detail:
-    - url: /games/{:slug}/common_items/{:id}.json
+  game_recipe_detail:
+    - url: /games/{:slug}/recipes/{:id}.json
       status: 200
       actions:
-        - resource: game_common_item_recipes
+        - resource: game_recipe_characters
           parameters:
             slug: parameters.slug
             id: parameters.id
-        - resource: short_common_item_recipes
+        - resource: short_recipe_characters
           parameters:
             slug: parameters.slug
             id: parameters.id
 
-  game_common_item_recipes:
-    - url: /games/{:slug}/common_items/{:id}/recipes.json
+  game_recipe_characters:
+    - url: /games/{:slug}/recipes/{:id}/characters.json
       status: 200
       paginated_actions:
-        - resource: paginated_game_common_item_recipes
+        - resource: paginated_game_recipe_characters
           pagination:
             - pages: headers['pages']
             - page_key: page
@@ -46,10 +46,10 @@ resources:
           parameters:
             per_page: headers['per_page']
 
-  paginated_game_common_item_recipes:
-    - url: /games/{:slug}/common_items/{:id}/recipes.json?page={:page}&per_page={:per_page}
+  paginated_game_recipe_characters:
+    - url: /games/{:slug}/recipes/{:id}/characters.json?page={:page}&per_page={:per_page}
       status: 200
 
-  short_common_item_recipes:
-    - url: /games/{:slug}/common_items/{:id}/recipes.json?per_page=5
+  short_recipe_characters:
+    - url: /games/{:slug}/recipes/{:id}/characters.json?per_page=5
       status: 200
