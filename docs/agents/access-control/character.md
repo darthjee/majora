@@ -146,7 +146,8 @@ against the character's game; `is_owner` is real for a PC, always `false` for an
 endpoints](common-rules.md#edit-permission-endpoints-permissionsjson); PC and NPC share one
 serializer, and `owner`/`is_owner` are no-ops for an NPC. Beyond `can_edit`,
 `can_create_item`/`can_upload_item_photo` (see [CharacterItem](character-item.md)), and
-`can_create_possession` (see [CharacterPossession](character-possession.md)), this endpoint
+`can_create_possession` (see [CharacterPossession](character-possession.md)) and
+`can_exchange_recipe` (see [CharacterRecipe](character-recipe.md#permissions)), this endpoint
 exposes:
 
 - `can_set_profile_photo` — **CharacterPhotoUpload** shape: roles per
