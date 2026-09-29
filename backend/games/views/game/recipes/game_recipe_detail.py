@@ -17,8 +17,8 @@ from ._recipe_write import game_recipe_update
 @permission_classes([AllowAny])
 def game_recipe_detail(request, game_slug, recipe_id):
     """Return detail for a single non-hidden recipe of a specific game, or update a recipe."""
-    game = get_object_or_404(Game, game_slug=game_slug)
     if request.method == 'PATCH':
-        return game_recipe_update(request, game, recipe_id)
+        return game_recipe_update(request, game_slug, recipe_id)
+    game = get_object_or_404(Game, game_slug=game_slug)
     recipe = get_object_or_404(game.recipes.filter(hidden=False), id=recipe_id)
     return Response(GameRecipeDetailSerializer(recipe).data)

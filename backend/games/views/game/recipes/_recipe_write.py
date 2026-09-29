@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from permissions import EndpointPermission
 
 from ....decorators import skip_cache
+from ....models import Game
 from ....serializers import (
     GameRecipeDetailFullSerializer,
     GameRecipeDetailSerializer,
@@ -47,8 +48,30 @@ def _write_context(game, is_game_edit):
     return {'game': game, 'allow_hidden_output': is_game_edit}
 
 
+def _find_game(game_slug):
+    """Return the game identified by `game_slug`, or None."""
+    return Game.objects.filter(game_slug=game_slug).first()
+
+
 @skip_cache
-def game_recipe_create(request, game):
+def game_recipe_create(request, game_slug):
+    """Create a new GameRecipe for the game `game_slug` (404 if the game is unknown)."""
+    game = _find_game(game_slug)
+    if game is None:
+        return Response(status=404)
+    return _create_recipe(request, game)
+
+
+@skip_cache
+def game_recipe_update(request, game_slug, recipe_id):
+    """Partially update the GameRecipe `recipe_id` of the game `game_slug`."""
+    game = _find_game(game_slug)
+    if game is None:
+        return Response(status=404)
+    return _update_recipe(request, game, recipe_id)
+
+
+def _create_recipe(request, game):
     """Create a new GameRecipe for `game`."""
     error_response = _check_permission(request, game, 'create')
     if error_response:
@@ -60,8 +83,7 @@ def game_recipe_create(request, game):
     return _save_response(serializer, is_game_edit, 201, game=game)
 
 
-@skip_cache
-def game_recipe_update(request, game, recipe_id):
+def _update_recipe(request, game, recipe_id):
     """Partially update the GameRecipe `recipe_id` of `game`."""
     error_response = _check_permission(request, game, 'edit')
     if error_response:

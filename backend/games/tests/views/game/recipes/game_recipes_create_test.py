@@ -59,6 +59,15 @@ class TestGameRecipesCreateRoles(RecipeWriteSetupMixin, TokenAuthRequestMixin):
         payload = {'name': 'Brew', 'game_common_item_id': self.item.id}
         assert self.post(client, url, payload, token=self.tokens['dm']).status_code == 404
 
+    @pytest.mark.parametrize('role', [None, 'dm'])
+    def test_unknown_game_404_sets_skip_cache(self, client, role):
+        """Test that the unknown-game 404 carries X-Skip-Cache."""
+        payload = {'name': 'Brew', 'game_common_item_id': self.item.id}
+        token = self.tokens[role] if role else None
+        response = self.post(client, '/games/nope/recipes.json', payload, token=token)
+        assert response.status_code == 404
+        assert response['X-Skip-Cache'] == 'true'
+
 
 @pytest.mark.django_db
 class TestGameRecipesCreateFields(RecipeWriteSetupMixin, TokenAuthRequestMixin):

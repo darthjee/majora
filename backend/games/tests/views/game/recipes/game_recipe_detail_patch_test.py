@@ -81,6 +81,15 @@ class TestGameRecipePatchRoles(RecipeWriteSetupMixin, TokenAuthRequestMixin):
         """Test that the hidden-recipe 404 carries X-Skip-Cache."""
         assert self._patch(client, 'player', self.hidden_recipe)['X-Skip-Cache'] == 'true'
 
+    @pytest.mark.parametrize('role', [None, 'dm'])
+    def test_unknown_game_404_sets_skip_cache(self, client, role):
+        """Test that an unknown game slug returns 404 carrying X-Skip-Cache."""
+        token = self.tokens[role] if role else None
+        url = _url(self.recipe.id, game_slug='nope')
+        response = self.patch(client, url, {'name': 'New'}, token=token)
+        assert response.status_code == 404
+        assert response['X-Skip-Cache'] == 'true'
+
     def test_sets_skip_cache_on_400(self, client):
         """Test that a validation error carries X-Skip-Cache."""
         response = self._patch(client, 'player', payload={'yield_quantity': 0})

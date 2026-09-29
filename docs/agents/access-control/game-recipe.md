@@ -70,8 +70,9 @@ against the output item's `GameCommonItem.category` choices:
 
 `POST /games/<slug>/recipes.json` creates a recipe (`201`); `PATCH
 /games/<slug>/recipes/<id>.json` partially updates one (`200`). Both always set
-`X-Skip-Cache: true`, on every status (`2xx`, `400`, `401`, `403`, `404`). There is no photo
-upload and no delete endpoint.
+`X-Skip-Cache: true`, on every status (`2xx`, `400`, `401`, `403`, `404`), including the `404`
+for an unknown game slug, which is checked before authentication. There is no photo upload and no
+delete endpoint.
 
 Write fields (explicit allowlist, `GameRecipeWriteSerializer`):
 
