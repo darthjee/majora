@@ -5,8 +5,13 @@ from rest_framework.response import Response
 
 from common.query_filters import filter_by_name
 
-from ....serializers import CharacterRecipeDetailSerializer, CharacterRecipeSerializer
-from ...common import paginated_list_response
+from ....serializers import (
+    CharacterRecipeDetailFullSerializer,
+    CharacterRecipeDetailSerializer,
+    CharacterRecipeSerializer,
+    CharacterRecipeUpdateSerializer,
+)
+from ...common import paginated_list_response, validated_or_error
 from .._character._decorators import check_hidden
 
 
@@ -66,3 +71,22 @@ def character_recipe_detail(
     character_recipe = get_object_or_404(rows, id=character_recipe_id)
     data = serializer_class(character_recipe, context=_mask_context(mask_hidden_output)).data
     return _mark_hidden_character(Response(data), character, check_hidden)
+
+
+def character_recipe_update(request, character, character_recipe_id, mask_hidden_output):
+    """Update the `hidden` flag of one of `character`'s recipe rows (hidden ones included).
+
+    Only `hidden` is written; every other field is ignored. The caller has already run the
+    hidden-NPC gate and the permission check, so a non-editor never observes whether
+    `character_recipe_id` exists. Responds with the `/full.json` shape.
+    """
+    character_recipe = get_object_or_404(
+        _character_recipe_rows(character, allow_hidden=True), id=character_recipe_id,
+    )
+    serializer = CharacterRecipeUpdateSerializer(character_recipe, data=request.data, partial=True)
+    error_response = validated_or_error(serializer)
+    if error_response:
+        return error_response
+    serializer.save()
+    context = _mask_context(mask_hidden_output)
+    return Response(CharacterRecipeDetailFullSerializer(character_recipe, context=context).data)

@@ -8,6 +8,7 @@ unmask it for callers with `GameEdit` (a PC's owning player still sees it masked
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import AllowAny
 
+from .....decorators import skip_cache
 from .....models import Game
 from .....serializers import (
     CharacterRecipeAllSerializer,
@@ -15,7 +16,11 @@ from .....serializers import (
     CharacterRecipeDetailSerializer,
 )
 from ....common import check_game_edit
-from ...recipes._character_recipes import character_recipe_detail, character_recipes
+from ...recipes._character_recipes import (
+    character_recipe_detail,
+    character_recipe_update,
+    character_recipes,
+)
 from .. import _build_api_view, _check_character_all_permission
 from .._shared import _get_character_or_404, _hidden_gate_response
 
@@ -76,13 +81,32 @@ def build_recipes_all_view(npc):
     return view
 
 
-def build_recipe_detail_view(npc):
-    """Build the plain GET recipe-detail view for a PC (`npc=False`) or NPC (`npc=True`)."""
+@skip_cache
+def _patch_recipe(request, game, character_id, character_recipe_id, npc):
+    """Toggle `hidden` on a character recipe row: gate, then permission, then row lookup."""
+    error_response = _check_restricted_access(request, game, character_id, npc)
+    if error_response:
+        return error_response
+    character = _get_character_or_404(game, character_id, npc=npc)
+    return character_recipe_update(
+        request, character, character_recipe_id,
+        mask_hidden_output=_mask_hidden_output(request, game),
+    )
 
-    @_build_api_view(['GET'], AllowAny)
+
+def build_recipe_detail_view(npc):
+    """Build the GET/PATCH recipe-detail view for a PC (`npc=False`) or NPC (`npc=True`).
+
+    GET is the plain detail. PATCH toggles `hidden` only, for CharacterEdit (PCs) or GameEdit
+    (NPCs) callers, and responds with the `/full.json` shape.
+    """
+
+    @_build_api_view(['GET', 'PATCH'], AllowAny)
     def view(request, game_slug, character_id, character_recipe_id):
-        """Return a single non-hidden recipe known by a PC/NPC, output masked."""
+        """Return a single non-hidden recipe known by a PC/NPC, or toggle its `hidden` flag."""
         game = get_object_or_404(Game, game_slug=game_slug)
+        if request.method == 'PATCH':
+            return _patch_recipe(request, game, character_id, character_recipe_id, npc)
         return character_recipe_detail(
             request, game, character_id, character_recipe_id, npc=npc, check_hidden=npc,
             serializer_class=CharacterRecipeDetailSerializer,
