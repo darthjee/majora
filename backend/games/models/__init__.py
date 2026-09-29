@@ -8,6 +8,7 @@ from games.models.character.character_item_photo import CharacterItemPhoto
 from games.models.character.character_link import CharacterLink
 from games.models.character.character_photo import CharacterPhoto
 from games.models.character.character_possession import CharacterPossession
+from games.models.character.character_recipe import CharacterRecipe
 from games.models.character.character_treasure import CharacterTreasure
 from games.models.game.game import Game
 from games.models.game.game_common_item import GameCommonItem
@@ -47,6 +48,7 @@ __all__ = [
     'CharacterLink',
     'CharacterPhoto',
     'CharacterPossession',
+    'CharacterRecipe',
     'CharacterTreasure',
     'GameFaction',
     'GameFactionPhoto',
