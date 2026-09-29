@@ -1,0 +1,9 @@
+# NPC character-recipe endpoint rules (issue #1459). `create` (regular) gates the plain
+# `/available.json`, `/acquire.json` and `/remove.json` endpoints (staff/player). No
+# `restricted` block: every `/all` variant is gated by GameEdit instead. On NPC routes the
+# hidden-NPC gate runs before this check (E7).
+# Keep `regular.create` identical to game_npc_recipe/ui.yml's `exchange`.
+regular:
+  create:
+    - staff
+    - player
