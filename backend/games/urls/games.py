@@ -24,6 +24,8 @@ from ..views.game.common_items.detail.game_common_item_recipes import game_commo
 from ..views.game.common_items.detail.game_common_item_recipes_all import (
     game_common_item_recipes_all,
 )
+from ..views.game.recipes.detail.game_recipe_characters import game_recipe_characters
+from ..views.game.recipes.detail.game_recipe_characters_all import game_recipe_characters_all
 from ..views.game.recipes.detail.game_recipe_detail_full import game_recipe_detail_full
 from ..views.game.recipes.game_recipe_detail import game_recipe_detail
 from ..views.game.recipes.game_recipes import game_recipes
@@ -427,6 +429,16 @@ urlpatterns = [
         'games/<slug:game_slug>/recipes/<int:recipe_id>/full.json',
         game_recipe_detail_full,
         name='game-recipe-detail-full',
+    ),
+    path(
+        'games/<slug:game_slug>/recipes/<int:recipe_id>/characters.json',
+        game_recipe_characters,
+        name='game-recipe-characters',
+    ),
+    path(
+        'games/<slug:game_slug>/recipes/<int:recipe_id>/characters/all.json',
+        game_recipe_characters_all,
+        name='game-recipe-characters-all',
     ),
     path('games/<slug:game_slug>/photos.json', game_photos, name='game-photos'),
     path(
