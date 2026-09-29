@@ -35,7 +35,8 @@ plain endpoints exclude hidden rows and never expose `hidden`; `/all.json` and
   `CharacterRecipe.hidden` matters — `GameRecipe.hidden` is ignored there.
 - A new `CharacterRecipe` copies `GameRecipe.hidden` at creation, so linking a
   secret recipe never reveals it through the character page by accident; the
-  GM can unhide it later.
+  GM can unhide it later through
+  [`PATCH .../recipes/<character_recipe_id>.json`](api-contract.md#toggling-hidden-patch).
 
 ## Available / acquire
 

@@ -8,9 +8,8 @@ Part of the [Recipes spec](../recipes.md).
 | Field | Type | Rules |
 |-------|------|-------|
 | `game` | FK to `Game` | Owning game |
-| `name` | string | Required; duplicate names within a game are allowed (same as `GameCommonItem`) |
+| `name` | string | Required, ≤200 chars; duplicate names within a game are allowed (same as `GameCommonItem`) |
 | `description` | text (markdown) | Detail endpoints only |
-| `photo` | own `GameRecipePhoto` model | Single, always-replaced photo, like `GameCommonItemPhoto` |
 | `hidden` | boolean | See [Visibility](visibility.md) |
 | `game_common_item` | FK to `GameCommonItem` | The output item — see below |
 | `yield_quantity` | integer | Units produced per crafting; `min_value=1`, defaults to `1` |
@@ -18,6 +17,10 @@ Part of the [Recipes spec](../recipes.md).
 | `crafting_cost` | integer | Lowest currency denomination, like `GameCommonItem.price` / `Treasure.value`; `min_value=0`, defaults to `0` |
 | `ingredients` | text (markdown) | Free text, blank, defaults to `''`; detail endpoints only |
 | `checks` | text (markdown) | Free text, blank, defaults to `''`; detail endpoints only |
+
+Recipes have **no photo and no uploads of any kind**. The only image shown
+for a recipe is its output common item's own photo (`output.photo_path` in
+the [API contract](api-contract.md)).
 
 Change history is tracked with `HistoricalRecords`, like the sibling models
 (`backend/games/models/game/game_common_item.py`).
@@ -51,5 +54,4 @@ Change history is tracked with `HistoricalRecords`, like the sibling models
 
 - `Game` 1 — N `GameRecipe`
 - `GameCommonItem` 1 — N `GameRecipe` (output)
-- `GameRecipe` 1 — 1 `GameRecipePhoto`
 - `GameRecipe` 1 — N [`CharacterRecipe`](character-recipe.md)

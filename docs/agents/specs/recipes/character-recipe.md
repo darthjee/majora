@@ -14,7 +14,7 @@ A thin join modeled on `CharacterPossession`
 | `game_recipe` | FK to `GameRecipe` | The known recipe |
 | `hidden` | boolean | Own flag, independent of `GameRecipe.hidden` — see [Visibility](visibility.md) |
 
-Display fields (name, photo, output, ...) come from the linked `GameRecipe`;
+Display fields (name, output, ...) come from the linked `GameRecipe`;
 the join stores no copies of them.
 
 ## Constraints
@@ -33,10 +33,13 @@ the join stores no copies of them.
 Mirrors `CharacterDocument`'s flow:
 
 - **available** — recipes the character can still learn.
+- **`available/all`** — GM-only variant, includes hidden recipes.
 - **acquire** — link an available recipe.
 - **`acquire/all`** — GM-only variant, can link hidden recipes.
 - **remove** — the character "forgets" the recipe; the `GameRecipe` itself is
   untouched.
+- **`remove/all`** — variant that can also remove a hidden `CharacterRecipe`.
 
-Exact routes and permission tiers are defined by the API contract (#1443); see
-[Permissions](permissions.md) for the summary.
+Exact routes and permission tiers are defined by the
+[API contract](api-contract.md); see [Permissions](permissions.md) for the
+summary.
