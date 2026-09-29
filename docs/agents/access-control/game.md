@@ -94,6 +94,10 @@ endpoints](common-rules.md#edit-permission-endpoints-permissionsjson). Beyond `c
   [`game_common_item/endpoints.yml`](../../../backend/permissions/config/game_common_item/endpoints.yml)
   (`create`: staff + player). Gates the frontend Common Items create link and
   `/common_items/new` page. See [GameCommonItem](game-common-item.md).
+- `can_create_recipe` (issue #1446) — same shape, roles per
+  [`game_recipe/endpoints.yml`](../../../backend/permissions/config/game_recipe/endpoints.yml)
+  (`create`: staff + player). Gates recipe creation (`POST /games/<slug>/recipes.json`). See
+  [GameRecipe](game-recipe.md).
 - `can_create_document` — same shape, roles per
   [`game_document/endpoints.yml`](../../../backend/games/permissions/config/game_document/endpoints.yml)
   (`create`). See [GameDocument](game-document.md#document-creation-endpoint).
