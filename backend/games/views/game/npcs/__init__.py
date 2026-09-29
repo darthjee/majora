@@ -66,6 +66,12 @@ from .detail.possessions.game_npc_possessions_available import game_npc_possessi
 from .detail.possessions.game_npc_possessions_available_all import (
     game_npc_possessions_available_all,
 )
+from .detail.recipes.detail.game_npc_recipe_detail import game_npc_recipe_detail
+from .detail.recipes.detail.game_npc_recipe_detail_full import (
+    game_npc_recipe_detail_full,
+)
+from .detail.recipes.game_npc_recipes import game_npc_recipes
+from .detail.recipes.game_npc_recipes_all import game_npc_recipes_all
 from .detail.treasures.detail.game_npc_treasure_acquire import game_npc_treasure_acquire
 from .detail.treasures.detail.game_npc_treasure_acquire_all import game_npc_treasure_acquire_all
 from .detail.treasures.detail.game_npc_treasure_buy import game_npc_treasure_buy
@@ -144,6 +150,10 @@ __all__ = [
     'game_npc_possession_acquire_all',
     'game_npc_possession_remove',
     'game_npc_possession_remove_all',
+    'game_npc_recipes',
+    'game_npc_recipes_all',
+    'game_npc_recipe_detail',
+    'game_npc_recipe_detail_full',
     'game_npc_treasures',
     'game_npc_treasures_all',
     'game_npc_treasure_buy',
