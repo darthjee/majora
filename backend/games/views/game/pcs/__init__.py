@@ -66,12 +66,18 @@ from .detail.possessions.game_pc_possessions_available import game_pc_possession
 from .detail.possessions.game_pc_possessions_available_all import (
     game_pc_possessions_available_all,
 )
+from .detail.recipes.detail.game_pc_recipe_acquire import game_pc_recipe_acquire
+from .detail.recipes.detail.game_pc_recipe_acquire_all import game_pc_recipe_acquire_all
 from .detail.recipes.detail.game_pc_recipe_detail import game_pc_recipe_detail
 from .detail.recipes.detail.game_pc_recipe_detail_full import (
     game_pc_recipe_detail_full,
 )
+from .detail.recipes.detail.game_pc_recipe_remove import game_pc_recipe_remove
+from .detail.recipes.detail.game_pc_recipe_remove_all import game_pc_recipe_remove_all
 from .detail.recipes.game_pc_recipes import game_pc_recipes
 from .detail.recipes.game_pc_recipes_all import game_pc_recipes_all
+from .detail.recipes.game_pc_recipes_available import game_pc_recipes_available
+from .detail.recipes.game_pc_recipes_available_all import game_pc_recipes_available_all
 from .detail.treasures.detail.game_pc_treasure_acquire import game_pc_treasure_acquire
 from .detail.treasures.detail.game_pc_treasure_acquire_all import game_pc_treasure_acquire_all
 from .detail.treasures.detail.game_pc_treasure_buy import game_pc_treasure_buy
@@ -149,6 +155,12 @@ __all__ = [
     'game_pc_recipes_all',
     'game_pc_recipe_detail',
     'game_pc_recipe_detail_full',
+    'game_pc_recipes_available',
+    'game_pc_recipes_available_all',
+    'game_pc_recipe_acquire',
+    'game_pc_recipe_acquire_all',
+    'game_pc_recipe_remove',
+    'game_pc_recipe_remove_all',
     'game_pc_treasures',
     'game_pc_treasure_buy',
     'game_pc_treasure_buy_all',
