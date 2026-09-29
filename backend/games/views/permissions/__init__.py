@@ -8,6 +8,7 @@ from .game_npc_permissions import game_npc_permissions
 from .game_pc_permissions import game_pc_permissions
 from .game_permissions import game_permissions
 from .game_possession_permissions import game_possession_permissions
+from .game_recipe_permissions import game_recipe_permissions
 from .game_treasure_permissions import game_treasure_permissions
 from .treasure_permissions import treasure_permissions
 
@@ -22,4 +23,5 @@ __all__ = [
     'game_item_permissions',
     'game_faction_permissions',
     'game_document_permissions',
+    'game_recipe_permissions',
 ]
