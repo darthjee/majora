@@ -52,6 +52,14 @@ resources:
           parameters:
             slug: parsedBody.game_slug
             id: parsedBody.id
+        - resource: npc_recipes
+          parameters:
+            slug: parsedBody.game_slug
+            id: parsedBody.id
+        - resource: short_npc_recipes
+          parameters:
+            slug: parsedBody.game_slug
+            id: parsedBody.id
 
   npc_photos:
     - url: /games/{:slug}/npcs/{:id}/photos.json
@@ -181,6 +189,36 @@ resources:
 
   short_npc_possessions:
     - url: /games/{:slug}/npcs/{:id}/possessions.json?per_page=5
+      status: 200
+
+  npc_recipes:
+    - url: /games/{:slug}/npcs/{:id}/recipes.json
+      status: 200
+      paginated_actions:
+        - resource: paginated_npc_recipes
+          pagination:
+            - pages: headers['pages']
+            - page_key: page
+            - zero_indexed: false
+          parameters:
+            per_page: headers['per_page']
+
+  paginated_npc_recipes:
+    - url: /games/{:slug}/npcs/{:id}/recipes.json?page={:page}&per_page={:per_page}
+      status: 200
+      actions:
+        - resource: npc_recipe_detail
+          parameters:
+            slug: parameters.slug
+            id: parameters.id
+            recipe_id: parsedBody.id
+
+  npc_recipe_detail:
+    - url: /games/{:slug}/npcs/{:id}/recipes/{:recipe_id}.json
+      status: 200
+
+  short_npc_recipes:
+    - url: /games/{:slug}/npcs/{:id}/recipes.json?per_page=5
       status: 200
 
   short_game_npcs:
