@@ -66,6 +66,12 @@ from .detail.possessions.game_pc_possessions_available import game_pc_possession
 from .detail.possessions.game_pc_possessions_available_all import (
     game_pc_possessions_available_all,
 )
+from .detail.recipes.detail.game_pc_recipe_detail import game_pc_recipe_detail
+from .detail.recipes.detail.game_pc_recipe_detail_full import (
+    game_pc_recipe_detail_full,
+)
+from .detail.recipes.game_pc_recipes import game_pc_recipes
+from .detail.recipes.game_pc_recipes_all import game_pc_recipes_all
 from .detail.treasures.detail.game_pc_treasure_acquire import game_pc_treasure_acquire
 from .detail.treasures.detail.game_pc_treasure_acquire_all import game_pc_treasure_acquire_all
 from .detail.treasures.detail.game_pc_treasure_buy import game_pc_treasure_buy
@@ -139,6 +145,10 @@ __all__ = [
     'game_pc_possession_acquire_all',
     'game_pc_possession_remove',
     'game_pc_possession_remove_all',
+    'game_pc_recipes',
+    'game_pc_recipes_all',
+    'game_pc_recipe_detail',
+    'game_pc_recipe_detail_full',
     'game_pc_treasures',
     'game_pc_treasure_buy',
     'game_pc_treasure_buy_all',

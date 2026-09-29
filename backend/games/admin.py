@@ -8,6 +8,7 @@ from .models import (
     CharacterItem,
     CharacterLink,
     CharacterPhoto,
+    CharacterRecipe,
     CharacterTreasure,
     Game,
     GameDocument,
@@ -52,6 +53,7 @@ admin.site.register(GameLink)
 admin.site.register(GamePhoto)
 admin.site.register(GameItem)
 admin.site.register(GameRecipe)
+admin.site.register(CharacterRecipe)
 admin.site.register(CharacterItem)
 admin.site.register(GameDocument)
 admin.site.register(CharacterDocument)

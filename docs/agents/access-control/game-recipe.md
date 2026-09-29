@@ -26,12 +26,23 @@ shortcut. Unauthenticated callers get `401`, authenticated callers without a rol
 | `/games/<slug>/recipes/<id>/full.json` | GET | **GameEdit** — returns even if hidden, adds `hidden`, real output. Always `X-Skip-Cache: true` |
 | `/games/<slug>/common_items/<common_item_id>/recipes.json` | GET | **AllowAny** — 404 if the common item is hidden or unknown; excludes hidden recipes |
 | `/games/<slug>/common_items/<common_item_id>/recipes/all.json` | GET | **GameEdit** — works even if the common item is hidden; includes hidden recipes, adds `hidden`. Always `X-Skip-Cache: true` |
+| `/games/<slug>/recipes/<id>/characters.json` | GET | **AllowAny** — 404 if the recipe is hidden, unknown or in another game; excludes hidden `CharacterRecipe` links and hidden or incognito NPCs |
+| `/games/<slug>/recipes/<id>/characters/all.json` | GET | **GameEdit** — works even if the recipe is hidden; includes hidden links and hidden / incognito NPCs, adds `hidden`. Always `X-Skip-Cache: true` |
 | `/games/<slug>/recipes.json` | POST | roles per [`game_recipe/endpoints.yml`](../../../backend/permissions/config/game_recipe/endpoints.yml) (`create`: staff + player). Always `X-Skip-Cache: true` |
 | `/games/<slug>/recipes/<id>.json` | PATCH | roles per [`game_recipe/endpoints.yml`](../../../backend/permissions/config/game_recipe/endpoints.yml) (`edit`: staff + player). 404 on a hidden recipe for regular-tier callers. Always `X-Skip-Cache: true` |
 | `/permissions/game_recipe.json` | GET | **AllowAny** — entity-agnostic, role-simulated `can_edit` (mirrors `permissions/game_common_item.json`) |
 
 Plain GET endpoints set no `X-Skip-Cache`. Every index endpoint is paginated
-(`?page=` / `?per_page=`) and ordered by `id`.
+(`?page=` / `?per_page=`) and ordered by `id`, except the recipe → characters endpoints below.
+
+## Recipe → characters
+
+`recipes/<id>/characters.json` (+ `/all.json`) list the characters (PCs and NPCs) who know the
+recipe through a [CharacterRecipe](character-recipe.md), mirroring
+`factions/<id>/characters.json`. They reuse the `game_recipe` read tiers and add no
+`endpoints.yml` keys. Entries are `id` (the **character** id), `name`, `photo_path` (the
+character's) and `type` (`'pc'` / `'npc'`); `/all.json` adds `hidden` (the
+`CharacterRecipe.hidden` value). Ordered by character `name`, then `id`, and paginated.
 
 ## Fields
 
