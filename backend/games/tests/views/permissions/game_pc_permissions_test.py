@@ -37,6 +37,7 @@ class TestGamePcPermissionsView(TokenAuthRequestMixin):
             'can_create_item': False,
             'can_upload_item_photo': False,
             'can_create_possession': False,
+            'can_exchange_recipe': False,
             'can_exchange_treasure': False,
             'can_set_profile_photo': False,
             'can_delete_photo': False,
@@ -49,6 +50,7 @@ class TestGamePcPermissionsView(TokenAuthRequestMixin):
             'can_create_item': True,
             'can_upload_item_photo': True,
             'can_create_possession': True,
+            'can_exchange_recipe': True,
             'can_exchange_treasure': True,
             'can_set_profile_photo': True,
             'can_delete_photo': True,
@@ -91,7 +93,7 @@ class TestGamePcPermissionsView(TokenAuthRequestMixin):
         assert data == self._all_false()
 
     def test_owner_can_edit(self, client):
-        """Test that ?role=owner grants every permission True except can_delete_photo."""
+        """Test that ?role=owner grants all but can_delete_photo and can_exchange_recipe."""
         response = self.get(client, self._url(query='role=owner'))
         data = json.loads(response.content)
         assert data == {
@@ -99,6 +101,7 @@ class TestGamePcPermissionsView(TokenAuthRequestMixin):
             'can_create_item': True,
             'can_upload_item_photo': True,
             'can_create_possession': True,
+            'can_exchange_recipe': False,
             'can_exchange_treasure': True,
             'can_set_profile_photo': True,
             'can_delete_photo': False,
@@ -113,6 +116,7 @@ class TestGamePcPermissionsView(TokenAuthRequestMixin):
             'can_create_item': True,
             'can_upload_item_photo': True,
             'can_create_possession': True,
+            'can_exchange_recipe': True,
             'can_exchange_treasure': True,
             'can_set_profile_photo': True,
             'can_delete_photo': True,
@@ -127,6 +131,7 @@ class TestGamePcPermissionsView(TokenAuthRequestMixin):
             'can_create_item': True,
             'can_upload_item_photo': True,
             'can_create_possession': True,
+            'can_exchange_recipe': True,
             'can_exchange_treasure': False,
             'can_set_profile_photo': True,
             'can_delete_photo': False,
@@ -139,3 +144,10 @@ class TestGamePcPermissionsView(TokenAuthRequestMixin):
         CharacterFactory(name='Legolas', game=self.game, player=other_player, npc=False)
         response_after = self.get(client, self._url(query='role=owner'))
         assert response_before.content == response_after.content
+
+    def test_can_exchange_recipe_follows_regular_create(self, client):
+        """Test that can_exchange_recipe is True for staff/player and False for owner/anonymous."""
+        expectations = {'role=staff': True, 'role=player': True, 'role=owner': False, '': False}
+        for query, expected in expectations.items():
+            data = json.loads(self.get(client, self._url(query=query)).content)
+            assert data['can_exchange_recipe'] is expected, query

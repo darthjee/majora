@@ -46,6 +46,11 @@ def _character_document_resource(character):
     return 'game_pc_document' if character.is_pc else 'game_npc_document'
 
 
+def _character_recipe_resource(character):
+    """Return the resource name ('game_pc_recipe'/'game_npc_recipe') for `character`."""
+    return 'game_pc_recipe' if character.is_pc else 'game_npc_recipe'
+
+
 def _character_faction_resource(character):
     """Return the resource name ('game_pc_faction'/'game_npc_faction') for `character`."""
     return 'game_pc_faction' if character.is_pc else 'game_npc_faction'

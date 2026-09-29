@@ -1,0 +1,5 @@
+# CharacterPermissionsSerializer's can_exchange_recipe, for a PC.
+# Must mirror game_pc_recipe/endpoints.yml's `regular.create`.
+exchange:
+  - staff
+  - player

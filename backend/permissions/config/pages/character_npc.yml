@@ -9,3 +9,5 @@ game_npc_item:
   photo_upload: can_upload_item_photo
 game_npc_possession:
   create_update: can_create_possession
+game_npc_recipe:
+  exchange: can_exchange_recipe

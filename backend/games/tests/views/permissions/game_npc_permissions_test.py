@@ -36,6 +36,7 @@ class TestGameNpcPermissionsView(TokenAuthRequestMixin):
             'can_create_item': False,
             'can_upload_item_photo': False,
             'can_create_possession': False,
+            'can_exchange_recipe': False,
             'can_exchange_treasure': False,
             'can_set_profile_photo': False,
             'can_delete_photo': False,
@@ -48,6 +49,7 @@ class TestGameNpcPermissionsView(TokenAuthRequestMixin):
             'can_create_item': True,
             'can_upload_item_photo': True,
             'can_create_possession': True,
+            'can_exchange_recipe': True,
             'can_exchange_treasure': True,
             'can_set_profile_photo': True,
             'can_delete_photo': True,
@@ -104,6 +106,7 @@ class TestGameNpcPermissionsView(TokenAuthRequestMixin):
             'can_create_item': True,
             'can_upload_item_photo': False,
             'can_create_possession': True,
+            'can_exchange_recipe': True,
             'can_exchange_treasure': True,
             'can_set_profile_photo': True,
             'can_delete_photo': True,
@@ -118,6 +121,7 @@ class TestGameNpcPermissionsView(TokenAuthRequestMixin):
             'can_create_item': True,
             'can_upload_item_photo': False,
             'can_create_possession': True,
+            'can_exchange_recipe': True,
             'can_exchange_treasure': False,
             'can_set_profile_photo': True,
             'can_delete_photo': False,
@@ -135,3 +139,10 @@ class TestGameNpcPermissionsView(TokenAuthRequestMixin):
         CharacterFactory(name='Saruman', game=self.game, npc=True)
         response_after = self.get(client, self._url(query='role=staff'))
         assert response_before.content == response_after.content
+
+    def test_can_exchange_recipe_follows_regular_create(self, client):
+        """Test that can_exchange_recipe is True for staff/player and False for owner/anonymous."""
+        expectations = {'role=staff': True, 'role=player': True, 'role=owner': False, '': False}
+        for query, expected in expectations.items():
+            data = json.loads(self.get(client, self._url(query=query)).content)
+            assert data['can_exchange_recipe'] is expected, query

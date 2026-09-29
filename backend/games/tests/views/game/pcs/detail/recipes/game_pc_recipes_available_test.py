@@ -1,0 +1,102 @@
+"""Tests for the PC recipes/available.json view (regular.create; issue #1459)."""
+
+import json
+
+import pytest
+from django.urls import reverse
+
+from games.tests.factories import CharacterRecipeFactory
+from games.tests.views.game._character_recipe_exchange_fixtures import (
+    CharacterRecipeExchangeFixtures,
+)
+
+
+@pytest.mark.django_db
+class TestGamePcRecipesAvailableView(CharacterRecipeExchangeFixtures):
+    """Tests for GET /games/<slug>/pcs/<id>/recipes/available.json."""
+
+    kind = 'pc'
+
+    def setup_method(self):
+        """Set up a PC with known rows, a catalog and another game's recipes."""
+        self.setup_exchange()
+
+    def _names(self, response):
+        """Return the recipe names of a list response, in order."""
+        return [entry['name'] for entry in json.loads(response.content)]
+
+    def test_returns_401_for_unauthenticated(self, client):
+        """Test that an unauthenticated request returns 401."""
+        assert self.get(client, self.url('available.json')).status_code == 401
+
+    def test_returns_403_for_non_member(self, client):
+        """Test that a user who is not a player of the game gets 403."""
+        response = self.get(client, self.url('available.json'), token=self.outsider_token)
+        assert response.status_code == 403
+
+    def test_player_gets_200(self, client):
+        """Test that a plain player of the game (not the owner) may list the catalog."""
+        response = self.get(client, self.url('available.json'), token=self.other_token)
+        assert response.status_code == 200
+
+    def test_staff_gets_200(self, client):
+        """Test that a staff user may list the catalog."""
+        response = self.get(client, self.url('available.json'), token=self.staff_token)
+        assert response.status_code == 200
+
+    def test_excludes_hidden_and_known_recipes(self, client):
+        """Test that hidden, known (hidden rows too) and other-game recipes are left out."""
+        response = self.get(client, self.url('available.json'), token=self.other_token)
+        assert self._names(response) == ['Fire Elixir', 'Venom Draught']
+
+    def test_masks_hidden_output_without_hidden_field(self, client):
+        """Test that a hidden output item is masked and `hidden` is not exposed."""
+        response = self.get(client, self.url('available.json'), token=self.dm_token)
+        by_name = self.by_name(json.loads(response.content))
+        assert by_name['Venom Draught']['output'] is None
+        assert by_name['Fire Elixir']['output'] is not None
+        assert 'hidden' not in by_name['Fire Elixir']
+
+    def test_filters_by_name(self, client):
+        """Test that ?name= matches GameRecipe.name case-insensitively."""
+        url = self.url('available.json', query='?name=ELIXIR')
+        assert self._names(self.get(client, url, token=self.other_token)) == ['Fire Elixir']
+
+    def test_ordered_by_id(self, client):
+        """Test that entries are ordered by id."""
+        response = self.get(client, self.url('available.json'), token=self.other_token)
+        ids = [entry['id'] for entry in json.loads(response.content)]
+        assert ids == sorted(ids)
+
+    def test_paginates(self, client):
+        """Test that ?per_page= limits the page and pagination headers are set."""
+        url = self.url('available.json', query='?per_page=1')
+        response = self.get(client, url, token=self.other_token)
+        assert len(json.loads(response.content)) == 1
+        assert response['total'] == '2'
+
+    def test_excludes_recipe_known_through_hidden_row_only(self, client):
+        """Test the known limitation: a recipe known through a hidden row is still left out."""
+        CharacterRecipeFactory(
+            character=self.pc, game_recipe=self.catalog_recipe, hidden=True,
+        )
+        response = self.get(client, self.url('available.json'), token=self.other_token)
+        assert self._names(response) == ['Venom Draught']
+
+    def test_sets_skip_cache_header(self, client):
+        """Test that a successful response sets X-Skip-Cache: true."""
+        response = self.get(client, self.url('available.json'), token=self.other_token)
+        assert response['X-Skip-Cache'] == 'true'
+
+    def test_sets_skip_cache_header_on_denial(self, client):
+        """Test that a permission denial sets X-Skip-Cache: true."""
+        response = self.get(client, self.url('available.json'), token=self.outsider_token)
+        assert response['X-Skip-Cache'] == 'true'
+
+    def test_url_by_name(self, client):
+        """Test that the view is accessible by URL name."""
+        url = reverse(
+            'game-pc-recipes-available',
+            kwargs={'game_slug': 'test-game', 'character_id': self.pc.id},
+        )
+        assert self.get(client, url, token=self.other_token).status_code == 200

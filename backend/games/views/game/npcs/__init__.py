@@ -66,12 +66,18 @@ from .detail.possessions.game_npc_possessions_available import game_npc_possessi
 from .detail.possessions.game_npc_possessions_available_all import (
     game_npc_possessions_available_all,
 )
+from .detail.recipes.detail.game_npc_recipe_acquire import game_npc_recipe_acquire
+from .detail.recipes.detail.game_npc_recipe_acquire_all import game_npc_recipe_acquire_all
 from .detail.recipes.detail.game_npc_recipe_detail import game_npc_recipe_detail
 from .detail.recipes.detail.game_npc_recipe_detail_full import (
     game_npc_recipe_detail_full,
 )
+from .detail.recipes.detail.game_npc_recipe_remove import game_npc_recipe_remove
+from .detail.recipes.detail.game_npc_recipe_remove_all import game_npc_recipe_remove_all
 from .detail.recipes.game_npc_recipes import game_npc_recipes
 from .detail.recipes.game_npc_recipes_all import game_npc_recipes_all
+from .detail.recipes.game_npc_recipes_available import game_npc_recipes_available
+from .detail.recipes.game_npc_recipes_available_all import game_npc_recipes_available_all
 from .detail.treasures.detail.game_npc_treasure_acquire import game_npc_treasure_acquire
 from .detail.treasures.detail.game_npc_treasure_acquire_all import game_npc_treasure_acquire_all
 from .detail.treasures.detail.game_npc_treasure_buy import game_npc_treasure_buy
@@ -154,6 +160,12 @@ __all__ = [
     'game_npc_recipes_all',
     'game_npc_recipe_detail',
     'game_npc_recipe_detail_full',
+    'game_npc_recipes_available',
+    'game_npc_recipes_available_all',
+    'game_npc_recipe_acquire',
+    'game_npc_recipe_acquire_all',
+    'game_npc_recipe_remove',
+    'game_npc_recipe_remove_all',
     'game_npc_treasures',
     'game_npc_treasures_all',
     'game_npc_treasure_buy',
