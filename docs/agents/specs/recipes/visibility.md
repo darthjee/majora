@@ -14,7 +14,9 @@ plain endpoints exclude hidden rows and never expose `hidden`; `/all.json` and
 
 - When a visible `GameRecipe`'s output `GameCommonItem` is hidden, the plain
   (non-restricted) recipe endpoints return the output as `null` — no id, name
-  or photo leaked. `/all.json` and `/full.json` return it in full.
+  or photo leaked. `/all.json` and `/full.json` return it in full to `GameEdit`
+  callers; a PC's owning player reading the PC `CharacterEdit` variants still
+  sees it masked.
 - The same masking applies wherever a recipe's output is embedded in a
   `CharacterRecipe` response.
 - The frontend renders a masked output as an "unknown" placeholder.
@@ -35,8 +37,11 @@ plain endpoints exclude hidden rows and never expose `hidden`; `/all.json` and
   `CharacterRecipe.hidden` matters — `GameRecipe.hidden` is ignored there.
 - A new `CharacterRecipe` copies `GameRecipe.hidden` at creation, so linking a
   secret recipe never reveals it through the character page by accident; the
-  GM can unhide it later through
+  GM — or, on a PC, anyone with `CharacterEdit` (including the owning player)
+  — can unhide it later through
   [`PATCH .../recipes/<character_recipe_id>.json`](api-contract.md#toggling-hidden-patch).
+  Unhiding publishes the linked recipe's display fields on the character's
+  plain endpoints even if `GameRecipe.hidden` is true.
 
 ## Available / acquire
 
