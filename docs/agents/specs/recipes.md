@@ -19,7 +19,8 @@ is re-decided.
 - [Permissions](recipes/permissions.md) — permissions summary
 - [API contract](recipes/api-contract.md) — routes, tiers, request/response
   shapes, error codes, caching and Navi needs
-- Frontend (`recipes/frontend.md`) — pending, added by #1444
+- [Frontend](recipes/frontend.md) — placement and navigation, game and
+  character recipe pages, shortlists, exchange modal, request wiring, i18n
 
 ## Out of scope
 
