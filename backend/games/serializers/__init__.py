@@ -14,7 +14,7 @@ Subpackage map (mirrors `docs/agents/serializers-organization.md`):
   `npc_player_create.py`, `npc_player_update.py`).
 - `games/` — serializers for the `Game` resource and its nested sub-resources, each in its
   own folder: `common_items/`, `conversations/`, `documents/`, `factions/`, `items/`,
-  `my_games/`, `players/`, `polls/`, `possessions/`, `sessions/` (incl. `sessions/
+  `my_games/`, `players/`, `polls/`, `possessions/`, `recipes/`, `sessions/` (incl. `sessions/
   messages/`), `tasks/`, `treasures/`.
 - `treasures/` — serializers for the top-level (not game-scoped) `Treasure` resource.
 - Root-level cross-cutting files: `base_access.py` and `base_permissions.py` (shared base
@@ -107,6 +107,11 @@ __all__ = [
     'GamePossessionPermissionsSerializer',
     'GamePossessionPhotoSerializer',
     'GamePossessionUpdateSerializer',
+    'GameRecipeAllListSerializer',
+    'GameRecipeDetailFullSerializer',
+    'GameRecipeDetailSerializer',
+    'GameRecipeListSerializer',
+    'GameRecipeOutputSerializer',
     'GameRegularUpdateSerializer',
     'GameSessionCreateSerializer',
     'GameSessionDetailSerializer',
@@ -232,6 +237,11 @@ _SUBMODULE_BY_NAME = {
     'GamePossessionPermissionsSerializer': 'games.possessions.game_possession_permissions',
     'GamePossessionPhotoSerializer': 'games.possessions.game_possession_photo',
     'GamePossessionUpdateSerializer': 'games.possessions.game_possession_update',
+    'GameRecipeAllListSerializer': 'games.recipes.game_recipe_list',
+    'GameRecipeDetailFullSerializer': 'games.recipes.game_recipe_list',
+    'GameRecipeDetailSerializer': 'games.recipes.game_recipe_list',
+    'GameRecipeListSerializer': 'games.recipes.game_recipe_list',
+    'GameRecipeOutputSerializer': 'games.recipes.game_recipe_output',
     'GameRegularUpdateSerializer': 'games.game_regular_update',
     'GameSessionCreateSerializer': 'games.sessions.game_session_create',
     'GameSessionDetailSerializer': 'games.sessions.game_session_detail',
