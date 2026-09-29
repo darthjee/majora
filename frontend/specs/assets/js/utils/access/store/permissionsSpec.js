@@ -110,6 +110,20 @@ describe('AccessStore', function() {
     });
   });
 
+  describe('#ensureRecipePermissions', function() {
+    it('resolves with the fetched permissions payload', async function() {
+      spyOn(GameClient.prototype, 'fetchGameAccess').and.returnValue(Promise.resolve(fakeResponse({})));
+      const fetchSpy = spyOn(GameClient.prototype, 'fetchRecipePermissions').and.returnValue(
+        Promise.resolve(fakeResponse({ can_edit: true })),
+      );
+
+      const result = await AccessStore.ensureRecipePermissions('demo');
+
+      expect(result).toEqual({ can_edit: true });
+      expect(fetchSpy).toHaveBeenCalledWith('demo', null, jasmine.anything(), []);
+    });
+  });
+
   describe('#ensureFactionPermissions', function() {
     it('resolves with the fetched permissions payload', async function() {
       spyOn(GameClient.prototype, 'fetchGameAccess').and.returnValue(Promise.resolve(fakeResponse({})));
