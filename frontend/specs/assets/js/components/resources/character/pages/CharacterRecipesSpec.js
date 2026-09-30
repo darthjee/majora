@@ -6,8 +6,12 @@ import CharacterRecipesHelper
   from '../../../../../../../assets/js/components/resources/character/pages/helpers/CharacterRecipesHelper.jsx';
 import CharacterContextController
   from '../../../../../../../assets/js/components/resources/character/pages/controllers/CharacterContextController.js';
-import { resolveRecipeExchangeButton }
+import { resolveRecipeExchangeButton, buildRecipeExchangeCharacter }
   from '../../../../../../../assets/js/components/resources/character/pages/shared/CharacterRecipes.jsx';
+import ResourceExchangeModalHelper
+  from '../../../../../../../assets/js/components/resources/character/pages/elements/helpers/ResourceExchangeModalHelper.jsx';
+import recipeExchangeTabs
+  from '../../../../../../../assets/js/components/resources/character/pages/elements/recipeExchangeTabs.js';
 import FacadeRefresh from '../../../../../../../assets/js/utils/access/useFacadeRefresh.js';
 import { stubBuildEffect } from '../../../../../../support/controllerStubs.js';
 
@@ -59,8 +63,21 @@ KINDS.forEach(({
           itemsCount: null,
           canExchange: false,
         }),
-        jasmine.objectContaining({ onItemsChange: jasmine.any(Function) }),
+        jasmine.objectContaining({ onItemsChange: jasmine.any(Function), onExchange: jasmine.any(Function) }),
       );
+    });
+
+    it('renders the recipe exchange modal configured with the acquire/remove tabs', function() {
+      let capturedState;
+      spyOn(ResourceExchangeModalHelper, 'render').and.callFake((show, state) => {
+        capturedState = state;
+        return React.createElement('div', null, 'modal');
+      });
+
+      renderToStaticMarkup(React.createElement(Component));
+
+      expect(capturedState.activeTab).toBe('acquire');
+      expect(capturedState.tabs).toBe(recipeExchangeTabs);
     });
 
     it('does not render the Exchange button before the character context loads', function() {
@@ -82,5 +99,19 @@ describe('resolveRecipeExchangeButton', function() {
 
   it('is false while the character has not loaded yet', function() {
     expect(resolveRecipeExchangeButton(null)).toBe(false);
+  });
+});
+
+describe('buildRecipeExchangeCharacter', function() {
+  it('threads canEdit (character-level) and gameCanEdit (game-level) independently', function() {
+    expect(buildRecipeExchangeCharacter('7', 'demo', true, { can_edit: true, game_can_edit: false })).toEqual({
+      id: '7', game_slug: 'demo', is_pc: true, canEdit: true, gameCanEdit: false,
+    });
+  });
+
+  it('defaults both flags to undefined while the character has not loaded yet', function() {
+    expect(buildRecipeExchangeCharacter('9', 'demo', false, null)).toEqual({
+      id: '9', game_slug: 'demo', is_pc: false, canEdit: undefined, gameCanEdit: undefined,
+    });
   });
 });
