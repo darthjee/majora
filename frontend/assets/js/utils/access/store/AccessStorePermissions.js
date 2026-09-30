@@ -68,7 +68,8 @@ export default class AccessStorePermissions {
    * @param {string} gameSlug - Game slug the character belongs to.
    * @param {string|number} characterId - Character id.
    * @returns {Promise<{can_edit: boolean, can_exchange_treasure: boolean,
-   *   can_set_profile_photo: boolean, can_delete_photo: boolean}>} Resolves to the permissions payload.
+   *   can_exchange_recipe: boolean, can_set_profile_photo: boolean, can_delete_photo: boolean}>}
+   *   Resolves to the permissions payload.
    */
   static ensureCharacter(cache, characterClient, characterKind, gameSlug, characterId) {
     const fetchForRoleSet = (roleSet) => AccessStorePermissions.#loggedEnsure(
@@ -312,8 +313,8 @@ export default class AccessStorePermissions {
    * @param {string} gameSlug - Game slug the character belongs to.
    * @param {string|number} characterId - Character id.
    * @returns {{can_edit: boolean, can_exchange_treasure: boolean,
-   *   can_set_profile_photo: boolean, can_delete_photo: boolean}} The cached permissions payload,
-   *   or the fail-closed default.
+   *   can_exchange_recipe: boolean, can_set_profile_photo: boolean, can_delete_photo: boolean}}
+   *   The cached permissions payload, or the fail-closed default.
    */
   static getCharacter(cache, characterKind, gameSlug, characterId) {
     const roleSet = AccessStorePermissions.#roleSet(

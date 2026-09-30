@@ -20,6 +20,7 @@ import sourceConfig from './config/sourceConfig.js';
 import collectionConfig from './config/collectionConfig.js';
 import factionConfig from './config/factionConfig.js';
 import recipeConfig from './config/recipeConfig.js';
+import characterRecipeConfig from './config/characterRecipeConfig.js';
 
 const RESOURCES = {
   game: gameConfig,
@@ -44,6 +45,7 @@ const RESOURCES = {
   collection: collectionConfig,
   faction: factionConfig,
   recipe: recipeConfig,
+  characterRecipe: characterRecipeConfig,
 };
 
 /**
@@ -71,7 +73,7 @@ export default {
    *   `'commonItem'`, `'treasure'`, `'session'`, `'document'`, `'poll'`, `'task'`, `'staffUser'`,
    *   `'gameDocumentPhoto'`, `'gameDocumentFile'`, `'gameDocumentPage'`, `'characterDocumentFile'`,
    *   `'characterDocumentPhoto'`, `'stlModel'`, `'source'`, `'collection'`, `'faction'`,
-   *   `'recipe'`).
+   *   `'recipe'`, `'characterRecipe'`).
    * @param {string} quantityType - `'collection'`, `'single'`, or a resource-specific key.
    * @returns {{regular: object, private: object}|null} The config entry, or `null` when no
    *   configuration exists for the given method/resource/quantity-type combination.
