@@ -50,6 +50,7 @@ const CASES = [
     hash: '#/games/demo/common_items/new',
     expected: () => Translator.t('common_item_new_page.title'),
   },
+  { page: 'gameRecipes', hash: '#/games/demo/recipes', expected: () => Translator.t('game_recipes_page.loading') },
   { page: 'gameFactions', hash: '#/games/demo/factions', expected: () => Translator.t('game_factions_page.loading') },
   { page: 'gameFaction', hash: '#/games/demo/factions/1', expected: () => Translator.t('faction_page.loading') },
   { page: 'gameFactionEdit', hash: '#/games/demo/factions/1/edit', expected: () => Translator.t('faction_page.loading') },

@@ -11,9 +11,13 @@
  *   a leading blank option.
  * @param {Function} props.onChange - Called with the newly selected value.
  * @param {string} [props.testId] - Override for `data-testid`. Defaults to `id`.
+ * @param {string} [props.blankLabel] - Translated label for the leading blank option (e.g. an
+ *   "All" choice). Defaults to an empty label.
  * @returns {React.ReactElement} Rendered filter select control.
  */
-export default function FilterSelect({ id, label, value, options, onChange, testId }) {
+export default function FilterSelect({
+  id, label, value, options, onChange, testId, blankLabel,
+}) {
   return (
     <div className="col-auto">
       <label htmlFor={id} className="form-label">{label}</label>
@@ -24,7 +28,7 @@ export default function FilterSelect({ id, label, value, options, onChange, test
         value={value}
         onChange={(event) => onChange(event.target.value)}
       >
-        <option value="" />
+        <option value="">{blankLabel}</option>
         {options.map((option) => (
           <option key={option.value} value={option.value}>{option.label}</option>
         ))}
