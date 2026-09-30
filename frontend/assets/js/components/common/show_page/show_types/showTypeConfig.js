@@ -5,6 +5,7 @@ import itemShowType from './configs/itemShowType.js';
 import possessionShowType from './configs/possessionShowType.js';
 import commonItemShowType from './configs/commonItemShowType.js';
 import recipeShowType from './configs/recipeShowType.js';
+import characterRecipeShowType from './configs/characterRecipeShowType.js';
 import pcShowType from './configs/pcShowType.js';
 import npcShowType from './configs/npcShowType.js';
 import treasureShowType from './configs/treasureShowType.js';
@@ -40,6 +41,7 @@ import factionShowType from './configs/factionShowType.js';
  * `character_document` (issue #892) is `Show`-only, deliberately kept separate from `document`
  * (the unrelated `GameDocument` show/new/edit page) since `CharacterDocument`'s payload shape and
  * available actions differ — see `characterDocumentShowType.js`'s own doc comment.
+ * `character_recipe` (issue #1450) is likewise `Show`-only, reusing `recipe`'s show elements.
  */
 const showTypeConfig = {
   document: documentShowType,
@@ -49,6 +51,7 @@ const showTypeConfig = {
   possession: possessionShowType,
   commonItem: commonItemShowType,
   recipe: recipeShowType,
+  character_recipe: characterRecipeShowType,
   pc: pcShowType,
   npc: npcShowType,
   treasure: treasureShowType,

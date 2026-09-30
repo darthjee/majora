@@ -62,6 +62,7 @@ import NpcCharacterPossessionNew from '../resources/character/pages/NpcCharacter
 import NpcCharacterPossessions from '../resources/character/pages/NpcCharacterPossessions.jsx';
 import NpcCharacterDocument from '../resources/character/pages/NpcCharacterDocument.jsx';
 import NpcCharacterDocuments from '../resources/character/pages/NpcCharacterDocuments.jsx';
+import NpcCharacterRecipe from '../resources/character/pages/NpcCharacterRecipe.jsx';
 import NpcCharacterRecipes from '../resources/character/pages/NpcCharacterRecipes.jsx';
 import NpcCharacterFactions from '../resources/character/pages/NpcCharacterFactions.jsx';
 import NpcCharacterPhotos from '../resources/character/pages/NpcCharacterPhotos.jsx';
@@ -78,6 +79,7 @@ import PcCharacterPossessionNew from '../resources/character/pages/PcCharacterPo
 import PcCharacterPossessions from '../resources/character/pages/PcCharacterPossessions.jsx';
 import PcCharacterDocument from '../resources/character/pages/PcCharacterDocument.jsx';
 import PcCharacterDocuments from '../resources/character/pages/PcCharacterDocuments.jsx';
+import PcCharacterRecipe from '../resources/character/pages/PcCharacterRecipe.jsx';
 import PcCharacterRecipes from '../resources/character/pages/PcCharacterRecipes.jsx';
 import PcCharacterFactions from '../resources/character/pages/PcCharacterFactions.jsx';
 import PcCharacterPhotos from '../resources/character/pages/PcCharacterPhotos.jsx';
@@ -167,6 +169,7 @@ const PAGES = {
   npcCharacterPossessionNew: <NpcCharacterPossessionNew />,
   npcCharacterDocument: <NpcCharacterDocument />,
   npcCharacterDocuments: <NpcCharacterDocuments />,
+  npcCharacterRecipe: <NpcCharacterRecipe />,
   npcCharacterRecipes: <NpcCharacterRecipes />,
   npcCharacterFactions: <NpcCharacterFactions />,
   pcCharacter: <PcCharacter />,
@@ -183,6 +186,7 @@ const PAGES = {
   pcCharacterPossessionNew: <PcCharacterPossessionNew />,
   pcCharacterDocument: <PcCharacterDocument />,
   pcCharacterDocuments: <PcCharacterDocuments />,
+  pcCharacterRecipe: <PcCharacterRecipe />,
   pcCharacterRecipes: <PcCharacterRecipes />,
   pcCharacterFactions: <PcCharacterFactions />,
   recoverPassword: <RecoverPassword />,
