@@ -11,6 +11,8 @@ from .models import (
     CharacterRecipe,
     CharacterTreasure,
     Game,
+    GameCommonItem,
+    GameCommonItemPhoto,
     GameDocument,
     GameItem,
     GameLink,
@@ -52,6 +54,8 @@ admin.site.register(CharacterTreasure)
 admin.site.register(GameLink)
 admin.site.register(GamePhoto)
 admin.site.register(GameItem)
+admin.site.register(GameCommonItem)
+admin.site.register(GameCommonItemPhoto)
 admin.site.register(GameRecipe)
 admin.site.register(CharacterRecipe)
 admin.site.register(CharacterItem)
