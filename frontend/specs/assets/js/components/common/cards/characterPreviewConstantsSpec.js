@@ -104,4 +104,11 @@ describe('characterPreviewConstants', function() {
       expect(PREVIEW_LIST_TYPES.faction.buildAuthEndpoint).toBeUndefined();
     });
   });
+
+  describe('PREVIEW_LIST_TYPES.commonItemRecipe', function() {
+    it('provides the title key and icon', function() {
+      expect(PREVIEW_LIST_TYPES.commonItemRecipe.titleKey).toBe('common_item_recipes_preview.title');
+      expect(PREVIEW_LIST_TYPES.commonItemRecipe.icon).toBe(Icons.bookHalf);
+    });
+  });
 });

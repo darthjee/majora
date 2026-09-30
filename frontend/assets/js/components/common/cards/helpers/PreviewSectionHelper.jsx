@@ -14,9 +14,10 @@ export default class PreviewSectionHelper {
    *
    * @param {object[]} items - List of items to preview.
    * @param {string} title - Section heading.
-   * @param {object} seeAllCard - Data for the "See all" card.
-   * @param {string} seeAllCard.href - Hash href for the "See all" card.
-   * @param {string} seeAllCard.icon - Bootstrap icon class name (see `Icons.js`) for the "See
+   * @param {object|null} [seeAllCard] - Data for the "See all" card; the card is omitted when
+   *   absent or when it has no `href`.
+   * @param {string} [seeAllCard.href] - Hash href for the "See all" card.
+   * @param {string} [seeAllCard.icon] - Bootstrap icon class name (see `Icons.js`) for the "See
    *   all" card.
    * @param {number} maxItems - Maximum number of items shown before the "See all" card.
    * @param {Function} renderItem - Function `(item) => ReactElement` called for each sliced item.
@@ -30,7 +31,7 @@ export default class PreviewSectionHelper {
    * @returns {React.ReactElement} Preview section element.
    */
   static render(items, title, seeAllCard, maxItems, renderItem, emptyText, sectionState, onToggle) {
-    const { href: seeAllHref, icon } = seeAllCard;
+    const { href: seeAllHref, icon } = seeAllCard ?? {};
     const { loading, total, collapsed } = sectionState;
     const preview = items.slice(0, maxItems);
     const seeAllText = Translator.t('character_preview_section.see_all').replace('{{title}}', title);
@@ -68,10 +69,18 @@ export default class PreviewSectionHelper {
         {PreviewSectionHelper.#renderEmptyText(preview, emptyText)}
         <div className="row">
           {preview.map(renderItem)}
-          <SeeAllCard icon={icon} text={seeAllText} href={seeAllHref} />
+          {PreviewSectionHelper.#renderSeeAllCard(icon, seeAllText, seeAllHref)}
         </div>
       </>
     );
+  }
+
+  static #renderSeeAllCard(icon, seeAllText, seeAllHref) {
+    if (!seeAllHref) {
+      return null;
+    }
+
+    return <SeeAllCard icon={icon} text={seeAllText} href={seeAllHref} />;
   }
 
   static #renderEmptyText(preview, emptyText) {

@@ -105,5 +105,24 @@ describe('PreviewSectionHelper', function() {
       const html = render(buildItems(1), { collapsed: false });
       expect(html).toContain('aria-expanded="true"');
     });
+
+    it('omits the see all card when no see all data is given', function() {
+      const html = renderToStaticMarkup(PreviewSectionHelper.render(
+        buildItems(1), title, null, maxItems, renderItem, undefined,
+        { loading: false, total: 1, collapsed: false }, onToggle,
+      ));
+
+      expect(html).toContain('Item 1');
+      expect(html).not.toContain('See all');
+    });
+
+    it('omits the see all card when it has no href', function() {
+      const html = renderToStaticMarkup(PreviewSectionHelper.render(
+        buildItems(1), title, { icon }, maxItems, renderItem, undefined,
+        { loading: false, total: 1, collapsed: false }, onToggle,
+      ));
+
+      expect(html).not.toContain(icon);
+    });
   });
 });

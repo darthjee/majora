@@ -24,7 +24,8 @@ export default class ShortListController {
 
   /**
    * Build the element's mount effect, fetching the resource's preview list through
-   * {@link RequestStore.ensure} (`<resource>.collection`), degrading to an empty list on
+   * {@link RequestStore.ensure} — `<resource>.collection` by default, or the entry's own
+   * `requestResource`/`quantityType` when declared (e.g. `recipe.commonItemCollection`) — degrading to an empty list on
    * failure so a broken shortlist never blocks rendering of the rest of the show page. Guards
    * against updating state after unmount, mirroring `OpenPollsWidgetController#buildEffect`.
    *
@@ -36,12 +37,13 @@ export default class ShortListController {
   buildEffect(context, maxItems) {
     return () => {
       let mounted = true;
+      const config = shortListResourceConfig[this.resource];
 
       RequestStore.ensure({
         componentName: 'ShortListController',
-        resource: this.resource,
-        quantityType: 'collection',
-        params: shortListResourceConfig[this.resource].buildParams(context),
+        resource: config.requestResource ?? this.resource,
+        quantityType: config.quantityType ?? 'collection',
+        params: config.buildParams(context),
         query: { per_page: maxItems },
       })
         .then(({ data, pagination }) => this.#handleResponse(data, pagination, mounted))

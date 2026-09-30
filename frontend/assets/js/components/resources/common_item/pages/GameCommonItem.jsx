@@ -15,7 +15,9 @@ import getCurrentHash from '../../../../utils/routing/currentHash.js';
  * controller's independently-derived `canUploadPhoto` flag, mirroring `GamePossession`'s upload
  * modal wiring. Also renders an Edit button, gated on the controller's independently-derived
  * `canEdit` flag. `GameCommonItem` has no character-owned family at all, so — like
- * `GamePossession` — there is no "give item" modal here.
+ * `GamePossession` — there is no "give item" modal here. The route's `game_slug` is added to the
+ * rendering context (the common item payload has none) for the "Recipes that produce it"
+ * shortlist (issue #1449).
  *
  * @param {object} [props] - Component props.
  * @param {Function} [props.ControllerClass] - Common item controller class to instantiate,
@@ -63,7 +65,12 @@ export default function GameCommonItem({ ControllerClass = GameCommonItemControl
   return (
     <>
       {CommonItemDetailHelper.render(
-        commonItem, backHref, editHref, canEdit, canUploadPhoto, () => setShowUploadModal(true),
+        { ...commonItem, game_slug: gameSlug },
+        backHref,
+        editHref,
+        canEdit,
+        canUploadPhoto,
+        () => setShowUploadModal(true),
       )}
       <PhotoUploadModal
         show={showUploadModal}

@@ -75,4 +75,8 @@ export const PREVIEW_LIST_TYPES = {
     titleKey: 'character_page.factions_title',
     icon: Icons.peopleFill,
   },
+  commonItemRecipe: {
+    titleKey: 'common_item_recipes_preview.title',
+    icon: Icons.bookHalf,
+  },
 };

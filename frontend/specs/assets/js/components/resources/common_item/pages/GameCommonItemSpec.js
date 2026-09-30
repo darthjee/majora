@@ -102,7 +102,7 @@ describe('GameCommonItem', function() {
 
     renderToStaticMarkup(React.createElement(GameCommonItem, { ControllerClass: LoadedController }));
 
-    expect(capturedCommonItem).toEqual(loadedCommonItem);
+    expect(capturedCommonItem).toEqual({ ...loadedCommonItem, game_slug: 'demo' });
     expect(capturedBackHref).toBe('#/games/demo/common_items');
     expect(capturedEditHref).toBe('#/games/demo/common_items/5/edit');
     expect(capturedCanEdit).toBe(true);

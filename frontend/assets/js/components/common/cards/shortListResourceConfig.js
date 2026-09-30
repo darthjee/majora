@@ -5,6 +5,7 @@ import ItemPreviewCard from './ItemPreviewCard.jsx';
 import DocumentPreviewCard from './DocumentPreviewCard.jsx';
 import PossessionPreviewCard from './PossessionPreviewCard.jsx';
 import FactionPreviewCard from './FactionPreviewCard.jsx';
+import RecipePreviewCard from './RecipePreviewCard.jsx';
 import { PREVIEW_LIST_TYPES } from './characterPreviewConstants.js';
 
 /**
@@ -59,7 +60,9 @@ function renderCharacterPreviewCard(characterType, item, context) {
 
 /**
  * Per-resource-type behavior registry driving `ShortList`: how to fetch a resource's preview
- * list (`buildParams`), where its "See all" card links (`buildSeeAllHref`), whether/where a
+ * list (`buildParams`, plus optional `requestResource`/`quantityType` overriding the default
+ * `<slot key>.collection` RequestStore lookup), where its optional "See all" card links
+ * (`buildSeeAllHref`; no card when omitted), whether/where a
  * clicked card navigates (`action`/`buildHref`), and how to render a single item's card
  * (`renderItem(item, context, href)`).
  *
@@ -168,6 +171,22 @@ const shortListResourceConfig = {
     buildHref: (context, item) => `#/games/${context.game_slug}/factions/${item.game_faction_id}`,
     renderItem: (item, context, href) => React.createElement(
       FactionPreviewCard, { key: item.id, faction: item, href },
+    ),
+  },
+  // issue #1449: the "Recipes that produce it" shortlist on the common item show page, backed by
+  // `recipe.commonItemCollection` (resolved at the game level). There is no full "recipes
+  // producing this item" page, so no "See all" card.
+  commonItemRecipe: {
+    titleKey: PREVIEW_LIST_TYPES.commonItemRecipe.titleKey,
+    icon: PREVIEW_LIST_TYPES.commonItemRecipe.icon,
+    emptyTextKey: 'common_item_recipes_preview.empty',
+    action: 'navigate',
+    requestResource: 'recipe',
+    quantityType: 'commonItemCollection',
+    buildParams: (context) => ({ gameSlug: context.game_slug, commonItemId: context.id }),
+    buildHref: (context, item) => `#/games/${context.game_slug}/recipes/${item.id}`,
+    renderItem: (item, context, href) => React.createElement(
+      RecipePreviewCard, { key: item.id, recipe: item, href },
     ),
   },
 };

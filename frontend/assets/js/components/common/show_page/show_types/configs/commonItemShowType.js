@@ -1,4 +1,5 @@
 import DescriptionBox from '../../../misc/DescriptionBox.jsx';
+import buildShortListSlot from '../../../cards/buildShortListSlot.js';
 import CommonItemPhoto from '../../../../resources/common_item/pages/elements/show/CommonItemPhoto.jsx';
 import CommonItemNameHeading from '../../../../resources/common_item/pages/elements/show/CommonItemNameHeading.jsx';
 import CommonItemTitle from '../../../../resources/common_item/pages/elements/show/CommonItemTitle.jsx';
@@ -24,7 +25,8 @@ import CommonItemSubmitButton
  * (`CommonItemPhoto`'s `New` variant) in the left column too, keeping the `hidden` switch inline
  * with the other fields in the right column. `price`/`category` render in every mode (`Show`
  * included), unlike `possessionShowType`'s fields, since browsing/knowing an item's price and
- * category is the whole point of this catalog.
+ * category is the whole point of this catalog. The show page also lists the "Recipes that produce
+ * it" shortlist (issue #1449) after the category.
  */
 const commonItemShowType = {
   left: [
@@ -38,6 +40,7 @@ const commonItemShowType = {
     { Show: DescriptionBox, New: CommonItemDescriptionField, Edit: CommonItemDescriptionField },
     CommonItemPriceField,
     CommonItemCategoryField,
+    { Show: buildShortListSlot('commonItemRecipe') },
     { New: CommonItemHiddenField },
     { New: CommonItemSubmitButton, Edit: CommonItemSubmitButton },
   ],
