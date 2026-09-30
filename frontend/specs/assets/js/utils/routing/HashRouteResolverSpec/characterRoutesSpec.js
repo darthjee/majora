@@ -111,6 +111,28 @@ const CASES = [
       'resolves /games/:game_slug/npcs/:character_id/documents/:id to npcCharacterDocument, not npcCharacterDocuments',
   },
   {
+    hash: '#/games/campaign/pcs/7/recipes',
+    expected: 'pcCharacterRecipes',
+    description: 'resolves /games/:game_slug/pcs/:character_id/recipes to pcCharacterRecipes, not pcCharacter',
+  },
+  {
+    hash: '#/games/campaign/pcs/7/recipes/5',
+    expected: 'pcCharacterRecipe',
+    description:
+      'resolves /games/:game_slug/pcs/:character_id/recipes/:id to pcCharacterRecipe, not pcCharacterRecipes',
+  },
+  {
+    hash: '#/games/campaign/npcs/7/recipes',
+    expected: 'npcCharacterRecipes',
+    description: 'resolves /games/:game_slug/npcs/:character_id/recipes to npcCharacterRecipes, not npcCharacter',
+  },
+  {
+    hash: '#/games/campaign/npcs/7/recipes/5',
+    expected: 'npcCharacterRecipe',
+    description:
+      'resolves /games/:game_slug/npcs/:character_id/recipes/:id to npcCharacterRecipe, not npcCharacterRecipes',
+  },
+  {
     hash: '#/games/campaign/npcs/new',
     expected: 'gameNpcNew',
     description: 'resolves /games/:game_slug/npcs/new to gameNpcNew, not npcCharacter',

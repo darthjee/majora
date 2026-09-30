@@ -122,7 +122,7 @@ function characterItem(kind, id, path, labelKey) {
 }
 
 /**
- * Builds the five PC/NPC dropdown entries (show/photos/treasures/items/documents)
+ * Builds the six PC/NPC dropdown entries (show/photos/treasures/items/documents/recipes)
  * shared by both character kinds.
  *
  * @param {'pc'|'npc'} kind - Which character dropdown to build entries for.
@@ -135,6 +135,7 @@ function characterItems(kind) {
     characterItem(kind, 'treasures', '/treasures', 'character_page.treasures_title'),
     characterItem(kind, 'items', '/items', 'character_page.items_title'),
     characterItem(kind, 'documents', '/documents', 'character_page.documents_title'),
+    characterItem(kind, 'recipes', '/recipes', 'character_page.recipes_title'),
   ];
 }
 
