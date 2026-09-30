@@ -12,6 +12,7 @@ describe('CharacterAccessResolver', function() {
         can_edit: true,
         can_exchange_treasure: true,
         can_exchange_recipe: true,
+        can_exchange_document: true,
         can_set_profile_photo: true,
         can_delete_photo: true,
       });
@@ -23,6 +24,7 @@ describe('CharacterAccessResolver', function() {
         can_edit: true,
         can_exchange_treasure: true,
         can_exchange_recipe: true,
+        can_exchange_document: true,
         can_set_profile_photo: true,
         can_delete_photo: true,
         is_player: true,
@@ -76,6 +78,26 @@ describe('CharacterAccessResolver', function() {
         const result = CharacterAccessResolver.merge('npcs', { id: 3 }, params, true);
 
         expect(result.can_exchange_recipe).toBe(false);
+      });
+    });
+
+    describe('can_exchange_document coercion', function() {
+      it('keeps can_exchange_document true when present', function() {
+        spyOn(AccessStore, 'getCharacterAccess').and.returnValue({ is_player: false, is_staff: false });
+        spyOn(AccessStore, 'getCharacterPermissions').and.returnValue({ can_exchange_document: true });
+
+        const result = CharacterAccessResolver.merge('pcs', { id: 2 }, params, true);
+
+        expect(result.can_exchange_document).toBe(true);
+      });
+
+      it('defaults can_exchange_document to false when missing', function() {
+        spyOn(AccessStore, 'getCharacterAccess').and.returnValue({ is_player: false, is_staff: false });
+        spyOn(AccessStore, 'getCharacterPermissions').and.returnValue({ can_edit: true });
+
+        const result = CharacterAccessResolver.merge('npcs', { id: 3 }, params, true);
+
+        expect(result.can_exchange_document).toBe(false);
       });
     });
 

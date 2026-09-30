@@ -57,6 +57,7 @@ KINDS.forEach(({ label, kind, isPc, money }) => {
         expect(characterClient.fetchCharacter).toHaveBeenCalledWith(kind, 'demo', '2', null);
         expect(setCharacter).toHaveBeenCalledWith({
           id: 2, game_slug: 'demo', is_pc: isPc, money, game_type: 'dnd', can_edit: true, game_can_edit: true,
+          can_exchange_document: false,
         });
 
         cleanup();
@@ -80,6 +81,7 @@ KINDS.forEach(({ label, kind, isPc, money }) => {
 
         expect(setCharacter).toHaveBeenCalledWith({
           id: 2, game_slug: 'demo', is_pc: isPc, money, game_type: 'dnd', can_edit: true, game_can_edit: false,
+          can_exchange_document: false,
         });
 
         cleanup();
@@ -163,6 +165,7 @@ KINDS.forEach(({ label, kind, isPc, money }) => {
         expect(gameClient.fetchGame).toHaveBeenCalledWith('demo', null);
         expect(setCharacter).toHaveBeenCalledWith({
           id: 2, game_slug: 'demo', is_pc: isPc, money, game_type: 'deadlands', can_edit: true, game_can_edit: true,
+          can_exchange_document: false,
         });
 
         cleanup();
@@ -191,6 +194,7 @@ KINDS.forEach(({ label, kind, isPc, money }) => {
         expect(characterClient.fetchCharacter).toHaveBeenCalledWith(kind, 'demo', '2', null);
         expect(setCharacter).toHaveBeenCalledWith({
           id: 2, game_slug: 'demo', is_pc: isPc, money, game_type: 'dnd', can_edit: true, game_can_edit: true,
+          can_exchange_document: false,
         });
       });
 

@@ -32,8 +32,8 @@ export function buildRecipeExchangeCharacter(characterId, gameSlug, isPc, charac
 /**
  * Resolves whether the page's "Exchange" button should render, sourced from the
  * permission-aware `can_exchange_recipe` flag (issue #1450) — mirroring
- * `CharacterTreasures.jsx`'s `resolveExchangeButtonCanEdit` / `can_exchange_treasure`, and
- * unlike the Documents page, which does not gate its button.
+ * `CharacterTreasures.jsx`'s `resolveExchangeButtonCanEdit` / `can_exchange_treasure` and
+ * `CharacterDocuments.jsx`'s `resolveDocumentExchangeButton` / `can_exchange_document`.
  *
  * @param {object|null} character - Currently loaded character context, or `null` while loading.
  * @returns {boolean} Whether the "Exchange" button should render.

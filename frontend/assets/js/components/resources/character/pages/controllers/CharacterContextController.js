@@ -115,8 +115,10 @@ export default class CharacterContextController extends BasePageController {
    * before publishing it: `can_edit` (character-level, `true` for the DM, a superuser, or — for
    * a PC — the character's own owning player) gates the "Add treasure" button, while
    * `game_can_edit` (game-level, DM/superuser only) drives the treasure exchange modal's choice
-   * between the public and `all.json` endpoints. Resolved in parallel to avoid an extra
-   * sequential round-trip. Each check falls back to `false` independently if it fails.
+   * between the public and `all.json` endpoints. `can_exchange_document` (character-level, read
+   * from the same character permissions payload) gates the documents page's "Exchange" button.
+   * Resolved in parallel to avoid an extra sequential round-trip. Each check falls back to
+   * `false` independently if it fails.
    *
    * @param {object|null} character - Character payload, or `null` if it failed to load.
    * @param {string} gameSlug - Game slug the character belongs to.
@@ -131,15 +133,18 @@ export default class CharacterContextController extends BasePageController {
     }
 
     const characterPermissions = AccessStore.ensureCharacterPermissions(this.characterKind, gameSlug, characterId)
-      .then((permissions) => Boolean(permissions.can_edit))
-      .catch(() => false);
+      .then((permissions) => ({
+        can_edit: Boolean(permissions.can_edit),
+        can_exchange_document: Boolean(permissions.can_exchange_document),
+      }))
+      .catch(() => ({ can_edit: false, can_exchange_document: false }));
     const gamePermissions = AccessStore.ensureGamePermissions(gameSlug)
       .then((permissions) => Boolean(permissions.can_edit))
       .catch(() => false);
 
     return Promise.all([characterPermissions, gamePermissions])
-      .then(([canEdit, gameCanEdit]) => safeSet(
-        this.setCharacter, { ...character, can_edit: canEdit, game_can_edit: gameCanEdit },
+      .then(([charFlags, gameCanEdit]) => safeSet(
+        this.setCharacter, { ...character, ...charFlags, game_can_edit: gameCanEdit },
       ));
   }
 }

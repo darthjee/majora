@@ -38,6 +38,7 @@ KINDS.forEach(({ label, Controller, kind, getParamsFromHash }) => {
         can_edit: false,
         can_exchange_treasure: false,
         can_exchange_recipe: false,
+        can_exchange_document: false,
         can_set_profile_photo: false,
         can_delete_photo: false,
         is_player: false,
