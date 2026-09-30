@@ -94,3 +94,59 @@ class TestGameCommonItemsAllView(TokenAuthRequestMixin):
         url = reverse('game-common-items-all', kwargs={'game_slug': 'test-game'})
         response = self.get(client, url, token=self.dm_token)
         assert response.status_code == 200
+
+
+@pytest.mark.django_db
+class TestGameCommonItemsAllNameFilter(TokenAuthRequestMixin):
+    """Tests for the optional ?name= filter on GET /games/<slug>/common_items/all.json."""
+
+    def setup_method(self):
+        """Set up a game, a DM, an unrelated user and matching/non-matching common items."""
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        self.dm_user = UserFactory(username='dm_user', password='secret-password')
+        PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
+        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.other_user = UserFactory(username='other', password='secret-password')
+        self.other_token = Token.objects.create(user=self.other_user)
+        GameCommonItemFactory(game=self.game, name='Healing Potion')
+        GameCommonItemFactory(game=self.game, name='Silver Arrow')
+        GameCommonItemFactory(game=self.game, name='Secret POTION', hidden=True)
+
+    def _url(self, query=''):
+        """Return the common_items/all URL with the given query string."""
+        return f'/games/test-game/common_items/all.json{query}'
+
+    def _names(self, client, query=''):
+        """Return the item names the DM sees for the given query string."""
+        response = self.get(client, self._url(query), token=self.dm_token)
+        assert response.status_code == 200
+        return [item['name'] for item in json.loads(response.content)]
+
+    def test_filters_by_case_insensitive_substring_including_hidden(self, client):
+        """Test that ?name= matches case-insensitively and returns hidden matches to a DM."""
+        assert self._names(client, '?name=potion') == ['Healing Potion', 'Secret POTION']
+
+    def test_empty_name_returns_unfiltered_list(self, client):
+        """Test that an empty ?name= returns every item."""
+        assert len(self._names(client, '?name=')) == 3
+
+    def test_absent_name_returns_unfiltered_list(self, client):
+        """Test that omitting ?name= returns every item."""
+        assert len(self._names(client)) == 3
+
+    def test_combines_with_per_page(self, client):
+        """Test that ?name= is applied before pagination."""
+        response = self.get(client, self._url('?name=potion&per_page=1'), token=self.dm_token)
+        data = json.loads(response.content)
+        assert [item['name'] for item in data] == ['Healing Potion']
+        assert response['pages'] == '2'
+
+    def test_returns_401_for_unauthenticated_with_name(self, client):
+        """Test that ?name= does not bypass the gate for unauthenticated callers."""
+        response = self.get(client, self._url('?name=secret'))
+        assert response.status_code == 401
+
+    def test_returns_403_for_non_dm_with_name(self, client):
+        """Test that ?name= does not bypass the gate for non-DM callers."""
+        response = self.get(client, self._url('?name=secret'), token=self.other_token)
+        assert response.status_code == 403
