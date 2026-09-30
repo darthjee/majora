@@ -102,6 +102,16 @@ const CASES = [
     expected: () => Translator.t('character_document_page.loading'),
   },
   {
+    page: 'pcCharacterRecipes',
+    hash: '#/games/demo/pcs/1/recipes',
+    expected: () => Translator.t('character_recipes_page.loading'),
+  },
+  {
+    page: 'npcCharacterRecipes',
+    hash: '#/games/demo/npcs/1/recipes',
+    expected: () => Translator.t('character_recipes_page.loading'),
+  },
+  {
     page: 'pcCharacterFactions',
     hash: '#/games/demo/pcs/1/factions',
     expected: () => Translator.t('character_factions_page.loading'),
