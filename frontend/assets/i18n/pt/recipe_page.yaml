@@ -1,0 +1,12 @@
+recipe_page:
+  loading: Carregando receita...
+  edit_button: Editar
+  output_label: Produto
+  unknown_output: Item desconhecido
+  yield_label: Rendimento
+  crafting_time_label: Tempo de fabricação
+  crafting_cost_label: Custo de fabricação
+  description_title: Descrição
+  ingredients_title: Ingredientes
+  checks_title: Testes
+  hidden_label: Oculta

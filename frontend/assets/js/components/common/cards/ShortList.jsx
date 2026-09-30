@@ -9,7 +9,8 @@ import Translator from '../../../i18n/Translator.js';
  * Self-fetching preview-list element rendered on show pages' right column, replacing the
  * former per-resource `GamePreviewSections`/`CharacterPreviewSectionsSlot` components. Fetches
  * its own items through `RequestStore` (via `ShortListController`), driven entirely by the
- * per-resource behavior declared in `shortListResourceConfig`: fetch params, "See all" href,
+ * per-resource behavior declared in `shortListResourceConfig`: fetch params, optional "See all" href
+ * (no "See all" card when the entry declares no `buildSeeAllHref`),
  * click action (`navigate` to the item's own detail page, or `none`), and how to render each
  * item's card.
  *
@@ -48,7 +49,7 @@ export default function ShortList({ resource, maxItems = MAX_PREVIEW_ITEMS, ...c
     <PreviewSection
       items={items}
       title={Translator.t(config.titleKey)}
-      seeAllCard={{ href: config.buildSeeAllHref(context), icon: config.icon }}
+      seeAllCard={config.buildSeeAllHref ? { href: config.buildSeeAllHref(context), icon: config.icon } : null}
       maxItems={maxItems}
       emptyText={config.emptyTextKey ? Translator.t(config.emptyTextKey) : undefined}
       sectionState={{ loading, total, defaultCollapsed: loading || items.length === 0 }}

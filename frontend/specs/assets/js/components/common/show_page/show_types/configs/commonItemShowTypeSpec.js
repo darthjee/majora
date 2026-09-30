@@ -84,4 +84,13 @@ describe('commonItemShowType', function() {
   it('has no bottom-slot content', function() {
     expect(commonItemShowType.bottom).toEqual([]);
   });
+
+  it('renders the "Recipes that produce it" shortlist in show mode only (issue #1449)', function() {
+    const shortListEntry = commonItemShowType.right.find((entry) => entry.Show?.name === 'ShortListSlot');
+
+    expect(shortListEntry).toBeDefined();
+    expect(shortListEntry.New).toBeUndefined();
+    expect(shortListEntry.Edit).toBeUndefined();
+    expect(shortListEntry.Show({ game_slug: 'demo', id: 4 }).props.resource).toBe('commonItemRecipe');
+  });
 });

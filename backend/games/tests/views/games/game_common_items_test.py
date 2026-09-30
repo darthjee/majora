@@ -131,6 +131,48 @@ class TestGameCommonItemsView(TestCase):
         assert [item['id'] for item in data] == [first.id, second.id]
 
 
+class TestGameCommonItemsNameFilter(TestCase):
+    """Tests for the optional ?name= filter on GET /games/<slug>/common_items.json."""
+
+    @classmethod
+    def setUpTestData(cls):
+        """Set up a game with matching, non-matching and hidden common items."""
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
+        cls.potion = GameCommonItemFactory(game=cls.game, name='Healing Potion')
+        cls.greater = GameCommonItemFactory(game=cls.game, name='Greater POTION of Fire')
+        cls.arrow = GameCommonItemFactory(game=cls.game, name='Silver Arrow')
+        cls.hidden = GameCommonItemFactory(game=cls.game, name='Secret Potion', hidden=True)
+
+    def _names(self, query=''):
+        """Return the item names from the index for the given query string."""
+        response = self.client.get(f'/games/test-game/common_items.json{query}')
+        assert response.status_code == 200
+        return [item['name'] for item in json.loads(response.content)]
+
+    def test_filters_by_case_insensitive_substring(self):
+        """Test that ?name= matches a case-insensitive substring and excludes the rest."""
+        assert self._names('?name=potion') == ['Healing Potion', 'Greater POTION of Fire']
+
+    def test_empty_name_returns_unfiltered_list(self):
+        """Test that an empty ?name= returns every visible item."""
+        assert self._names('?name=') == ['Healing Potion', 'Greater POTION of Fire', 'Silver Arrow']
+
+    def test_absent_name_returns_unfiltered_list(self):
+        """Test that omitting ?name= returns every visible item."""
+        assert self._names() == ['Healing Potion', 'Greater POTION of Fire', 'Silver Arrow']
+
+    def test_hidden_matching_item_is_still_excluded(self):
+        """Test that a hidden item matching the name is not returned."""
+        assert 'Secret Potion' not in self._names('?name=secret')
+
+    def test_combines_with_per_page(self):
+        """Test that ?name= is applied before pagination."""
+        response = self.client.get('/games/test-game/common_items.json?name=potion&per_page=1')
+        data = json.loads(response.content)
+        assert [item['name'] for item in data] == ['Healing Potion']
+        assert response['pages'] == '2'
+
+
 class TestGameCommonItemsCreate(TokenAuthRequestMixin, TestCase):
     """Tests for POST /games/<slug>/common_items.json (issue #826)."""
 

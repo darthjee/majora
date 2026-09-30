@@ -179,6 +179,35 @@ export default class AccessStorePermissions {
   }
 
   /**
+   * Resolve (or start) the edit-permissions check for a game's recipes (entity-agnostic, always
+   * resolved at the game level — `/permissions/game_recipe.json`, gating only the recipe show
+   * page's Edit link).
+   *
+   * @param {import('../AccessCache.js').default} cache - Shared cache instance.
+   * @param {import('../../../client/GameClient.js').default} gameClient - Game client.
+   * @param {string} gameSlug - Game slug.
+   * @returns {Promise<{can_edit: boolean}>} Resolves to the permissions payload.
+   */
+  static ensureRecipe(cache, gameClient, gameSlug) {
+    const fetchForRoleSet = (roleSet) => AccessStorePermissions.#loggedEnsure(
+      cache,
+      AccessStoreKeys.recipePermissions(gameSlug, roleSet),
+      'ensureRecipe',
+      [gameSlug],
+      (signal) => gameClient.fetchRecipePermissions(gameSlug, AuthStorage.getToken(), signal, roleSet)
+        .then(AccessStorePermissions.#parse),
+      PERMISSIONS_DEFAULT,
+      { roleSet },
+    );
+
+    return AccessStorePermissions.#selfCorrectingEnsure(
+      fetchForRoleSet,
+      AccessStoreAccess.getGame(cache, gameSlug),
+      AccessStoreAccess.ensureGame(cache, gameClient, gameSlug),
+    );
+  }
+
+  /**
    * Resolve (or start) the edit-permissions check for a game's items (entity-agnostic, always
    * resolved at the game level — items have no owner/scoped concept of their own).
    *

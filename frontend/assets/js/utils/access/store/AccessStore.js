@@ -69,7 +69,9 @@ export default class AccessStore {
    * set derived from its own `*Access` entry or the "view as" facade.
    *
    * @param {string} gameSlug - Game slug.
-   * @returns {Promise<{can_edit: boolean}>} Resolves to the permissions payload.
+   * @returns {Promise<{can_edit: boolean}>} Resolves to the permissions payload (which also
+   *   carries per-resource creation flags such as `can_create_common_item` and
+   *   `can_create_recipe`).
    */
   static ensureGamePermissions(gameSlug) {
     return AccessStorePermissions.ensureGame(cache, gameClient, gameSlug);
@@ -106,6 +108,18 @@ export default class AccessStore {
    */
   static ensureCommonItemPermissions(gameSlug) {
     return AccessStorePermissions.ensureCommonItem(cache, gameClient, gameSlug);
+  }
+
+  /**
+   * Resolve (or start) the edit-permissions check for a game's recipes
+   * (`/permissions/game_recipe.json`, gating only the recipe show page's Edit link), using the
+   * role set derived from the game's own `*Access` entry or the "view as" facade.
+   *
+   * @param {string} gameSlug - Game slug.
+   * @returns {Promise<{can_edit: boolean}>} Resolves to the permissions payload.
+   */
+  static ensureRecipePermissions(gameSlug) {
+    return AccessStorePermissions.ensureRecipe(cache, gameClient, gameSlug);
   }
 
   /**

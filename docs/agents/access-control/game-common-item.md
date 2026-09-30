@@ -35,7 +35,10 @@ The UI create gate (Common Items create link and `/common_items/new` page) reads
 match the `create` key above.
 
 Both index endpoints order by `id`; `description` is omitted from both (present on detail
-endpoints instead). `PATCH` shares the same route as `GET` on the plain detail endpoint; only
+endpoints instead). Both index endpoints accept an optional `?name=` filter (case-insensitive
+substring on `name`; absent or empty means no filtering), applied after the hidden filter on
+`common_items.json` and after the GameEdit gate on `common_items/all.json`, so it can only narrow
+results (issue #1449). `PATCH` shares the same route as `GET` on the plain detail endpoint; only
 `name`/`description`/`price`/`category`/`hidden` are writable — `photo` stays on its own upload
 endpoint, which uses a fixed, deterministic path (`use_uuid=False`) since a common item has at
 most one photo, always replaced on re-upload (mirrors `GamePossession`'s single-always-replace

@@ -66,4 +66,24 @@ describe('FilterSelect', function() {
 
     expect(html.indexOf('selected=""', selectStart)).toBeGreaterThan(-1);
   });
+
+  it('renders an empty leading blank option by default', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(FilterSelect, {
+        id: 'npc-filter-status', label: 'Status', value: 'alive', options, onChange: Noop.noop,
+      })
+    );
+
+    expect(html).toContain('<option value=""></option>');
+  });
+
+  it('labels the leading blank option with blankLabel when given', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(FilterSelect, {
+        id: 'npc-filter-status', label: 'Status', value: 'alive', options, onChange: Noop.noop, blankLabel: 'All',
+      })
+    );
+
+    expect(html).toContain('<option value="">All</option>');
+  });
 });

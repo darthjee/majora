@@ -4,6 +4,7 @@ import gameShowType from './configs/gameShowType.js';
 import itemShowType from './configs/itemShowType.js';
 import possessionShowType from './configs/possessionShowType.js';
 import commonItemShowType from './configs/commonItemShowType.js';
+import recipeShowType from './configs/recipeShowType.js';
 import pcShowType from './configs/pcShowType.js';
 import npcShowType from './configs/npcShowType.js';
 import treasureShowType from './configs/treasureShowType.js';
@@ -47,6 +48,7 @@ const showTypeConfig = {
   item: itemShowType,
   possession: possessionShowType,
   commonItem: commonItemShowType,
+  recipe: recipeShowType,
   pc: pcShowType,
   npc: npcShowType,
   treasure: treasureShowType,

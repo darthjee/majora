@@ -29,6 +29,10 @@ import GameCommonItem from '../resources/common_item/pages/GameCommonItem.jsx';
 import GameCommonItemEdit from '../resources/common_item/pages/GameCommonItemEdit.jsx';
 import GameCommonItemNew from '../resources/common_item/pages/GameCommonItemNew.jsx';
 import GameCommonItems from '../resources/common_item/pages/GameCommonItems.jsx';
+import GameRecipe from '../resources/recipe/pages/GameRecipe.jsx';
+import GameRecipeEdit from '../resources/recipe/pages/GameRecipeEdit.jsx';
+import GameRecipeNew from '../resources/recipe/pages/GameRecipeNew.jsx';
+import GameRecipes from '../resources/recipe/pages/GameRecipes.jsx';
 import GameFaction from '../resources/faction/pages/GameFaction.jsx';
 import GameFactionEdit from '../resources/faction/pages/GameFactionEdit.jsx';
 import GameFactions from '../resources/faction/pages/GameFactions.jsx';
@@ -127,6 +131,10 @@ const PAGES = {
   gameCommonItemEdit: <GameCommonItemEdit />,
   gameCommonItemNew: <GameCommonItemNew />,
   gameCommonItems: <GameCommonItems />,
+  gameRecipe: <GameRecipe />,
+  gameRecipeEdit: <GameRecipeEdit />,
+  gameRecipeNew: <GameRecipeNew />,
+  gameRecipes: <GameRecipes />,
   gameFaction: <GameFaction />,
   gameFactionEdit: <GameFactionEdit />,
   gameFactions: <GameFactions />,

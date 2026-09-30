@@ -16,9 +16,10 @@ import { MAX_PREVIEW_ITEMS } from './characterPreviewConstants.js';
  * @param {object} props - Component props.
  * @param {object[]} props.items - List of items to preview.
  * @param {string} props.title - Section heading.
- * @param {object} props.seeAllCard - Data for the "See all" card.
- * @param {string} props.seeAllCard.href - Hash href for the "See all" card.
- * @param {string} props.seeAllCard.icon - Bootstrap icon class name (see `Icons.js`) for the
+ * @param {object|null} [props.seeAllCard] - Data for the "See all" card; the card is omitted when
+ *   absent or when it has no `href`.
+ * @param {string} [props.seeAllCard.href] - Hash href for the "See all" card.
+ * @param {string} [props.seeAllCard.icon] - Bootstrap icon class name (see `Icons.js`) for the
  *   "See all" card.
  * @param {number} [props.maxItems] - Maximum number of items shown before the "See all" card.
  *   Defaults to `MAX_PREVIEW_ITEMS`.

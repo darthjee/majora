@@ -9,7 +9,7 @@ import ShortList from '../../../../../../assets/js/components/common/cards/Short
 // params/hrefs/action/card behavior it renders once resolved is exercised in
 // `shortListResourceConfigSpec.js`.
 describe('ShortList', function() {
-  ['pc', 'npc', 'treasure', 'item', 'document'].forEach((resource) => {
+  ['pc', 'npc', 'treasure', 'item', 'document', 'commonItemRecipe'].forEach((resource) => {
     it(`renders the title immediately with a "loading" placeholder for '${resource}'`, function() {
       const html = renderToStaticMarkup(
         React.createElement(ShortList, {

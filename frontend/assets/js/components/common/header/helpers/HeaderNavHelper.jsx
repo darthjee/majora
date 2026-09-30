@@ -68,7 +68,7 @@ function adminItem(id, path, labelKey) {
 
 /**
  * Builds a "Game" dropdown entry, scoped under the current route's `gameSlug`. Base
- * items (show/pcs/npcs/treasures/items/common-items/possessions/factions/documents/
+ * items (show/pcs/npcs/treasures/items/common-items/recipes/possessions/factions/documents/
  * photos) default to the group's `isGamePage`-only gate; the Players/Polls/Sessions
  * items pass the stricter `HAS_GAME_ACCESS` rule instead, restricting them to the game's DM(s),
  * players, and admins (superuser/staff) — the same audience rule used by
@@ -163,6 +163,7 @@ export const NAV_LINK_REGISTRY = [
   gameItem('treasures', '/treasures', 'game_page.treasures'),
   gameItem('items', '/items', 'game_page.items'),
   gameItem('common-items', '/common_items', 'game_page.common_items'),
+  gameItem('recipes', '/recipes', 'game_page.recipes'),
   gameItem('possessions', '/possessions', 'game_page.possessions'),
   gameItem('factions', '/factions', 'game_page.factions'),
   gameItem('documents', '/documents', 'game_page.documents'),

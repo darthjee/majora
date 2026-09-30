@@ -4,6 +4,8 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 
+from common.query_filters import filter_by_name
+
 from ...models import Game
 from ...serializers import GameCommonItemAllListSerializer
 from ..common import check_game_edit, paginated_list_response
@@ -15,12 +17,15 @@ from ..common import check_game_edit, paginated_list_response
 # 401/403 payload instead of DRF's default.
 @permission_classes([AllowAny])
 def game_common_items_all(request, game_slug):
-    """Return all common items (including hidden) for a game — DM/superuser only."""
+    """Return all common items (including hidden) for a game — DM/superuser only.
+
+    Accepts an optional ``name`` query param (case-insensitive substring match).
+    """
     game = get_object_or_404(Game, game_slug=game_slug)
     error_response = check_game_edit(request, game)
     if error_response:
         return error_response
-    common_items = game.common_items.all()
+    common_items = filter_by_name(request, game.common_items.all())
     response = paginated_list_response(request, common_items, GameCommonItemAllListSerializer)
     response['X-Skip-Cache'] = 'true'
     return response

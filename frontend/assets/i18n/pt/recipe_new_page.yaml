@@ -1,0 +1,18 @@
+recipe_new_page:
+  title: Nova Receita
+  name_label: Nome
+  output_label: Produto
+  output_placeholder: Buscar um item comum...
+  yield_label: Rendimento
+  crafting_time_label: Tempo de fabricação
+  crafting_cost_label: Custo de fabricação
+  crafting_cost_edit_button: Editar custo de fabricação
+  description_label: Descrição
+  ingredients_label: Ingredientes
+  checks_label: Testes
+  hidden_label: Oculta
+  submit: Criar Receita
+  hidden_notice: Receitas ocultas são visíveis apenas para os editores do jogo.
+  error: Falha ao criar a receita. Tente novamente.
+  errors:
+    invalid_output: O item produzido selecionado é inválido. Escolha outro item comum.

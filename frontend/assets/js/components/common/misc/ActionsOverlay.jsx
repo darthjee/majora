@@ -5,6 +5,7 @@ import CardTreasureImage from '../cards/CardTreasureImage.jsx';
 import CardItemImage from '../cards/CardItemImage.jsx';
 import CardPossessionImage from '../cards/CardPossessionImage.jsx';
 import CardCommonItemImage from '../cards/CardCommonItemImage.jsx';
+import CardRecipeImage from '../cards/CardRecipeImage.jsx';
 import CardDocumentImage from '../cards/CardDocumentImage.jsx';
 import CardStlModelImage from '../cards/CardStlModelImage.jsx';
 import CardSourceImage from '../cards/CardSourceImage.jsx';
@@ -19,6 +20,7 @@ const PHOTO_COMPONENTS = {
   item: CardItemImage,
   possession: CardPossessionImage,
   commonItem: CardCommonItemImage,
+  recipe: CardRecipeImage,
   document: CardDocumentImage,
   stl_model: CardStlModelImage,
   source: CardSourceImage,
@@ -34,10 +36,11 @@ const PHOTO_COMPONENTS = {
  *   delegates the upload button and any secondary overlay action buttons
  *   (e.g. Slain/Revive) to {@link ActionBar}.
  * @param {object} props - Component props.
- * @param {'photo'|'avatar'|'treasure'|'item'|'possession'|'commonItem'|'document'|'stl_model'|'source'|'collection'|'faction'} [props.type] - Which
+ * @param {'photo'|'avatar'|'treasure'|'item'|'possession'|'commonItem'|'recipe'|'document'|'stl_model'|'source'|'collection'|'faction'} [props.type] - Which
  *   underlying image component to render: `'avatar'` uses {@link CardAvatar}, `'treasure'` uses
  *   {@link CardTreasureImage}, `'item'` uses {@link CardItemImage}, `'possession'` uses
- *   {@link CardPossessionImage}, `'commonItem'` uses {@link CardCommonItemImage}, `'document'`
+ *   {@link CardPossessionImage}, `'commonItem'` uses {@link CardCommonItemImage}, `'recipe'` uses
+ *   {@link CardRecipeImage}, `'document'`
  *   uses {@link CardDocumentImage}, `'stl_model'` uses {@link CardStlModelImage}, `'source'` uses
  *   {@link CardSourceImage}, `'collection'` uses {@link CardCollectionImage}, `'faction'` uses
  *   {@link CardFactionImage}, anything else (default) uses {@link CardPhoto}.

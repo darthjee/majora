@@ -1,0 +1,12 @@
+recipe_page:
+  loading: Loading recipe...
+  edit_button: Edit
+  output_label: Output
+  unknown_output: Unknown item
+  yield_label: Yield
+  crafting_time_label: Crafting time
+  crafting_cost_label: Crafting cost
+  description_title: Description
+  ingredients_title: Ingredients
+  checks_title: Checks
+  hidden_label: Hidden

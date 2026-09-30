@@ -54,6 +54,14 @@ const RESOLVERS = {
     collection: ({ gameSlug }) => AccessStore.ensureGamePermissions(gameSlug),
     single: ({ gameSlug }) => AccessStore.ensureGamePermissions(gameSlug),
   },
+  // issue #1449: `GameRecipe` is unconditionally game-level, mirroring `commonItem` — every
+  // restricted variant is gated by game-level `GameEditPermission`, deliberately **not** by
+  // `/permissions/game_recipe.json` (that one only gates the show page's Edit link).
+  recipe: {
+    collection: ({ gameSlug }) => AccessStore.ensureGamePermissions(gameSlug),
+    single: ({ gameSlug }) => AccessStore.ensureGamePermissions(gameSlug),
+    commonItemCollection: ({ gameSlug }) => AccessStore.ensureGamePermissions(gameSlug),
+  },
   treasure: {
     collection: ({ gameSlug, kind }) => (
       kind === 'game' || kind === 'npcs' ? AccessStore.ensureGamePermissions(gameSlug) : NO_PERMISSIONS()
@@ -166,7 +174,8 @@ export default class RequestPermissionResolvers {
    * Resolve the current permissions object for a resource/quantity-type/params combination.
    *
    * @param {string} resource - Resource name (`'game'`, `'npc'`, `'pc'`, `'item'`, `'possession'`,
-   *   `'commonItem'`, `'treasure'`, `'session'`, `'document'`, `'poll'`, `'task'`, `'staffUser'`).
+   *   `'commonItem'`, `'treasure'`, `'session'`, `'document'`, `'poll'`, `'task'`, `'staffUser'`,
+   *   `'recipe'`).
    * @param {string} quantityType - `'collection'` or `'single'`.
    * @param {object} params - Concrete params (`gameSlug`, `kind`, `id`, etc.).
    * @returns {Promise<object>} Resolves to the permissions object (e.g. `{ can_edit: boolean }`),

@@ -4,6 +4,14 @@ import CommonItemDetailHelper
 
 describe('CommonItemDetailHelper', function() {
   describe('.render', function() {
+    it('renders the "Recipes that produce it" shortlist (issue #1449)', function() {
+      const html = renderToStaticMarkup(CommonItemDetailHelper.render(
+        { id: 4, name: 'Healing Potion', game_slug: 'demo' }, '#/games/demo/common_items',
+      ));
+
+      expect(html).toContain('Recipes that produce it (loading)');
+    });
+
     it('renders the common item name', function() {
       const commonItem = { id: 5, name: 'Healing Potion', description: 'Heals wounds.' };
       const html = renderToStaticMarkup(CommonItemDetailHelper.render(commonItem, '#/games/demo/common_items'));
