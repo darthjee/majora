@@ -124,3 +124,23 @@ own `hidden`. A hidden `CharacterDocument` stays fully visible to the character'
 [CharacterItem](character-item.md) (and unlike [CharacterTreasure](character-treasure.md)'s
 catalog-row filter), `hidden` lives directly on the character's own row, so **both** PC and NPC
 regular endpoints exclude a character's own hidden documents.
+
+## Permissions
+
+- [`game_pc_document/endpoints.yml`](../../../backend/permissions/config/game_pc_document/endpoints.yml)
+  and
+  [`game_npc_document/endpoints.yml`](../../../backend/permissions/config/game_npc_document/endpoints.yml):
+  `regular.create: [staff, player]` gates the plain `documents/acquire.json` /
+  `documents/remove.json` endpoints. The `restricted.create` block (PC: staff, owner; NPC: staff)
+  gates the `summary/all.json` endpoints only. dm/admin always bypass.
+- [`game_pc_document/ui.yml`](../../../backend/permissions/config/game_pc_document/ui.yml) and
+  [`game_npc_document/ui.yml`](../../../backend/permissions/config/game_npc_document/ui.yml):
+  `exchange: [staff, player]`, which **must mirror** `endpoints.yml`'s `regular.create` (issue
+  #1453).
+- `can_exchange_document` on `GET /permissions/game_pc.json` / `game_npc.json` (see
+  [Character](character.md#edit-access-status--permission)), wired through the
+  `game_pc_document` / `game_npc_document` entries of the `character_pc` / `character_npc` page
+  configs, like `can_exchange_recipe`. It is `true` for dm/admin, staff and players of the game,
+  and `false` for anonymous users, users outside the game and the `?role=owner` simulation (owner
+  is not in `regular.create`). It gates the frontend Documents "Exchange" trigger and follows the
+  same real-identity vs. role-simulated dual path as `can_edit`.
