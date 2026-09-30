@@ -1,12 +1,15 @@
 /**
  * `GET`/mutation resource configuration for `recipe` (issue #1449), backing `GameRecipe` —
  * modeled on `commonItemConfig.js`: unconditionally game-level, no `kind` branching and no
- * character-owned family (character recipes are #1450's concern).
+ * character-owned family (character recipes live in `characterRecipeConfig.js`, issue #1450).
  *
  * @description `collection`/`single` params: `gameSlug` and, for `single`, `id` (the
  *   `GameRecipe`'s own id). `commonItemCollection` params: `gameSlug` and `commonItemId` — the
- *   "Recipes that produce it" listing under a `GameCommonItem`. Every `private` variant
- *   (`recipes/all.json`, `recipes/:id/full.json`, `common_items/:commonItemId/recipes/all.json`)
+ *   "Recipes that produce it" listing under a `GameCommonItem`. `characters` params: `gameSlug`
+ *   and `id` (the `GameRecipe`'s own id) — the "Known by" listing (issue #1450), whose entries
+ *   are PCs and NPCs (`type: 'pc'|'npc'`). Every `private` variant (`recipes/all.json`,
+ *   `recipes/:id/full.json`, `common_items/:commonItemId/recipes/all.json`,
+ *   `recipes/:id/characters/all.json`)
  *   is gated by game-level `can_edit` (`GameEditPermission`), resolved via
  *   `AccessStore.ensureGamePermissions(gameSlug)` — see `RequestPermissionResolvers.js` — and
  *   carries `skipCache: true` so an editor always sees fresh (including hidden) data.
@@ -77,6 +80,26 @@ const commonItemCollectionFullPath = ({ gameSlug, commonItemId }) => (
   `/games/${gameSlug}/common_items/${commonItemId}/recipes/all.json`
 );
 
+/**
+ * Build the player-facing "Known by" (characters knowing a recipe) path.
+ *
+ * @param {object} params - Concrete params.
+ * @param {string} params.gameSlug - Game slug.
+ * @param {string|number} params.id - `GameRecipe` id.
+ * @returns {string} The endpoint path.
+ */
+const charactersPath = ({ gameSlug, id }) => `/games/${gameSlug}/recipes/${id}/characters.json`;
+
+/**
+ * Build the full (editor-only) "Known by" path, adding hidden entries.
+ *
+ * @param {object} params - Concrete params.
+ * @param {string} params.gameSlug - Game slug.
+ * @param {string|number} params.id - `GameRecipe` id.
+ * @returns {string} The endpoint path.
+ */
+const charactersFullPath = ({ gameSlug, id }) => `/games/${gameSlug}/recipes/${id}/characters/all.json`;
+
 const patchSingle = { path: singlePath, permission: 'can_edit' };
 const createCollection = { path: collectionPath, permission: 'can_edit' };
 
@@ -93,6 +116,10 @@ export default {
     commonItemCollection: {
       regular: { path: commonItemCollectionPath, permission: null },
       private: { path: commonItemCollectionFullPath, permission: 'can_edit', skipCache: true },
+    },
+    characters: {
+      regular: { path: charactersPath, permission: null },
+      private: { path: charactersFullPath, permission: 'can_edit', skipCache: true },
     },
   },
   PATCH: {

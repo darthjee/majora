@@ -61,6 +61,17 @@ const RESOLVERS = {
     collection: ({ gameSlug }) => AccessStore.ensureGamePermissions(gameSlug),
     single: ({ gameSlug }) => AccessStore.ensureGamePermissions(gameSlug),
     commonItemCollection: ({ gameSlug }) => AccessStore.ensureGamePermissions(gameSlug),
+    // issue #1450: the "Known by" listing (`characters/all.json`) is DM/admin only, regardless of
+    // any character context — mirrors `faction.characters`.
+    characters: ({ gameSlug }) => AccessStore.ensureGamePermissions(gameSlug),
+  },
+  // issue #1450: `CharacterRecipe` mirrors `document`'s character-owned family — `collection`/
+  // `single` resolve at the character level, while `availableCollection` is unconditionally
+  // game-level (DM-only `GameEditPermission`) so an owning player never sees the hidden catalog.
+  characterRecipe: {
+    collection: ({ gameSlug, kind, id }) => AccessStore.ensureCharacterPermissions(kind, gameSlug, id),
+    single: ({ gameSlug, kind, id }) => AccessStore.ensureCharacterPermissions(kind, gameSlug, id),
+    availableCollection: ({ gameSlug }) => AccessStore.ensureGamePermissions(gameSlug),
   },
   treasure: {
     collection: ({ gameSlug, kind }) => (
@@ -175,7 +186,7 @@ export default class RequestPermissionResolvers {
    *
    * @param {string} resource - Resource name (`'game'`, `'npc'`, `'pc'`, `'item'`, `'possession'`,
    *   `'commonItem'`, `'treasure'`, `'session'`, `'document'`, `'poll'`, `'task'`, `'staffUser'`,
-   *   `'recipe'`).
+   *   `'recipe'`, `'characterRecipe'`).
    * @param {string} quantityType - `'collection'` or `'single'`.
    * @param {object} params - Concrete params (`gameSlug`, `kind`, `id`, etc.).
    * @returns {Promise<object>} Resolves to the permissions object (e.g. `{ can_edit: boolean }`),

@@ -50,6 +50,7 @@ describe('BaseCharacterEditController', function() {
         game_type: 'dnd',
         can_edit: true,
         can_exchange_treasure: false,
+        can_exchange_recipe: false,
         can_set_profile_photo: false,
         can_delete_photo: false,
         is_player: false,

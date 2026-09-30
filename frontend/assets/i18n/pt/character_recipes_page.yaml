@@ -1,0 +1,6 @@
+character_recipes_page:
+  loading: Carregando receitas...
+  title: Receitas
+  exchange_button: Trocar
+  hidden_label: Oculta
+  empty: Nenhuma receita conhecida ainda.

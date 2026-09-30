@@ -111,4 +111,18 @@ describe('characterPreviewConstants', function() {
       expect(PREVIEW_LIST_TYPES.commonItemRecipe.icon).toBe(Icons.bookHalf);
     });
   });
+
+  describe('PREVIEW_LIST_TYPES.recipe', function() {
+    it('provides the title key and icon', function() {
+      expect(PREVIEW_LIST_TYPES.recipe.titleKey).toBe('character_page.recipes_title');
+      expect(PREVIEW_LIST_TYPES.recipe.icon).toBe(Icons.bookHalf);
+    });
+  });
+
+  describe('PREVIEW_LIST_TYPES.recipeCharacter', function() {
+    it('provides the title key and icon', function() {
+      expect(PREVIEW_LIST_TYPES.recipeCharacter.titleKey).toBe('recipe_page.known_by_title');
+      expect(PREVIEW_LIST_TYPES.recipeCharacter.icon).toBe(Icons.peopleFill);
+    });
+  });
 });

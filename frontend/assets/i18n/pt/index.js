@@ -54,6 +54,7 @@ const commonNamespaces = [
   'give_document_modal',
   'document_exchange_modal',
   'possession_exchange_modal',
+  'recipe_exchange_modal',
   'faction_exchange_modal',
   'recruit_modal',
   'game_treasures_page',

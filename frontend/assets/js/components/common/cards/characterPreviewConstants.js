@@ -79,4 +79,12 @@ export const PREVIEW_LIST_TYPES = {
     titleKey: 'common_item_recipes_preview.title',
     icon: Icons.bookHalf,
   },
+  recipe: {
+    titleKey: 'character_page.recipes_title',
+    icon: Icons.bookHalf,
+  },
+  recipeCharacter: {
+    titleKey: 'recipe_page.known_by_title',
+    icon: Icons.peopleFill,
+  },
 };

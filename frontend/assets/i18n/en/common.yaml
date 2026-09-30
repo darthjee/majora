@@ -159,6 +159,7 @@ character_page:
   treasures_title: Treasures
   items_title: Items
   documents_title: Documents
+  recipes_title: Recipes
   possessions_title: Possessions
   factions_title: Factions
   photos_title: Photos
@@ -289,6 +290,24 @@ document_exchange_modal:
   empty: No documents available.
   load_error: Unable to load documents. Please try again.
   already_owned_error: This document is already owned.
+  generic_error: Unable to complete this action. Please try again.
+recipe_exchange_modal:
+  title: Recipe Exchange
+  search_placeholder: Search recipes...
+  acquire_tab: Acquire
+  acquire_tab_tooltip: Learn a recipe
+  remove_tab: Remove
+  remove_tab_tooltip: Forget a recipe
+  hidden_label: Hidden
+  confirm: Confirm
+  cancel: Cancel
+  back: Back
+  cancel_selection: Cancel
+  loading: Loading recipes...
+  empty: No recipes available.
+  load_error: Unable to load recipes. Please try again.
+  already_owned_error: This character already knows this recipe.
+  not_found_error: Recipe not found.
   generic_error: Unable to complete this action. Please try again.
 possession_exchange_modal:
   title: Possession Exchange

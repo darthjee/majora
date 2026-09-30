@@ -59,6 +59,18 @@ function renderCharacterPreviewCard(characterType, item, context) {
 }
 
 /**
+ * Character URL segment (`'pcs'`/`'npcs'`) for a mixed PC/NPC list entry's own `type`, mirroring
+ * `FactionCharacterCardHelper.jsx#buildHref`.
+ *
+ * @param {object} item - Character list entry.
+ * @param {string} item.type - `'pc'` or `'npc'`.
+ * @returns {string} `'npcs'` for NPCs, `'pcs'` otherwise.
+ */
+function characterTypeSegment(item) {
+  return item.type === 'npc' ? 'npcs' : 'pcs';
+}
+
+/**
  * Per-resource-type behavior registry driving `ShortList`: how to fetch a resource's preview
  * list (`buildParams`, plus optional `requestResource`/`quantityType` overriding the default
  * `<slot key>.collection` RequestStore lookup), where its optional "See all" card links
@@ -188,6 +200,39 @@ const shortListResourceConfig = {
     renderItem: (item, context, href) => React.createElement(
       RecipePreviewCard, { key: item.id, recipe: item, href },
     ),
+  },
+  // issue #1450: the character's known recipes, backed by `characterRecipe.collection` (the
+  // default lookup would be `recipe.collection`, hence the explicit override). Links to the
+  // character recipe detail page by the row `id`.
+  recipe: {
+    titleKey: PREVIEW_LIST_TYPES.recipe.titleKey,
+    icon: PREVIEW_LIST_TYPES.recipe.icon,
+    emptyTextKey: 'character_recipes_preview.empty',
+    action: 'navigate',
+    requestResource: 'characterRecipe',
+    quantityType: 'collection',
+    buildParams: characterResourceParams,
+    buildSeeAllHref: (context) => characterResourceSeeAllHref('recipe', context),
+    buildHref: (context, item) => (
+      `#/games/${context.game_slug}/${characterSegment(context)}/${context.id}/recipes/${item.id}`
+    ),
+    renderItem: (item, context, href) => React.createElement(
+      RecipePreviewCard, { key: item.id, recipe: item, href },
+    ),
+  },
+  // issue #1450: the "Known by" shortlist on the recipe show page, backed by `recipe.characters`.
+  // The first mixed PC/NPC shortlist: hrefs and cards branch on each entry's own `type`. There is
+  // no full "Known by" page, so no "See all" card.
+  recipeCharacter: {
+    titleKey: PREVIEW_LIST_TYPES.recipeCharacter.titleKey,
+    icon: PREVIEW_LIST_TYPES.recipeCharacter.icon,
+    emptyTextKey: 'recipe_characters_preview.empty',
+    action: 'navigate',
+    requestResource: 'recipe',
+    quantityType: 'characters',
+    buildParams: (context) => ({ gameSlug: context.game_slug, id: context.id }),
+    buildHref: (context, item) => `#/games/${context.game_slug}/${characterTypeSegment(item)}/${item.id}`,
+    renderItem: (item, context) => renderCharacterPreviewCard(item.type, item, context),
   },
 };
 

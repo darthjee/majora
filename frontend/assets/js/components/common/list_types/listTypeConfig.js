@@ -18,6 +18,7 @@ import documentListTypes from './configs/documentListTypes.js';
 import possessionListTypes from './configs/possessionListType.js';
 import commonItemListTypes from './configs/commonItemListType.js';
 import recipeListTypes from './configs/recipeListType.js';
+import characterRecipeListTypes from './configs/recipeListTypes.js';
 import stlModelListType from './configs/stlModelListType.js';
 import sourceListType from './configs/sourceListType.js';
 import collectionListType from './configs/collectionListType.js';
@@ -109,9 +110,8 @@ function buildItemHref(item) {
 
 /**
  * Fetch a page of a game's items through `RequestStore` (`item.collection`, `kind: 'game'`),
- * resolving the requester's edit permission first to pick between the full catalog
- * (`items/all.json`, dm/admin only) and the player-facing, hidden-filtered `items.json` —
- * mirroring `fetchTreasures`. Unlike treasures, items have no filters, so none are sent.
+ * picking the full catalog (`items/all.json`, dm/admin only) or the player-facing `items.json`
+ * by the requester's edit permission — mirroring `fetchTreasures`, but with no filters.
  *
  * @param {string} gameSlug - Game slug.
  * @param {import('../../../utils/routing/HashRouteResolver.js').default} hashResolver -
@@ -289,6 +289,7 @@ const listTypeConfig = {
   ...possessionListTypes,
   ...commonItemListTypes,
   ...recipeListTypes,
+  ...characterRecipeListTypes,
   stlModels: stlModelListType,
   sources: sourceListType,
   collections: collectionListType,

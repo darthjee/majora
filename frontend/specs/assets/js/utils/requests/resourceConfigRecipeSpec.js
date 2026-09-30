@@ -48,8 +48,15 @@ describe('resourceConfig (recipe, issue #1449)', function() {
       expect(collection.private).toBe(collection.regular);
     });
 
-    it('has no characters quantity type', function() {
-      expect(resourceConfig.get('GET', 'recipe', 'characters')).toBeNull();
+    it('resolves characters (Known by) regular/private paths and permissions (issue #1450)', function() {
+      const characters = resourceConfig.get('GET', 'recipe', 'characters');
+
+      expect(characters.regular.path({ gameSlug: 'demo', id: '9' })).toBe('/games/demo/recipes/9/characters.json');
+      expect(characters.regular.permission).toBeNull();
+      expect(characters.private.path({ gameSlug: 'demo', id: '9' }))
+        .toBe('/games/demo/recipes/9/characters/all.json');
+      expect(characters.private.permission).toBe('can_edit');
+      expect(characters.private.skipCache).toBeTrue();
     });
   });
 });

@@ -102,6 +102,26 @@ const CASES = [
     expected: () => Translator.t('character_document_page.loading'),
   },
   {
+    page: 'pcCharacterRecipes',
+    hash: '#/games/demo/pcs/1/recipes',
+    expected: () => Translator.t('character_recipes_page.loading'),
+  },
+  {
+    page: 'npcCharacterRecipes',
+    hash: '#/games/demo/npcs/1/recipes',
+    expected: () => Translator.t('character_recipes_page.loading'),
+  },
+  {
+    page: 'pcCharacterRecipe',
+    hash: '#/games/demo/pcs/1/recipes/1',
+    expected: () => Translator.t('character_recipe_page.loading'),
+  },
+  {
+    page: 'npcCharacterRecipe',
+    hash: '#/games/demo/npcs/1/recipes/1',
+    expected: () => Translator.t('character_recipe_page.loading'),
+  },
+  {
     page: 'pcCharacterFactions',
     hash: '#/games/demo/pcs/1/factions',
     expected: () => Translator.t('character_factions_page.loading'),

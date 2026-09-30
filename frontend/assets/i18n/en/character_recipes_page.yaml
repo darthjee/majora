@@ -1,0 +1,6 @@
+character_recipes_page:
+  loading: Loading recipes...
+  title: Recipes
+  exchange_button: Exchange
+  hidden_label: Hidden
+  empty: No recipes known yet.
