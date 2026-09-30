@@ -76,11 +76,11 @@ describe('npcShowType', function() {
     expect(slainEntry.New).toBeUndefined();
   });
 
-  it('shows the treasures/items/documents/possessions/factions shortlists only on the show page', function() {
+  it('shows the treasures/items/documents/recipes/possessions/factions shortlists only on the show page', function() {
     const shortListEntries = findShortListEntries(npcShowType.right);
     const resources = shortListEntries.map((entry) => entry.Show({}).props.resource);
 
-    expect(resources).toEqual(['treasure', 'item', 'document', 'possession', 'faction']);
+    expect(resources).toEqual(['treasure', 'item', 'document', 'recipe', 'possession', 'faction']);
     shortListEntries.forEach((entry) => {
       expect(entry.New).toBeUndefined();
       expect(entry.Edit).toBeUndefined();

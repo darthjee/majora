@@ -55,7 +55,17 @@ describe('recipeShowType', function() {
     expect(RecipeOutputField.Edit).toBeDefined();
   });
 
-  it('has no bottom slot (no "Known by" shortlist)', function() {
+  it('has no bottom slot', function() {
     expect(recipeShowType.bottom).toEqual([]);
+  });
+
+  it('shows the "Known by" shortlist right after the hidden badge, only on the show page', function() {
+    const badgeIndex = recipeShowType.right.findIndex((entry) => entry.Show === RecipeHiddenBadge);
+    const entry = recipeShowType.right[badgeIndex + 1];
+
+    expect(entry.Show.name).toBe('ShortListSlot');
+    expect(entry.Show({}).props.resource).toBe('recipeCharacter');
+    expect(entry.New).toBeUndefined();
+    expect(entry.Edit).toBeUndefined();
   });
 });

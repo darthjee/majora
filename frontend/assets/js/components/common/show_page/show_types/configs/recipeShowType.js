@@ -12,13 +12,14 @@ import RecipeChecksField from '../../../../resources/recipe/pages/elements/show/
 import RecipeHiddenBadge from '../../../../resources/recipe/pages/elements/show/RecipeHiddenBadge.jsx';
 import RecipeHiddenField from '../../../../resources/recipe/pages/elements/show/RecipeHiddenField.jsx';
 import RecipeSubmitButton from '../../../../resources/recipe/pages/elements/show/RecipeSubmitButton.jsx';
+import buildShortListSlot from '../../../cards/buildShortListSlot.js';
 
 /**
  * `showTypeConfig` entry for the `recipe` show/new/edit pages (issue #1449), modeled on
  * `commonItemShowType` minus every photo-upload affordance (a recipe shows its output's photo).
  * Like `commonItemShowType`, the edit form keeps the `hidden` switch in the left column while the
- * creation form keeps it inline with the other fields. The "Known by" shortlist is intentionally
- * absent (#1450).
+ * creation form keeps it inline with the other fields. The show page ends with the "Known by"
+ * shortlist (#1450).
  */
 const recipeShowType = {
   left: [
@@ -37,6 +38,7 @@ const recipeShowType = {
     RecipeIngredientsField,
     RecipeChecksField,
     { Show: RecipeHiddenBadge },
+    { Show: buildShortListSlot('recipeCharacter') },
     { New: RecipeHiddenField },
     { New: RecipeSubmitButton, Edit: RecipeSubmitButton },
   ],
