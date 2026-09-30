@@ -1,3 +1,4 @@
+# Keep `regular.create` identical to game_npc_document/ui.yml's `exchange`.
 restricted:
   create:
     - staff

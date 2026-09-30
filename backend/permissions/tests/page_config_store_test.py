@@ -29,15 +29,26 @@ class TestPagePermissionConfigStore:
         }
 
     def test_loads_config_with_multiple_resources(self):
-        """Test that the character_pc page config includes all four of its resources."""
+        """Test that the character_pc page config includes all five of its resources."""
         config = PagePermissionConfigStore.get('character_pc')
         assert set(config.keys()) == {
             'game_pc', 'game_pc_item', 'game_pc_possession', 'game_pc_recipe',
+            'game_pc_document',
         }
         assert config['game_pc']['edit'] == 'can_edit'
         assert config['game_pc_item']['create_update'] == 'can_create_item'
         assert config['game_pc_possession']['create_update'] == 'can_create_possession'
         assert config['game_pc_recipe']['exchange'] == 'can_exchange_recipe'
+        assert config['game_pc_document']['exchange'] == 'can_exchange_document'
+
+    def test_loads_character_npc_config_with_document_resource(self):
+        """Test that the character_npc page config includes all five of its resources."""
+        config = PagePermissionConfigStore.get('character_npc')
+        assert set(config.keys()) == {
+            'game_npc', 'game_npc_item', 'game_npc_possession', 'game_npc_recipe',
+            'game_npc_document',
+        }
+        assert config['game_npc_document']['exchange'] == 'can_exchange_document'
 
     def test_caches_the_parsed_result(self):
         """Test that a second get() call for the same page is served from the cache."""

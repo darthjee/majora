@@ -8,9 +8,36 @@ import CharacterContextController
   from '../../../../../../../assets/js/components/resources/character/pages/controllers/CharacterContextController.js';
 import ResourceExchangeModalHelper
   from '../../../../../../../assets/js/components/resources/character/pages/elements/helpers/ResourceExchangeModalHelper.jsx';
-import { buildDocumentExchangeCharacter } from '../../../../../../../assets/js/components/resources/character/pages/shared/CharacterDocuments.jsx';
+import { buildDocumentExchangeCharacter, resolveDocumentExchangeButton }
+  from '../../../../../../../assets/js/components/resources/character/pages/shared/CharacterDocuments.jsx';
 import FacadeRefresh from '../../../../../../../assets/js/utils/access/useFacadeRefresh.js';
 import { stubBuildEffect } from '../../../../../../support/controllerStubs.js';
+
+// Seeds the page's character state by invoking the `setCharacter` setter once, as soon as the
+// page's `CharacterContextController` is constructed (a render-phase update), since effects
+// never run under `renderToStaticMarkup`.
+function seedCharacter(character) {
+  const { prototype } = CharacterContextController;
+  let stored;
+  let seeded = false;
+
+  Object.defineProperty(prototype, 'setCharacter', {
+    configurable: true,
+    set(value) {
+      stored = value;
+
+      if (!seeded) {
+        seeded = true;
+        value(character);
+      }
+    },
+    get() {
+      return stored;
+    },
+  });
+
+  return () => delete prototype.setCharacter;
+}
 
 const KINDS = [
   {
@@ -50,7 +77,47 @@ KINDS.forEach(({
 
       renderToStaticMarkup(React.createElement(Component));
 
-      expect(renderSpy).toHaveBeenCalledWith(kind, listType, 'demo', characterId, 0, jasmine.any(Function));
+      expect(renderSpy).toHaveBeenCalledWith(kind, listType, 'demo', characterId, 0, null);
+    });
+
+    it('does not render the Exchange button before the character context loads', function() {
+      const html = renderToStaticMarkup(React.createElement(Component));
+
+      expect(html).not.toContain('Document Exchange');
+    });
+
+    describe('with a loaded character', function() {
+      let restore;
+
+      afterEach(function() {
+        restore();
+      });
+
+      it('renders the Exchange button when the character can exchange documents', function() {
+        restore = seedCharacter({ can_exchange_document: true, can_edit: false });
+        const renderSpy = spyOn(CharacterDocumentsHelper, 'render').and.callThrough();
+
+        const html = renderToStaticMarkup(React.createElement(Component));
+
+        expect(renderSpy).toHaveBeenCalledWith(kind, listType, 'demo', characterId, 0, jasmine.any(Function));
+        expect(html).toContain('Document Exchange');
+      });
+
+      it('does not render the Exchange button when the flag is false, even if the character is editable', function() {
+        restore = seedCharacter({ can_exchange_document: false, can_edit: true, game_can_edit: true });
+
+        const html = renderToStaticMarkup(React.createElement(Component));
+
+        expect(html).not.toContain('Document Exchange');
+      });
+
+      it('does not render the Exchange button when the flag is missing (anonymous)', function() {
+        restore = seedCharacter({ can_edit: false });
+
+        const html = renderToStaticMarkup(React.createElement(Component));
+
+        expect(html).not.toContain('Document Exchange');
+      });
     });
 
     it('renders the document exchange modal configured with the acquire/remove tabs', function() {
@@ -67,6 +134,24 @@ KINDS.forEach(({
       expect(capturedState.tabs.remove).toBeDefined();
       expect(capturedState.tabs.buy).toBeUndefined();
     });
+  });
+});
+
+describe('resolveDocumentExchangeButton', function() {
+  it('is true when the character can exchange documents', function() {
+    expect(resolveDocumentExchangeButton({ can_exchange_document: true, can_edit: false })).toBe(true);
+  });
+
+  it('is false when the character cannot exchange documents, even if it can be edited', function() {
+    expect(resolveDocumentExchangeButton({ can_exchange_document: false, can_edit: true })).toBe(false);
+  });
+
+  it('is false when the flag is missing, even if the character can be edited', function() {
+    expect(resolveDocumentExchangeButton({ can_edit: true })).toBe(false);
+  });
+
+  it('is false while the character has not loaded yet', function() {
+    expect(resolveDocumentExchangeButton(null)).toBe(false);
   });
 });
 

@@ -11,3 +11,5 @@ game_pc_possession:
   create_update: can_create_possession
 game_pc_recipe:
   exchange: can_exchange_recipe
+game_pc_document:
+  exchange: can_exchange_document

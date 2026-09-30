@@ -68,7 +68,8 @@ export default class AccessStorePermissions {
    * @param {string} gameSlug - Game slug the character belongs to.
    * @param {string|number} characterId - Character id.
    * @returns {Promise<{can_edit: boolean, can_exchange_treasure: boolean,
-   *   can_exchange_recipe: boolean, can_set_profile_photo: boolean, can_delete_photo: boolean}>}
+   *   can_exchange_recipe: boolean, can_exchange_document: boolean, can_set_profile_photo: boolean,
+   *   can_delete_photo: boolean}>}
    *   Resolves to the permissions payload.
    */
   static ensureCharacter(cache, characterClient, characterKind, gameSlug, characterId) {
@@ -313,7 +314,8 @@ export default class AccessStorePermissions {
    * @param {string} gameSlug - Game slug the character belongs to.
    * @param {string|number} characterId - Character id.
    * @returns {{can_edit: boolean, can_exchange_treasure: boolean,
-   *   can_exchange_recipe: boolean, can_set_profile_photo: boolean, can_delete_photo: boolean}}
+   *   can_exchange_recipe: boolean, can_exchange_document: boolean, can_set_profile_photo: boolean,
+   *   can_delete_photo: boolean}}
    *   The cached permissions payload, or the fail-closed default.
    */
   static getCharacter(cache, characterKind, gameSlug, characterId) {

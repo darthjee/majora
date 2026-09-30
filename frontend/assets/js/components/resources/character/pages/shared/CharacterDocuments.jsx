@@ -31,11 +31,25 @@ export function buildDocumentExchangeCharacter(characterId, gameSlug, isPc, char
 }
 
 /**
+ * Resolves whether the page's "Exchange" button should render, sourced from the
+ * permission-aware `can_exchange_document` flag (issue #1453) — mirroring
+ * `CharacterRecipes.jsx`'s `resolveRecipeExchangeButton` / `can_exchange_recipe`. Fail-closed:
+ * a missing character or flag hides the button.
+ *
+ * @param {object|null} character - Currently loaded character context, or `null` while loading.
+ * @returns {boolean} Whether the "Exchange" button should render.
+ */
+export function resolveDocumentExchangeButton(character) {
+  return Boolean(character?.can_exchange_document);
+}
+
+/**
  * Shared PC/NPC documents index page component (issue #725), mirroring `shared/CharacterItems.jsx`.
  * Unlike items, documents have no create page/permission in scope, so there's no
  * create-permission resolution here — only the exchange trigger (issue #920), gated by the
- * game-level `gameCanEdit`/character-level `canEdit` context `CharacterContextController` already
- * resolves.
+ * character-level `can_exchange_document` flag (issue #1453) that `CharacterContextController`
+ * merges onto the character. The modal's `canEdit`/`gameCanEdit` context still routes its tabs
+ * to the `/all` endpoint variants.
  *
  * @param {object} props - Component props.
  * @param {string} props.characterKind - Character kind URL segment (`'pcs'` or `'npcs'`).
@@ -73,7 +87,8 @@ export default function CharacterDocuments({ characterKind, listType, isPc }) {
   return (
     <>
       {CharacterDocumentsHelper.render(
-        characterKind, listType, gameSlug, characterId, refreshToken, () => setShowExchangeModal(true),
+        characterKind, listType, gameSlug, characterId, refreshToken,
+        resolveDocumentExchangeButton(character) ? () => setShowExchangeModal(true) : null,
       )}
       <ResourceExchangeModal
         show={showExchangeModal}
