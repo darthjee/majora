@@ -8,6 +8,8 @@ import RecipeNameHeading
   from '../../../../../../../../assets/js/components/resources/recipe/pages/elements/show/RecipeNameHeading.jsx';
 import RecipeHiddenBadge
   from '../../../../../../../../assets/js/components/resources/recipe/pages/elements/show/RecipeHiddenBadge.jsx';
+import RecipeHiddenField
+  from '../../../../../../../../assets/js/components/resources/recipe/pages/elements/show/RecipeHiddenField.jsx';
 import RecipeOutputField
   from '../../../../../../../../assets/js/components/resources/recipe/pages/elements/show/RecipeOutputField.jsx';
 
@@ -37,6 +39,20 @@ describe('recipeShowType', function() {
 
   it('renders the output field in the right column', function() {
     expect(recipeShowType.right).toContain(RecipeOutputField);
+  });
+
+  it('places the hidden switch under the image in edit mode and inline in new mode', function() {
+    const leftEntry = recipeShowType.left.find((entry) => entry.Edit === RecipeHiddenField);
+    const rightEntry = recipeShowType.right.find((entry) => entry.New === RecipeHiddenField);
+
+    expect(leftEntry.New).toBeUndefined();
+    expect(rightEntry.Edit).toBeUndefined();
+  });
+
+  it('offers the output field in every mode', function() {
+    expect(RecipeOutputField.Show).toBeDefined();
+    expect(RecipeOutputField.New).toBeDefined();
+    expect(RecipeOutputField.Edit).toBeDefined();
   });
 
   it('has no bottom slot (no "Known by" shortlist)', function() {

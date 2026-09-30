@@ -1,5 +1,6 @@
 import React from 'react';
 import RecipeTextSection from './RecipeTextSection.jsx';
+import RecipeMarkdownField from './RecipeMarkdownField.jsx';
 import Translator from '../../../../../../i18n/Translator.js';
 
 /**
@@ -14,8 +15,32 @@ function RecipeIngredientsFieldShow({ ingredients }) {
 }
 
 /**
+ * New/edit-mode right-column slot: the recipe's `ingredients` markdown editor.
+ *
+ * @param {object} context - Merged `ShowPageLayout` rendering context.
+ * @param {'new'|'edit'} context.mode - Current page mode.
+ * @param {string} context.ingredients - Current value.
+ * @param {object} [context.fieldErrors] - Field-level submission errors, keyed by field name.
+ * @param {{onIngredientsChange: Function}} context.handlers - Event handlers.
+ * @returns {React.ReactElement} Markdown editor.
+ */
+function RecipeIngredientsFieldEdit({
+  mode, ingredients, fieldErrors, handlers,
+}) {
+  return (
+    <RecipeMarkdownField
+      mode={mode}
+      field="ingredients"
+      value={ingredients}
+      onChange={handlers.onIngredientsChange}
+      fieldErrors={fieldErrors}
+    />
+  );
+}
+
+/**
  * Mode-variant `ingredients` slot for the recipe show/new/edit pages.
  */
-const RecipeIngredientsField = { Show: RecipeIngredientsFieldShow };
+const RecipeIngredientsField = { Show: RecipeIngredientsFieldShow, New: RecipeIngredientsFieldEdit, Edit: RecipeIngredientsFieldEdit };
 
 export default RecipeIngredientsField;
