@@ -13,5 +13,6 @@ recipe_edit_page:
   hidden_label: Oculta
   submit: Salvar alterações
   hidden_notice: Receitas ocultas são visíveis apenas para os editores do jogo.
+  error: Falha ao salvar a receita. Tente novamente.
   errors:
     invalid_output: O item produzido selecionado é inválido. Escolha outro item comum.

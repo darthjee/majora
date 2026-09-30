@@ -13,5 +13,6 @@ recipe_edit_page:
   hidden_label: Hidden
   submit: Save changes
   hidden_notice: Hidden recipes are only visible to game editors.
+  error: Failed to save recipe. Please try again.
   errors:
     invalid_output: The selected output item is invalid. Please choose another common item.
