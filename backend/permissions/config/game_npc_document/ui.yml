@@ -1,0 +1,5 @@
+# CharacterPermissionsSerializer's can_exchange_document, for an NPC.
+# Must mirror game_npc_document/endpoints.yml's `regular.create`.
+exchange:
+  - staff
+  - player

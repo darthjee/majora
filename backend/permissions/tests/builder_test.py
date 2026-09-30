@@ -37,6 +37,7 @@ class TestPermissionsBuilderRealIdentity:
             'can_upload_item_photo': True,
             'can_create_possession': True,
             'can_exchange_recipe': True,
+            'can_exchange_document': True,
         }
 
     def test_single_resource_page_returns_its_keys_only(self):
