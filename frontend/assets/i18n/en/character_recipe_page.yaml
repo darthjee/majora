@@ -1,0 +1,6 @@
+character_recipe_page:
+  loading: Loading recipe...
+  back_link: Back to recipes
+  game_recipe_link: View game recipe
+  hidden_toggle_label: Hidden from players
+  not_found: Recipe not found.

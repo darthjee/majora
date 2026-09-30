@@ -159,6 +159,7 @@ character_page:
   treasures_title: Tesouros
   items_title: Itens
   documents_title: Documentos
+  recipes_title: Receitas
   possessions_title: Posses
   factions_title: Facções
   photos_title: Fotos
@@ -289,6 +290,24 @@ document_exchange_modal:
   empty: Nenhum documento disponível.
   load_error: Falha ao carregar documentos. Por favor, tente novamente.
   already_owned_error: Este documento já foi adquirido.
+  generic_error: Não foi possível concluir esta ação. Por favor, tente novamente.
+recipe_exchange_modal:
+  title: Troca de Receita
+  search_placeholder: Buscar receitas...
+  acquire_tab: Adquirir
+  acquire_tab_tooltip: Aprender uma receita
+  remove_tab: Remover
+  remove_tab_tooltip: Esquecer uma receita
+  hidden_label: Oculta
+  confirm: Confirmar
+  cancel: Cancelar
+  back: Voltar
+  cancel_selection: Cancelar
+  loading: Carregando receitas...
+  empty: Nenhuma receita disponível.
+  load_error: Falha ao carregar receitas. Por favor, tente novamente.
+  already_owned_error: Este personagem já conhece esta receita.
+  not_found_error: Receita não encontrada.
   generic_error: Não foi possível concluir esta ação. Por favor, tente novamente.
 possession_exchange_modal:
   title: Troca de Posse
