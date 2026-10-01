@@ -91,7 +91,7 @@ services:
     env_file: .env
 
   majora_proxy:
-    image: darthjee/tent:0.10.4
+    image: darthjee/tent:1.0.2
     container_name: majora_proxy
     env_file: .env
     volumes:
@@ -112,7 +112,7 @@ services:
       - 0.0.0.0:3000:80
 
   proxy_tests:
-    image: darthjee/tent-test:0.10.4
+    image: darthjee/tent-test:1.0.2
     volumes:
       - ./proxy/extension:/var/www/html/extension
       - ./proxy:/var/www/html/proxy
