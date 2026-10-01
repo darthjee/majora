@@ -20,18 +20,31 @@ from games.models import (
     TreasurePhoto,
 )
 from miniatures.models import CollectionPhoto, SourcePhoto, StlModelPhoto
+from staff.photo_cache_paths import (
+    DOCUMENTS,
+    FULL_FAMILY,
+    CharacterCachePaths,
+    CharacterItemCachePaths,
+    GameCachePaths,
+    GameDocumentFileCachePaths,
+    GameResourceCachePaths,
+    MiniaturesCachePaths,
+    TreasureCachePaths,
+)
 
 
 class PhotoType:
     """One photo model of the registry, with its owner resolution and description rules."""
 
     def __init__(self, slug, model, owner_field, game_path=('game',), select_related=(),
-                 gallery=False):
+                 gallery=False, cache_paths=None):
         """Store the photo type configuration.
 
         `game_path` is the attribute chain from the owner to its game: `()` when the owner is
-        the game itself, `None` when the owner is not game-scoped.
+        the game itself, `None` when the owner is not game-scoped. `cache_paths` is the builder
+        (see `staff.photo_cache_paths`) of the proxy cache paths embedding the owner's photo.
         """
+        self._cache_paths = cache_paths
         self.slug = slug
         self.model = model
         self.owner_field = owner_field
@@ -66,6 +79,12 @@ class PhotoType:
             'kind': self._owner_kind(owner),
             'game': self._describe_game(self._owner_game(owner)),
         }
+
+    def cache_paths(self, owner):
+        """Return the literal proxy cache paths to clear for `owner` (empty when None)."""
+        if owner is None or self._cache_paths is None:
+            return []
+        return self._cache_paths.paths(owner)
 
     def gallery_owner(self, photo):
         """Return the photo's owner when it keeps a gallery of photos, else None."""
@@ -148,29 +167,39 @@ class GameDocumentFilePhotoType(PhotoType):
 
 PHOTO_TYPES = (
     PhotoType('game', GamePhoto, 'game', game_path=(), select_related=('game',),
-              gallery=True),
-    PhotoType('game_faction', GameFactionPhoto, 'faction', select_related=('faction__game',)),
-    PhotoType('game_item', GameItemPhoto, 'game_item', select_related=('game_item__game',)),
+              gallery=True, cache_paths=GameCachePaths()),
+    PhotoType('game_faction', GameFactionPhoto, 'faction', select_related=('faction__game',),
+              cache_paths=GameResourceCachePaths('factions')),
+    PhotoType('game_item', GameItemPhoto, 'game_item', select_related=('game_item__game',),
+              cache_paths=GameResourceCachePaths('items', **FULL_FAMILY)),
     PhotoType('game_common_item', GameCommonItemPhoto, 'game_common_item',
-              select_related=('game_common_item__game',)),
+              select_related=('game_common_item__game',),
+              cache_paths=GameResourceCachePaths('common_items', **FULL_FAMILY)),
     PhotoType('game_document', GameDocumentPhoto, 'game_document',
-              select_related=('game_document__game',), gallery=True),
+              select_related=('game_document__game',), gallery=True, cache_paths=DOCUMENTS),
     GameDocumentFilePhotoType('game_document_file', GameDocumentFilePhoto, None,
-                              game_path=('game_document', 'game')),
+                              game_path=('game_document', 'game'),
+                              cache_paths=GameDocumentFileCachePaths(DOCUMENTS)),
     PhotoType('game_possession', GamePossessionPhoto, 'game_possession',
-              select_related=('game_possession__game',)),
+              select_related=('game_possession__game',),
+              cache_paths=GameResourceCachePaths('possessions', **FULL_FAMILY)),
     CharacterPhotoType('character', CharacterPhoto, 'character',
-                       select_related=('character__game',), gallery=True),
+                       select_related=('character__game',), gallery=True,
+                       cache_paths=CharacterCachePaths()),
     CharacterItemPhotoType('character_item', CharacterItemPhoto, 'character_item',
                            game_path=('character', 'game'),
                            select_related=('character_item__character__game',
-                                           'character_item__game_item')),
-    PhotoType('treasure', TreasurePhoto, 'treasure', select_related=('treasure__game',)),
+                                           'character_item__game_item'),
+                           cache_paths=CharacterItemCachePaths()),
+    PhotoType('treasure', TreasurePhoto, 'treasure', select_related=('treasure__game',),
+              cache_paths=TreasureCachePaths()),
     PhotoType('stl_model', StlModelPhoto, 'stl_model', game_path=None,
-              select_related=('stl_model',)),
-    PhotoType('source', SourcePhoto, 'source', game_path=None, select_related=('source',)),
+              select_related=('stl_model',), cache_paths=MiniaturesCachePaths('stl_models')),
+    PhotoType('source', SourcePhoto, 'source', game_path=None, select_related=('source',),
+              cache_paths=MiniaturesCachePaths('sources')),
     PhotoType('collection', CollectionPhoto, 'collection', game_path=None,
-              select_related=('collection',), gallery=True),
+              select_related=('collection',), gallery=True,
+              cache_paths=MiniaturesCachePaths('collections')),
 )
 
 _BY_SLUG = {photo_type.slug: photo_type for photo_type in PHOTO_TYPES}

@@ -4,6 +4,8 @@ from django.db import transaction
 from rest_framework.response import Response
 
 from games.views.common import require_staff
+from staff import photo_types
+from staff.cache_clear_header import attach_photo_cache_clear
 
 from .models import Upload
 
@@ -46,18 +48,26 @@ class StaffUploadFinalizer:
         photo.path = self._upload.file_path
         photo.ready = True
         photo.save()
-        return self._uploaded_response(old_path)
+        return self._uploaded_response(photo, old_path)
 
     def _locked_photo(self):
         """Return the upload's photo row locked for update, or None if it was deleted."""
         model = self._upload.content_type.model_class()
         return model.objects.select_for_update().filter(pk=self._upload.object_id).first()
 
-    def _uploaded_response(self, old_path):
+    def _uploaded_response(self, photo, old_path):
         """Return 200 with `previous_path` only when the stored path actually changed."""
         if old_path and old_path != self._upload.file_path:
-            return Response({'previous_path': old_path}, status=200)
+            return self._path_changed_response(photo, old_path)
         return Response(status=200)
+
+    @staticmethod
+    def _path_changed_response(photo, old_path):
+        """Return 200 `{previous_path}` with `X-Cache-Clear` listing the owner's cached paths."""
+        photo_type = photo_types.find_for_model(type(photo))
+        owner = photo_type.owner_of(photo) if photo_type else None
+        response = Response({'previous_path': old_path}, status=200)
+        return attach_photo_cache_clear(response, photo_type, owner)
 
     def _cleanup_response(self):
         """Return the 404 telling the proxy to remove the file it wrote for this upload."""
