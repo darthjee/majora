@@ -7,6 +7,7 @@ When Tent forwards a request to an upstream backend, the `Host` header it sends 
 **The solution**: Override the `Host` header to match the upstream service's hostname, and preserve the original value under `X-Forwarded-Host`.
 
 `default_proxy` handles this automatically:
+
 - The original `Host` is renamed to `X-Forwarded-Host`.
 - `Host` is set to the hostname part of the configured `host` URL.
 

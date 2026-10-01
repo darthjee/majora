@@ -18,6 +18,7 @@ services:
 ```
 
 The two key mounts are:
+
 - `/var/www/html/static/` — static files Tent will serve directly.
 - `/var/www/html/configuration/` — PHP rule files that define routing behavior.
 
