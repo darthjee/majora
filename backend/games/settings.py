@@ -25,6 +25,11 @@ class Settings:
         return env_int('MAJORA_UPLOAD_EXPIRATION_MINUTES', 60)
 
     @staticmethod
+    def photo_max_dimension():
+        """Return the longest-side limit (px) photos are resized to, clamped to >= 1."""
+        return max(1, env_int('MAJORA_PHOTO_MAX_DIMENSION', 1024))
+
+    @staticmethod
     def emails_enabled():
         """Return True only when email sending has been explicitly enabled."""
         return os.environ.get('EMAILS_ENABLED', 'false').lower() == 'true'
