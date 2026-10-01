@@ -18,6 +18,7 @@ that the URL's `upload_type` segment matches the row's stored value.
 | Create (`POST /games/<slug>/documents/<id>/photo_upload.json`, `.../file_upload.json`, `.../files/<file_id>/photo_upload.json`) | Staff, any player of the game, or the game's dm/editor — see [GameDocument](game-document.md) |
 | Create (`POST /treasures/<id>/photo_upload.json`) | Superuser always; additionally the treasure's owning game's GameMaster, when exclusive to a game |
 | Create (`POST /miniatures/stl_models/<id>/photo_upload.json`) | **Staff-or-superuser** (`require_staff`) — see [StlModel](stl-model.md) |
+| Create (`POST /staff/photos/<photo_type>/<photo_id>/replace.json`) | **Staff-or-superuser** (`require_staff`) — see [Staff Photos](staff-photo.md) |
 | Read | Only the user who initiated the upload (indirectly, via the 201 response at creation time) |
 | Update / Delete | No public endpoint; status transitions are handled internally |
 
@@ -31,7 +32,10 @@ that the URL's `upload_type` segment matches the row's stored value.
   `ready=True`), included so a caller can chain a second, dependent upload before the first
   finalises (e.g. [GameDocument](game-document.md)'s file→photo chain).
 - All other fields (`file_path`, `expiration_time`, `status`, `user`, `content_type`,
-  `object_id`) are internal, never returned by any endpoint.
+  `object_id`, `origin`) are internal, never returned by any endpoint.
+- `origin` (`regular` default / `staff`) records which flow created the upload: every per-entity
+  init endpoint creates `regular` uploads; only the staff replace endpoint creates `staff` ones.
+  It selects the finalize branch (see [Staff-origin uploads](#staff-origin-uploads)).
 
 ## Route shape and the no-leak ordering guarantee
 
@@ -44,6 +48,9 @@ not). This ordering is deliberate: the `404` must never be observable by a calle
 already proven ownership via a valid `X-Upload-Token` — otherwise a caller could distinguish
 "doesn't exist" (403) from "exists, wrong type" (404) from "exists, right type, not authorized"
 (403), leaking the existence and `upload_type` of an arbitrary upload it has no claim to.
+
+Finalize is decorated with `@restricted`, so every one of its responses (any status, regular or
+staff origin) carries `X-Skip-Cache: true`.
 
 ## Side effect on finalisation
 
@@ -67,6 +74,30 @@ reference. Dispatches on `content_object` type:
 
 All cases reuse the checks already enforced at upload creation (token match, requesting user must
 be the upload's owner) — only the object-level permission class differs, by `content_object` type.
+
+## Staff-origin uploads
+
+`PATCH /uploads/<upload_type>/<id>.json` on an `origin='staff'` upload (created by
+[Staff Photos](staff-photo.md)' replace endpoint) differs from the regular flow:
+
+- **Authorization:** `require_staff` **replaces** the per-type game-edit permission check. The
+  token, owning-user, expiry and not-already-uploaded checks still apply, so another staff member
+  cannot finalize someone else's upload, and a user demoted mid-upload gets `403` (subject to
+  `AdminOrStaffCache`'s usual staleness).
+- **Photo gone:** if the photo row was deleted while the replace was in flight (directly, or
+  through an owner whose deletion cascades to it), finalize answers `404`
+  `{"cleanup_path": <upload.file_path>}` so the proxy removes the file it wrote. The path comes
+  from the `Upload` row, never from the request. `GameDocumentFilePhoto` is the exception: its
+  owner (`GameDocumentFile.photo`, `SET_NULL`) does not cascade, so the photo row survives and
+  finalize succeeds against the now-orphan row.
+- `pending → uploading` is unchanged (`{"file_path": ...}`).
+- **`uploaded`:** in one transaction, the photo row is locked, its `path` set to the upload's
+  `file_path` and `ready` set to `True`. The per-type `mark_ready` handlers are **skipped** — a
+  staff replace never changes which photo the owning entity points to. The response is `200`
+  `{"previous_path": <old path>}` only when the old path is non-empty and differs from the new
+  one (the extension changed), so the proxy can delete the old file; otherwise `200` with no body.
+
+Regular (`origin='regular'`) uploads keep the behaviour described above unchanged.
 
 ## Endpoint summary
 

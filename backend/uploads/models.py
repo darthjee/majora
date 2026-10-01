@@ -12,6 +12,28 @@ from django.utils import timezone
 from games.settings import Settings
 
 
+class UploadQuerySet(models.QuerySet):
+    """QuerySet helpers for Upload records."""
+
+    def active(self):
+        """Return uploads still in flight: pending/uploading and not expired."""
+        return self.filter(
+            status__in=(Upload.STATUS_PENDING, Upload.STATUS_UPLOADING),
+            expiration_time__gt=timezone.now(),
+        )
+
+    def for_objects(self, model, object_ids):
+        """Return uploads linked to the given ids of the given model."""
+        return self.filter(
+            content_type=ContentType.objects.get_for_model(model),
+            object_id__in=list(object_ids),
+        )
+
+    def for_object(self, instance):
+        """Return uploads linked to the given model instance."""
+        return self.for_objects(type(instance), [instance.pk])
+
+
 class Upload(models.Model):
     """Model tracking the lifecycle of a game photo upload."""
 
@@ -33,6 +55,14 @@ class Upload(models.Model):
         (UPLOAD_TYPE_FILE, 'file'),
     ]
 
+    ORIGIN_REGULAR = 'regular'
+    ORIGIN_STAFF = 'staff'
+
+    ORIGIN_CHOICES = [
+        (ORIGIN_REGULAR, 'regular'),
+        (ORIGIN_STAFF, 'staff'),
+    ]
+
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='uploads'
     )
@@ -50,11 +80,27 @@ class Upload(models.Model):
     )
     object_id = models.PositiveIntegerField(null=True, blank=True)
     content_object = GenericForeignKey('content_type', 'object_id')
+    origin = models.CharField(
+        max_length=10, choices=ORIGIN_CHOICES, default=ORIGIN_REGULAR
+    )
+
+    objects = UploadQuerySet.as_manager()
 
     class Meta:
         """Model metadata for Upload."""
 
         db_table = 'games_upload'
+        indexes = [
+            models.Index(
+                fields=['content_type', 'object_id'],
+                name='games_upload_ct_obj_idx',
+            ),
+        ]
+
+    @property
+    def is_staff_origin(self):
+        """Return True when the upload was initiated from the staff photos page."""
+        return self.origin == self.ORIGIN_STAFF
 
     def save(self, *args, **kwargs):
         """Persist the upload record, enforcing immutability after upload."""

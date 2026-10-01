@@ -40,6 +40,8 @@ regardless of any other rule listed below.
 - [User (Staff Management)](access-control/user.md)
 - [Staff Cache](access-control/staff-cache.md) — the staff-only memory-cache management endpoints
 - [Staff Crawler](access-control/staff-crawler.md) — the staff-only crawler debug-harness endpoints
+- [Staff Photos](access-control/staff-photo.md) — the staff-only cross-type photo list / replace /
+  delete endpoints
 - [CharacterPhoto](access-control/character-photo.md)
 - [CharacterTreasure](access-control/character-treasure.md)
 - [GameTreasure](access-control/game-treasure.md)

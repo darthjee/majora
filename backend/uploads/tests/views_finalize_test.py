@@ -98,6 +98,7 @@ class TestUploadFinalizeGeneric(TestCase):
             upload_token=self.upload.token,
         )
         assert response.status_code == 403
+        assert response['X-Skip-Cache'] == 'true'
 
     def test_expired_upload_returns_403(self):
         """Test that an expired upload returns 403."""
@@ -142,6 +143,7 @@ class TestUploadFinalizeGeneric(TestCase):
             upload_token=self.upload.token,
         )
         assert response.status_code == 401
+        assert response['X-Skip-Cache'] == 'true'
 
     def test_uploading_status_via_session_cookie(self):
         """Test that status=uploading succeeds for a cookie-authenticated DM."""
@@ -155,6 +157,7 @@ class TestUploadFinalizeGeneric(TestCase):
             upload_token=self.upload.token,
         )
         assert response.status_code == 200
+        assert response['X-Skip-Cache'] == 'true'
         data = json.loads(response.content)
         assert data['file_path'] == self.upload.file_path
 

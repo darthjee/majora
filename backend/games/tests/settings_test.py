@@ -178,6 +178,30 @@ class TestSettingsUploadExpirationMinutes:
         assert Settings.upload_expiration_minutes() == 60
 
 
+class TestSettingsPhotoMaxDimension:
+    """Tests for Settings.photo_max_dimension()."""
+
+    def test_returns_default_when_env_not_set(self, monkeypatch):
+        """Test that the default of 1024 is returned when env var is absent."""
+        monkeypatch.delenv('MAJORA_PHOTO_MAX_DIMENSION', raising=False)
+        assert Settings.photo_max_dimension() == 1024
+
+    def test_reads_value_from_env(self, monkeypatch):
+        """Test that the value from MAJORA_PHOTO_MAX_DIMENSION is used."""
+        monkeypatch.setenv('MAJORA_PHOTO_MAX_DIMENSION', '2048')
+        assert Settings.photo_max_dimension() == 2048
+
+    def test_returns_default_when_env_is_invalid(self, monkeypatch):
+        """Test that the default is returned when the env var is not an integer."""
+        monkeypatch.setenv('MAJORA_PHOTO_MAX_DIMENSION', 'not-a-number')
+        assert Settings.photo_max_dimension() == 1024
+
+    def test_clamps_up_when_env_is_below_floor(self, monkeypatch):
+        """Test that a value of 0 is clamped up to the floor of 1."""
+        monkeypatch.setenv('MAJORA_PHOTO_MAX_DIMENSION', '0')
+        assert Settings.photo_max_dimension() == 1
+
+
 class TestSettingsGravatarBaseUrl:
     """Tests for Settings.gravatar_base_url()."""
 

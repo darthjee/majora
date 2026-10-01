@@ -38,4 +38,25 @@ urlpatterns = [
     path('staff/cache/summary.json', views.staff_cache_summary, name='staff-cache-summary'),
     path('staff/crawler.json', views.staff_crawler, name='staff-crawler'),
     path('staff/crawler/summary.json', views.staff_crawler_summary, name='staff-crawler-summary'),
+    path('staff/photos.json', views.staff_photos_index, name='staff-photos-index'),
+    path(
+        'staff/photos/<str:photo_type>.json',
+        views.staff_photos_list,
+        name='staff-photos-list',
+    ),
+    path(
+        'staff/photos/<str:photo_type>/<int:photo_id>/replace.json',
+        views.staff_photo_replace,
+        name='staff-photo-replace',
+    ),
+    path(
+        'staff/photos/<str:photo_type>/<int:photo_id>/deletable.json',
+        views.staff_photo_deletable,
+        name='staff-photo-deletable',
+    ),
+    path(
+        'staff/photos/<str:photo_type>/<int:photo_id>.json',
+        views.staff_photo_delete,
+        name='staff-photo-delete',
+    ),
 ]

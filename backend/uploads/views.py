@@ -6,6 +6,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from games.decorators import restricted
 from games.models import (
     CharacterItemPhoto,
     CharacterPhoto,
@@ -23,11 +24,13 @@ from miniatures.models import CollectionPhoto, SourcePhoto, StlModelPhoto
 from permissions import EndpointPermission
 
 from .models import Upload
+from .staff_upload_finalizer import StaffUploadFinalizer
 
 _FORBIDDEN = Response(status=status.HTTP_403_FORBIDDEN)
 _VALID_STATUSES = {Upload.STATUS_UPLOADING, Upload.STATUS_UPLOADED}
 
 
+@restricted
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
 def upload_finalize(request, upload_type, upload_id):
@@ -46,6 +49,9 @@ def upload_finalize(request, upload_type, upload_id):
     new_status = request.data.get('status')
     if new_status not in _VALID_STATUSES:
         return Response({'errors': {'status': ['invalid_status']}}, status=400)
+
+    if upload.is_staff_origin:
+        return StaffUploadFinalizer(upload).apply(new_status)
 
     upload.status = new_status
     upload.save()
@@ -82,7 +88,12 @@ def _is_expired(upload):
 
 
 def _check_permission(request, upload):
-    """Return a permission error Response if the user may not edit the upload target, else None."""
+    """Return a permission error Response if the user may not edit the upload target, else None.
+
+    Staff-origin uploads are authorized by `require_staff` instead of the per-type check.
+    """
+    if upload.is_staff_origin:
+        return StaffUploadFinalizer(upload).check_permission(request)
     content_object = upload.content_object
     permission_check, _ = _handlers_for(content_object)
     return permission_check(request, content_object)
