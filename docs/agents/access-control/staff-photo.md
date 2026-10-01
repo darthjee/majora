@@ -64,3 +64,19 @@ are not an existence oracle.
 
 An **active upload** is an `Upload` linked to the photo with status `pending`/`uploading` that has
 not expired; an expired leftover never blocks a photo.
+
+## Accepted risks
+
+Staff-only, low-severity edge cases found in the #1470 security review and accepted for now:
+
+- **Orphan rows sharing a live path:** some photo types use a fixed path with no UUID (e.g.
+  `photos/games/<slug>/factions/<id>/photo.<ext>`, `treasures/<id>/photo.<ext>`), so an orphan
+  photo row (one its owner no longer points to) may share its path with the live row. Deleting the
+  orphan, or replacing it, through these endpoints then acts on the live row's file too (the proxy
+  deletes or overwrites it). Staff should check `owner` before acting on such rows.
+- **Concurrent regular upload:** the regular per-entity init endpoints do not refuse while a staff
+  replace is in flight on the same photo row. If an editor uploads in parallel and the staff
+  replace then finalizes with a changed extension, the returned `previous_path` may point at the
+  editor's new file. This needs concurrent staff and editor activity on the same photo.
+- **Unbounded `per_page`:** the shared `Paginator` does not cap `per_page` (pre-existing), so the
+  list endpoint can load a whole photo table in one staff request.
