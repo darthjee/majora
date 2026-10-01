@@ -42,6 +42,18 @@ class DeleteHandlerTest extends TestCase
     }
 
     /**
+     * Creates a cache entry for GET $path under $cacheDir (Tent's
+     * <cache>/<path>/GET/<hash>.body.dat layout) and returns its GET/ dir.
+     */
+    private function makeCacheEntry(string $cacheDir, string $path): string
+    {
+        $dir = $cacheDir . $path . '/GET';
+        mkdir($dir, 0755, true);
+        file_put_contents($dir . '/abc.body.dat', '{}');
+        return $dir;
+    }
+
+    /**
      * Recursively removes a directory and all its contents.
      */
     private function removeDir(string $dir): void
@@ -382,5 +394,115 @@ class DeleteHandlerTest extends TestCase
         $prop->setAccessible(true);
 
         $this->assertSame($this->photosDir, $prop->getValue($handler));
+    }
+
+    // -------------------------------------------------------------------------
+    // X-Cache-Clear (issue #1469)
+    // -------------------------------------------------------------------------
+
+    /**
+     * A successful backend DELETE carrying X-Cache-Clear clears the listed
+     * paths from the cache folder; the header is stripped from the response
+     * forwarded to the client while other backend headers pass through.
+     */
+    public function testDeleteXCacheClearClearsPathsAndIsStripped(): void
+    {
+        $this->makePhotoFile('42/photo.jpg');
+        $cacheDir   = $this->photosDir . '/cache';
+        $collection = $this->makeCacheEntry($cacheDir, '/games/my-game/pcs.json');
+        $entity     = $this->makeCacheEntry($cacheDir, '/games/my-game/pcs/42.json');
+        $untouched  = $this->makeCacheEntry($cacheDir, '/games/my-game/npcs.json');
+
+        $httpClient = $this->createMock(HttpClientInterface::class);
+        $handler    = new DeleteHandler('http://backend:8080', $httpClient, $this->photosDir, $cacheDir);
+
+        $request = $this->makeRequest($this->deletePath('my-game', 'pcs', '42', '7'));
+
+        $httpClient->expects($this->exactly(2))
+            ->method('request')
+            ->willReturnOnConsecutiveCalls(
+                ['httpCode' => 200, 'body' => '{"deletable":true,"path":"42/photo.jpg"}', 'headers' => []],
+                [
+                    'httpCode' => 204,
+                    'body'     => '',
+                    'headers'  => [
+                        'X-Request-Id: 1',
+                        'x-cache-clear: /games/my-game/pcs.json, /games/my-game/pcs/42.json',
+                    ],
+                ]
+            );
+
+        $response = $handler->handleRequest($request);
+
+        $this->assertSame(204, $response->httpCode());
+        $this->assertSame(['X-Request-Id: 1'], $response->headers());
+        $this->assertDirectoryDoesNotExist($collection);
+        $this->assertDirectoryDoesNotExist($entity);
+        $this->assertDirectoryExists($untouched);
+    }
+
+    /**
+     * A failed backend DELETE never clears anything, and the header is still
+     * stripped from the forwarded response.
+     */
+    public function testFailedDeleteDoesNotClearCache(): void
+    {
+        $this->makePhotoFile('42/photo.jpg');
+        $cacheDir = $this->photosDir . '/cache';
+        $entry    = $this->makeCacheEntry($cacheDir, '/games/my-game/pcs.json');
+
+        $httpClient = $this->createMock(HttpClientInterface::class);
+        $handler    = new DeleteHandler('http://backend:8080', $httpClient, $this->photosDir, $cacheDir);
+
+        $request = $this->makeRequest($this->deletePath('my-game', 'pcs', '42', '7'));
+
+        $httpClient->expects($this->exactly(2))
+            ->method('request')
+            ->willReturnOnConsecutiveCalls(
+                ['httpCode' => 200, 'body' => '{"deletable":true,"path":"42/photo.jpg"}', 'headers' => []],
+                ['httpCode' => 422, 'body' => 'Nope', 'headers' => ['X-Cache-Clear: /games/my-game/pcs.json']]
+            );
+
+        $response = $handler->handleRequest($request);
+
+        $this->assertSame(422, $response->httpCode());
+        $this->assertSame([], $response->headers());
+        $this->assertDirectoryExists($entry);
+    }
+
+    /**
+     * A client-supplied X-Cache-Clear request header is neither forwarded to
+     * the backend nor acted upon.
+     */
+    public function testClientSuppliedXCacheClearIsIgnored(): void
+    {
+        $this->makePhotoFile('42/photo.jpg');
+        $cacheDir = $this->photosDir . '/cache';
+        $entry    = $this->makeCacheEntry($cacheDir, '/games/my-game/pcs.json');
+
+        $httpClient = $this->createMock(HttpClientInterface::class);
+        $handler    = new DeleteHandler('http://backend:8080', $httpClient, $this->photosDir, $cacheDir);
+
+        $request = $this->makeRequest(
+            $this->deletePath('my-game', 'pcs', '42', '7'),
+            ['X-Cache-Clear' => '/games/my-game/pcs.json']
+        );
+
+        $httpClient->expects($this->exactly(2))
+            ->method('request')
+            ->with(
+                $this->anything(),
+                $this->anything(),
+                $this->callback(fn (array $headers): bool => !array_key_exists('X-Cache-Clear', $headers))
+            )
+            ->willReturnOnConsecutiveCalls(
+                ['httpCode' => 200, 'body' => '{"deletable":true,"path":"42/photo.jpg"}', 'headers' => []],
+                ['httpCode' => 204, 'body' => '', 'headers' => []]
+            );
+
+        $response = $handler->handleRequest($request);
+
+        $this->assertSame(204, $response->httpCode());
+        $this->assertDirectoryExists($entry);
     }
 }

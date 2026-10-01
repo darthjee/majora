@@ -78,6 +78,18 @@ class UploadHandlerTest extends TestCase
     }
 
     /**
+     * Creates a cache entry for GET $path under $cacheDir (Tent's
+     * <cache>/<path>/GET/<hash>.body.dat layout) and returns its GET/ dir.
+     */
+    private function makeCacheEntry(string $cacheDir, string $path): string
+    {
+        $dir = $cacheDir . $path . '/GET';
+        mkdir($dir, 0755, true);
+        file_put_contents($dir . '/abc.body.dat', '{}');
+        return $dir;
+    }
+
+    /**
      * Recursively removes a directory and all its contents.
      */
     private function removeDir(string $dir): void
@@ -810,5 +822,135 @@ class UploadHandlerTest extends TestCase
             $this->filesDir,
             $this->filesBasePathOf($handler)
         );
+    }
+
+    // -------------------------------------------------------------------------
+    // X-Cache-Clear (issue #1469)
+    // -------------------------------------------------------------------------
+
+    /**
+     * A successful finalize response carrying X-Cache-Clear clears the
+     * listed paths from the cache folder, and the header never reaches the
+     * client.
+     */
+    public function testFinalizeXCacheClearClearsPathsAndIsNotForwarded(): void
+    {
+        $cacheDir   = $this->photosDir . '_cache';
+        $collection = $this->makeCacheEntry($cacheDir, '/games/foo/factions.json');
+        $entity     = $this->makeCacheEntry($cacheDir, '/games/foo/factions/3.json');
+        $untouched  = $this->makeCacheEntry($cacheDir, '/games/foo/npcs.json');
+
+        $tmpFile    = $this->makeTmpFile();
+        $httpClient = $this->createMock(HttpClientInterface::class);
+        $handler    = new UploadHandler(
+            'http://backend:8080',
+            $httpClient,
+            $this->photosDir,
+            $this->filesDir,
+            $cacheDir
+        );
+
+        $request = $this->makeRequest(
+            $this->submitPath('image', '42'),
+            ['tmp_name' => $tmpFile, 'type' => 'image/jpeg', 'name' => 'photo.jpg', 'size' => 10, 'error' => 0],
+            ['Authorization' => 'Bearer tok', 'X-Upload-Token' => 'up-tok']
+        );
+
+        $httpClient->expects($this->exactly(2))
+            ->method('request')
+            ->willReturnOnConsecutiveCalls(
+                ['httpCode' => 200, 'body' => '{"file_path":"42/photo.jpg"}', 'headers' => []],
+                [
+                    'httpCode' => 200,
+                    'body'     => '{}',
+                    'headers'  => ['X-Cache-Clear: /games/foo/factions.json, /games/foo/factions/3.json'],
+                ]
+            );
+
+        try {
+            $response = $handler->handleRequest($request);
+
+            $this->assertSame(200, $response->httpCode());
+            foreach ($response->headers() as $line) {
+                $this->assertStringNotContainsStringIgnoringCase('x-cache-clear', (string) $line);
+            }
+            $this->assertDirectoryDoesNotExist($collection);
+            $this->assertDirectoryDoesNotExist($entity);
+            $this->assertDirectoryExists($untouched);
+        } finally {
+            $this->removeDir($cacheDir);
+            unlink($tmpFile);
+        }
+    }
+
+    /**
+     * A failed finalize never clears anything, even if the backend
+     * response carries X-Cache-Clear.
+     */
+    public function testFailedFinalizeDoesNotClearCache(): void
+    {
+        $cacheDir = $this->photosDir . '_cache';
+        $entry    = $this->makeCacheEntry($cacheDir, '/games/foo/factions.json');
+
+        $tmpFile    = $this->makeTmpFile();
+        $httpClient = $this->createMock(HttpClientInterface::class);
+        $handler    = new UploadHandler(
+            'http://backend:8080',
+            $httpClient,
+            $this->photosDir,
+            $this->filesDir,
+            $cacheDir
+        );
+
+        $request = $this->makeRequest(
+            $this->submitPath('image', '42'),
+            ['tmp_name' => $tmpFile, 'type' => 'image/jpeg', 'name' => 'photo.jpg', 'size' => 10, 'error' => 0],
+            ['Authorization' => 'Bearer tok', 'X-Upload-Token' => 'up-tok']
+        );
+
+        $httpClient->expects($this->exactly(2))
+            ->method('request')
+            ->willReturnOnConsecutiveCalls(
+                ['httpCode' => 200, 'body' => '{"file_path":"42/photo.jpg"}', 'headers' => []],
+                [
+                    'httpCode' => 404,
+                    'body'     => '{}',
+                    'headers'  => ['X-Cache-Clear: /games/foo/factions.json'],
+                ]
+            );
+
+        try {
+            $response = $handler->handleRequest($request);
+
+            $this->assertSame(404, $response->httpCode());
+            $this->assertDirectoryExists($entry);
+        } finally {
+            $this->removeDir($cacheDir);
+            unlink($tmpFile);
+        }
+    }
+
+    /**
+     * build() wires 'cache_path' into the handler's ResponseCacheClearer.
+     */
+    public function testBuildPassesCachePathToClearer(): void
+    {
+        $handler = UploadHandler::build([
+            'host'        => 'http://backend:8080',
+            'photos_path' => $this->photosDir,
+            'files_path'  => $this->filesDir,
+            'cache_path'  => '/tmp/some_cache',
+        ]
+        );
+
+        $reflection = new \ReflectionClass($handler);
+        $prop       = $reflection->getProperty('cacheClearer');
+        $prop->setAccessible(true);
+        $clearer = $prop->getValue($handler);
+
+        $location = (new \ReflectionClass($clearer))->getProperty('location');
+        $location->setAccessible(true);
+
+        $this->assertSame('/tmp/some_cache', $location->getValue($clearer)->basePath());
     }
 }

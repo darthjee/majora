@@ -124,7 +124,7 @@ class UploadStatusClientTest extends TestCase
 
     /**
      * A successful PATCH targets /uploads/:upload_type/:id.json with a
-     * status=uploaded body and returns void.
+     * status=uploaded body and returns the response's header lines.
      */
     public function testRequestUploadedStatusSucceedsOnTwoHundred(): void
     {
@@ -140,11 +140,14 @@ class UploadStatusClientTest extends TestCase
                 $this->anything(),
                 json_encode(['status' => 'uploaded'])
             )
-            ->willReturn(['httpCode' => 200, 'body' => '{}', 'headers' => []]);
+            ->willReturn(
+                ['httpCode' => 200, 'body' => '{}', 'headers' => ['X-Cache-Clear: /games/foo/factions.json']]
+            );
 
-        $statusClient->requestUploadedStatus('42', []);
-
-        $this->addToAssertionCount(1);
+        $this->assertSame(
+            ['X-Cache-Clear: /games/foo/factions.json'],
+            $statusClient->requestUploadedStatus('42', [])
+        );
     }
 
     /**
