@@ -44,4 +44,9 @@ urlpatterns = [
         views.staff_photos_list,
         name='staff-photos-list',
     ),
+    path(
+        'staff/photos/<str:photo_type>/<int:photo_id>/replace.json',
+        views.staff_photo_replace,
+        name='staff-photo-replace',
+    ),
 ]
