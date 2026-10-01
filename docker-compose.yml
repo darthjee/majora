@@ -112,7 +112,7 @@ services:
       - 0.0.0.0:3000:80
 
   proxy_tests:
-    image: darthjee/tent-test:0.10.4
+    image: darthjee/tent-test:1.0.2
     volumes:
       - ./proxy/extension:/var/www/html/extension
       - ./proxy:/var/www/html/proxy

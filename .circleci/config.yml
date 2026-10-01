@@ -318,7 +318,7 @@ jobs:
 
   proxy_extension_tests:
     docker:
-      - image: darthjee/tent-test:0.10.4
+      - image: darthjee/tent-test:1.0.2
     working_directory: /home/app/app
     steps:
       - checkout:
