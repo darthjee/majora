@@ -34,6 +34,7 @@ class PhotoBuilder:
     def __init__(self, game=None):
         """Store the game used for game-scoped owners (created lazily)."""
         self._game = game
+        self._names = {}
 
     @property
     def game(self):
@@ -41,6 +42,12 @@ class PhotoBuilder:
         if self._game is None:
             self._game = GameFactory(name='Photo Game')
         return self._game
+
+    def name(self, base):
+        """Return `base` on first use, then `base 2`, `base 3`... (some names are unique)."""
+        self._names[base] = self._names.get(base, 0) + 1
+        count = self._names[base]
+        return base if count == 1 else f'{base} {count}'
 
     def build(self, slug, path='photos/x/photo.png', ready=True, owner=None):
         """Create and return `(photo, owner)` for the photo type `slug`."""
@@ -53,17 +60,17 @@ class PhotoBuilder:
 
     def _build_game_faction(self, path, ready, owner):
         """Build a GameFactionPhoto."""
-        owner = owner or GameFactionFactory(game=self.game, name='Red Hand')
+        owner = owner or GameFactionFactory(game=self.game, name=self.name('Red Hand'))
         return GameFactionPhoto.objects.create(faction=owner, path=path, ready=ready), owner
 
     def _build_game_item(self, path, ready, owner):
         """Build a GameItemPhoto."""
-        owner = owner or GameItemFactory(game=self.game, name='Sword')
+        owner = owner or GameItemFactory(game=self.game, name=self.name('Sword'))
         return GameItemPhoto.objects.create(game_item=owner, path=path, ready=ready), owner
 
     def _build_game_common_item(self, path, ready, owner):
         """Build a GameCommonItemPhoto."""
-        owner = owner or GameCommonItemFactory(game=self.game, name='Rope')
+        owner = owner or GameCommonItemFactory(game=self.game, name=self.name('Rope'))
         photo = GameCommonItemPhoto.objects.create(
             game_common_item=owner, path=path, ready=ready
         )
@@ -71,7 +78,7 @@ class PhotoBuilder:
 
     def _build_game_document(self, path, ready, owner):
         """Build a GameDocumentPhoto."""
-        owner = owner or GameDocumentFactory(game=self.game, name='Map')
+        owner = owner or GameDocumentFactory(game=self.game, name=self.name('Map'))
         photo = GameDocumentPhoto.objects.create(game_document=owner, path=path, ready=ready)
         return photo, owner
 
@@ -79,7 +86,7 @@ class PhotoBuilder:
         """Build a GameDocumentFilePhoto, pointed at by a GameDocumentFile."""
         photo = GameDocumentFilePhoto.objects.create(path=path, ready=ready)
         if owner is None:
-            document = GameDocumentFactory(game=self.game, name='Letters')
+            document = GameDocumentFactory(game=self.game, name=self.name('Letters'))
             owner = GameDocumentFile.objects.create(
                 game_document=document, name='letter.pdf', path='files/letter.pdf'
             )
@@ -89,7 +96,7 @@ class PhotoBuilder:
 
     def _build_game_possession(self, path, ready, owner):
         """Build a GamePossessionPhoto."""
-        owner = owner or GamePossessionFactory(game=self.game, name='Castle')
+        owner = owner or GamePossessionFactory(game=self.game, name=self.name('Castle'))
         photo = GamePossessionPhoto.objects.create(
             game_possession=owner, path=path, ready=ready
         )
@@ -97,34 +104,36 @@ class PhotoBuilder:
 
     def _build_character(self, path, ready, owner):
         """Build a CharacterPhoto."""
-        owner = owner or CharacterFactory(game=self.game, name='Gandalf')
+        owner = owner or CharacterFactory(game=self.game, name=self.name('Gandalf'))
         return CharacterPhoto.objects.create(character=owner, path=path, ready=ready), owner
 
     def _build_character_item(self, path, ready, owner):
         """Build a CharacterItemPhoto."""
         if owner is None:
-            character = CharacterFactory(game=self.game, name='Frodo')
-            item = GameItemFactory(game=self.game, name='Ring')
-            owner = CharacterItemFactory(character=character, game_item=item, name='One Ring')
+            character = CharacterFactory(game=self.game, name=self.name('Frodo'))
+            item = GameItemFactory(game=self.game, name=self.name('Ring'))
+            owner = CharacterItemFactory(
+                character=character, game_item=item, name=self.name('One Ring')
+            )
         photo = CharacterItemPhoto.objects.create(character_item=owner, path=path, ready=ready)
         return photo, owner
 
     def _build_treasure(self, path, ready, owner):
         """Build a TreasurePhoto."""
-        owner = owner or TreasureFactory(name='Gold', game=self.game)
+        owner = owner or TreasureFactory(name=self.name('Gold'), game=self.game)
         return TreasurePhoto.objects.create(treasure=owner, path=path, ready=ready), owner
 
     def _build_stl_model(self, path, ready, owner):
         """Build a StlModelPhoto."""
-        owner = owner or StlModelFactory(name='Orc')
+        owner = owner or StlModelFactory(name=self.name('Orc'))
         return StlModelPhoto.objects.create(stl_model=owner, path=path, ready=ready), owner
 
     def _build_source(self, path, ready, owner):
         """Build a SourcePhoto."""
-        owner = owner or SourceFactory(name='Shop')
+        owner = owner or SourceFactory(name=self.name('Shop'))
         return SourcePhoto.objects.create(source=owner, path=path, ready=ready), owner
 
     def _build_collection(self, path, ready, owner):
         """Build a CollectionPhoto."""
-        owner = owner or CollectionFactory(name='Box')
+        owner = owner or CollectionFactory(name=self.name('Box'))
         return CollectionPhoto.objects.create(collection=owner, path=path, ready=ready), owner

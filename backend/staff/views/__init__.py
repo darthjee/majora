@@ -5,6 +5,8 @@ from .staff_cache_summary import staff_cache_summary
 from .staff_crawler import staff_crawler
 from .staff_crawler_clear import staff_crawler_clear
 from .staff_crawler_summary import staff_crawler_summary
+from .staff_photos_index import staff_photos_index
+from .staff_photos_list import staff_photos_list
 from .staff_user_approve import staff_user_approve
 from .staff_user_deny import staff_user_deny
 from .staff_user_detail import staff_user_detail
@@ -30,4 +32,6 @@ __all__ = [
     'staff_crawler',
     'staff_crawler_clear',
     'staff_crawler_summary',
+    'staff_photos_index',
+    'staff_photos_list',
 ]
