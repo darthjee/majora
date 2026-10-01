@@ -81,9 +81,12 @@ be the upload's owner) — only the object-level permission class differs, by `c
   token, owning-user, expiry and not-already-uploaded checks still apply, so another staff member
   cannot finalize someone else's upload, and a user demoted mid-upload gets `403` (subject to
   `AdminOrStaffCache`'s usual staleness).
-- **Photo gone:** if the photo row (or its owner) was deleted while the replace was in flight,
-  finalize answers `404` `{"cleanup_path": <upload.file_path>}` so the proxy removes the file it
-  wrote. The path comes from the `Upload` row, never from the request.
+- **Photo gone:** if the photo row was deleted while the replace was in flight (directly, or
+  through an owner whose deletion cascades to it), finalize answers `404`
+  `{"cleanup_path": <upload.file_path>}` so the proxy removes the file it wrote. The path comes
+  from the `Upload` row, never from the request. `GameDocumentFilePhoto` is the exception: its
+  owner (`GameDocumentFile.photo`, `SET_NULL`) does not cascade, so the photo row survives and
+  finalize succeeds against the now-orphan row.
 - `pending → uploading` is unchanged (`{"file_path": ...}`).
 - **`uploaded`:** in one transaction, the photo row is locked, its `path` set to the upload's
   `file_path` and `ready` set to `True`. The per-type `mark_ready` handlers are **skipped** — a
