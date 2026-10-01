@@ -70,7 +70,7 @@ class TestStaffPhotosListView(StaffPhotoActorsMixin):
     @pytest.mark.parametrize('slug', SLUGS)
     def test_newest_first_including_not_ready(self, client, slug):
         """Test that every row, ready or not, is listed newest first."""
-        older, owner = self.builder.build(slug, ready=True)
+        older, _ = self.builder.build(slug, ready=True)
         newer, _ = self.builder.build(slug, ready=False)
         response = self.get_json(client, _url(slug), self.superuser_token)
         assert [item['id'] for item in response.json()] == [newer.pk, older.pk]
