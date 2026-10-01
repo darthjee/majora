@@ -24,3 +24,10 @@ proxy/
 - Both modes: `*.json` paths route to the Django backend (cached via `default_proxy`); unmatched paths redirect to the SPA hash-routing entrypoint (`/#/<path>`).
 
 See proxy/dev_configuration/rules/ and proxy/prod_configuration/ for exact rule definitions.
+
+## Response-driven cache invalidation (`X-Cache-Clear`)
+
+The backend can list the cache paths a mutation made stale in an `X-Cache-Clear` response header (comma-separated `.json` paths). The proxy clears them (2xx only, each path validated by `ResponseCacheClearer`) and always strips the header, so it never reaches the client and is never stored in a cache entry. A client-sent `X-Cache-Clear` is dropped and has no effect.
+
+- `UploadHandler` / `DeleteHandler` handle it for the backend calls they make themselves (`cache_path` handler param).
+- Every other proxied backend response goes through `ResponseCacheClearMiddleware` on the `rules/backend.php` rule (dev and prod). It is registered via `prependMiddlewares`, not `middlewares`, so it runs before `default_proxy`'s built-in `FileCacheMiddleware` stores the response; its `location` must match the rule's cache folder.
