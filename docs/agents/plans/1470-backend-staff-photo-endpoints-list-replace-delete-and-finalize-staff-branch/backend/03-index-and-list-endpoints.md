@@ -7,12 +7,14 @@
 - URLs in `backend/staff/urls.py`; export views from `backend/staff/views/__init__.py`.
 
 Tests:
+
 - Index: 401 anonymous, 403 non-staff, 200 staff/superuser body; `X-Skip-Cache: true`.
 - List, **parametrized over every registry entry**: 401/403 (also for an unknown slug — permission check runs before slug resolution), 404 unknown slug for staff, item shape, newest-first, not-ready rows included, pagination headers, `replace_in_progress` true for active / false for expired uploads.
 - Owner edge cases: `owner: null` orphan `GameDocumentFilePhoto`, global treasure `game: null`, PC/NPC `kind`.
 - **Query budget:** `django_assert_num_queries` constant for a direct-FK type and for `game_document_file`, independent of row count.
 
 ## Files to Change
+
 - `backend/staff/views/staff_photos_index.py`, `backend/staff/views/staff_photos_list.py` — new views.
 - `backend/staff/serializers/staff_photo_list.py` (+ `serializers/__init__.py`) — list serializer.
 - `backend/staff/views/__init__.py`, `backend/staff/urls.py` — wiring.

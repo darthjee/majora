@@ -9,6 +9,7 @@ Consumed by the proxy delete orchestration (#1472), same contract as the charact
 Tests: 401/403 before resolution, 404 cases, 200 body (parametrized over registry), 422 with active upload / 200 with expired one, DELETE happy path per type (row gone, owner FK cleared), gallery fallback (ready sibling picked by highest id, not-ready sibling ignored, none → NULL, deleting a non-current gallery photo leaves owner unchanged), `X-Skip-Cache: true`.
 
 ## Files to Change
+
 - `backend/staff/views/staff_photo_deletable.py`, `backend/staff/views/staff_photo_delete.py` — new views.
 - `backend/staff/photo_types.py` — use the gallery helpers from step 02 (adjust if needed).
 - `backend/staff/views/__init__.py`, `backend/staff/urls.py` — wiring.

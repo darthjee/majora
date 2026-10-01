@@ -9,6 +9,7 @@ Change `backend/uploads/views.py` so `origin='staff'` uploads take a staff path;
 - Keep the upload status save + photo update consistent (same transaction).
 
 Tests (`backend/uploads/tests/views_finalize_staff_test.py`):
+
 - staff user finalizes staff upload for a photo they couldn't game-edit → 200; non-staff (e.g. demoted) → 403; other staff user (not `upload.user`) → 403; bad token / expired → 403.
 - same path → 200 no body, `path` unchanged, `ready=True`; extension change → `previous_path` returned and `path` updated; never-ready photo → `previous_path` still returned when different.
 - `mark_ready` skipped: replacing an orphan `TreasurePhoto` doesn't re-point `treasure.photo`.
@@ -16,5 +17,6 @@ Tests (`backend/uploads/tests/views_finalize_staff_test.py`):
 - Regression: existing `views_finalize_test.py` and per-type finalize tests pass unchanged.
 
 ## Files to Change
+
 - `backend/uploads/views.py` — staff branch.
 - `backend/uploads/tests/views_finalize_staff_test.py` — new tests.

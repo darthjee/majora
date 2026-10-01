@@ -9,6 +9,7 @@ Add the persistence and configuration pieces the endpoints depend on.
 - Tests: model default `origin='regular'`; active-upload helper (pending/uploading not expired → active; uploaded or expired → not); setting default and override.
 
 ## Files to Change
+
 - `backend/uploads/models.py` — `origin` field + constants, `Meta.indexes`, active-upload queryset helper.
 - `backend/uploads/migrations/0002_upload_origin_and_index.py` — new migration.
 - `backend/games/settings.py` — `photo_max_dimension()`.

@@ -8,5 +8,6 @@
 - Must pass `yarn lint_md`.
 
 ## Files to Change
+
 - `docs/agents/access-control/staff-photo.md` — new.
 - `docs/agents/access-control/endpoints.md`, `docs/agents/access-control/upload.md`, `docs/agents/access-control.md` — updates.

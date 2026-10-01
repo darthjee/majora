@@ -15,6 +15,7 @@ Reuse `UploadInitiator` only if it can be cleanly parameterised (it creates/upda
 Tests (parametrized over registry entries for the happy path): 401/403 (before slug/id resolution), 404 unknown slug / unknown id / id of another type, 400 bad extension, 422 empty path, 409 active upload, expired leftover upload doesn't block, same-extension → same path, `.JPG`→`.jpg` same path, `.png`→`.jpg` new path under same stem, `photo.path`/`ready` unchanged after init, `Upload.origin == 'staff'`, `X-Skip-Cache: true`.
 
 ## Files to Change
+
 - `backend/staff/views/staff_photo_replace.py` — new view.
 - `backend/staff/views/__init__.py`, `backend/staff/urls.py` — wiring.
 - `backend/staff/tests/staff_photo_replace_test.py` — tests.
