@@ -49,4 +49,14 @@ urlpatterns = [
         views.staff_photo_replace,
         name='staff-photo-replace',
     ),
+    path(
+        'staff/photos/<str:photo_type>/<int:photo_id>/deletable.json',
+        views.staff_photo_deletable,
+        name='staff-photo-deletable',
+    ),
+    path(
+        'staff/photos/<str:photo_type>/<int:photo_id>.json',
+        views.staff_photo_delete,
+        name='staff-photo-delete',
+    ),
 ]
