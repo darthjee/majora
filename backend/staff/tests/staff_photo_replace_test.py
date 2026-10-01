@@ -35,6 +35,7 @@ class TestStaffPhotoReplaceView(StaffPhotoActorsMixin):
         """Test that an unauthenticated request returns 401, even for an unknown photo."""
         response = self.post_json(client, _url('unknown', 999), {'filename': 'a.png'})
         assert response.status_code == 401
+        assert response['X-Skip-Cache'] == 'true'
 
     def test_non_staff_returns_403(self, client):
         """Test that a regular user gets 403, even for an unknown photo."""

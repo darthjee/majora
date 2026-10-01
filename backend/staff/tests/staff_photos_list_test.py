@@ -37,7 +37,9 @@ class TestStaffPhotosListView(StaffPhotoActorsMixin):
     @pytest.mark.parametrize('slug', SLUGS + ['unknown'])
     def test_unauthenticated_returns_401(self, client, slug):
         """Test that an unauthenticated request returns 401, even for an unknown slug."""
-        assert self.get_json(client, _url(slug)).status_code == 401
+        response = self.get_json(client, _url(slug))
+        assert response.status_code == 401
+        assert response['X-Skip-Cache'] == 'true'
 
     @pytest.mark.parametrize('slug', SLUGS + ['unknown'])
     def test_non_staff_returns_403(self, client, slug):

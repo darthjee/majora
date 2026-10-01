@@ -58,6 +58,7 @@ class TestUploadFinalizeStaffBranch:
         response = self._finalize(client, upload)
         assert response.status_code == 200
         assert response.content == b''
+        assert response['X-Skip-Cache'] == 'true'
         photo.refresh_from_db()
         assert (photo.path, photo.ready) == ('photos/x/p.png', True)
 
@@ -69,6 +70,7 @@ class TestUploadFinalizeStaffBranch:
         response = self._finalize(client, upload)
         assert response.status_code == 200
         assert response.json() == {'previous_path': 'photos/x/p.png'}
+        assert response['X-Skip-Cache'] == 'true'
         photo.refresh_from_db()
         assert (photo.path, photo.ready) == ('photos/x/p.jpg', True)
 
@@ -118,6 +120,7 @@ class TestUploadFinalizeStaffBranch:
         upload = self._staff_upload(photo, photo.path)
         response = self._patch(client, upload, 'uploading', token=self.other_staff_token)
         assert response.status_code == 403
+        assert response['X-Skip-Cache'] == 'true'
 
     def test_bad_token_gets_403(self, client):
         """Test that a wrong upload token is refused."""
@@ -170,6 +173,7 @@ class TestUploadFinalizeStaffBranch:
         response = self._patch(client, upload, 'uploaded')
         assert response.status_code == 404
         assert response.json() == {'cleanup_path': 'photos/x/p.jpg'}
+        assert response['X-Skip-Cache'] == 'true'
 
     def test_deleted_owner_returns_cleanup_path(self, client):
         """Test that deleting the owner (cascading the photo) answers 404 with cleanup_path."""
@@ -201,5 +205,6 @@ class TestUploadFinalizeRegularBranchUnchanged:
         )
         assert response.status_code == 200
         assert response.content == b''
+        assert response['X-Skip-Cache'] == 'true'
         game.refresh_from_db()
         assert game.photo_id == photo.pk

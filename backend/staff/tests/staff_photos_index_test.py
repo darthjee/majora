@@ -18,7 +18,9 @@ class TestStaffPhotosIndexView(StaffPhotoActorsMixin):
 
     def test_unauthenticated_returns_401(self, client):
         """Test that an unauthenticated request returns 401."""
-        assert self.get_json(client, URL).status_code == 401
+        response = self.get_json(client, URL)
+        assert response.status_code == 401
+        assert response['X-Skip-Cache'] == 'true'
 
     def test_non_staff_returns_403(self, client):
         """Test that a regular user gets 403."""

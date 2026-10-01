@@ -6,6 +6,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from games.decorators import restricted
 from games.models import (
     CharacterItemPhoto,
     CharacterPhoto,
@@ -29,6 +30,7 @@ _FORBIDDEN = Response(status=status.HTTP_403_FORBIDDEN)
 _VALID_STATUSES = {Upload.STATUS_UPLOADING, Upload.STATUS_UPLOADED}
 
 
+@restricted
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
 def upload_finalize(request, upload_type, upload_id):

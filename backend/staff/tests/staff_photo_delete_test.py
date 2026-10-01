@@ -39,7 +39,9 @@ class TestStaffPhotoDeleteView(StaffPhotoActorsMixin):
 
     def test_unauthenticated_returns_401(self, client):
         """Test that an unauthenticated request returns 401, even for an unknown photo."""
-        assert self.delete_json(client, _url('unknown', 999)).status_code == 401
+        response = self.delete_json(client, _url('unknown', 999))
+        assert response.status_code == 401
+        assert response['X-Skip-Cache'] == 'true'
 
     def test_non_staff_returns_403(self, client):
         """Test that a regular user gets 403 and the photo stays."""
