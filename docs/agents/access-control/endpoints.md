@@ -71,6 +71,19 @@ the authorization-requests poll endpoint below, each of which resolves the user'
 directly to implement the behavior described above. New registrations start `pending`;
 staff/superuser accounts approve or deny pending users via [User (Staff Management)](user.md).
 
+## Staff photo endpoints
+
+Index of the staff-only photo management endpoints; see [Staff Photos](staff-photo.md) for the
+full behaviour. All set `X-Skip-Cache: true`.
+
+| Endpoint | Method | Who can call |
+|----------|--------|-------------|
+| `/staff/photos.json` | GET | **Staff-or-superuser** |
+| `/staff/photos/<photo_type>.json` | GET | **Staff-or-superuser** |
+| `/staff/photos/<photo_type>/<photo_id>/replace.json` | POST | **Staff-or-superuser** |
+| `/staff/photos/<photo_type>/<photo_id>/deletable.json` | GET | **Staff-or-superuser** |
+| `/staff/photos/<photo_type>/<photo_id>.json` | DELETE | **Staff-or-superuser** |
+
 ## Authorization requests (device-authorize login)
 
 A passwordless "authorize with logged device" login mode: a new device asks, by username or
