@@ -7,6 +7,7 @@ import pytest
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
 
+from games.models import GameDocumentFilePhoto
 from games.tests.factories import PlayerFactory, TreasureFactory, UserFactory
 from staff import photo_types
 from staff.tests.photo_builders import PhotoBuilder
@@ -73,6 +74,38 @@ class TestUploadFinalizeStaffBranch:
         assert response['X-Skip-Cache'] == 'true'
         photo.refresh_from_db()
         assert (photo.path, photo.ready) == ('photos/x/p.jpg', True)
+
+    @pytest.mark.parametrize('slug', SLUGS)
+    def test_extension_change_sends_cache_clear(self, client, slug):
+        """Test that an extension change lists the owner's cache paths in X-Cache-Clear."""
+        photo, owner = self.builder.build(slug, path='photos/x/p.png', ready=True)
+        upload = self._staff_upload(photo, 'photos/x/p.jpg')
+        response = self._finalize(client, upload)
+        expected = ', '.join(photo_types.find(slug).cache_paths(owner))
+        assert response['X-Cache-Clear'] == expected
+
+    @pytest.mark.parametrize('slug', SLUGS)
+    def test_same_path_has_no_cache_clear(self, client, slug):
+        """Test that a same-extension replace does not send X-Cache-Clear."""
+        photo, _ = self.builder.build(slug, path='photos/x/p.png', ready=False)
+        upload = self._staff_upload(photo, 'photos/x/p.png')
+        response = self._finalize(client, upload)
+        assert not response.has_header('X-Cache-Clear')
+
+    def test_uploading_has_no_cache_clear(self, client):
+        """Test that the pending -> uploading step does not send X-Cache-Clear."""
+        photo, _ = self.builder.build('game', path='photos/x/p.png', ready=True)
+        upload = self._staff_upload(photo, 'photos/x/p.jpg')
+        response = self._patch(client, upload, 'uploading')
+        assert not response.has_header('X-Cache-Clear')
+
+    def test_orphan_photo_extension_change_has_no_cache_clear(self, client):
+        """Test that a path change on a photo without resolvable owner omits the header."""
+        photo = GameDocumentFilePhoto.objects.create(path='photos/f/p.png', ready=True)
+        upload = self._staff_upload(photo, 'photos/f/p.jpg')
+        response = self._finalize(client, upload)
+        assert response.json() == {'previous_path': 'photos/f/p.png'}
+        assert not response.has_header('X-Cache-Clear')
 
     def test_never_ready_photo_still_returns_previous_path(self, client):
         """Test that previous_path is returned even if the photo was never ready."""
@@ -174,6 +207,7 @@ class TestUploadFinalizeStaffBranch:
         assert response.status_code == 404
         assert response.json() == {'cleanup_path': 'photos/x/p.jpg'}
         assert response['X-Skip-Cache'] == 'true'
+        assert not response.has_header('X-Cache-Clear')
 
     def test_deleted_owner_returns_cleanup_path(self, client):
         """Test that deleting the owner (cascading the photo) answers 404 with cleanup_path."""

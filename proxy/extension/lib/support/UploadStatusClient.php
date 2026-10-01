@@ -74,20 +74,24 @@ class UploadStatusClient
     }
 
     /**
-     * Calls the backend with status=uploaded.
+     * Calls the backend with status=uploaded and returns the response's
+     * headers, so the caller can act on backend-driven instructions such as
+     * X-Cache-Clear (see ResponseCacheClearer).
      *
      * @param string $uploadId The upload id.
      * @param array  $headers  Incoming request headers to forward.
-     * @return void
+     * @return string[] The backend response headers as "Name: Value" lines.
      * @throws BackendErrorException When the backend call fails.
      */
-    public function requestUploadedStatus(string $uploadId, array $headers): void
+    public function requestUploadedStatus(string $uploadId, array $headers): array
     {
         $result = $this->updateStatus($uploadId, 'uploaded', $headers);
 
         if ($result['httpCode'] !== 200) {
             throw new BackendErrorException($result['httpCode'], $result['body']);
         }
+
+        return ($result['headers'] ?? []);
     }
 
     /**

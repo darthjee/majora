@@ -2,6 +2,12 @@
 /**
  * Backend routing rules.
  * Forwards all .json requests to the Django backend.
+ *
+ * ResponseCacheClearMiddleware (issue #1469) is prepended so it runs before
+ * default_proxy's built-in FileCacheMiddleware: it clears the paths listed in
+ * a 2xx backend response's X-Cache-Clear header and strips that header before
+ * the response is cached or reaches the client. Its 'location' must match the
+ * handler's cache folder ($cacheFolder).
  */
 
 use Tent\Configuration;
@@ -11,10 +17,17 @@ Configuration::buildRule(
     'handler' => [
         'type' => 'default_proxy',
         'host' => 'http://backend:8080',
+        'cache' => $cacheFolder,
         'skip_cache_header' => 'X-Skip-Cache'
     ],
     'matchers' => [
         ['uri' => '.json', 'type' => 'ends_with']
+    ],
+    'prependMiddlewares' => [
+        [
+            'class'    => 'Tent\\Middlewares\\ResponseCacheClearMiddleware',
+            'location' => $cacheFolder
+        ]
     ],
     'middlewares' => [
         [

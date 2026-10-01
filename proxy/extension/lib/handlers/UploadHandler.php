@@ -26,6 +26,11 @@ use Tent\Models\Response;
  * orchestrates two backend PATCH calls to advance the Upload state machine
  * (uploading → uploaded) via UploadStatusClient, and writes the file to the
  * appropriate volume at <basePath>/<file_path> via UploadStorageResolver.
+ *
+ * After a successful finalize (status=uploaded) call, any X-Cache-Clear
+ * header on the backend response is handed to ResponseCacheClearer, which
+ * clears the listed paths from the cache folder. The client response is
+ * built from scratch, so that header never reaches the client.
  */
 class UploadHandler extends RequestHandler
 {
@@ -45,28 +50,36 @@ class UploadHandler extends RequestHandler
     /** @var string Base path where 'file' uploads are written */
     private string $filesBasePath;
 
+    /** @var ResponseCacheClearer Clears cache paths listed in X-Cache-Clear. */
+    private ResponseCacheClearer $cacheClearer;
+
     /**
      * @param string                   $host           Backend host URL.
      * @param HttpClientInterface|null $httpClient     HTTP client (defaults to CurlHttpClient).
      * @param string                   $photosBasePath Base directory for 'image' upload storage.
      * @param string                   $filesBasePath  Base directory for 'file' upload storage.
+     * @param string                   $cachePath      Cache folder X-Cache-Clear paths are cleared
+     *                                                 from ('' disables clearing).
      */
     public function __construct(
         string $host,
         ?HttpClientInterface $httpClient=null,
         string $photosBasePath='',
-        string $filesBasePath=''
+        string $filesBasePath='',
+        string $cachePath=''
     ) {
         $this->client = new BackendClient($host, $httpClient);
         $this->photosBasePath = $photosBasePath;
         $this->filesBasePath = $filesBasePath;
+        $this->cacheClearer = ResponseCacheClearer::forPath($cachePath);
     }
 
     /**
      * Builds an UploadHandler from configuration parameters.
      *
      * @param array $params Must contain 'host' (string), 'photos_path' (string) and
-     *                      'files_path' (string).
+     *                      'files_path' (string); may contain 'cache_path'
+     *                      (string) to enable X-Cache-Clear handling.
      * @return self
      */
     public static function build(array $params): self
@@ -75,7 +88,8 @@ class UploadHandler extends RequestHandler
             ($params['host'] ?? ''),
             null,
             ($params['photos_path'] ?? ''),
-            ($params['files_path'] ?? '')
+            ($params['files_path'] ?? ''),
+            ($params['cache_path'] ?? '')
         );
     }
 
@@ -88,7 +102,8 @@ class UploadHandler extends RequestHandler
      *    file_path from response.
      * 4. Writes the uploaded file to <basePath>/<file_path>, where basePath
      *    depends on the upload type.
-     * 5. Calls PATCH /uploads/:upload_type/:id.json with status=uploaded.
+     * 5. Calls PATCH /uploads/:upload_type/:id.json with status=uploaded,
+     *    then clears any cache paths its X-Cache-Clear header lists.
      * 6. Returns 200 with the saved file_path as JSON on success, or forwards
      *    the error code on failure.
      *
@@ -113,7 +128,8 @@ class UploadHandler extends RequestHandler
             $destination = UploadStorageResolver::forType($uploadType, $this->photosBasePath, $this->filesBasePath)
                 ->write($filePath, $file);
 
-            $statusClient->requestUploadedStatus($uploadId, $headers);
+            $finalizeHeaders = $statusClient->requestUploadedStatus($uploadId, $headers);
+            $this->cacheClearer->clearFrom($finalizeHeaders, 200);
         } catch (UnprocessableUploadException $e) {
             return $this->unprocessableEntityResponse($e->getMessage(), $e->file());
         } catch (BackendErrorException $e) {

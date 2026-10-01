@@ -5,6 +5,7 @@ from datetime import timedelta
 import pytest
 from django.utils import timezone
 
+from games.models import GameDocumentFilePhoto
 from staff import photo_types
 from staff.tests.photo_test_support import StaffPhotoActorsMixin
 from uploads.models import Upload
@@ -150,3 +151,64 @@ class TestStaffPhotoDeleteGalleryFallback(StaffPhotoActorsMixin):
         self._delete(client, 'collection', other)
         collection.refresh_from_db()
         assert collection.photo_id == current.pk
+
+
+@pytest.mark.django_db
+class TestStaffPhotoDeleteCacheClear(StaffPhotoActorsMixin):
+    """Tests for the `X-Cache-Clear` header of the staff photo delete."""
+
+    def setup_method(self):
+        """Set up staff, superuser and regular users."""
+        self.setup_actors()
+
+    def _delete(self, client, slug, photo, token=None):
+        """DELETE the given photo (as staff by default)."""
+        return self.delete_json(client, _url(slug, photo.pk), token or self.staff_token)
+
+    @pytest.mark.parametrize('slug', SLUGS)
+    def test_204_lists_owner_cache_paths(self, client, slug):
+        """Test that the 204 carries the owner's cache paths, resolved before the delete."""
+        photo, owner = self.builder.build(slug)
+        owner.photo = photo
+        owner.save()
+        expected = ', '.join(photo_types.find(slug).cache_paths(owner))
+        response = self._delete(client, slug, photo)
+        assert response.status_code == 204
+        assert response['X-Cache-Clear'] == expected
+
+    def test_non_current_gallery_photo_still_lists_paths(self, client):
+        """Test that deleting a non-current gallery photo still lists the owner's paths."""
+        current, game = self.builder.build('game')
+        other, _ = self.builder.build('game', owner=game)
+        game.photo = current
+        game.save()
+        response = self._delete(client, 'game', other)
+        assert response['X-Cache-Clear'].startswith('/games.json, /my-games.json')
+
+    def test_orphan_photo_has_no_header(self, client):
+        """Test that a photo without a resolvable owner is deleted without the header."""
+        photo = GameDocumentFilePhoto.objects.create(path='photos/f/p.png', ready=True)
+        response = self._delete(client, 'game_document_file', photo)
+        assert response.status_code == 204
+        assert not response.has_header('X-Cache-Clear')
+
+    def test_422_has_no_header(self, client):
+        """Test that a refused delete (active upload) does not carry the header."""
+        photo, _ = self.builder.build('game')
+        Upload.objects.create(user=self.staff_user, file_path=photo.path, content_object=photo)
+        response = self._delete(client, 'game', photo)
+        assert response.status_code == 422
+        assert not response.has_header('X-Cache-Clear')
+
+    def test_403_has_no_header(self, client):
+        """Test that a forbidden delete does not carry the header."""
+        photo, _ = self.builder.build('game')
+        response = self._delete(client, 'game', photo, token=self.regular_token)
+        assert response.status_code == 403
+        assert not response.has_header('X-Cache-Clear')
+
+    def test_404_has_no_header(self, client):
+        """Test that an unknown photo does not carry the header."""
+        response = self.delete_json(client, _url('game', 999999), self.staff_token)
+        assert response.status_code == 404
+        assert not response.has_header('X-Cache-Clear')

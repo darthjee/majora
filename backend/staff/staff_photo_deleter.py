@@ -3,6 +3,7 @@
 from django.db import transaction
 from rest_framework.response import Response
 
+from staff.cache_clear_header import attach_photo_cache_clear
 from uploads.models import Upload
 
 
@@ -20,14 +21,15 @@ class StaffPhotoDeleter:
         self._photo = photo
 
     def run(self):
-        """Delete the photo and return 204, or 422 while an upload is active."""
+        """Delete the photo and return 204 with `X-Cache-Clear`, or 422 while uploading."""
         with transaction.atomic():
             photo = self._photo_type.model.objects.select_for_update().get(pk=self._photo.pk)
             if has_active_upload(photo):
                 return Response(status=422)
+            owner = self._photo_type.owner_of(photo)
             self._repoint_gallery_owner(photo)
             photo.delete()
-        return Response(status=204)
+        return attach_photo_cache_clear(Response(status=204), self._photo_type, owner)
 
     def _repoint_gallery_owner(self, photo):
         """Point a gallery owner whose current photo is `photo` at its fallback photo."""
