@@ -16,6 +16,9 @@ export function buildSetters() {
     setError: jasmine.createSpy('setError'),
     setActionError: jasmine.createSpy('setActionError'),
     setVersions: jasmine.createSpy('setVersions'),
+    setActionInfo: jasmine.createSpy('setActionInfo'),
+    setBulkJob: jasmine.createSpy('setBulkJob'),
+    setBulkResult: jasmine.createSpy('setBulkResult'),
   };
 }
 
@@ -23,10 +26,11 @@ export function buildSetters() {
  * @description Builds a mounted controller already pointing at the given photo type.
  * @param {object} setters - Setter spies.
  * @param {string} [photoType] - Active photo type.
+ * @param {object} [deps] - Controller dependencies (`actions`, `win`).
  * @returns {StaffPhotosController} the controller.
  */
-export function buildMountedController(setters, photoType = 'game_item') {
-  const controller = new StaffPhotosController(setters);
+export function buildMountedController(setters, photoType = 'game_item', deps = {}) {
+  const controller = new StaffPhotosController(setters, { win: null, ...deps });
 
   controller.mounted = true;
   controller.photoType = photoType;

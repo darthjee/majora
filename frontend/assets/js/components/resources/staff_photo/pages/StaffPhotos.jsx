@@ -19,10 +19,13 @@ function useStaffPhotosState() {
   const [error, setError] = useState(null);
   const [actionError, setActionError] = useState(null);
   const [versions, setVersions] = useState({});
+  const [actionInfo, setActionInfo] = useState(null);
+  const [bulkJob, setBulkJob] = useState(null);
+  const [bulkResult, setBulkResult] = useState(null);
 
   const controller = useMemo(() => new StaffPhotosController({
     setTypes, setMaxDimension, setPhotoType, setPhotos, setPagination,
-    setLoading, setError, setActionError, setVersions,
+    setLoading, setError, setActionError, setVersions, setActionInfo, setBulkJob, setBulkResult,
   }), []);
 
   useEffect(() => controller.buildEffect()(), [controller]);
@@ -30,6 +33,7 @@ function useStaffPhotosState() {
   return {
     state: {
       types, maxDimension, photoType, photos, pagination, loading, error, actionError, versions,
+      actionInfo, bulkJob, bulkResult,
     },
     controller,
   };
