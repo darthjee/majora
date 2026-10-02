@@ -91,6 +91,7 @@ import StaffDashboard from '../resources/staff_dashboard/pages/StaffDashboard.js
 import StaffUser from '../resources/staff_user/pages/StaffUser.jsx';
 import StaffUserEdit from '../resources/staff_user/pages/StaffUserEdit.jsx';
 import StaffUsers from '../resources/staff_user/pages/StaffUsers.jsx';
+import StaffPhotos from '../resources/staff_photo/pages/StaffPhotos.jsx';
 import StlModel from '../resources/stl_model/pages/StlModel.jsx';
 import StlModelEdit from '../resources/stl_model/pages/StlModelEdit.jsx';
 import StlModelNew from '../resources/stl_model/pages/StlModelNew.jsx';
@@ -196,6 +197,7 @@ const PAGES = {
   staffUsers: <StaffUsers />,
   staffUser: <StaffUser />,
   staffUserEdit: <StaffUserEdit />,
+  staffPhotos: <StaffPhotos />,
   stlModels: <StlModels />,
   stlModel: <StlModel />,
   stlModelNew: <StlModelNew />,

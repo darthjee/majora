@@ -25,6 +25,7 @@ const ROUTES = [
   ['/staff/users', 'staffUsers'],
   ['/staff/dashboard', 'staffDashboard'],
   ['/staff/crawler', 'staffCrawler'],
+  ['/staff/photos', 'staffPhotos'],
   ['/games/:game_slug/npcs/:character_id/treasures', 'npcCharacterTreasures'],
   ['/games/:game_slug/npcs/:character_id/items/new', 'npcCharacterItemNew'],
   ['/games/:game_slug/npcs/:character_id/items/:id/edit', 'npcCharacterItemEdit'],

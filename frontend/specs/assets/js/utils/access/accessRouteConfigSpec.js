@@ -65,6 +65,10 @@ describe('accessRouteConfig', function() {
       expect(accessRouteConfig.get('staffUserEdit')).toEqual([{ kind: 'staffOrSuperuser' }]);
     });
 
+    it('declares a staffOrSuperuser-only descriptor for the staff photos page', function() {
+      expect(accessRouteConfig.get('staffPhotos')).toEqual([{ kind: 'staffOrSuperuser' }]);
+    });
+
     it('returns an empty array for pages without an access check', function() {
       expect(accessRouteConfig.get('games')).toEqual([]);
       expect(accessRouteConfig.get('home')).toEqual([]);
