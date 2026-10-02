@@ -27,7 +27,7 @@ source — delegate those tasks to the `proxy` agent).
 | `majora_app` | `darthjee/majora` | 3030 | Django dev server |
 | `majora_tests` | `darthjee/majora` | — | Backend test runner |
 | `majora_fe` | built from `dockerfiles/vite_majora/` | 3010 | Vite dev server / build |
-| `majora_proxy` | `darthjee/tent:0.7.8` | 3000 | Reverse proxy (single entry point) |
+| `majora_proxy` | `darthjee/tent:1.0.2` | 3000 | Reverse proxy (single entry point) |
 | `majora_mysql` | `mysql:9.3.0` | configurable | Database |
 | `majora_navi` | `darthjee/navi-hey:latest` | 3100 | Cache warmer (local) |
 | `majora_phpmyadmin` | `phpmyadmin/phpmyadmin` | 3050 | DB admin UI |
