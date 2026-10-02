@@ -11,7 +11,7 @@ describe('UploadClient', function() {
       spyOn(client, 'submitUpload');
     });
 
-    it('short-circuits to { ok: false } without calling submitUpload when init does not respond ok', async function() {
+    it('short-circuits to { ok: false, status } without calling submitUpload when init does not respond ok', async function() {
       client.initUpload.and.returnValue(Promise.resolve({ ok: false, status: 422 }));
 
       const result = await client.runUploadCycle('/games/demo/photo_upload.json', file, 'tok-abc');
@@ -20,7 +20,7 @@ describe('UploadClient', function() {
         '/games/demo/photo_upload.json', 'photo.jpg', 'tok-abc', undefined,
       );
       expect(client.submitUpload).not.toHaveBeenCalled();
-      expect(result).toEqual({ ok: false });
+      expect(result).toEqual({ ok: false, status: 422 });
     });
 
     it('calls submitUpload with the upload_type taken from the init response body', async function() {
@@ -35,21 +35,21 @@ describe('UploadClient', function() {
       expect(client.submitUpload).toHaveBeenCalledWith(1, 'up-token', file, 'image');
     });
 
-    it('resolves to { ok: true, ...initData } when submitUpload responds ok', async function() {
+    it('resolves to { ok: true, status, ...initData } when submitUpload responds ok', async function() {
       client.initUpload.and.returnValue(Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ upload_id: 1, token: 'up-token', upload_type: 'image', id: 42 }),
       }));
-      client.submitUpload.and.returnValue(Promise.resolve({ ok: true }));
+      client.submitUpload.and.returnValue(Promise.resolve({ ok: true, status: 201 }));
 
       const result = await client.runUploadCycle('/games/demo/photo_upload.json', file, 'tok-abc');
 
       expect(result).toEqual({
-        ok: true, upload_id: 1, token: 'up-token', upload_type: 'image', id: 42,
+        ok: true, status: 201, upload_id: 1, token: 'up-token', upload_type: 'image', id: 42,
       });
     });
 
-    it('resolves to { ok: false, ...initData } when submitUpload does not respond ok', async function() {
+    it('resolves to { ok: false, status, ...initData } when submitUpload does not respond ok', async function() {
       client.initUpload.and.returnValue(Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ upload_id: 1, token: 'up-token', upload_type: 'image' }),
@@ -58,7 +58,7 @@ describe('UploadClient', function() {
 
       const result = await client.runUploadCycle('/games/demo/photo_upload.json', file, 'tok-abc');
 
-      expect(result).toEqual({ ok: false, upload_id: 1, token: 'up-token', upload_type: 'image' });
+      expect(result).toEqual({ ok: false, status: 500, upload_id: 1, token: 'up-token', upload_type: 'image' });
     });
 
     it('forwards the given name to initUpload', async function() {

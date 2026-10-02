@@ -73,21 +73,22 @@ export default class UploadClient extends BaseClient {
    * @param {string} token - Authentication token.
    * @param {string} [name] - Optional user-provided name for the uploaded file, forwarded to
    *   initUpload.
-   * @returns {Promise<object>} Resolves to `{ ok, ...initData }`, where `ok` reflects the submit
-   *   step's success and `initData` is the parsed init response body (e.g. `upload_id`, `token`,
-   *   `upload_type`, and any other fields such as the newly created file's own `id`). Resolves to
-   *   `{ ok: false }` when the init step itself fails.
+   * @returns {Promise<object>} Resolves to `{ ok, status, ...initData }`, where `ok`/`status`
+   *   reflect the submit step's response and `initData` is the parsed init response body (e.g.
+   *   `upload_id`, `token`, `upload_type`, and any other fields such as the newly created file's
+   *   own `id`). Resolves to `{ ok: false, status }` (the init response's HTTP status) when the
+   *   init step itself fails, so callers can tell e.g. 409 / 422 / 404 apart.
    */
   async runUploadCycle(initPath, file, token, name) {
     const initResponse = await this.initUpload(initPath, file.name, token, name);
 
-    if (!initResponse.ok) return { ok: false };
+    if (!initResponse.ok) return { ok: false, status: initResponse.status };
 
     const initData = await initResponse.json();
     const submitResponse = await this.submitUpload(
       initData.upload_id, initData.token, file, initData.upload_type,
     );
 
-    return { ok: submitResponse.ok, ...initData };
+    return { ok: submitResponse.ok, status: submitResponse.status, ...initData };
   }
 }
