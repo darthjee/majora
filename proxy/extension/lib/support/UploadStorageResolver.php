@@ -122,6 +122,20 @@ class UploadStorageResolver
     }
 
     /**
+     * Deletes the file at $filePath (relative to this upload type's base
+     * path) through SecurePhotoStorage::deleteFile(), so the same
+     * path-traversal guards apply. A missing file is a no-op.
+     *
+     * @param string $filePath Path relative to the base path.
+     * @return void
+     * @throws InvalidArgumentException When the path would escape the base path.
+     */
+    public function delete(string $filePath): void
+    {
+        $this->storage->deleteFile($filePath);
+    }
+
+    /**
      * Rejects a pre-existing entry at $destination (file or symlink, even a
      * dangling one) whose real path escapes the base path.
      *

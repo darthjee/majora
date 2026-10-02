@@ -74,24 +74,60 @@ class UploadStatusClient
     }
 
     /**
-     * Calls the backend with status=uploaded and returns the response's
-     * headers, so the caller can act on backend-driven instructions such as
-     * X-Cache-Clear (see ResponseCacheClearer).
+     * Calls the backend with status=uploaded and returns its headers (so the
+     * caller can act on backend-driven instructions such as X-Cache-Clear,
+     * see ResponseCacheClearer) along with the optional `previous_path`
+     * from its JSON body.
      *
      * @param string $uploadId The upload id.
      * @param array  $headers  Incoming request headers to forward.
-     * @return string[] The backend response headers as "Name: Value" lines.
-     * @throws BackendErrorException When the backend call fails.
+     * @return UploadFinalizeResult
+     * @throws UploadCleanupRequiredException When the backend answers 404
+     *                                        with a non-empty `cleanup_path`.
+     * @throws BackendErrorException          When the backend call fails
+     *                                        otherwise.
      */
-    public function requestUploadedStatus(string $uploadId, array $headers): array
+    public function requestUploadedStatus(string $uploadId, array $headers): UploadFinalizeResult
     {
         $result = $this->updateStatus($uploadId, 'uploaded', $headers);
+        $body   = (string) ($result['body'] ?? '');
 
-        if ($result['httpCode'] !== 200) {
-            throw new BackendErrorException($result['httpCode'], $result['body']);
+        if ($result['httpCode'] === 404) {
+            $cleanupPath = self::stringField($body, 'cleanup_path');
+            if ($cleanupPath !== null) {
+                throw new UploadCleanupRequiredException(404, $body, $cleanupPath);
+            }
         }
 
-        return ($result['headers'] ?? []);
+        if ($result['httpCode'] !== 200) {
+            throw new BackendErrorException($result['httpCode'], $body);
+        }
+
+        return new UploadFinalizeResult(
+            ($result['headers'] ?? []),
+            self::stringField($body, 'previous_path')
+        );
+    }
+
+    /**
+     * Reads a non-empty string field from a JSON object body.
+     *
+     * @param string $body  Raw response body.
+     * @param string $field Field name.
+     * @return string|null The field value, or null when the body isn't a
+     *                     JSON object or the field is missing, empty or not
+     *                     a string.
+     */
+    private static function stringField(string $body, string $field): ?string
+    {
+        $decoded = json_decode($body, true);
+        if (!is_array($decoded)) {
+            return null;
+        }
+
+        $value = ($decoded[$field] ?? null);
+
+        return (is_string($value) && $value !== '') ? $value : null;
     }
 
     /**

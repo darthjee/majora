@@ -6,6 +6,7 @@ use PHPUnit\Framework\TestCase;
 use Tent\Http\HttpClientInterface;
 use Tent\RequestHandlers\BackendClient;
 use Tent\RequestHandlers\BackendErrorException;
+use Tent\RequestHandlers\UploadCleanupRequiredException;
 use Tent\RequestHandlers\UploadStatusClient;
 
 /**
@@ -144,10 +145,123 @@ class UploadStatusClientTest extends TestCase
                 ['httpCode' => 200, 'body' => '{}', 'headers' => ['X-Cache-Clear: /games/foo/factions.json']]
             );
 
-        $this->assertSame(
-            ['X-Cache-Clear: /games/foo/factions.json'],
-            $statusClient->requestUploadedStatus('42', [])
+        $result = $statusClient->requestUploadedStatus('42', []);
+
+        $this->assertSame(['X-Cache-Clear: /games/foo/factions.json'], $result->headers());
+        $this->assertNull($result->previousPath());
+    }
+
+    /**
+     * Builds an UploadStatusClient whose single backend call returns
+     * $httpCode/$body.
+     */
+    private function statusClientReturning(int $httpCode, string $body): UploadStatusClient
+    {
+        $httpClient = $this->createMock(HttpClientInterface::class);
+        $httpClient->method('request')
+            ->willReturn(['httpCode' => $httpCode, 'body' => $body, 'headers' => []]);
+
+        return new UploadStatusClient(new BackendClient('http://backend:8080', $httpClient), 'image');
+    }
+
+    /**
+     * A 200 carrying previous_path exposes it.
+     */
+    public function testRequestUploadedStatusExposesPreviousPath(): void
+    {
+        $result = $this->statusClientReturning(200, '{"previous_path":"staff/3/photo.png"}')
+            ->requestUploadedStatus('42', []);
+
+        $this->assertSame('staff/3/photo.png', $result->previousPath());
+    }
+
+    /**
+     * A 200 with an empty body has no previous_path.
+     */
+    public function testRequestUploadedStatusWithEmptyBodyHasNoPreviousPath(): void
+    {
+        $result = $this->statusClientReturning(200, '')->requestUploadedStatus('42', []);
+
+        $this->assertNull($result->previousPath());
+    }
+
+    /**
+     * A non-string or empty previous_path is ignored.
+     */
+    public function testRequestUploadedStatusIgnoresInvalidPreviousPath(): void
+    {
+        $this->assertNull(
+            $this->statusClientReturning(200, '{"previous_path":""}')->requestUploadedStatus('42', [])->previousPath()
         );
+        $this->assertNull(
+            $this->statusClientReturning(200, '{"previous_path":["a"]}')->requestUploadedStatus('42', [])->previousPath()
+        );
+    }
+
+    /**
+     * A 404 carrying cleanup_path raises UploadCleanupRequiredException with
+     * the path, the code and the original body.
+     */
+    public function testRequestUploadedStatusThrowsCleanupOnNotFoundWithCleanupPath(): void
+    {
+        $body = '{"cleanup_path":"staff/3/photo.jpg"}';
+
+        try {
+            $this->statusClientReturning(404, $body)->requestUploadedStatus('42', []);
+            $this->fail('Expected UploadCleanupRequiredException to be thrown.');
+        } catch (UploadCleanupRequiredException $e) {
+            $this->assertSame('staff/3/photo.jpg', $e->cleanupPath());
+            $this->assertSame(404, $e->httpCode());
+            $this->assertSame($body, $e->body());
+        }
+    }
+
+    /**
+     * A 404 without cleanup_path raises a plain BackendErrorException.
+     */
+    public function testRequestUploadedStatusThrowsBackendErrorOnNotFoundWithoutCleanupPath(): void
+    {
+        try {
+            $this->statusClientReturning(404, '{"detail":"Not found."}')->requestUploadedStatus('42', []);
+            $this->fail('Expected BackendErrorException to be thrown.');
+        } catch (UploadCleanupRequiredException $e) {
+            $this->fail('Did not expect UploadCleanupRequiredException.');
+        } catch (BackendErrorException $e) {
+            $this->assertSame(404, $e->httpCode());
+        }
+    }
+
+    /**
+     * A 404 with a non-JSON body raises a plain BackendErrorException.
+     */
+    public function testRequestUploadedStatusThrowsBackendErrorOnNonJsonNotFound(): void
+    {
+        try {
+            $this->statusClientReturning(404, 'Not Found')->requestUploadedStatus('42', []);
+            $this->fail('Expected BackendErrorException to be thrown.');
+        } catch (UploadCleanupRequiredException $e) {
+            $this->fail('Did not expect UploadCleanupRequiredException.');
+        } catch (BackendErrorException $e) {
+            $this->assertSame(404, $e->httpCode());
+            $this->assertSame('Not Found', $e->body());
+        }
+    }
+
+    /**
+     * requestUploadingStatus() treats a 404 with cleanup_path as a plain
+     * BackendErrorException.
+     */
+    public function testRequestUploadingStatusDoesNotSurfaceCleanupPath(): void
+    {
+        try {
+            $this->statusClientReturning(404, '{"cleanup_path":"staff/3/photo.jpg"}')
+                ->requestUploadingStatus('42', []);
+            $this->fail('Expected BackendErrorException to be thrown.');
+        } catch (UploadCleanupRequiredException $e) {
+            $this->fail('Did not expect UploadCleanupRequiredException.');
+        } catch (BackendErrorException $e) {
+            $this->assertSame(404, $e->httpCode());
+        }
     }
 
     /**

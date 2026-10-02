@@ -957,6 +957,244 @@ class UploadHandlerTest extends TestCase
         }
     }
 
+    // -------------------------------------------------------------------------
+    // previous_path / cleanup_path (issue #1472)
+    // -------------------------------------------------------------------------
+
+    /**
+     * Runs an image upload for photo 42 whose 'uploading' call returns
+     * $filePath, and whose 'uploaded' call returns $finalize.
+     */
+    private function runUploadWithFinalize(string $filePath, array $finalize, array $headers = []): Response
+    {
+        $tmpFile    = $this->makeTmpFile();
+        $httpClient = $this->createMock(HttpClientInterface::class);
+        $handler    = $this->makeHandler($httpClient);
+
+        $request = $this->makeRequest(
+            $this->submitPath('image', '42'),
+            ['tmp_name' => $tmpFile, 'type' => 'image/jpeg', 'name' => 'photo.jpg', 'size' => 10, 'error' => 0],
+            $headers
+        );
+
+        $httpClient->expects($this->exactly(2))
+            ->method('request')
+            ->willReturnOnConsecutiveCalls(
+                ['httpCode' => 200, 'body' => json_encode(['file_path' => $filePath]), 'headers' => []],
+                $finalize + ['headers' => []]
+            );
+
+        try {
+            return $handler->handleRequest($request);
+        } finally {
+            unlink($tmpFile);
+        }
+    }
+
+    /**
+     * A 200 finalize with previous_path deletes the old-extension file and
+     * keeps the new one; previous_path never reaches the client.
+     */
+    public function testFinalizePreviousPathDeletesOldFile(): void
+    {
+        mkdir($this->photosDir . '/staff/3', 0755, true);
+        file_put_contents($this->photosDir . '/staff/3/photo.png', 'old png');
+
+        $response = $this->runUploadWithFinalize(
+            'staff/3/photo.jpg',
+            ['httpCode' => 200, 'body' => '{"previous_path":"staff/3/photo.png"}']
+        );
+
+        $this->assertSuccessResponse($response, ['file_path' => $this->photosDir . '/staff/3/photo.jpg']);
+        $this->assertFileDoesNotExist($this->photosDir . '/staff/3/photo.png');
+        $this->assertFileExists($this->photosDir . '/staff/3/photo.jpg');
+        $this->assertStringNotContainsString('previous_path', $response->body());
+    }
+
+    /**
+     * A 200 finalize without previous_path deletes nothing.
+     */
+    public function testFinalizeWithoutPreviousPathDeletesNothing(): void
+    {
+        mkdir($this->photosDir . '/staff/3', 0755, true);
+        file_put_contents($this->photosDir . '/staff/3/photo.png', 'other png');
+
+        $response = $this->runUploadWithFinalize('staff/3/photo.jpg', ['httpCode' => 200, 'body' => '']);
+
+        $this->assertSame(200, $response->httpCode());
+        $this->assertFileExists($this->photosDir . '/staff/3/photo.png');
+        $this->assertFileExists($this->photosDir . '/staff/3/photo.jpg');
+    }
+
+    /**
+     * A previous_path equal to the path just written is never deleted.
+     */
+    public function testFinalizePreviousPathEqualToNewPathIsNotDeleted(): void
+    {
+        $response = $this->runUploadWithFinalize(
+            'staff/3/photo.jpg',
+            ['httpCode' => 200, 'body' => '{"previous_path":"staff/3/photo.jpg"}']
+        );
+
+        $this->assertSame(200, $response->httpCode());
+        $this->assertFileExists($this->photosDir . '/staff/3/photo.jpg');
+    }
+
+    /**
+     * A previous_path pointing at a missing file still returns 200.
+     */
+    public function testFinalizePreviousPathMissingFileStillSucceeds(): void
+    {
+        $response = $this->runUploadWithFinalize(
+            'staff/3/photo.jpg',
+            ['httpCode' => 200, 'body' => '{"previous_path":"staff/3/photo.png"}']
+        );
+
+        $this->assertSame(200, $response->httpCode());
+        $this->assertFileExists($this->photosDir . '/staff/3/photo.jpg');
+    }
+
+    /**
+     * A previous_path with ../ traversal deletes nothing outside the base
+     * path and still returns 200.
+     */
+    public function testFinalizePreviousPathTraversalDeletesNothing(): void
+    {
+        $outsideFile = dirname($this->photosDir) . '/' . basename($this->photosDir) . '_outside.png';
+        file_put_contents($outsideFile, 'outside');
+
+        try {
+            $response = $this->runUploadWithFinalize(
+                'staff/3/photo.jpg',
+                [
+                    'httpCode' => 200,
+                    'body'     => json_encode(['previous_path' => '../' . basename($outsideFile)]),
+                ]
+            );
+
+            $this->assertSame(200, $response->httpCode());
+            $this->assertFileExists($outsideFile);
+            $this->assertFileExists($this->photosDir . '/staff/3/photo.jpg');
+        } finally {
+            @unlink($outsideFile);
+        }
+    }
+
+    /**
+     * A finalize 404 with cleanup_path deletes the written file and forwards
+     * the 404 with its body.
+     */
+    public function testFinalizeCleanupPathDeletesWrittenFileAndForwardsNotFound(): void
+    {
+        $body     = '{"cleanup_path":"staff/3/photo.jpg"}';
+        $response = $this->runUploadWithFinalize('staff/3/photo.jpg', ['httpCode' => 404, 'body' => $body]);
+
+        $this->assertSame(404, $response->httpCode());
+        $this->assertSame($body, $response->body());
+        $this->assertFileDoesNotExist($this->photosDir . '/staff/3/photo.jpg');
+    }
+
+    /**
+     * A finalize 404 with a traversing cleanup_path deletes nothing outside
+     * the base path and still forwards the 404.
+     */
+    public function testFinalizeCleanupPathTraversalDeletesNothing(): void
+    {
+        $outsideFile = dirname($this->photosDir) . '/' . basename($this->photosDir) . '_outside.jpg';
+        file_put_contents($outsideFile, 'outside');
+
+        try {
+            $response = $this->runUploadWithFinalize(
+                'staff/3/photo.jpg',
+                ['httpCode' => 404, 'body' => json_encode(['cleanup_path' => '../' . basename($outsideFile)])]
+            );
+
+            $this->assertSame(404, $response->httpCode());
+            $this->assertFileExists($outsideFile);
+        } finally {
+            @unlink($outsideFile);
+        }
+    }
+
+    /**
+     * An 'uploading' 404 with cleanup_path deletes nothing (nothing was
+     * written) and forwards the 404 as-is.
+     */
+    public function testUploadingNotFoundWithCleanupPathDeletesNothing(): void
+    {
+        mkdir($this->photosDir . '/staff/3', 0755, true);
+        file_put_contents($this->photosDir . '/staff/3/photo.jpg', 'existing');
+
+        $tmpFile    = $this->makeTmpFile();
+        $httpClient = $this->createMock(HttpClientInterface::class);
+        $handler    = $this->makeHandler($httpClient);
+        $body       = '{"cleanup_path":"staff/3/photo.jpg"}';
+
+        $request = $this->makeRequest(
+            $this->submitPath('image', '42'),
+            ['tmp_name' => $tmpFile, 'type' => 'image/jpeg', 'name' => 'photo.jpg', 'size' => 10, 'error' => 0]
+        );
+
+        $httpClient->expects($this->once())
+            ->method('request')
+            ->willReturn(['httpCode' => 404, 'body' => $body, 'headers' => []]);
+
+        $response = $handler->handleRequest($request);
+
+        $this->assertSame(404, $response->httpCode());
+        $this->assertSame($body, $response->body());
+        $this->assertSame('existing', file_get_contents($this->photosDir . '/staff/3/photo.jpg'));
+
+        unlink($tmpFile);
+    }
+
+    /**
+     * X-Cache-Clear on a finalize carrying previous_path is still cleared
+     * and not forwarded.
+     */
+    public function testFinalizePreviousPathStillClearsCache(): void
+    {
+        $cacheDir = $this->photosDir . '_cache';
+        $entry    = $this->makeCacheEntry($cacheDir, '/staff/photos.json');
+
+        $tmpFile    = $this->makeTmpFile();
+        $httpClient = $this->createMock(HttpClientInterface::class);
+        $handler    = new UploadHandler('http://backend:8080', $httpClient, $this->photosDir, $this->filesDir, $cacheDir);
+
+        mkdir($this->photosDir . '/staff/3', 0755, true);
+        file_put_contents($this->photosDir . '/staff/3/photo.png', 'old png');
+
+        $request = $this->makeRequest(
+            $this->submitPath('image', '42'),
+            ['tmp_name' => $tmpFile, 'type' => 'image/jpeg', 'name' => 'photo.jpg', 'size' => 10, 'error' => 0]
+        );
+
+        $httpClient->expects($this->exactly(2))
+            ->method('request')
+            ->willReturnOnConsecutiveCalls(
+                ['httpCode' => 200, 'body' => '{"file_path":"staff/3/photo.jpg"}', 'headers' => []],
+                [
+                    'httpCode' => 200,
+                    'body'     => '{"previous_path":"staff/3/photo.png"}',
+                    'headers'  => ['X-Cache-Clear: /staff/photos.json'],
+                ]
+            );
+
+        try {
+            $response = $handler->handleRequest($request);
+
+            $this->assertSame(200, $response->httpCode());
+            foreach ($response->headers() as $line) {
+                $this->assertStringNotContainsStringIgnoringCase('x-cache-clear', (string) $line);
+            }
+            $this->assertDirectoryDoesNotExist($entry);
+            $this->assertFileDoesNotExist($this->photosDir . '/staff/3/photo.png');
+        } finally {
+            $this->removeDir($cacheDir);
+            unlink($tmpFile);
+        }
+    }
+
     /**
      * build() wires 'cache_path' into the handler's ResponseCacheClearer.
      */
