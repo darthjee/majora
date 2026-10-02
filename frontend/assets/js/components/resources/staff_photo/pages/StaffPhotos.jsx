@@ -3,6 +3,7 @@ import PhotoUploadModal from '../../../common/modals/PhotoUploadModal.jsx';
 import DeletePhotoConfirmModal from '../../../common/modals/DeletePhotoConfirmModal.jsx';
 import StaffPhotosController from './controllers/StaffPhotosController.js';
 import StaffPhotosHelper from './helpers/StaffPhotosHelper.jsx';
+import useStaffPhotoSelection from './hooks/useStaffPhotoSelection.js';
 
 /**
  * Hook holding every piece of staff photos page state, plus the controller wired to it.
@@ -41,15 +42,16 @@ function useStaffPhotosState() {
 
 /**
  * Render the staff-only photos page (issue #1473): per-type tabs listing every photo, with
- * per-row Replace and Delete actions.
+ * per-row Resize, Replace and Delete actions, plus per-page selection and bulk Resize / Delete
+ * (issue #1474).
  *
- * @description `maxDimension` is loaded and kept in state but not used yet (issue #1474).
  * @returns {React.ReactElement} Staff photos page.
  */
 export default function StaffPhotos() {
   const { state, controller } = useStaffPhotosState();
   const [pendingDelete, setPendingDelete] = useState(null);
   const [pendingReplace, setPendingReplace] = useState(null);
+  const { selectedIds, selectedPhotos, onToggle, onToggleAll } = useStaffPhotoSelection(state.photos);
 
   if (state.loading) return StaffPhotosHelper.renderLoading();
   if (state.error) return StaffPhotosHelper.renderError(state.error);
@@ -70,7 +72,14 @@ export default function StaffPhotos() {
 
   return (
     <>
-      {StaffPhotosHelper.render(state, { onReplace: setPendingReplace, onDelete: setPendingDelete })}
+      {StaffPhotosHelper.render({ ...state, selectedIds }, {
+        onResize: (photo) => controller.handleResize(photo),
+        onReplace: setPendingReplace,
+        onDelete: setPendingDelete,
+        onToggle,
+        onToggleAll,
+        onBulk: (action) => controller.runBulk(action, selectedPhotos),
+      })}
       <PhotoUploadModal
         key={pendingReplace?.id ?? 'none'}
         show={pendingReplace !== null}
