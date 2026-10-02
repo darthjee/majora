@@ -1,7 +1,7 @@
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import DeletePhotoConfirmModal from '../../../../../../../../assets/js/components/resources/character/pages/elements/DeletePhotoConfirmModal.jsx';
-import DeletePhotoConfirmModalHelper from '../../../../../../../../assets/js/components/resources/character/pages/elements/helpers/DeletePhotoConfirmModalHelper.jsx';
+import DeletePhotoConfirmModal from '../../../../../../assets/js/components/common/modals/DeletePhotoConfirmModal.jsx';
+import DeletePhotoConfirmModalHelper from '../../../../../../assets/js/components/common/modals/helpers/DeletePhotoConfirmModalHelper.jsx';
 
 describe('DeletePhotoConfirmModal', function() {
   it('delegates rendering to DeletePhotoConfirmModalHelper with the given show/photo state', function() {
