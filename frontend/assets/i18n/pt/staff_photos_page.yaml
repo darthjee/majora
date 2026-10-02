@@ -1,0 +1,36 @@
+staff_photos_page:
+  title: Fotos
+  loading: Carregando fotos...
+  error: Falha ao carregar as fotos. Tente novamente.
+  empty: Não há fotos deste tipo.
+  types:
+    game: Jogos
+    game_faction: Facções
+    game_item: Itens
+    game_common_item: Itens comuns
+    game_document: Documentos
+    game_document_file: Arquivos de documentos
+    game_possession: Posses
+    character: Personagens
+    character_item: Itens de personagens
+    treasure: Tesouros
+    stl_model: Modelos STL
+    source: Fontes
+    collection: Coleções
+  thumbnail_column: Foto
+  status_column: Status
+  owner_column: Dono
+  actions_column: Ações
+  thumbnail_alt: Miniatura da foto
+  broken_image_alt: Imagem indisponível
+  status_ready: Pronta
+  status_not_ready: Não está pronta
+  status_replace_in_progress: Substituição em andamento
+  owner_orphan: Órfã (sem dono)
+  replace: Substituir
+  delete: Excluir
+  error_replace_in_progress: Já existe uma substituição em andamento para esta foto.
+  error_path_missing: Esta foto não tem caminho de arquivo, então não pode ser substituída.
+  error_delete_replace_in_progress: Esta foto não pode ser excluída enquanto uma substituição estiver em andamento.
+  error_not_found: A foto ou o seu dono não existe mais — a lista foi atualizada.
+  error_generic: Não foi possível concluir a ação. Tente novamente.
