@@ -1,6 +1,6 @@
-import DeletePhotoConfirmModalHelper from '../../../../../../../../../assets/js/components/resources/character/pages/elements/helpers/DeletePhotoConfirmModalHelper.jsx';
+import DeletePhotoConfirmModalHelper from '../../../../../../../assets/js/components/common/modals/helpers/DeletePhotoConfirmModalHelper.jsx';
 import Modal from 'react-bootstrap/cjs/Modal.js';
-import Translator from '../../../../../../../../../assets/js/i18n/Translator.js';
+import Translator from '../../../../../../../assets/js/i18n/Translator.js';
 
 const findElement = (node, matcher) => {
   if (!node) {

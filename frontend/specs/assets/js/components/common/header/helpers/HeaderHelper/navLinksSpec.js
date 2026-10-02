@@ -1,3 +1,4 @@
+import Translator from '../../../../../../../../assets/js/i18n/Translator.js';
 import { render } from './support.js';
 
 describe('HeaderHelper', function() {
@@ -27,6 +28,8 @@ describe('HeaderHelper', function() {
         expect(html).toContain('Users');
         expect(html).toContain('href="#/staff/dashboard"');
         expect(html).toContain('Dashboard');
+        expect(html).toContain('href="#/staff/photos"');
+        expect(html).toContain(Translator.t('header.nav_staff_photos'));
       });
 
       it('renders the Admin dropdown with Treasures/Staff Users/Dashboard items when the user is staff', function() {
@@ -36,6 +39,7 @@ describe('HeaderHelper', function() {
         expect(html).toContain('href="#/treasures"');
         expect(html).toContain('href="#/staff/users"');
         expect(html).toContain('href="#/staff/dashboard"');
+        expect(html).toContain('href="#/staff/photos"');
       });
 
       it('does not render the Admin dropdown when the user is neither staff nor a superuser', function() {
@@ -44,6 +48,7 @@ describe('HeaderHelper', function() {
         expect(html).not.toContain('href="#/treasures"');
         expect(html).not.toContain('href="#/staff/users"');
         expect(html).not.toContain('href="#/staff/dashboard"');
+        expect(html).not.toContain('href="#/staff/photos"');
       });
     });
 

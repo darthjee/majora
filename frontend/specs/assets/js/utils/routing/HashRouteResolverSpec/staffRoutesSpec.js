@@ -2,6 +2,7 @@ import { runCases } from './support.js';
 
 const CASES = [
   { hash: '#/staff/users', expected: 'staffUsers' },
+  { hash: '#/staff/photos', expected: 'staffPhotos' },
   {
     hash: '#/staff/users/7/edit',
     expected: 'staffUserEdit',

@@ -1,4 +1,5 @@
 import UploadClient from '../../../../client/UploadClient.js';
+import Noop from '../../../../utils/Noop.js';
 
 /**
  * Manages photo upload modal state and upload requests.
@@ -11,12 +12,15 @@ export default class PhotoUploadModalController {
    * @param {Function} setUploading - State setter for the uploading flag.
    * @param {Function} onSuccess - Callback invoked after a successful upload.
    * @param {UploadClient} [client] - HTTP client used for upload requests.
+   * @param {Function} [onError] - Optional callback invoked with the HTTP status (issue #1473)
+   *   when the main upload cycle resolves not ok. Defaults to a no-op.
    */
-  constructor(setError, setUploading, onSuccess, client = new UploadClient()) {
+  constructor(setError, setUploading, onSuccess, client = new UploadClient(), onError = Noop.noop) {
     this.setError = setError;
     this.setUploading = setUploading;
     this.onSuccess = onSuccess;
     this.client = client;
+    this.onError = onError;
   }
 
   /**
@@ -25,7 +29,7 @@ export default class PhotoUploadModalController {
    * @description Runs `UploadClient#runUploadCycle` to init and submit the file, threading the
    *   upload type returned by the init step (e.g. `image` or `file` — issue #726) through
    *   internally. On success, invokes onSuccess. On any non-ok response or thrown error, sets
-   *   the error flag.
+   *   the error flag; a non-ok response additionally invokes onError with its HTTP status.
    *
    *   When `photoUpload` is given (issue #878), a second upload cycle is chained after the first
    *   one succeeds: the first cycle's own `id` (the newly created file's id) is used to build the
@@ -46,11 +50,12 @@ export default class PhotoUploadModalController {
    */
   async handleSubmit(uploadPath, file, token, name, photoUpload) {
     try {
-      const { ok, id: fileId } = await this.client.runUploadCycle(uploadPath, file, token, name);
+      const { ok, status, id: fileId } = await this.client.runUploadCycle(uploadPath, file, token, name);
 
       if (!ok) {
         this.setError(true);
         this.setUploading(false);
+        this.onError(status);
         return;
       }
 

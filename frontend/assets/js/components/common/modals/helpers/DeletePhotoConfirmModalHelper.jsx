@@ -1,5 +1,5 @@
 import Modal from 'react-bootstrap/cjs/Modal.js';
-import Translator from '../../../../../../i18n/Translator.js';
+import Translator from '../../../../i18n/Translator.js';
 
 /**
  * Renders the delete-photo confirmation modal shell.

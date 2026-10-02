@@ -1,0 +1,36 @@
+staff_photos_page:
+  title: Photos
+  loading: Loading photos...
+  error: Failed to load photos. Please try again.
+  empty: There are no photos of this type.
+  types:
+    game: Games
+    game_faction: Factions
+    game_item: Items
+    game_common_item: Common Items
+    game_document: Documents
+    game_document_file: Document Files
+    game_possession: Possessions
+    character: Characters
+    character_item: Character Items
+    treasure: Treasures
+    stl_model: STL Models
+    source: Sources
+    collection: Collections
+  thumbnail_column: Photo
+  status_column: Status
+  owner_column: Owner
+  actions_column: Actions
+  thumbnail_alt: Photo thumbnail
+  broken_image_alt: Image unavailable
+  status_ready: Ready
+  status_not_ready: Not ready
+  status_replace_in_progress: Replace in progress
+  owner_orphan: Orphan (no owner)
+  replace: Replace
+  delete: Delete
+  error_replace_in_progress: A replace is already in progress for this photo.
+  error_path_missing: This photo has no file path, so it cannot be replaced.
+  error_delete_replace_in_progress: This photo cannot be deleted while a replace is in progress.
+  error_not_found: The photo or its owner no longer exists — the list has been refreshed.
+  error_generic: That action could not be completed. Please try again.
