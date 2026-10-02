@@ -5,6 +5,7 @@ namespace Tent\RequestHandlers\Tests;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 use Tent\RequestHandlers\UploadStorageResolver;
+use Tent\RequestHandlers\UploadWriteException;
 
 /**
  * Unit tests for UploadStorageResolver.
@@ -138,6 +139,113 @@ class UploadStorageResolverTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
+    // write() - atomic overwrite
+    // -------------------------------------------------------------------------
+
+    /**
+     * Lists the entries of $dir other than '.' and '..'.
+     *
+     * @return string[]
+     */
+    private function entriesOf(string $dir): array
+    {
+        return array_values(array_diff(scandir($dir), ['.', '..']));
+    }
+
+    /**
+     * write() overwrites an existing file at the same path with the new
+     * content.
+     */
+    public function testWriteOverwritesExistingFileAtSamePath(): void
+    {
+        mkdir($this->photosDir . '/42', 0755, true);
+        file_put_contents($this->photosDir . '/42/photo.jpg', 'old bytes');
+
+        $tmpFile  = $this->makeTmpFile('new bytes');
+        $resolver = UploadStorageResolver::forType('image', $this->photosDir, $this->filesDir);
+
+        $destination = $resolver->write('42/photo.jpg', ['tmp_name' => $tmpFile]);
+
+        $this->assertSame('new bytes', file_get_contents($destination));
+
+        unlink($tmpFile);
+    }
+
+    /**
+     * After a successful write, the destination directory only holds the
+     * destination file: no temporary file is left behind.
+     */
+    public function testWriteLeavesNoTempFilesBehind(): void
+    {
+        mkdir($this->photosDir . '/42', 0755, true);
+        file_put_contents($this->photosDir . '/42/photo.jpg', 'old bytes');
+
+        $tmpFile  = $this->makeTmpFile('new bytes');
+        $resolver = UploadStorageResolver::forType('image', $this->photosDir, $this->filesDir);
+
+        $resolver->write('42/photo.jpg', ['tmp_name' => $tmpFile]);
+
+        $this->assertSame(['photo.jpg'], $this->entriesOf($this->photosDir . '/42'));
+
+        unlink($tmpFile);
+    }
+
+    /**
+     * The written file is world-readable (0644), not tempnam()'s 0600, so
+     * the photos rule can still serve it.
+     */
+    public function testWrittenFileIsReadable(): void
+    {
+        $tmpFile  = $this->makeTmpFile('bytes');
+        $resolver = UploadStorageResolver::forType('image', $this->photosDir, $this->filesDir);
+
+        $destination = $resolver->write('42/photo.jpg', ['tmp_name' => $tmpFile]);
+
+        clearstatcache();
+        $this->assertSame(0644, fileperms($destination) & 0777);
+
+        unlink($tmpFile);
+    }
+
+    /**
+     * When the uploaded bytes can't be read (missing tmp_name), write()
+     * throws, the pre-existing file keeps its original content, and no
+     * temporary file remains.
+     */
+    public function testFailedWriteKeepsExistingFileAndRemovesTempFile(): void
+    {
+        mkdir($this->photosDir . '/42', 0755, true);
+        file_put_contents($this->photosDir . '/42/photo.jpg', 'old bytes');
+
+        $resolver = UploadStorageResolver::forType('image', $this->photosDir, $this->filesDir);
+
+        try {
+            $resolver->write('42/photo.jpg', ['tmp_name' => $this->photosDir . '/does-not-exist']);
+            $this->fail('Expected UploadWriteException');
+        } catch (UploadWriteException $e) {
+            $this->assertSame('old bytes', file_get_contents($this->photosDir . '/42/photo.jpg'));
+            $this->assertSame(['photo.jpg'], $this->entriesOf($this->photosDir . '/42'));
+        }
+    }
+
+    /**
+     * An empty tmp_name is treated as an unreadable upload, not a PHP
+     * ValueError.
+     */
+    public function testEmptyTmpNameThrowsUploadWriteException(): void
+    {
+        $resolver = UploadStorageResolver::forType('image', $this->photosDir, $this->filesDir);
+
+        $this->expectException(UploadWriteException::class);
+
+        try {
+            $resolver->write('42/photo.jpg', ['tmp_name' => '']);
+        } finally {
+            $this->assertSame([], $this->entriesOf($this->photosDir . '/42'));
+        }
+    }
+
+    // -------------------------------------------------------------------------
     // write() - path traversal
     // -------------------------------------------------------------------------
 
@@ -163,8 +271,10 @@ class UploadStorageResolverTest extends TestCase
     /**
      * A symlink planted at the destination file path (not its containing
      * directory) inside the base path, pointing outside of it, is rejected
-     * by the post-write PathTraversalGuard::assertRealPathWithinBase()
-     * check, even though the directory-level check alone wouldn't catch it.
+     * by the pre-write PathTraversalGuard::assertRealPathWithinBase() check
+     * on the existing destination entry, even though the directory-level
+     * check alone wouldn't catch it. Nothing is written outside the base
+     * path and no temporary file is left behind.
      */
     public function testWriteRejectsSymlinkDestinationEscapingBasePath(): void
     {
@@ -180,6 +290,8 @@ class UploadStorageResolverTest extends TestCase
         try {
             $resolver->write('42/photo.jpg', ['tmp_name' => $tmpFile]);
         } finally {
+            $this->assertFileDoesNotExist($outsideDir . '/photo.jpg');
+            $this->assertSame(['photo.jpg'], $this->entriesOf($this->photosDir . '/42'));
             @unlink($this->photosDir . '/42/photo.jpg');
             @unlink($outsideDir . '/photo.jpg');
             rmdir($outsideDir);

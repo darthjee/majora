@@ -760,13 +760,11 @@ class UploadHandlerTest extends TestCase
      * directory-level double-check in SecurePhotoStorage::ensureDirectoryFor()
      * doesn't catch this, since the containing directory itself is a real,
      * legitimate directory inside the base path — only the leaf (the file
-     * being written) is a symlink escaping the base. This is exactly the gap
-     * the additional PathTraversalGuard::assertRealPathWithinBase() check in
-     * UploadHandler::writeUploadedFile() closes: once file_put_contents()
-     * follows the symlink and actually writes the file (making it resolvable
-     * via realpath()), the check catches that the real destination lives
-     * outside photosBasePath and rejects the upload with 400, before the
-     * second ('uploaded') backend PATCH call is ever made.
+     * being written) is a symlink escaping the base. UploadStorageResolver
+     * checks any pre-existing destination entry with
+     * PathTraversalGuard::assertRealPathWithinBase() before writing, so the
+     * upload is rejected with 400 before the second ('uploaded') backend
+     * PATCH call is ever made.
      */
     public function testUploadIsRejectedWhenDestinationFileSymlinkEscapesBasePath(): void
     {
@@ -799,6 +797,35 @@ class UploadHandlerTest extends TestCase
             rmdir($outsideDir);
             unlink($tmpFile);
         }
+    }
+
+    /**
+     * An upload to the same path as an existing photo atomically replaces
+     * its bytes, leaving no temporary file behind.
+     */
+    public function testUploadOverwritesExistingFileAtomically(): void
+    {
+        mkdir($this->photosDir . '/42', 0755, true);
+        file_put_contents($this->photosDir . '/42/photo.jpg', 'old bytes');
+
+        $tmpFile    = $this->makeTmpFile();
+        $httpClient = $this->createMock(HttpClientInterface::class);
+        $handler    = $this->makeHandler($httpClient);
+
+        $request = $this->makeRequest(
+            $this->submitPath('image', '42'),
+            ['tmp_name' => $tmpFile, 'type' => 'image/jpeg', 'name' => 'photo.jpg', 'size' => 10, 'error' => 0]
+        );
+
+        $this->expectTwoForwardedRequests($httpClient, '{"file_path":"42/photo.jpg"}');
+
+        $response = $handler->handleRequest($request);
+
+        $this->assertSame(200, $response->httpCode());
+        $this->assertSame(self::REAL_JPEG_BYTES, file_get_contents($this->photosDir . '/42/photo.jpg'));
+        $this->assertSame(['photo.jpg'], array_values(array_diff(scandir($this->photosDir . '/42'), ['.', '..'])));
+
+        unlink($tmpFile);
     }
 
     /**

@@ -136,6 +136,9 @@ class UploadHandler extends RequestHandler
             return new Response(['httpCode' => $e->httpCode(), 'body' => $e->body()]);
         } catch (InvalidArgumentException $e) {
             return new Response(['httpCode' => 400, 'body' => 'Bad Request']);
+        } catch (UploadWriteException $e) {
+            Logger::error('[upload] - write failed: ' . $e->getMessage());
+            return new Response(['httpCode' => 500, 'body' => 'Internal Server Error']);
         }
 
         return new Response(

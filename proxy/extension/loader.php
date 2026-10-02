@@ -17,6 +17,7 @@ require_once __DIR__ . '/lib/cache/DomainHash.php';
 require_once __DIR__ . '/lib/cache/PrivateRequestHasher.php';
 require_once __DIR__ . '/lib/exceptions/UnprocessableUploadException.php';
 require_once __DIR__ . '/lib/exceptions/BackendErrorException.php';
+require_once __DIR__ . '/lib/exceptions/UploadWriteException.php';
 require_once __DIR__ . '/lib/support/PathTraversalGuard.php';
 require_once __DIR__ . '/lib/support/SecurePhotoStorage.php';
 require_once __DIR__ . '/lib/support/ForwardedHeaderFilter.php';
