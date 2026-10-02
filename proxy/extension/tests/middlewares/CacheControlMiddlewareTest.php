@@ -118,4 +118,92 @@ class CacheControlMiddlewareTest extends TestCase
 
         $this->assertSame(['Cache-Control: max-age=0'], $result->headers());
     }
+
+    /**
+     * build() with 'directive' => 'no-cache' emits that directive verbatim.
+     */
+    public function testBuildWithNoCacheDirectiveEmitsNoCache(): void
+    {
+        $middleware = CacheControlMiddleware::build(['directive' => 'no-cache']);
+        $response = $this->makeResponse(['Content-Type: image/png']);
+
+        $result = $middleware->processResponse($response);
+
+        $this->assertSame([
+            'Content-Type: image/png',
+            'Cache-Control: no-cache',
+        ], $result->headers());
+    }
+
+    /**
+     * 'directive' takes precedence over 'maxAgeSeconds' when both are set.
+     */
+    public function testDirectiveTakesPrecedenceOverMaxAgeSeconds(): void
+    {
+        $middleware = CacheControlMiddleware::build([
+            'maxAgeSeconds' => 604800,
+            'directive' => 'no-cache',
+        ]);
+        $response = $this->makeResponse([]);
+
+        $result = $middleware->processResponse($response);
+
+        $this->assertSame(['Cache-Control: no-cache'], $result->headers());
+    }
+
+    /**
+     * The directive replaces any existing Cache-Control header.
+     */
+    public function testDirectiveReplacesExistingCacheControlHeader(): void
+    {
+        $response = $this->makeResponse([
+            'Cache-Control: max-age=604800',
+            'ETag: "abc"',
+        ]);
+        $middleware = new CacheControlMiddleware(0, 'no-cache');
+
+        $result = $middleware->processResponse($response);
+
+        $this->assertSame([
+            'ETag: "abc"',
+            'Cache-Control: no-cache',
+        ], $result->headers());
+    }
+
+    /**
+     * An empty directive is ignored, falling back to max-age.
+     */
+    public function testEmptyDirectiveFallsBackToMaxAge(): void
+    {
+        $middleware = CacheControlMiddleware::build([
+            'maxAgeSeconds' => 3600,
+            'directive' => '',
+        ]);
+        $response = $this->makeResponse([]);
+
+        $result = $middleware->processResponse($response);
+
+        $this->assertSame(['Cache-Control: max-age=3600'], $result->headers());
+    }
+
+    /**
+     * The header is also set on a 304 Not Modified response, and the status
+     * code is left untouched.
+     */
+    public function testSetsHeaderOnNotModifiedResponse(): void
+    {
+        $response = new Response([
+            'httpCode' => 304,
+            'headers' => ['ETag: "abc"'],
+        ]);
+        $middleware = CacheControlMiddleware::build(['directive' => 'no-cache']);
+
+        $result = $middleware->processResponse($response);
+
+        $this->assertSame(304, $result->httpCode());
+        $this->assertSame([
+            'ETag: "abc"',
+            'Cache-Control: no-cache',
+        ], $result->headers());
+    }
 }

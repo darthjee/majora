@@ -5,9 +5,17 @@ namespace Tent\Middlewares;
 use Tent\Models\Response;
 
 /**
- * Sets a `Cache-Control: max-age=<N>` response header, replacing any existing
- * occurrence of the header (case-insensitive) so the client always receives a
- * single, well-formed value.
+ * Sets a `Cache-Control` response header, replacing any existing occurrence
+ * of the header (case-insensitive) so the client always receives a single,
+ * well-formed value.
+ *
+ * The value is either `max-age=<N>` (from `maxAgeSeconds`) or, when a
+ * `directive` is configured (e.g. `no-cache`), that directive verbatim. A
+ * configured `directive` takes precedence over `maxAgeSeconds`.
+ *
+ * The header is set on every response regardless of status code, so a
+ * `304 Not Modified` produced by a conditional `static` handler also carries
+ * it.
  *
  * ## Why not `Tent\Middlewares\CacheStalenessMiddleware`?
  *
@@ -37,6 +45,15 @@ use Tent\Models\Response;
  *     ]
  * ]);
  * ```
+ *
+ * Or, to force revalidation on every request:
+ *
+ * ```php
+ * [
+ *     'class' => 'Tent\\Middlewares\\CacheControlMiddleware',
+ *     'directive' => 'no-cache'
+ * ]
+ * ```
  */
 class CacheControlMiddleware extends Middleware
 {
@@ -48,31 +65,41 @@ class CacheControlMiddleware extends Middleware
     private int $maxAgeSeconds;
 
     /**
-     * @param integer $maxAgeSeconds Maximum age, in seconds, advertised via `max-age`.
+     * @var string|null Literal Cache-Control directive (e.g. `no-cache`);
+     *                  when set, it takes precedence over `maxAgeSeconds`.
      */
-    public function __construct(int $maxAgeSeconds)
+    private ?string $directive;
+
+    /**
+     * @param integer     $maxAgeSeconds Maximum age, in seconds, advertised via `max-age`.
+     * @param string|null $directive     Literal directive overriding `max-age` when set.
+     */
+    public function __construct(int $maxAgeSeconds, ?string $directive=null)
     {
         $this->maxAgeSeconds = $maxAgeSeconds;
+        $this->directive = ($directive === null || trim($directive) === '') ? null : trim($directive);
     }
 
     /**
      * Builds a CacheControlMiddleware instance from given attributes.
      *
      * @param array $attributes Associative array of attributes; supports
-     *                          'maxAgeSeconds' (or 'max_age_seconds').
+     *                          'maxAgeSeconds' (or 'max_age_seconds') and
+     *                          'directive' (which takes precedence).
      * @return CacheControlMiddleware The constructed middleware instance.
      */
     public static function build(array $attributes): CacheControlMiddleware
     {
         $maxAgeSeconds = (int) ($attributes['maxAgeSeconds'] ?? $attributes['max_age_seconds'] ?? 0);
+        $directive = isset($attributes['directive']) ? (string) $attributes['directive'] : null;
 
-        return new self($maxAgeSeconds);
+        return new self($maxAgeSeconds, $directive);
     }
 
     /**
      * Replaces any existing `Cache-Control` header line(s) with a single
-     * `Cache-Control: max-age=<N>` line, leaving every other header untouched
-     * and in order.
+     * `Cache-Control: <directive>` (or `max-age=<N>`) line, leaving every
+     * other header untouched and in order.
      *
      * @param Response $response The response to process.
      * @return Response The response, with a single `Cache-Control` header set.
@@ -92,10 +119,18 @@ class CacheControlMiddleware extends Middleware
             $filtered[] = $headerLine;
         }
 
-        $filtered[] = self::HEADER_NAME . ': max-age=' . $this->maxAgeSeconds;
+        $filtered[] = self::HEADER_NAME . ': ' . $this->headerValue();
 
         $response->setHeaders($filtered);
 
         return $response;
+    }
+
+    /**
+     * @return string The configured directive, or `max-age=<N>` when none is set.
+     */
+    private function headerValue(): string
+    {
+        return $this->directive ?? ('max-age=' . $this->maxAgeSeconds);
     }
 }

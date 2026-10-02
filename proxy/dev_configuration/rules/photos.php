@@ -6,7 +6,8 @@ Configuration::buildRule(
     [
     'handler' => [
         'type' => 'static',
-        'location' => '/var/www/html/photos'
+        'location' => '/var/www/html/photos',
+        'conditional' => true
     ],
     'matchers' => [
         ['method' => 'GET', 'uri' => '/photos', 'type' => 'begins_with'],
@@ -14,7 +15,7 @@ Configuration::buildRule(
     'middlewares' => [
         [
             'class' => 'Tent\\Middlewares\\CacheControlMiddleware',
-            'maxAgeSeconds' => (60 * 60 * 24 * 7)
+            'directive' => 'no-cache'
         ]
     ]
     ]

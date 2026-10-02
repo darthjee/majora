@@ -25,10 +25,10 @@ run `php` directly on the host. Always go through `docker-compose` or `docker ru
 docker-compose run proxy_tests
 
 # Lint a single PHP file (one-off)
-docker run --rm -v "$PWD":/repo darthjee/tent:0.7.8 sh -c 'php -l /repo/proxy/path/to/file.php'
+docker run --rm -v "$PWD":/repo darthjee/tent:1.0.2 sh -c 'php -l /repo/proxy/path/to/file.php'
 
 # Lint all PHP files under proxy/
-docker run --rm -v "$PWD":/repo darthjee/tent:0.7.8 sh -c '
+docker run --rm -v "$PWD":/repo darthjee/tent:1.0.2 sh -c '
   find /repo/proxy -name "*.php" -print0 | xargs -0 -n1 php -l
 '
 ```
@@ -90,7 +90,7 @@ Custom extension classes live in `proxy/extension/lib/`, organized by kind:
 Tests live in `proxy/extension/tests/`, mirroring that same structure, using
 PHPUnit (inheriting from `TestCase`).
 
-The `proxy_tests` docker-compose service (image `darthjee/tent-test:0.10.0`,
+The `proxy_tests` docker-compose service (image `darthjee/tent-test:1.0.2`,
 which bundles PHPUnit) mounts `./proxy/extension` and runs the suite via an
 explicit `--bootstrap`-qualified PHPUnit invocation:
 `vendor/bin/phpunit --bootstrap /var/www/html/extension/tests/bootstrap.php
@@ -102,7 +102,7 @@ Run all proxy checks:
 
 ```bash
 # Lint all PHP files
-docker run --rm -v "$PWD":/repo darthjee/tent:0.7.8 sh -c '
+docker run --rm -v "$PWD":/repo darthjee/tent:1.0.2 sh -c '
   find /repo/proxy -name "*.php" -print0 | xargs -0 -n1 php -l
 '
 
