@@ -17,10 +17,12 @@ use Tent\RequestHandlers\RequestHandler;
 
 /**
  * Exercises the real dev/prod `rules/backend.php` files (issue #1469): a
- * plain proxied mutation with no dedicated handler (e.g.
- * `DELETE /staff/photos/<type>/<id>.json`) must have its backend
- * `X-Cache-Clear` paths cleared on 2xx, and the header must never reach the
- * client or be stored in the cache.
+ * plain proxied mutation reaching the generic `.json` rule must have its
+ * backend `X-Cache-Clear` paths cleared on 2xx, and the header must never
+ * reach the client or be stored in the cache. `backend.php` is loaded on its
+ * own here, so the sample `DELETE /staff/photos/<type>/<id>.json` request
+ * reaches it; in the full configuration that route is taken earlier by
+ * `rules/delete.php` (DeleteHandler, see StaffDeleteRouteTest).
  *
  * Rule files are loaded with inline locals (like DomainRouteOrderingTest
  * does for prod), pointing $cacheFolder at a temporary directory; the

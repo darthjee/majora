@@ -10,9 +10,10 @@ use Tent\RequestHandlers\ResponseCacheClearer;
  * Generic response-driven cache invalidation for proxied backend responses
  * (issue #1469).
  *
- * UploadHandler and DeleteHandler call ResponseCacheClearer themselves, but
- * any other backend mutation (e.g. `DELETE /staff/photos/<type>/<id>.json`)
- * goes through the generic `default_proxy` rule in `rules/backend.php`,
+ * UploadHandler and DeleteHandler call ResponseCacheClearer themselves
+ * (DeleteHandler also covers `DELETE /staff/photos/<type>/<id>.json`), but
+ * any other backend mutation goes through the generic `default_proxy` rule
+ * in `rules/backend.php`,
  * which forwards backend headers unchanged. This middleware closes that gap:
  *
  *   - On the response: clears every valid path listed in the backend's

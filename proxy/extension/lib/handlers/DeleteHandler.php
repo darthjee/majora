@@ -8,22 +8,43 @@ use Tent\Models\RequestInterface;
 use Tent\Models\Response;
 
 /**
- * Handles DELETE /games/:game_slug/(pcs|npcs)/:character_id/photos/:photo_id.json.
+ * Handles photo deletion for two routes:
+ *   - DELETE /games/:game_slug/(pcs|npcs)/:character_id/photos/:photo_id.json
+ *     (character photos);
+ *   - DELETE /staff/photos/:photo_type/:photo_id.json (staff photo
+ *     management, issue #1472).
+ *
+ * For a matched request path `<base>.json`, the backend URLs are derived
+ * from the path itself: `<base>/deletable.json` and `<base>.json`.
  *
  * Orchestrates photo deletion across the backend and the photos filesystem
  * volume:
- *   1. Calls GET .../photos/:photo_id/deletable.json to check the photo can
- *      be deleted and to learn the file path to remove (404 if not found,
- *      422 if not deletable — both are forwarded to the client as-is).
- *   2. Deletes the file at the returned path from the photos volume.
- *   3. Calls the backend DELETE .../photos/:photo_id.json to remove the
- *      database record, and forwards its response through — after clearing
- *      any cache paths its X-Cache-Clear header lists (2xx only, via
- *      ResponseCacheClearer) and stripping that header from what the
- *      client receives.
+ *   1. Calls GET <base>/deletable.json to check the photo can be deleted and
+ *      to learn the file path to remove. Any non-200 (401/403 when not
+ *      authorized, 404 if not found, 422 if not deletable) is forwarded to
+ *      the client as-is, and no file is touched.
+ *   2. Deletes the file at the returned path from the photos volume through
+ *      SecurePhotoStorage (a missing file counts as already deleted).
+ *   3. Calls the backend DELETE <base>.json to remove the database record,
+ *      and forwards its response through — after clearing any cache paths
+ *      its X-Cache-Clear header lists (2xx only, via ResponseCacheClearer)
+ *      and stripping that header from what the client receives.
+ *
+ * Authorization is enforced by the backend on both calls.
  */
 class DeleteHandler extends RequestHandler
 {
+
+    /**
+     * Accepted request paths. Each pattern captures the `<base>` the
+     * backend URLs are derived from (the path without its `.json` suffix).
+     *
+     * @var string[]
+     */
+    private const ROUTE_PATTERNS = [
+        '#^(/games/[^/]+/(?:pcs|npcs)/\d+/photos/\d+)\.json$#',
+        '#^(/staff/photos/[a-z0-9_-]+/\d+)\.json$#',
+    ];
 
     /** @var BackendClient Client used for backend calls. */
     private BackendClient $client;
@@ -77,14 +98,14 @@ class DeleteHandler extends RequestHandler
     /**
      * Processes the delete request.
      *
-     * 1. Extracts game_slug, kind, character_id and photo_id from the
-     *    request path.
-     * 2. Calls GET .../photos/:photo_id/deletable.json; forwards the
-     *    backend response as-is when it isn't a 200.
+     * 1. Derives `<base>` from the request path (400 if it matches no
+     *    accepted route).
+     * 2. Calls GET <base>/deletable.json; forwards the backend response
+     *    as-is when it isn't a 200.
      * 3. Deletes the file at the 'path' returned by that call.
-     * 4. Calls the backend DELETE .../photos/:photo_id.json, clears any
-     *    cache paths its X-Cache-Clear header lists (2xx only), and
-     *    forwards its response without that header.
+     * 4. Calls the backend DELETE <base>.json, clears any cache paths its
+     *    X-Cache-Clear header lists (2xx only), and forwards its response
+     *    without that header.
      *
      * @param RequestInterface $request The incoming HTTP request.
      * @return Response
@@ -92,14 +113,14 @@ class DeleteHandler extends RequestHandler
     protected function processsRequest(RequestInterface $request): Response
     {
         try {
-            $identifiers = $this->extractPathIdentifiers($request);
-            $headers     = $request->headers();
+            $basePath = $this->extractBasePath($request);
+            $headers  = $request->headers();
 
-            $path = $this->requestDeletablePath($identifiers, $headers);
+            $path = $this->requestDeletablePath($basePath, $headers);
 
             $this->photoStorage->deleteFile($path);
 
-            $result = $this->client->request('DELETE', $this->deleteUrl($identifiers), $headers);
+            $result = $this->client->request('DELETE', $basePath . '.json', $headers);
             $this->cacheClearer->clearFrom(($result['headers'] ?? []), $result['httpCode']);
         } catch (BackendErrorException $e) {
             return new Response(['httpCode' => $e->httpCode(), 'body' => $e->body()]);
@@ -117,43 +138,39 @@ class DeleteHandler extends RequestHandler
     }
 
     /**
-     * Extracts game_slug, kind ('pcs'/'npcs'), character_id and photo_id
-     * from the request path
-     * /games/:game_slug/(pcs|npcs)/:character_id/photos/:photo_id.json.
+     * Returns the request path without its `.json` suffix, provided it
+     * matches one of ROUTE_PATTERNS.
      *
      * @param RequestInterface $request The incoming HTTP request.
-     * @return array{game_slug: string, kind: string, character_id: string, photo_id: string}
-     * @throws InvalidArgumentException When the path doesn't match the
-     *                                   expected shape.
+     * @return string The `<base>` path backend URLs are derived from.
+     * @throws InvalidArgumentException When the path matches no accepted route.
      */
-    private function extractPathIdentifiers(RequestInterface $request): array
+    private function extractBasePath(RequestInterface $request): string
     {
         $path = $request->requestPath();
-        if (!preg_match('#^/games/([^/]+)/(pcs|npcs)/(\d+)/photos/(\d+)\.json$#', $path, $matches)) {
-            throw new InvalidArgumentException('Invalid delete path: ' . $path);
+
+        foreach (self::ROUTE_PATTERNS as $pattern) {
+            if (preg_match($pattern, $path, $matches)) {
+                return $matches[1];
+            }
         }
 
-        return [
-            'game_slug'    => $matches[1],
-            'kind'         => $matches[2],
-            'character_id' => $matches[3],
-            'photo_id'     => $matches[4],
-        ];
+        throw new InvalidArgumentException('Invalid delete path: ' . $path);
     }
 
     /**
-     * Calls the backend's deletable.json endpoint and returns the photo's
-     * file path when the photo is deletable.
+     * Calls the backend's <base>/deletable.json endpoint and returns the
+     * photo's file path when the photo is deletable.
      *
-     * @param array $identifiers As returned by extractPathIdentifiers().
-     * @param array $headers     Raw, unfiltered incoming request headers.
+     * @param string $basePath As returned by extractBasePath().
+     * @param array  $headers  Raw, unfiltered incoming request headers.
      * @return string The 'path' value from the backend's response body.
      * @throws BackendErrorException When the backend call fails, or the
      *                                response doesn't include a path.
      */
-    private function requestDeletablePath(array $identifiers, array $headers): string
+    private function requestDeletablePath(string $basePath, array $headers): string
     {
-        $result = $this->client->request('GET', $this->deletableUrl($identifiers), $headers);
+        $result = $this->client->request('GET', $basePath . '/deletable.json', $headers);
 
         if ($result['httpCode'] !== 200) {
             throw new BackendErrorException($result['httpCode'], $result['body']);
@@ -161,36 +178,10 @@ class DeleteHandler extends RequestHandler
 
         $body = json_decode($result['body'], true);
         $path = ($body['path'] ?? null);
-        if ($path === null) {
+        if (!is_string($path)) {
             throw new BackendErrorException(500, 'Internal Server Error');
         }
 
         return $path;
-    }
-
-    /**
-     * Builds the GET .../photos/:photo_id/deletable.json backend path.
-     *
-     * @param array $identifiers As returned by extractPathIdentifiers().
-     * @return string
-     */
-    private function deletableUrl(array $identifiers): string
-    {
-        return '/games/' . $identifiers['game_slug']
-            . '/' . $identifiers['kind'] . '/' . $identifiers['character_id']
-            . '/photos/' . $identifiers['photo_id'] . '/deletable.json';
-    }
-
-    /**
-     * Builds the DELETE .../photos/:photo_id.json backend path.
-     *
-     * @param array $identifiers As returned by extractPathIdentifiers().
-     * @return string
-     */
-    private function deleteUrl(array $identifiers): string
-    {
-        return '/games/' . $identifiers['game_slug']
-            . '/' . $identifiers['kind'] . '/' . $identifiers['character_id']
-            . '/photos/' . $identifiers['photo_id'] . '.json';
     }
 }

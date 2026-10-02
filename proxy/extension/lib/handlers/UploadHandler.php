@@ -29,8 +29,19 @@ use Tent\Models\Response;
  *
  * After a successful finalize (status=uploaded) call, any X-Cache-Clear
  * header on the backend response is handed to ResponseCacheClearer, which
- * clears the listed paths from the cache folder. The client response is
- * built from scratch, so that header never reaches the client.
+ * clears the listed paths from the cache folder. When the finalize body
+ * carries a `previous_path` (a staff replace changed the extension), that
+ * old file is deleted through SecurePhotoStorage. The client response is
+ * built from scratch, so neither the header nor `previous_path` ever
+ * reaches the client.
+ *
+ * When the finalize call answers 404 with a `cleanup_path` (the photo row
+ * was deleted mid-replace), that file is deleted through SecurePhotoStorage
+ * and the 404 is forwarded. A 404 from the `uploading` call is forwarded
+ * as-is: nothing has been written yet.
+ *
+ * Accepted limitation: any other finalize failure does not roll back the
+ * file that was written.
  */
 class UploadHandler extends RequestHandler
 {
@@ -103,7 +114,9 @@ class UploadHandler extends RequestHandler
      * 4. Writes the uploaded file to <basePath>/<file_path>, where basePath
      *    depends on the upload type.
      * 5. Calls PATCH /uploads/:upload_type/:id.json with status=uploaded,
-     *    then clears any cache paths its X-Cache-Clear header lists.
+     *    then clears any cache paths its X-Cache-Clear header lists and
+     *    deletes its `previous_path`, if any. On a 404 with `cleanup_path`,
+     *    deletes that file and forwards the 404.
      * 6. Returns 200 with the saved file_path as JSON on success, or forwards
      *    the error code on failure.
      *
@@ -125,17 +138,28 @@ class UploadHandler extends RequestHandler
             $statusClient = new UploadStatusClient($this->client, $uploadType);
             $filePath = $statusClient->requestUploadingStatus($uploadId, $headers);
 
-            $destination = UploadStorageResolver::forType($uploadType, $this->photosBasePath, $this->filesBasePath)
-                ->write($filePath, $file);
+            $storage = UploadStorageResolver::forType($uploadType, $this->photosBasePath, $this->filesBasePath);
+            $destination = $storage->write($filePath, $file);
 
-            $finalizeHeaders = $statusClient->requestUploadedStatus($uploadId, $headers);
-            $this->cacheClearer->clearFrom($finalizeHeaders, 200);
+            $finalize = $statusClient->requestUploadedStatus($uploadId, $headers);
+            $this->cacheClearer->clearFrom($finalize->headers(), 200);
+
+            $previousPath = $finalize->previousPath();
+            if ($previousPath !== null && $previousPath !== $filePath) {
+                $this->safeDelete($storage, $previousPath, 'previous_path');
+            }
         } catch (UnprocessableUploadException $e) {
             return $this->unprocessableEntityResponse($e->getMessage(), $e->file());
+        } catch (UploadCleanupRequiredException $e) {
+            $this->safeDelete($storage, $e->cleanupPath(), 'cleanup_path');
+            return new Response(['httpCode' => $e->httpCode(), 'body' => $e->body()]);
         } catch (BackendErrorException $e) {
             return new Response(['httpCode' => $e->httpCode(), 'body' => $e->body()]);
         } catch (InvalidArgumentException $e) {
             return new Response(['httpCode' => 400, 'body' => 'Bad Request']);
+        } catch (UploadWriteException $e) {
+            Logger::error('[upload] - write failed: ' . $e->getMessage());
+            return new Response(['httpCode' => 500, 'body' => 'Internal Server Error']);
         }
 
         return new Response(
@@ -145,6 +169,25 @@ class UploadHandler extends RequestHandler
             'body'     => json_encode(['file_path' => $destination]),
             ]
         );
+    }
+
+    /**
+     * Deletes a backend-supplied $filePath through the upload type's
+     * SecurePhotoStorage. A missing file is a no-op; a path escaping the
+     * base path is logged and skipped, never deleted.
+     *
+     * @param UploadStorageResolver $storage  Storage rooted at the upload type's base path.
+     * @param string                $filePath Path relative to the base path.
+     * @param string                $source   Name of the backend field the path came from (for logs).
+     * @return void
+     */
+    private function safeDelete(UploadStorageResolver $storage, string $filePath, string $source): void
+    {
+        try {
+            $storage->delete($filePath);
+        } catch (InvalidArgumentException $e) {
+            Logger::error('[upload] - refused to delete ' . $source . ': ' . $e->getMessage());
+        }
     }
 
     /**
