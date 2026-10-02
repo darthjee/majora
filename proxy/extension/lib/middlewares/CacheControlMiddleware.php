@@ -74,7 +74,7 @@ class CacheControlMiddleware extends Middleware
      * @param integer     $maxAgeSeconds Maximum age, in seconds, advertised via `max-age`.
      * @param string|null $directive     Literal directive overriding `max-age` when set.
      */
-    public function __construct(int $maxAgeSeconds, ?string $directive = null)
+    public function __construct(int $maxAgeSeconds, ?string $directive=null)
     {
         $this->maxAgeSeconds = $maxAgeSeconds;
         $this->directive = ($directive === null || trim($directive) === '') ? null : trim($directive);
@@ -131,6 +131,6 @@ class CacheControlMiddleware extends Middleware
      */
     private function headerValue(): string
     {
-        return $this->directive ?? 'max-age=' . $this->maxAgeSeconds;
+        return $this->directive ?? ('max-age=' . $this->maxAgeSeconds);
     }
 }
