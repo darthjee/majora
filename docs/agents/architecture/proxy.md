@@ -31,3 +31,21 @@ The backend can list the cache paths a mutation made stale in an `X-Cache-Clear`
 
 - `UploadHandler` / `DeleteHandler` handle it for the backend calls they make themselves (`cache_path` handler param).
 - Every other proxied backend response goes through `ResponseCacheClearMiddleware` on the `rules/backend.php` rule (dev and prod). It is registered via `prependMiddlewares`, not `middlewares`, so it runs before `default_proxy`'s built-in `FileCacheMiddleware` stores the response; its `location` must match the rule's cache folder.
+
+## Photo uploads (`UploadHandler`)
+
+`POST /uploads/<image|file>/<id>/submit` (rules/uploads.php) validates the file, calls the backend `PATCH /uploads/<type>/<id>.json` with `status=uploading` to get the `file_path`, writes the file, then finalizes with `status=uploaded`. The client response is always built from scratch (`{"file_path": ...}`).
+
+- **Atomic writes** (`UploadStorageResolver::write`): the bytes go to a uniquely named temp file (`.upload-*`) in the destination's own directory, chmod-ed to 0644, then `rename()`-d over the target. Readers see either the old file or the new one, never a partial write. On failure the temp file is removed, the old file stays intact, and the client gets a 500. A pre-existing destination entry (e.g. a symlink) escaping the base path is rejected before anything is written.
+- **`previous_path`** (finalize 200): when a staff replace changed the extension, the backend returns the old path; the proxy deletes it through `SecurePhotoStorage` (missing file = already deleted; a traversing path is logged and skipped). It never reaches the client.
+- **`cleanup_path`** (finalize 404 only): the photo row was deleted mid-replace; the proxy deletes the file it just wrote through `SecurePhotoStorage`, then forwards the 404. A 404 from the `uploading` call is forwarded as-is, with no file deletion.
+- Accepted limitation: any other finalize failure does not roll back the written file.
+
+## Photo deletion (`DeleteHandler`)
+
+rules/delete.php (loaded before rules/backend.php, so it wins over the generic `.json` proxy) routes two `DELETE` paths to `DeleteHandler`:
+
+- `/games/<slug>/(pcs|npcs)/<id>/photos/<photo_id>.json` (character photos);
+- `/staff/photos/<photo_type>/<photo_id>.json` (staff photo management; `photo_type` restricted to `[a-z0-9_-]+`).
+
+For a request path `<base>.json`, the handler calls `GET <base>/deletable.json` (any non-200, e.g. 401/403/404/422, is forwarded as-is and no file is touched), deletes the returned `path` through `SecurePhotoStorage` (missing file = already deleted), then forwards `DELETE <base>.json`, honoring and stripping its `X-Cache-Clear`. Authorization is left to the backend on both calls.
