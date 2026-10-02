@@ -505,4 +505,136 @@ class DeleteHandlerTest extends TestCase
         $this->assertSame(204, $response->httpCode());
         $this->assertDirectoryExists($entry);
     }
+
+    // -------------------------------------------------------------------------
+    // Staff photos (issue #1472)
+    // -------------------------------------------------------------------------
+
+    /**
+     * Staff path: deletable 200 → file deleted, DELETE forwarded to the
+     * same path, 204 relayed, X-Cache-Clear cleared and stripped.
+     */
+    public function testStaffDeleteDeletesFileAndForwardsBackendDelete(): void
+    {
+        $filePath = $this->makePhotoFile('photos/staff/3/photo.jpg');
+        $cacheDir = $this->photosDir . '/cache';
+        $listed   = $this->makeCacheEntry($cacheDir, '/staff/photos.json');
+
+        $httpClient = $this->createMock(HttpClientInterface::class);
+        $handler    = new DeleteHandler('http://backend:8080', $httpClient, $this->photosDir, $cacheDir);
+
+        $calls = [];
+        $httpClient->expects($this->exactly(2))
+            ->method('request')
+            ->willReturnCallback(function (string $method, string $url) use (&$calls) {
+                $calls[] = [$method, $url];
+
+                return count($calls) === 1
+                    ? [
+                        'httpCode' => 200,
+                        'body'     => '{"deletable":true,"path":"photos/staff/3/photo.jpg"}',
+                        'headers'  => [],
+                    ]
+                    : ['httpCode' => 204, 'body' => '', 'headers' => ['X-Cache-Clear: /staff/photos.json']];
+            });
+
+        $response = $handler->handleRequest($this->makeRequest('/staff/photos/main/3.json'));
+
+        $this->assertSame(204, $response->httpCode());
+        $this->assertSame([], $response->headers());
+        $this->assertFileDoesNotExist($filePath);
+        $this->assertDirectoryDoesNotExist($listed);
+        $this->assertSame(
+            [
+                ['GET', 'http://backend:8080/staff/photos/main/3/deletable.json'],
+                ['DELETE', 'http://backend:8080/staff/photos/main/3.json'],
+            ],
+            $calls
+        );
+    }
+
+    /**
+     * @return array<string, array{int}>
+     */
+    public static function staffDeletableErrorCodes(): array
+    {
+        return ['401' => [401], '403' => [403], '404' => [404], '422' => [422]];
+    }
+
+    /**
+     * Staff path: a non-200 deletable.json response is forwarded as-is, no
+     * file is deleted and no DELETE is sent.
+     *
+     * @dataProvider staffDeletableErrorCodes
+     */
+    public function testStaffDeletableErrorIsForwardedAndNothingDeleted(int $code): void
+    {
+        $filePath = $this->makePhotoFile('photos/staff/3/photo.jpg');
+
+        $httpClient = $this->createMock(HttpClientInterface::class);
+        $handler    = $this->makeHandler($httpClient);
+
+        $httpClient->expects($this->once())
+            ->method('request')
+            ->with('GET', 'http://backend:8080/staff/photos/main/3/deletable.json')
+            ->willReturn(['httpCode' => $code, 'body' => '{"detail":"nope"}', 'headers' => []]);
+
+        $response = $handler->handleRequest($this->makeRequest('/staff/photos/main/3.json'));
+
+        $this->assertSame($code, $response->httpCode());
+        $this->assertSame('{"detail":"nope"}', $response->body());
+        $this->assertFileExists($filePath);
+    }
+
+    /**
+     * Staff path: a file already missing on disk still proceeds to the
+     * backend DELETE.
+     */
+    public function testStaffFileAlreadyMissingStillProceedsToBackendDelete(): void
+    {
+        $httpClient = $this->createMock(HttpClientInterface::class);
+        $handler    = $this->makeHandler($httpClient);
+
+        $httpClient->expects($this->exactly(2))
+            ->method('request')
+            ->willReturnOnConsecutiveCalls(
+                ['httpCode' => 200, 'body' => '{"deletable":true,"path":"photos/staff/3/gone.jpg"}', 'headers' => []],
+                ['httpCode' => 204, 'body' => '', 'headers' => []]
+            );
+
+        $response = $handler->handleRequest($this->makeRequest('/staff/photos/main/3.json'));
+
+        $this->assertSame(204, $response->httpCode());
+    }
+
+    /**
+     * @return array<string, array{string}>
+     */
+    public static function invalidStaffPaths(): array
+    {
+        return [
+            'dot-dot type'     => ['/staff/photos/../3.json'],
+            'nested type'      => ['/staff/photos/main/x/3.json'],
+            'uppercase type'   => ['/staff/photos/Main/3.json'],
+            'non-numeric id'   => ['/staff/photos/main/abc.json'],
+            'missing type'     => ['/staff/photos/3.json'],
+            'deletable suffix' => ['/staff/photos/main/3/deletable.json'],
+        ];
+    }
+
+    /**
+     * Staff path with an invalid shape → 400 without any backend call.
+     *
+     * @dataProvider invalidStaffPaths
+     */
+    public function testInvalidStaffPathReturnsBadRequest(string $path): void
+    {
+        $httpClient = $this->createMock(HttpClientInterface::class);
+        $httpClient->expects($this->never())->method('request');
+        $handler = $this->makeHandler($httpClient);
+
+        $response = $handler->handleRequest($this->makeRequest($path));
+
+        $this->assertSame(400, $response->httpCode());
+    }
 }
