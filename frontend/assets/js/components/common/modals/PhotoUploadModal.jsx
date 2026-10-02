@@ -22,6 +22,8 @@ import PhotoUploadModalHelper from './helpers/PhotoUploadModalHelper.jsx';
  *   Confirm is clicked in deferred mode.
  * @param {Function} props.onClose - Called when the modal is dismissed or cancelled.
  * @param {Function} [props.onSuccess] - Called after a successful immediate-mode upload.
+ * @param {Function} [props.onError] - Called with the HTTP status when an immediate-mode upload
+ *   responds not ok (issue #1473). The modal keeps its own error display either way.
  * @param {object} [props.fileUploadOptions] - Options for the "file-upload variant" (issue #726),
  *   always used together.
  * @param {string} [props.fileUploadOptions.translationPrefix] - i18n key prefix for the modal's
@@ -44,7 +46,7 @@ import PhotoUploadModalHelper from './helpers/PhotoUploadModalHelper.jsx';
  */
 export default function PhotoUploadModal({
   show, uploadPath, deferred = false, onFileConfirmed = Noop.noop, onClose, onSuccess,
-  fileUploadOptions = {},
+  onError = Noop.noop, fileUploadOptions = {},
 }) {
   const {
     translationPrefix = 'photo_upload_modal', accept, showNameField = false,
@@ -57,8 +59,8 @@ export default function PhotoUploadModal({
   const [uploading, setUploading] = useState(false);
 
   const controller = useMemo(
-    () => new PhotoUploadModalController(setError, setUploading, onSuccess),
-    [onSuccess],
+    () => new PhotoUploadModalController(setError, setUploading, onSuccess, undefined, onError),
+    [onSuccess, onError],
   );
 
   const handleClose = () => {

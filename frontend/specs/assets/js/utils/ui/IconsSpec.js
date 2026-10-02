@@ -21,6 +21,10 @@ describe('Icons', function() {
     expect(Icons.skullFill).toBe('bi-skull-fill');
   });
 
+  it('maps image to the image icon class', function() {
+    expect(Icons.image).toBe('bi-image');
+  });
+
   it('maps trash to the filled trash icon class', function() {
     expect(Icons.trash).toBe('bi-trash-fill');
   });

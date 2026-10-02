@@ -61,4 +61,5 @@ export default {
   close: 'bi-x-lg',
   houseDoor: 'bi-house-door',
   peopleFill: 'bi-people-fill',
+  image: 'bi-image',
 };
