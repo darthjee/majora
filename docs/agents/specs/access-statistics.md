@@ -19,7 +19,7 @@ sub-issue), `specced` (filled in by its spec sub-issue).
 
 ### Shared
 
-- [Shared infrastructure](access-statistics/shared-infrastructure.md): `stub` (#1482)
+- [Shared infrastructure](access-statistics/shared-infrastructure.md): `specced` (#1482)
 
 ### Tabs
 
@@ -46,6 +46,10 @@ sub-issue), `specced` (filled in by its spec sub-issue).
 | #1487 | Spec: Domains tab | Owns `domains.md` |
 | #1488 | Spec: Users tab | Owns `users.md` |
 | #1489 | Spec: Visit list tab | Owns `visit-list.md` |
+| #1498 | Implementation: shared backend (aggregator, API conventions, domains endpoint) | Created by #1482 |
+| #1499 | Implementation: frontend shell (menu, routes, tabs, filter bar, URL state) | Created by #1482; needs #1498 |
+| #1500 | Implementation: Recharts setup (lazy chunk, sizing, test setup, colors) | Created by #1482; builds on #1499 |
+| #1501 | Follow-up: client IP integrity (topology check failed) | Created by #1482; not blocking |
 | #1490 | Remove the access statistics specs | Blocked by every implementation sub-issue |
 
 Each of #1482 to #1489 appends the implementation sub-issues it creates to this table.
