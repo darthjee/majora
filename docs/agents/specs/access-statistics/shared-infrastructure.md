@@ -44,7 +44,9 @@ Settled in #1477 (Tabs, Filters and charting, Performance & security).
   - the Users ranking limited to the top N and paginated.
 - **No server-side caching** at first. Responses are restricted, so the proxy doesn't cache
   them; `memory_cache` remains an option later.
-- The write cost of visit tracking is handled in #1478 (throttled writes).
+- The write cost of visit tracking is handled in #1478: exact `hits` via one atomic
+  `UPDATE` per request, and throttled `Session.last_seen_at` writes (see
+  [data model](data-model.md#visit-is-the-activity)).
 
 ### Filter bar
 
