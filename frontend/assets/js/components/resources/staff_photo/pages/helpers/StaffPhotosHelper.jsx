@@ -11,6 +11,8 @@ import StaffPhotoOwner from '../elements/StaffPhotoOwner.jsx';
 import StaffPhotoRowActions from '../elements/StaffPhotoRowActions.jsx';
 import StaffPhotoSelectCheckbox from '../elements/StaffPhotoSelectCheckbox.jsx';
 import StaffPhotoBulkActions from '../elements/StaffPhotoBulkActions.jsx';
+import StaffPhotoBulkProgress from '../elements/StaffPhotoBulkProgress.jsx';
+import StaffPhotoBulkSummary from '../elements/StaffPhotoBulkSummary.jsx';
 import { allSelected } from '../hooks/useStaffPhotoSelection.js';
 
 const PREFIX = 'staff_photos_page';
@@ -20,8 +22,8 @@ const PREFIX = 'staff_photos_page';
  */
 export default class StaffPhotosHelper {
   /**
-   * Render the staff photos page: title, type tabs, action error / info, bulk action bar, photo
-   * table (or empty state) and pagination.
+   * Render the staff photos page: title, type tabs, action error / info, bulk progress and
+   * result summary, bulk action bar, photo table (or empty state) and pagination.
    *
    * @param {object} state - Page state.
    * @param {string[]} state.types - Available photo type slugs.
@@ -33,8 +35,10 @@ export default class StaffPhotosHelper {
    * @param {string|null} state.actionInfo - i18n key of the last row action info message.
    * @param {number[]} state.selectedIds - Selected photo ids.
    * @param {object|null} state.bulkJob - Running bulk job, or `null`.
+   * @param {object|null} state.bulkResult - Finished bulk job, or `null`.
    * @param {{onResize: Function, onReplace: Function, onDelete: Function, onToggle: Function,
-   *   onToggleAll: Function, onBulk: Function}} handlers - Row, selection and bulk handlers.
+   *   onToggleAll: Function, onBulk: Function, onCloseSummary: Function}} handlers - Row,
+   *   selection and bulk handlers.
    * @returns {React.ReactElement} Staff photos page content.
    */
   static render(state, handlers) {
@@ -47,6 +51,8 @@ export default class StaffPhotosHelper {
         <StaffPhotoTabs types={types} activeType={photoType} />
         {StaffPhotosHelper.#renderActionError(state.actionError)}
         {StaffPhotosHelper.#renderActionInfo(state.actionInfo)}
+        <StaffPhotoBulkProgress job={state.bulkJob ?? null} />
+        <StaffPhotoBulkSummary result={state.bulkResult ?? null} onClose={handlers.onCloseSummary} />
         {StaffPhotosHelper.#renderList(state, handlers)}
         <Pagination
           currentPage={pagination.page}

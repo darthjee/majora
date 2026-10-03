@@ -4,11 +4,15 @@ import DeletePhotoConfirmModal from '../../../common/modals/DeletePhotoConfirmMo
 import StaffPhotosController from './controllers/StaffPhotosController.js';
 import StaffPhotosHelper from './helpers/StaffPhotosHelper.jsx';
 import useStaffPhotoSelection from './hooks/useStaffPhotoSelection.js';
+import buildStaffPhotosHandlers from './hooks/buildStaffPhotosHandlers.js';
+import StaffPhotoResizeConfirmModal from './elements/StaffPhotoResizeConfirmModal.jsx';
+import StaffPhotoBulkConfirmModal from './elements/StaffPhotoBulkConfirmModal.jsx';
 
 /**
  * Hook holding every piece of staff photos page state, plus the controller wired to it.
  *
- * @returns {{state: object, controller: StaffPhotosController}} Page state and controller.
+ * @returns {{state: object, controller: StaffPhotosController, dismissBulkResult: Function}}
+ *   Page state, controller and the bulk result summary dismisser.
  */
 function useStaffPhotosState() {
   const [types, setTypes] = useState([]);
@@ -37,6 +41,7 @@ function useStaffPhotosState() {
       actionInfo, bulkJob, bulkResult,
     },
     controller,
+    dismissBulkResult: () => setBulkResult(null),
   };
 }
 
@@ -48,51 +53,55 @@ function useStaffPhotosState() {
  * @returns {React.ReactElement} Staff photos page.
  */
 export default function StaffPhotos() {
-  const { state, controller } = useStaffPhotosState();
+  const { state, controller, dismissBulkResult } = useStaffPhotosState();
   const [pendingDelete, setPendingDelete] = useState(null);
   const [pendingReplace, setPendingReplace] = useState(null);
-  const { selectedIds, selectedPhotos, onToggle, onToggleAll } = useStaffPhotoSelection(state.photos);
+  const [pendingResize, setPendingResize] = useState(null);
+  const [pendingBulk, setPendingBulk] = useState(null);
+  const selection = useStaffPhotoSelection(state.photos);
 
   if (state.loading) return StaffPhotosHelper.renderLoading();
   if (state.error) return StaffPhotosHelper.renderError(state.error);
 
-  const handleConfirmDelete = () => {
-    const photo = pendingDelete;
-
-    setPendingDelete(null);
-    return controller.handleDelete(photo);
-  };
-
-  const handleReplaceSuccess = () => {
-    const photo = pendingReplace;
-
-    setPendingReplace(null);
-    return controller.handleReplaceSuccess(photo);
-  };
+  const { page, modals } = buildStaffPhotosHandlers({
+    controller,
+    selection,
+    pending: {
+      resize: pendingResize, bulk: pendingBulk, delete: pendingDelete, replace: pendingReplace,
+    },
+    setters: {
+      setPendingResize, setPendingBulk, setPendingDelete, setPendingReplace, dismissBulkResult,
+    },
+  });
 
   return (
     <>
-      {StaffPhotosHelper.render({ ...state, selectedIds }, {
-        onResize: (photo) => controller.handleResize(photo),
-        onReplace: setPendingReplace,
-        onDelete: setPendingDelete,
-        onToggle,
-        onToggleAll,
-        onBulk: (action) => controller.runBulk(action, selectedPhotos),
-      })}
+      {StaffPhotosHelper.render({ ...state, selectedIds: selection.selectedIds }, page)}
       <PhotoUploadModal
         key={pendingReplace?.id ?? 'none'}
         show={pendingReplace !== null}
         uploadPath={pendingReplace ? controller.replacePath(pendingReplace) : undefined}
         onClose={() => setPendingReplace(null)}
-        onSuccess={handleReplaceSuccess}
-        onError={(status) => controller.handleReplaceError(pendingReplace, status)}
+        onSuccess={modals.onReplaceSuccess}
+        onError={modals.onReplaceError}
       />
       <DeletePhotoConfirmModal
         show={pendingDelete !== null}
         photo={pendingDelete}
-        onConfirm={handleConfirmDelete}
+        onConfirm={modals.onConfirmDelete}
         onCancel={() => setPendingDelete(null)}
+      />
+      <StaffPhotoResizeConfirmModal
+        photo={pendingResize}
+        maxDimension={state.maxDimension}
+        onConfirm={modals.onConfirmResize}
+        onCancel={() => setPendingResize(null)}
+      />
+      <StaffPhotoBulkConfirmModal
+        pending={pendingBulk}
+        maxDimension={state.maxDimension}
+        onConfirm={modals.onConfirmBulk}
+        onCancel={() => setPendingBulk(null)}
       />
     </>
   );

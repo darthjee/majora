@@ -10,6 +10,7 @@ const HANDLERS = {
   onToggle: Noop.noop,
   onToggleAll: Noop.noop,
   onBulk: Noop.noop,
+  onCloseSummary: Noop.noop,
 };
 
 /**
@@ -36,6 +37,7 @@ function buildState(overrides = {}) {
     versions: {},
     selectedIds: [],
     bulkJob: null,
+    bulkResult: null,
     ...overrides,
   };
 }
@@ -121,6 +123,34 @@ describe('StaffPhotosHelper', function() {
       expect(buttons.length).toBe(5);
       buttons.forEach((button) => expect(button).toContain('disabled=""'));
       expect(html.match(/type="checkbox"[^>]*disabled=""/g).length).toBe(2);
+    });
+  });
+
+  describe('.render bulk progress and summary', function() {
+    it('renders the progress while a bulk job runs', function() {
+      const html = renderToStaticMarkup(StaffPhotosHelper.render(
+        buildState({ bulkJob: { action: 'resize', total: 2, done: 1 } }), HANDLERS,
+      ));
+
+      expect(html).toContain(Translator.t('staff_photos_page.bulk_progress')
+        .replace('{{done}}', 1).replace('{{total}}', 2));
+    });
+
+    it('renders the summary once a bulk job finished', function() {
+      const html = renderToStaticMarkup(StaffPhotosHelper.render(
+        buildState({ bulkResult: { action: 'delete', outcomes: [{ photo: { id: 5, owner: null }, status: 'done' }] } }),
+        HANDLERS,
+      ));
+
+      expect(html).toContain(Translator.t('staff_photos_page.summary_title'));
+      expect(html).toContain(Translator.t('staff_photos_page.summary_deleted'));
+    });
+
+    it('renders neither without a bulk job or result', function() {
+      const html = renderToStaticMarkup(StaffPhotosHelper.render(buildState(), HANDLERS));
+
+      expect(html).not.toContain('progress-bar');
+      expect(html).not.toContain(Translator.t('staff_photos_page.summary_title'));
     });
   });
 
