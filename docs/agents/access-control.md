@@ -80,6 +80,8 @@ regardless of any other rule listed below.
 
 - [Statistics (`statistics` app)](access-control/statistics.md) — `Session` and `Visit`;
   middleware-written, Django-admin-only, no API endpoints
+- [Staff Statistics](access-control/staff-statistics.md) — the staff-only, read-only access
+  statistics endpoints (`staff/statistics/*.json`) aggregating `Session` and `Visit`
 
 ### Standalone endpoints
 

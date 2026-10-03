@@ -1,0 +1,47 @@
+# Staff Statistics (access statistics page)
+
+**[Staff resource](principles.md#resource-categories).** Read-only, staff-only endpoints
+behind the access statistics page (`/staff/statistics`, #1477). They aggregate the
+`statistics` app's `Session` and `Visit` rows (model-level rules:
+[Statistics](statistics.md)). Every endpoint is **GET-only**, enforces
+**Staff-or-superuser** inline (`require_staff`), matching every other `staff/*` endpoint, and
+sets `X-Skip-Cache: true` per the [`X-Skip-Cache` rule](principles.md#x-skip-cache-rule)
+(`@restricted`). None is warmed by Navi. There is no `EndpointPermission` /
+`permissions.yaml` entry: the `staff` role's `scope: staff` row already covers them.
+
+> **Status:** planned. Endpoints land with their implementation sub-issues of #1477 (shared
+> backend: #1498); each tab's implementation appends its row below. Shared conventions:
+> [`specs/access-statistics/shared-infrastructure.md`](../specs/access-statistics/shared-infrastructure.md#api-conventions).
+
+| Action | Who can |
+|--------|---------|
+| List domains for the filter bar (`GET /staff/statistics/domains.json`) | **Staff-or-superuser** |
+
+Anonymous callers get `401` and non-staff callers (including DMs and game admins without
+staff) get `403`. No role can write through these endpoints.
+
+## Check order
+
+`require_staff` runs **before** any query parameter is parsed, so unauthenticated and
+non-staff callers get `401` / `403` regardless of their parameters, and validation errors are
+never returned to them.
+
+## Input validation
+
+Filter params (`from`, `to`, `tz`, `granularity`, `user`, `domain`, `audience`, `page`,
+`per_page`) are validated strictly by one shared parser; anything invalid is `400` with
+`{"errors": {"<field>": ["<code>"]}}`. A well-formed but unknown `user` or `domain` id returns
+empty data, not an error. Queries go through the ORM only, and filter payloads are not
+logged.
+
+## Data exposed
+
+**All staff see everything**: aggregated counts, user identities (id, username) and, where a
+tab exposes them, raw stored IPs. There is no masking and no superuser-only tier, consistent
+with staff already seeing user details in `/staff/users`. Stored IPs are **best effort**
+until #1501 (client IP integrity) is resolved.
+
+## Endpoints
+
+- **`GET /staff/statistics/domains.json`** — every `Domain` as `[{"id": <int>, "domain":
+  <str>}]`, ordered by `domain`, unpaginated. Takes no filter params.
