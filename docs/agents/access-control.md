@@ -76,6 +76,11 @@ regardless of any other rule listed below.
 - [Collection](access-control/collection.md) — `Collection`, `CollectionPhoto` (`miniatures` app);
   a cross-domain, login-only grouping of related `StlModel`s, optionally attributed to a `Source`
 
+### Statistics
+
+- [Statistics (`statistics` app)](access-control/statistics.md) — `Session` and `Visit`;
+  middleware-written, Django-admin-only, no API endpoints
+
 ### Standalone endpoints
 
 - [Standalone endpoints](access-control/endpoints.md) — access-route config, health check,

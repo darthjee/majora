@@ -4,6 +4,7 @@ import secrets
 
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
 
 
 def _generate_token():
@@ -12,7 +13,10 @@ def _generate_token():
 
 
 class Session(models.Model):
-    """A single tracked visit, by an anonymous or logged-in user, identified by a cookie token."""
+    """A visitor (device/browser) identity, anonymous or logged-in, identified by a cookie token.
+
+    Activity is tracked by the session's `Visit` records, not by the session itself.
+    """
 
     token = models.CharField(max_length=64, unique=True, db_index=True, default=_generate_token)
     user = models.ForeignKey(
@@ -26,3 +30,20 @@ class Session(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     last_seen_at = models.DateTimeField(auto_now=True)
+
+
+class Visit(models.Model):
+    """A burst of activity of a `Session`, closed after an inactivity window without requests."""
+
+    session = models.ForeignKey(Session, on_delete=models.CASCADE, related_name='visits')
+    started_at = models.DateTimeField(default=timezone.now)
+    last_seen_at = models.DateTimeField(default=timezone.now)
+    hits = models.PositiveIntegerField(default=1)
+
+    class Meta:
+        """Indexes supporting visit aggregation."""
+
+        indexes = [
+            models.Index(fields=['started_at']),
+            models.Index(fields=['session', 'last_seen_at']),
+        ]

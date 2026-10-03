@@ -1,14 +1,17 @@
 """Request middleware tracking one statistics `Session` per visitor."""
 
 import secrets
+from datetime import timedelta
 
 from django.conf import settings as django_settings
+from django.utils import timezone
 
 from domains.models import Domain
 from statistics import cookies
 from statistics.models import Session
 from statistics.session_attachment import attach_user
 from statistics.settings import Settings
+from statistics.visit_tracking import track_visit
 
 
 class StatisticsSessionMiddleware:
@@ -23,7 +26,7 @@ class StatisticsSessionMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        """Attach `request.statistics_session`, run the view, then write the session cookie."""
+        """Attach `request.statistics_session`, track its visit, run the view, write the cookie."""
         request.statistics_session_created = None
         if self._skip_requested(request):
             request.statistics_session = None
@@ -32,6 +35,7 @@ class StatisticsSessionMiddleware:
         ip = self._client_ip(request)
         domain = self._domain_for_request(request)
         request.statistics_session = self._load_or_create_session(request, ip, domain)
+        self._track_visit(request)
 
         response = self.get_response(request)
         self._backfill_user(request)
@@ -63,13 +67,31 @@ class StatisticsSessionMiddleware:
         domain_id = domain.id if domain is not None else None
 
         if session is not None and session.ip == ip and session.domain_id == domain_id:
-            session.save(update_fields=['last_seen_at'])
+            self._touch_session(session)
             return session
 
         user = request.user if request.user.is_authenticated else None
         created = Session.objects.create(ip=ip, user=user, domain=domain)
         request.statistics_session_created = created
         return created
+
+    def _touch_session(self, session):
+        """Write `session.last_seen_at` only when stale beyond the configured touch interval.
+
+        `Visit` carries per-request activity, so the session row is throttled to keep the
+        per-request write cost at about one row.
+        """
+        interval = timedelta(seconds=Settings.session_touch_interval_seconds())
+        if timezone.now() - session.last_seen_at >= interval:
+            session.save(update_fields=['last_seen_at'])
+
+    def _track_visit(self, request):
+        """Attribute this request to a `Visit` of the resolved session, before the view runs.
+
+        Running before dispatch means a login request counts on the pre-rotation session.
+        """
+        session = request.statistics_session
+        track_visit(session, new_session=self._created_during_request(request, session))
 
     def _backfill_user(self, request):
         """Attach the DRF-resolved authenticated user to the session, if not already tied.
@@ -84,6 +106,10 @@ class StatisticsSessionMiddleware:
         that pre-existed the request is instead always rotated to a brand-new `Session`
         row, so an anonymous session lingering on a shared device is never silently
         claimed by whichever authenticated request happens to hit it first.
+
+        Visits are never moved on rotation: this request's visit stays on the original
+        session, and the rotated session opens its first visit on the next request carrying
+        its cookie. An in-place attach keeps the visit on the same session.
         """
         session = request.statistics_session
         if session is None:
