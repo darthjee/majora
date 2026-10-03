@@ -253,7 +253,8 @@ and their payload.
 - `GET /staff/statistics/domains.json` — every `Domain` row as `[{"id": <int>, "domain":
   <str>}]`, ordered by `domain`, unpaginated (domains are a small, admin-managed set). Takes
   no filter params. Same decorator stack. Not to be confused with the Domains **tab**
-  endpoint, which #1487 names (it must not reuse `domains.json`).
+  endpoint, `GET /staff/statistics/domains/summary.json` (see
+  [Domains API](domains.md#api)).
 
 #### Query params
 
