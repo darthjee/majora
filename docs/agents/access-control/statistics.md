@@ -24,10 +24,10 @@ header. No role can create, update or delete these rows through any endpoint.
 | Authenticated | none |
 | Player | none |
 | GameMaster | none |
-| Staff | none (until the staff statistics page, #1477, adds its own endpoints) |
+| Staff | aggregated reads only, through the staff statistics endpoints (planned, see [Staff Statistics](staff-statistics.md)) |
 | Superuser | read-only, through Django Admin |
 
-**There are no API endpoints or serializers for `Session` or `Visit`.** Nothing is exposed
+**There are no CRUD endpoints or serializers for `Session` or `Visit`.** Nothing is exposed
 to players or DMs. The only client-visible artifact is the `HttpOnly` statistics cookie,
 which carries the signed session token and nothing else.
 
@@ -35,5 +35,6 @@ Both models are registered in Django Admin with `ReadOnlyStatisticsAdmin`
 (`backend/statistics/admin.py`): add, change and delete permissions are all denied, so the
 collected data can be inspected but never hand-edited.
 
-A future endpoint surfacing this data (e.g. #1477's staff statistics page) needs its own
+Endpoints surfacing this data (#1477's staff statistics page) are documented in
+[Staff Statistics](staff-statistics.md); any other future endpoint needs its own
 access-control entry.

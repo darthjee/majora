@@ -9,10 +9,10 @@ none of its own.
 
 ## This page is a draft
 
-The authoritative per-endpoint rules will live in
-`docs/agents/access-control/staff-statistics.md` (in the shape of
-[`staff-cache.md`](../../access-control/staff-cache.md)), created by the
-shared-infrastructure implementation (see #1482) and linked from
+The authoritative per-endpoint rules live in
+[`access-control/staff-statistics.md`](../../access-control/staff-statistics.md) (in the shape
+of [`staff-cache.md`](../../access-control/staff-cache.md)), created by #1482, kept in sync by
+the implementation sub-issues, and linked from
 [`access-control.md`](../../access-control.md). #1490 checks that page and this one agree
 before deleting the spec.
 
@@ -68,12 +68,14 @@ payloads are not logged.
 ## Client IP integrity
 
 Stored IPs come from `X-Forwarded-For`, which the proxy's `SetClientIpMiddleware` (a Tent
-extension) unconditionally replaces with Tent's own `REMOTE_ADDR`. Stored IPs are therefore
-single values and can't be spoofed by the client.
+extension) unconditionally replaces with Tent's own `REMOTE_ADDR`. On the Tent path, stored
+IPs are therefore single values the client can't set.
 
-The **production topology** still needs checking (owned by #1482): nothing in front of Tent
-(CDN, load balancer) may replace `REMOTE_ADDR`, and the backend port must not be directly
-reachable.
+The **production topology** check (#1482) **failed**: the backend is a public Render
+service reachable without Tent, what sits in front of Tent can't be confirmed from the repo,
+and the middleware stores the raw header. Until #1501 fixes it, stored IPs are **best effort
+and spoofable**; see
+[shared infrastructure](shared-infrastructure.md#production-topology-check).
 
 ## Reviews
 
