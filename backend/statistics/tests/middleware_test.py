@@ -1,14 +1,17 @@
 """Tests for `StatisticsSessionMiddleware`."""
 
+from datetime import timedelta
+
 import pytest
 from django.test import override_settings
+from django.utils import timezone
 from rest_framework.authtoken.models import Token
 
 from domains.tests.factories import DomainFactory
 from games.tests.factories import UserFactory
 from majora_project.cache import memory_cache
 from statistics import cookies
-from statistics.models import Session
+from statistics.models import Session, Visit
 
 
 @pytest.mark.django_db
@@ -52,8 +55,8 @@ class TestStatisticsSessionMiddleware:
         assert session.domain_id is None
 
     def test_reuses_session_when_cookie_ip_matches(self, client):
-        """Test that a valid cookie with a matching IP reuses the same session row."""
-        session = Session.objects.create(ip='1.2.3.4', domain=self.domain)
+        """Test that a valid cookie with a matching IP reuses the session, touching it if stale."""
+        session = self._stale_session(seconds_ago=120)
         original_last_seen_at = session.last_seen_at
         client.cookies[cookies.COOKIE_NAME] = cookies.sign(session.token)
 
@@ -62,6 +65,80 @@ class TestStatisticsSessionMiddleware:
         assert Session.objects.count() == 1
         session.refresh_from_db()
         assert session.last_seen_at > original_last_seen_at
+
+    def test_does_not_rewrite_last_seen_at_of_a_fresh_session(self, client):
+        """Test that a session seen within the touch interval is not written again."""
+        session = self._stale_session(seconds_ago=10)
+        original_last_seen_at = session.last_seen_at
+        client.cookies[cookies.COOKIE_NAME] = cookies.sign(session.token)
+
+        client.get('/ready.json', REMOTE_ADDR='1.2.3.4')
+
+        session.refresh_from_db()
+        assert session.last_seen_at == original_last_seen_at
+
+    def test_session_touch_interval_is_configurable(self, client, monkeypatch):
+        """Test that a shorter configured touch interval rewrites a recently seen session."""
+        monkeypatch.setenv('MAJORA_STATISTICS_SESSION_TOUCH_INTERVAL_SECONDS', '5')
+        session = self._stale_session(seconds_ago=10)
+        original_last_seen_at = session.last_seen_at
+        client.cookies[cookies.COOKIE_NAME] = cookies.sign(session.token)
+
+        client.get('/ready.json', REMOTE_ADDR='1.2.3.4')
+
+        session.refresh_from_db()
+        assert session.last_seen_at > original_last_seen_at
+
+    def test_first_request_opens_a_visit(self, client):
+        """Test that a request with no cookie creates one session with one single-hit visit."""
+        client.get('/ready.json', REMOTE_ADDR='1.2.3.4')
+
+        visit = Visit.objects.get()
+        assert visit.session == Session.objects.get()
+        assert visit.hits == 1
+
+    def test_request_inside_the_window_extends_the_visit(self, client):
+        """Test that a second request inside the window bumps the same visit."""
+        client.get('/ready.json', REMOTE_ADDR='1.2.3.4')
+        first_last_seen_at = Visit.objects.get().last_seen_at
+
+        client.get('/ready.json', REMOTE_ADDR='1.2.3.4')
+
+        visit = Visit.objects.get()
+        assert visit.hits == 2
+        assert visit.last_seen_at > first_last_seen_at
+
+    def test_request_after_the_window_opens_a_new_visit(self, client):
+        """Test that a request after the inactivity window opens a second visit."""
+        client.get('/ready.json', REMOTE_ADDR='1.2.3.4')
+        self._age_visits(minutes=31)
+
+        client.get('/ready.json', REMOTE_ADDR='1.2.3.4')
+
+        session = Session.objects.get()
+        assert session.visits.count() == 2
+        assert list(session.visits.values_list('hits', flat=True)) == [1, 1]
+
+    def test_visit_window_is_configurable(self, client, monkeypatch):
+        """Test that a shorter configured inactivity window expires visits sooner."""
+        monkeypatch.setenv('MAJORA_STATISTICS_VISIT_INACTIVITY_SECONDS', '60')
+        client.get('/ready.json', REMOTE_ADDR='1.2.3.4')
+        self._age_visits(minutes=2)
+
+        client.get('/ready.json', REMOTE_ADDR='1.2.3.4')
+
+        assert Visit.objects.count() == 2
+
+    def test_ip_change_opens_a_visit_on_the_new_session(self, client):
+        """Test that a rotated (IP-changed) session gets its own new visit."""
+        client.get('/ready.json', REMOTE_ADDR='1.2.3.4')
+
+        response = client.get('/ready.json', REMOTE_ADDR='9.9.9.9')
+
+        new_session = self._session_from_response(response)
+        assert new_session.ip == '9.9.9.9'
+        assert new_session.visits.get().hits == 1
+        assert Visit.objects.count() == 2
 
     def test_creates_new_session_when_cookie_ip_differs(self, client):
         """Test that a valid cookie with a mismatched IP rotates to a brand-new session."""
@@ -138,6 +215,36 @@ class TestStatisticsSessionMiddleware:
         assert new_session.ip == '1.2.3.4'
         session.refresh_from_db()
         assert session.user_id is None
+
+    def test_login_rotation_keeps_the_hit_on_the_anonymous_session(self, client):
+        """Test that the login request counts on the old session's visit, not the rotated one."""
+        session = Session.objects.create(ip='1.2.3.4', domain=self.domain)
+        client.cookies[cookies.COOKIE_NAME] = cookies.sign(session.token)
+
+        response = self._authenticated_get(client, REMOTE_ADDR='1.2.3.4')
+
+        assert session.visits.get().hits == 1
+        assert self._session_from_response(response).visits.count() == 0
+
+    def test_request_after_login_rotation_opens_a_visit_on_the_new_session(self, client):
+        """Test that the next request carrying the rotated cookie opens a visit on it."""
+        session = Session.objects.create(ip='1.2.3.4', domain=self.domain)
+        client.cookies[cookies.COOKIE_NAME] = cookies.sign(session.token)
+        response = self._authenticated_get(client, REMOTE_ADDR='1.2.3.4')
+        new_session = self._session_from_response(response)
+
+        client.get('/ready.json', REMOTE_ADDR='1.2.3.4')
+
+        assert new_session.visits.get().hits == 1
+        assert session.visits.get().hits == 1
+
+    def test_in_place_attach_keeps_the_visit_on_the_same_session(self, client):
+        """Test that a user attached in place keeps the visit on that very session."""
+        self._authenticated_get(client, REMOTE_ADDR='1.2.3.4')
+
+        user_session = Session.objects.get(user=self.user)
+        assert Session.objects.count() == 1
+        assert user_session.visits.get().hits == 1
 
     def test_ties_new_session_to_user_when_ip_changes_on_authenticated_request(self, client):
         """Test that a logged-in request with a changed IP creates one user-tied session."""
@@ -219,7 +326,17 @@ class TestStatisticsSessionMiddleware:
         )
 
         assert Session.objects.count() == 0
+        assert Visit.objects.count() == 0
         assert cookies.COOKIE_NAME not in response.cookies
+
+    def test_skipped_request_does_not_extend_an_existing_visit(self, client, monkeypatch):
+        """Test that a skipped request carrying a session cookie leaves its visit untouched."""
+        monkeypatch.setenv('STATISTICS_SKIP_SECRET', 'shh')
+        client.get('/ready.json', REMOTE_ADDR='1.2.3.4')
+
+        client.get('/ready.json', REMOTE_ADDR='1.2.3.4', HTTP_X_STATISTICS_SKIP_SECRET='shh')
+
+        assert Visit.objects.get().hits == 1
 
     def test_creates_session_when_skip_header_missing(self, client, monkeypatch):
         """Test that a request with no skip header is recorded as today, secret configured."""
@@ -270,6 +387,23 @@ class TestStatisticsSessionMiddleware:
 
         assert response.status_code == 200
         assert Session.objects.count() == 0
+
+    def _stale_session(self, seconds_ago):
+        """Return a session for '1.2.3.4' on `self.domain` last seen `seconds_ago` seconds ago."""
+        session = Session.objects.create(ip='1.2.3.4', domain=self.domain)
+        seen_at = timezone.now() - timedelta(seconds=seconds_ago)
+        Session.objects.filter(pk=session.pk).update(last_seen_at=seen_at)
+        session.refresh_from_db()
+        return session
+
+    def _age_visits(self, minutes):
+        """Push every visit's `last_seen_at` `minutes` minutes into the past."""
+        Visit.objects.update(last_seen_at=timezone.now() - timedelta(minutes=minutes))
+
+    def _session_from_response(self, response):
+        """Return the `Session` whose token is carried by `response`'s statistics cookie."""
+        token = cookies.unsign(response.cookies[cookies.COOKIE_NAME].value)
+        return Session.objects.get(token=token)
 
     def _authenticated_get(self, client, **extra):
         """Issue an authenticated GET to `/games.json` as a fresh user stored on `self.user`."""
