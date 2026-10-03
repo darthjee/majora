@@ -9,3 +9,4 @@ knowledge has moved into the permanent docs.
 
 - [Loot Crawling](specs/loot-crawling.md)
 - [Crawler Test Harness](specs/crawler-test-harness.md)
+- [Access Statistics](specs/access-statistics.md)
