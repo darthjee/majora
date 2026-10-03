@@ -17,3 +17,13 @@ class Settings:
     def skip_secret():
         """Return the configured statistics-skip secret, or '' if unset (feature disabled)."""
         return os.environ.get('STATISTICS_SKIP_SECRET', '')
+
+    @staticmethod
+    def visit_inactivity_seconds():
+        """Return the inactivity window after which a new visit is opened (default: 30 min)."""
+        return env_int('MAJORA_STATISTICS_VISIT_INACTIVITY_SECONDS', 30 * 60)
+
+    @staticmethod
+    def session_touch_interval_seconds():
+        """Return how stale `Session.last_seen_at` must be before it is rewritten (default: 60s)."""
+        return env_int('MAJORA_STATISTICS_SESSION_TOUCH_INTERVAL_SECONDS', 60)
