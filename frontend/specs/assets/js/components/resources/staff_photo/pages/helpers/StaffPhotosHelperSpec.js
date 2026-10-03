@@ -3,7 +3,15 @@ import StaffPhotosHelper from '../../../../../../../../assets/js/components/reso
 import Translator from '../../../../../../../../assets/js/i18n/Translator.js';
 import Noop from '../../../../../../../../assets/js/utils/Noop.js';
 
-const HANDLERS = { onReplace: Noop.noop, onDelete: Noop.noop };
+const HANDLERS = {
+  onResize: Noop.noop,
+  onReplace: Noop.noop,
+  onDelete: Noop.noop,
+  onToggle: Noop.noop,
+  onToggleAll: Noop.noop,
+  onBulk: Noop.noop,
+  onCloseSummary: Noop.noop,
+};
 
 /**
  * @description Builds a page state fixture.
@@ -25,7 +33,11 @@ function buildState(overrides = {}) {
     }],
     pagination: { page: 1, pages: 3, perPage: 10 },
     actionError: null,
+    actionInfo: null,
     versions: {},
+    selectedIds: [],
+    bulkJob: null,
+    bulkResult: null,
     ...overrides,
   };
 }
@@ -72,6 +84,73 @@ describe('StaffPhotosHelper', function() {
       const html = renderToStaticMarkup(StaffPhotosHelper.render(buildState(), HANDLERS));
 
       expect(html).not.toContain('alert-danger');
+      expect(html).not.toContain('alert-info');
+    });
+
+    it('renders the translated action info when present', function() {
+      const html = renderToStaticMarkup(
+        StaffPhotosHelper.render(buildState({ actionInfo: 'staff_photos_page.skip_gif' }), HANDLERS),
+      );
+
+      expect(html).toContain('alert-info');
+      expect(html).toContain(Translator.t('staff_photos_page.skip_gif'));
+    });
+
+    it('renders the select column, row checkboxes, resize action and bulk bar', function() {
+      const html = renderToStaticMarkup(StaffPhotosHelper.render(buildState(), HANDLERS));
+
+      expect(html).toContain(Translator.t('staff_photos_page.select_column'));
+      expect(html).toContain(`aria-label="${Translator.t('staff_photos_page.select_photo')}"`);
+      expect(html).toContain(Translator.t('staff_photos_page.resize'));
+      expect(html).toContain(Translator.t('staff_photos_page.select_all_page'));
+      expect(html).toContain(Translator.t('staff_photos_page.bulk_selected').replace('{{count}}', 0));
+    });
+
+    it('checks the selected rows and the select-all toggle', function() {
+      const html = renderToStaticMarkup(StaffPhotosHelper.render(buildState({ selectedIds: [5] }), HANDLERS));
+
+      expect(html.match(/checked=""/g).length).toBe(2);
+      expect(html).toContain(Translator.t('staff_photos_page.bulk_selected').replace('{{count}}', 1));
+    });
+
+    it('disables the checkboxes and actions while a bulk job runs', function() {
+      const html = renderToStaticMarkup(StaffPhotosHelper.render(
+        buildState({ selectedIds: [5], bulkJob: { action: 'delete', total: 1, done: 0 } }), HANDLERS,
+      ));
+
+      const buttons = html.match(/<button[^>]*>/g);
+
+      expect(buttons.length).toBe(5);
+      buttons.forEach((button) => expect(button).toContain('disabled=""'));
+      expect(html.match(/type="checkbox"[^>]*disabled=""/g).length).toBe(2);
+    });
+  });
+
+  describe('.render bulk progress and summary', function() {
+    it('renders the progress while a bulk job runs', function() {
+      const html = renderToStaticMarkup(StaffPhotosHelper.render(
+        buildState({ bulkJob: { action: 'resize', total: 2, done: 1 } }), HANDLERS,
+      ));
+
+      expect(html).toContain(Translator.t('staff_photos_page.bulk_progress')
+        .replace('{{done}}', 1).replace('{{total}}', 2));
+    });
+
+    it('renders the summary once a bulk job finished', function() {
+      const html = renderToStaticMarkup(StaffPhotosHelper.render(
+        buildState({ bulkResult: { action: 'delete', outcomes: [{ photo: { id: 5, owner: null }, status: 'done' }] } }),
+        HANDLERS,
+      ));
+
+      expect(html).toContain(Translator.t('staff_photos_page.summary_title'));
+      expect(html).toContain(Translator.t('staff_photos_page.summary_deleted'));
+    });
+
+    it('renders neither without a bulk job or result', function() {
+      const html = renderToStaticMarkup(StaffPhotosHelper.render(buildState(), HANDLERS));
+
+      expect(html).not.toContain('progress-bar');
+      expect(html).not.toContain(Translator.t('staff_photos_page.summary_title'));
     });
   });
 

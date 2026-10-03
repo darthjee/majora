@@ -4,6 +4,7 @@ import HashRouteResolver from '../../../../../utils/routing/HashRouteResolver.js
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 import StaffPhotoTypes from '../helpers/StaffPhotoTypes.js';
 import staffPhotoErrorKey from '../helpers/StaffPhotoErrors.js';
+import StaffPhotoActions from './StaffPhotoActions.js';
 
 const COMPONENT_NAME = 'StaffPhotosController';
 const RESOURCE = 'staffPhoto';
@@ -13,9 +14,10 @@ const LOAD_ERROR_KEY = 'staff_photos_page.error';
  * Controller for the staff photos page (issue #1473).
  *
  * @description Loads the available photo types, resolves the active type from the hash `type`
- *   param, lists that type's photos (paginated) and runs the per-row Delete action plus the
- *   Replace success/error bookkeeping. Every state update goes through a safe setter so updates
- *   landing after unmount are ignored. Error state holds i18n keys, translated at render time.
+ *   param, lists that type's photos (paginated) and runs the per-row Delete and Resize actions,
+ *   the Replace success/error bookkeeping and the sequential bulk Resize / Delete runner (issue
+ *   #1474). Every state update goes through a safe setter so updates landing after unmount are
+ *   ignored. Error and info state hold i18n keys, translated at render time.
  */
 export default class StaffPhotosController extends BasePageController {
   /**
@@ -31,11 +33,20 @@ export default class StaffPhotosController extends BasePageController {
    * @param {Function} setters.setError - Load error (i18n key) setter.
    * @param {Function} setters.setActionError - Row action error (i18n key) setter.
    * @param {Function} setters.setVersions - Photo id to cache-busting version map setter.
+   * @param {Function} setters.setActionInfo - Row action info (i18n key) setter.
+   * @param {Function} setters.setBulkJob - Running bulk job (`{action, total, done}`) setter.
+   * @param {Function} setters.setBulkResult - Finished bulk job (`{action, outcomes}`) setter.
+   * @param {object} [deps] - Injectable dependencies.
+   * @param {StaffPhotoActions} [deps.actions] - Outcome-returning single-photo actions.
+   * @param {object} [deps.win] - `beforeunload` listener target (defaults to `window`).
    */
-  constructor(setters) {
+  constructor(setters, { actions = new StaffPhotoActions(), win = globalThis.window } = {}) {
     super();
     Object.assign(this, setters);
+    this.actions = actions;
+    this.win = win;
     this.photoType = null;
+    this.maxDimension = null;
     this.versions = {};
     this.mounted = false;
     this.safeSet = this.buildSafeSetter(() => this.mounted);
@@ -65,6 +76,7 @@ export default class StaffPhotosController extends BasePageController {
 
       return () => {
         this.mounted = false;
+        this.#guardUnload(false);
       };
     };
   }
@@ -95,7 +107,7 @@ export default class StaffPhotosController extends BasePageController {
   }
 
   /**
-   * Delete a photo through {@link RequestStore.mutate}.
+   * Delete a photo.
    *
    * @description On success the list cache is purged by `mutate` and the list is refetched. On
    *   failure the status is mapped to an error key (a 404 also purges and refetches); network
@@ -104,27 +116,67 @@ export default class StaffPhotosController extends BasePageController {
    * @returns {Promise<void>} Resolves when the action finishes.
    */
   async handleDelete(photo) {
-    this.safeSet(this.setActionError, null);
+    this.#clearMessages();
 
-    try {
-      const response = await RequestStore.mutate({
-        componentName: COMPONENT_NAME,
-        resource: RESOURCE,
-        method: 'DELETE',
-        quantityType: 'single',
-        params: { photoType: this.photoType, id: photo.id },
-        variantName: 'regular',
-      });
+    const outcome = await this.actions.deletePhoto(this.photoType, photo);
 
-      if (response.ok) {
-        await this.fetchList();
-        return;
-      }
+    if (outcome.status === 'done') return this.fetchList();
 
-      await this.#handleFailure('delete', response.status);
-    } catch {
-      this.safeSet(this.setActionError, staffPhotoErrorKey('delete'));
+    return this.#handleFailure(outcome);
+  }
+
+  /**
+   * Resize a photo in the browser and replace it with the result.
+   *
+   * @description Done → same bookkeeping as a successful replace; skipped → the skip reason is
+   *   shown as info; failed → the reason is shown as an error (a 404 also purges and refetches).
+   * @param {{id: number, path: string}} photo - The photo row to resize.
+   * @returns {Promise<void>} Resolves when the action finishes.
+   */
+  async handleResize(photo) {
+    this.#clearMessages();
+
+    const outcome = await this.actions.resizePhoto(this.photoType, photo, this.maxDimension, this.versions);
+
+    if (outcome.status === 'done') return this.handleReplaceSuccess(photo);
+    if (outcome.status === 'skipped') return this.safeSet(this.setActionInfo, outcome.reason);
+
+    return this.#handleFailure(outcome);
+  }
+
+  /**
+   * Run a bulk action over photos, one at a time.
+   *
+   * @description Tracks progress in `bulkJob` and guards the page against unloading while
+   *   running. A failure never stops the loop. At the end the outcomes are stored in
+   *   `bulkResult`, the list cache is purged and the list is refetched once.
+   * @param {string} action - `'resize'` or `'delete'`.
+   * @param {object[]} photos - The photo rows to process.
+   * @returns {Promise<void>} Resolves once every photo is processed and the list refetched.
+   */
+  async runBulk(action, photos) {
+    const total = photos.length;
+    const outcomes = [];
+
+    this.#clearMessages();
+    this.safeSet(this.setBulkResult, null);
+    this.safeSet(this.setBulkJob, { action, total, done: 0 });
+    this.#guardUnload(true);
+
+    for (const photo of photos) {
+      const { status, reason } = await this.#runSingle(action, photo);
+
+      if (action === 'resize' && status === 'done') this.#bumpVersion(photo);
+      outcomes.push({ photo, status, reason });
+      this.safeSet(this.setBulkJob, { action, total, done: outcomes.length });
     }
+
+    this.#guardUnload(false);
+    this.safeSet(this.setBulkJob, null);
+    this.safeSet(this.setBulkResult, { action, outcomes });
+    RequestStore.purge({ resource: RESOURCE });
+
+    return this.fetchList();
   }
 
   /**
@@ -137,9 +189,8 @@ export default class StaffPhotosController extends BasePageController {
    */
   handleReplaceSuccess(photo) {
     RequestStore.purge({ resource: RESOURCE });
-    this.versions = { ...this.versions, [photo.id]: Date.now() };
-    this.safeSet(this.setActionError, null);
-    this.safeSet(this.setVersions, this.versions);
+    this.#bumpVersion(photo);
+    this.#clearMessages();
 
     return this.fetchList();
   }
@@ -153,7 +204,7 @@ export default class StaffPhotosController extends BasePageController {
    *   refetched).
    */
   handleReplaceError(_photo, status) {
-    return this.#handleFailure('replace', status);
+    return this.#handleFailure({ reason: staffPhotoErrorKey('replace', status), code: status });
   }
 
   /**
@@ -163,13 +214,42 @@ export default class StaffPhotosController extends BasePageController {
    * @returns {string} The replace endpoint path.
    */
   replacePath(photo) {
-    return `/staff/photos/${this.photoType}/${photo.id}/replace.json`;
+    return StaffPhotoActions.replacePath(this.photoType, photo);
   }
 
-  #handleFailure(action, status) {
-    this.safeSet(this.setActionError, staffPhotoErrorKey(action, status));
+  #runSingle(action, photo) {
+    if (action === 'resize') {
+      return this.actions.resizePhoto(this.photoType, photo, this.maxDimension, this.versions);
+    }
 
-    if (status !== 404) return Promise.resolve();
+    return this.actions.deletePhoto(this.photoType, photo);
+  }
+
+  #onBeforeUnload = (event) => {
+    event.preventDefault();
+    event.returnValue = '';
+  };
+
+  #guardUnload(active) {
+    const method = active ? 'addEventListener' : 'removeEventListener';
+
+    this.win?.[method]?.('beforeunload', this.#onBeforeUnload);
+  }
+
+  #bumpVersion(photo) {
+    this.versions = { ...this.versions, [photo.id]: Date.now() };
+    this.safeSet(this.setVersions, this.versions);
+  }
+
+  #clearMessages() {
+    this.safeSet(this.setActionError, null);
+    this.safeSet(this.setActionInfo, null);
+  }
+
+  #handleFailure({ reason, code }) {
+    this.safeSet(this.setActionError, reason);
+
+    if (code !== 404) return Promise.resolve();
 
     RequestStore.purge({ resource: RESOURCE });
     return this.fetchList();
@@ -188,6 +268,7 @@ export default class StaffPhotosController extends BasePageController {
     const requested = new HashRouteResolver().getFilterParams().get('type');
 
     this.photoType = StaffPhotoTypes.resolveType(types, requested);
+    this.maxDimension = maxDimension;
     this.safeSet(this.setTypes, types);
     this.safeSet(this.setMaxDimension, maxDimension);
     this.safeSet(this.setPhotoType, this.photoType);

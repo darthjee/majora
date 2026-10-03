@@ -34,3 +34,32 @@ staff_photos_page:
   error_delete_replace_in_progress: Esta foto não pode ser excluída enquanto uma substituição estiver em andamento.
   error_not_found: A foto ou o seu dono não existe mais — a lista foi atualizada.
   error_generic: Não foi possível concluir a ação. Tente novamente.
+  select_column: Selecionar
+  select_photo: Selecionar foto
+  select_all_page: Selecionar todas desta página
+  bulk_selected: '{{count}} selecionadas'
+  resize: Redimensionar
+  bulk_resize: Redimensionar selecionadas
+  bulk_delete: Excluir selecionadas
+  confirm: Confirmar
+  cancel: Cancelar
+  resize_confirm_title: Redimensionar foto
+  resize_confirm_body: 'Esta foto será redimensionada para que seu maior lado tenha no máximo {{max}} px. O arquivo original será sobrescrito.'
+  bulk_confirm_resize_title: Redimensionar fotos
+  bulk_confirm_resize_body: '{{count}} fotos serão redimensionadas para que seu maior lado tenha no máximo {{max}} px. Os arquivos originais serão sobrescritos.'
+  bulk_confirm_delete_title: Excluir fotos
+  bulk_confirm_delete_body: '{{count}} fotos serão excluídas permanentemente.'
+  bulk_progress: 'Processando {{done}} de {{total}}...'
+  summary_title: Resultados
+  summary_resized: Redimensionadas
+  summary_deleted: Excluídas
+  summary_skipped: Ignoradas
+  summary_failed: Com falha
+  summary_close: Fechar
+  skip_already_small: A foto já está dentro do limite de tamanho.
+  skip_gif: Fotos GIF não são redimensionadas.
+  skip_not_ready: A foto não está pronta.
+  skip_no_path: A foto não tem caminho de arquivo.
+  skip_replace_in_progress: Há uma substituição em andamento para esta foto.
+  error_resize_load_failed: Não foi possível carregar a imagem.
+  error_resize_encode_failed: Não foi possível redimensionar a imagem.

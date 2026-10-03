@@ -9,6 +9,11 @@ import StaffPhotoThumbnail from '../elements/StaffPhotoThumbnail.jsx';
 import StaffPhotoStatus from '../elements/StaffPhotoStatus.jsx';
 import StaffPhotoOwner from '../elements/StaffPhotoOwner.jsx';
 import StaffPhotoRowActions from '../elements/StaffPhotoRowActions.jsx';
+import StaffPhotoSelectCheckbox from '../elements/StaffPhotoSelectCheckbox.jsx';
+import StaffPhotoBulkActions from '../elements/StaffPhotoBulkActions.jsx';
+import StaffPhotoBulkProgress from '../elements/StaffPhotoBulkProgress.jsx';
+import StaffPhotoBulkSummary from '../elements/StaffPhotoBulkSummary.jsx';
+import { allSelected } from '../hooks/useStaffPhotoSelection.js';
 
 const PREFIX = 'staff_photos_page';
 
@@ -17,8 +22,8 @@ const PREFIX = 'staff_photos_page';
  */
 export default class StaffPhotosHelper {
   /**
-   * Render the staff photos page: title, type tabs, action error, photo table (or empty state)
-   * and pagination.
+   * Render the staff photos page: title, type tabs, action error / info, bulk progress and
+   * result summary, bulk action bar, photo table (or empty state) and pagination.
    *
    * @param {object} state - Page state.
    * @param {string[]} state.types - Available photo type slugs.
@@ -27,7 +32,13 @@ export default class StaffPhotosHelper {
    * @param {{page: number, pages: number, perPage: number}} state.pagination - Pagination.
    * @param {string|null} state.actionError - i18n key of the last row action error.
    * @param {object} state.versions - Map of photo id to cache-busting version.
-   * @param {{onReplace: Function, onDelete: Function}} handlers - Row action handlers.
+   * @param {string|null} state.actionInfo - i18n key of the last row action info message.
+   * @param {number[]} state.selectedIds - Selected photo ids.
+   * @param {object|null} state.bulkJob - Running bulk job, or `null`.
+   * @param {object|null} state.bulkResult - Finished bulk job, or `null`.
+   * @param {{onResize: Function, onReplace: Function, onDelete: Function, onToggle: Function,
+   *   onToggleAll: Function, onBulk: Function, onCloseSummary: Function}} handlers - Row,
+   *   selection and bulk handlers.
    * @returns {React.ReactElement} Staff photos page content.
    */
   static render(state, handlers) {
@@ -39,6 +50,9 @@ export default class StaffPhotosHelper {
         <h1>{Translator.t(`${PREFIX}.title`)}</h1>
         <StaffPhotoTabs types={types} activeType={photoType} />
         {StaffPhotosHelper.#renderActionError(state.actionError)}
+        {StaffPhotosHelper.#renderActionInfo(state.actionInfo)}
+        <StaffPhotoBulkProgress job={state.bulkJob ?? null} />
+        <StaffPhotoBulkSummary result={state.bulkResult ?? null} onClose={handlers.onCloseSummary} />
         {StaffPhotosHelper.#renderList(state, handlers)}
         <Pagination
           currentPage={pagination.page}
@@ -83,40 +97,87 @@ export default class StaffPhotosHelper {
   }
 
   /**
-   * Render the photo table, or the empty state when there are no photos.
+   * Render the row action info alert, when there is one.
+   *
+   * @param {string|null} actionInfo - i18n key of the info message.
+   * @returns {React.ReactElement|null} Info alert, or `null`.
+   */
+  static #renderActionInfo(actionInfo) {
+    if (!actionInfo) return null;
+
+    return <div className="alert alert-info" role="status">{Translator.t(actionInfo)}</div>;
+  }
+
+  /**
+   * Render the bulk action bar and photo table, or the empty state when there are no photos.
    *
    * @param {object} state - Page state.
    * @param {object[]} state.photos - Photo rows of the active type.
-   * @param {object} state.versions - Map of photo id to cache-busting version.
-   * @param {{onReplace: Function, onDelete: Function}} handlers - Row action handlers.
+   * @param {number[]} state.selectedIds - Selected photo ids.
+   * @param {object|null} state.bulkJob - Running bulk job, or `null`.
+   * @param {object} handlers - Row, selection and bulk handlers.
    * @returns {React.ReactElement} Photo table or empty message.
    */
-  static #renderList({ photos, versions }, handlers) {
+  static #renderList(state, handlers) {
+    const { photos, selectedIds = [] } = state;
+
     if (photos.length === 0) return <p className="text-muted">{Translator.t(`${PREFIX}.empty`)}</p>;
 
-    const columns = ['thumbnail', 'status', 'owner', 'actions'].map((key) => (
+    const running = Boolean(state.bulkJob);
+    const columns = ['select', 'thumbnail', 'status', 'owner', 'actions'].map((key) => (
       { key, label: Translator.t(`${PREFIX}.${key}_column`) }
     ));
-    const rows = photos.map((photo) => StaffPhotosHelper.#buildRow(photo, versions, handlers));
+    const context = { ...state, selectedIds, running };
+    const rows = photos.map((photo) => StaffPhotosHelper.#buildRow(photo, context, handlers));
 
-    return <Table columns={columns} rows={rows} />;
+    return (
+      <>
+        <StaffPhotoBulkActions
+          count={selectedIds.length}
+          allSelected={allSelected(selectedIds, photos)}
+          running={running}
+          onToggleAll={handlers.onToggleAll}
+          onBulk={handlers.onBulk}
+        />
+        <Table columns={columns} rows={rows} />
+      </>
+    );
   }
 
   /**
    * Build a table row for a photo.
    *
    * @param {object} photo - The photo row.
-   * @param {object} versions - Map of photo id to cache-busting version.
-   * @param {{onReplace: Function, onDelete: Function}} handlers - Row action handlers.
+   * @param {{versions: object, selectedIds: number[], running: boolean}} context - Versions
+   *   map, selected ids and bulk running flag.
+   * @param {object} handlers - Row and selection handlers.
    * @returns {object} Table row keyed by column.
    */
-  static #buildRow(photo, versions, { onReplace, onDelete }) {
+  static #buildRow(photo, { versions, selectedIds, running }, handlers) {
+    const { onResize, onReplace, onDelete, onToggle } = handlers;
+
     return {
       id: photo.id,
+      select: (
+        <StaffPhotoSelectCheckbox
+          photo={photo}
+          checked={selectedIds.includes(photo.id)}
+          disabled={running}
+          onToggle={onToggle}
+        />
+      ),
       thumbnail: <StaffPhotoThumbnail photo={photo} versions={versions} />,
       status: <StaffPhotoStatus photo={photo} />,
       owner: <StaffPhotoOwner owner={photo.owner} />,
-      actions: <StaffPhotoRowActions photo={photo} onReplace={onReplace} onDelete={onDelete} />,
+      actions: (
+        <StaffPhotoRowActions
+          photo={photo}
+          disabled={running}
+          onResize={onResize}
+          onReplace={onReplace}
+          onDelete={onDelete}
+        />
+      ),
     };
   }
 }
