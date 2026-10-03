@@ -139,6 +139,45 @@ class TestStatisticsSessionMiddleware:
         session.refresh_from_db()
         assert session.user_id is None
 
+    def test_ties_new_session_to_user_when_ip_changes_on_authenticated_request(self, client):
+        """Test that a logged-in request with a changed IP creates one user-tied session."""
+        old_session = Session.objects.create(ip='1.2.3.4', domain=self.domain)
+        client.cookies[cookies.COOKIE_NAME] = cookies.sign(old_session.token)
+
+        response = self._authenticated_get(client, REMOTE_ADDR='9.9.9.9')
+
+        assert Session.objects.count() == 2
+        assert Session.objects.filter(user__isnull=True).get() == old_session
+        self._assert_single_user_session(response, ip='9.9.9.9')
+
+    def test_ties_new_session_to_user_when_domain_changes_on_authenticated_request(self, client):
+        """Test that a logged-in request with a changed domain creates one user-tied session."""
+        other_domain = DomainFactory(domain='other.example.com')
+        old_session = Session.objects.create(ip='1.2.3.4', domain=other_domain)
+        client.cookies[cookies.COOKIE_NAME] = cookies.sign(old_session.token)
+
+        response = self._authenticated_get(client, REMOTE_ADDR='1.2.3.4')
+
+        assert Session.objects.count() == 2
+        assert Session.objects.filter(user__isnull=True).get() == old_session
+        self._assert_single_user_session(response, ip='1.2.3.4')
+
+    def test_ties_new_session_to_user_when_cookie_missing_on_authenticated_request(self, client):
+        """Test that a logged-in request without a cookie creates exactly one user-tied session."""
+        response = self._authenticated_get(client, REMOTE_ADDR='1.2.3.4')
+
+        assert Session.objects.count() == 1
+        self._assert_single_user_session(response, ip='1.2.3.4')
+
+    def test_ties_new_session_to_user_when_cookie_invalid_on_authenticated_request(self, client):
+        """Test that a logged-in request with a tampered cookie creates one user-tied session."""
+        client.cookies[cookies.COOKIE_NAME] = 'garbage-not-a-signed-value'
+
+        response = self._authenticated_get(client, REMOTE_ADDR='1.2.3.4')
+
+        assert Session.objects.count() == 1
+        self._assert_single_user_session(response, ip='1.2.3.4')
+
     def test_leaves_session_untouched_when_already_tied_to_a_different_user(self, client):
         """Test that a session already tied to a user is not reattached/rotated on later hits."""
         other_user = UserFactory(username='bob')
@@ -231,3 +270,17 @@ class TestStatisticsSessionMiddleware:
 
         assert response.status_code == 200
         assert Session.objects.count() == 0
+
+    def _authenticated_get(self, client, **extra):
+        """Issue an authenticated GET to `/games.json` as a fresh user stored on `self.user`."""
+        self.user = UserFactory(username='alice')
+        token = Token.objects.create(user=self.user)
+        return client.get('/games.json', HTTP_AUTHORIZATION=f'Token {token.key}', **extra)
+
+    def _assert_single_user_session(self, response, ip):
+        """Assert exactly one session is tied to `self.user` and the cookie carries its token."""
+        user_session = Session.objects.get(user=self.user)
+        assert user_session.ip == ip
+        assert user_session.domain_id == self.domain.id
+        signed_value = response.cookies[cookies.COOKIE_NAME].value
+        assert cookies.unsign(signed_value) == user_session.token
