@@ -23,7 +23,7 @@ sub-issue), `specced` (filled in by its spec sub-issue).
 
 ### Tabs
 
-- [Overview](access-statistics/overview.md): `stub` (#1483)
+- [Overview](access-statistics/overview.md): `specced` (#1483)
 - [Visits](access-statistics/visits.md): `stub` (#1484)
 - [Visitors](access-statistics/visitors.md): `stub` (#1485)
 - [Duration](access-statistics/duration.md): `stub` (#1486)
@@ -50,6 +50,8 @@ sub-issue), `specced` (filled in by its spec sub-issue).
 | #1499 | Implementation: frontend shell (menu, routes, tabs, filter bar, URL state) | Created by #1482; needs #1498 |
 | #1500 | Implementation: Recharts setup (lazy chunk, sizing, test setup, colors) | Created by #1482; builds on #1499 |
 | #1501 | Follow-up: client IP integrity (topology check failed) | Created by #1482; not blocking |
+| #1503 | Implementation: Overview endpoint (`overview.json`) | Created by #1483; needs #1498; implemented last |
+| #1504 | Implementation: Overview tab (KPI tiles) | Created by #1483; needs #1499 and #1503; implemented last |
 | #1490 | Remove the access statistics specs | Blocked by every implementation sub-issue |
 
 Each of #1482 to #1489 appends the implementation sub-issues it creates to this table.
