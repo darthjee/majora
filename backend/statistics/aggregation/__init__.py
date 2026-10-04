@@ -1,7 +1,8 @@
 """On-the-fly aggregation of `Visit` rows for the staff access statistics endpoints.
 
 Plain classes, one per file: request filter parsing and validation, granularity resolution,
-time-zone-aware bucketing, the visit query, zero-filled series and pure metric helpers.
+time-zone-aware bucketing, the visit query, zero-filled series, pure metric helpers and the
+per-endpoint series built on top of them (e.g. `VisitsSeries`).
 Never `import statistics` for the stdlib helpers: this app's name shadows that module.
 """
 
@@ -13,6 +14,7 @@ from .granularity import Granularity
 from .params_parser import StatisticsParamsParser
 from .series import Series
 from .visit_query import VisitQuery
+from .visits_series import VisitsSeries
 
 __all__ = [
     'Bucket',
@@ -22,5 +24,6 @@ __all__ = [
     'StatisticsFilters',
     'StatisticsParamsParser',
     'VisitQuery',
+    'VisitsSeries',
     'metrics',
 ]
