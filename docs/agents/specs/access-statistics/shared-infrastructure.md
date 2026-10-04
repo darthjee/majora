@@ -530,7 +530,10 @@ pages must not present them as authoritative. The fix is tracked in the follow-u
 listed below; it does not block the statistics implementation.
 
 **Resolution (#1501).** Tent now wires `SetClientIpMiddleware` and sends an `X-Proxy-Secret`
-header on every rule that proxies to Django, stripping any client-supplied copy. Django
+header on the standard proxy rules to Django (`backend.php`, `private_game_data_cache.php`,
+`admin.php`, `redirects.php`), stripping any client-supplied copy. The custom-handler rules
+(`cache.php`, `delete.php`, `uploads.php`) go through `BackendClient`, whose header allow-list
+drops both headers, so Django records Tent's IP there (fail-safe, not client-chosen). Django
 trusts `X-Forwarded-For` only when that secret matches `PROXY_SECRET`, takes the leftmost
 valid entry, and otherwise falls back to `REMOTE_ADDR` (no request is rejected). Details in
 [access and security](access-and-security.md#client-ip-integrity). Still to verify after

@@ -71,12 +71,19 @@ Django is a public Render web service: Tent reaches it over the internet, and an
 can also call it directly. Client-IP trust therefore comes from a shared-secret gate, not
 from Django being unreachable (#1501).
 
-- **Secret gate.** Tent sends `X-Proxy-Secret` on every rule that proxies to Django, and
-  strips any client-supplied copy first. Both sides read the same `PROXY_SECRET` env var;
-  an empty value means disabled. Django
+- **Secret gate.** Tent wires `SetClientIpMiddleware` and sends `X-Proxy-Secret` on the
+  standard proxy rules to Django (`backend.php`, `private_game_data_cache.php`, `admin.php`,
+  `redirects.php`, prod and dev), and strips any client-supplied copy first. Both sides read
+  the same `PROXY_SECRET` env var; an empty value means disabled. Django
   ([`common/client_ip.py`](../../../../backend/common/client_ip.py)) trusts
-  `X-Forwarded-For` only when the header matches `PROXY_SECRET`, compared with
-  `secrets.compare_digest`.
+  `X-Forwarded-For` only when the header matches `PROXY_SECRET`, compared in constant time
+  as bytes ([`common/secret_compare.py`](../../../../backend/common/secret_compare.py)), so a
+  non-ASCII header is a plain mismatch, never an error.
+- **Exception: custom-handler rules.** `cache.php`, `delete.php` and `uploads.php` reach
+  Django through custom handlers built on `BackendClient`, whose forwarded-header allow-list
+  drops both `X-Forwarded-For` and `X-Proxy-Secret`. Django therefore records `REMOTE_ADDR`
+  (Tent's IP) for those requests. This is fail-safe: the IP is not client-chosen, only less
+  precise.
 - **Leftmost entry.** Tent's `SetClientIpMiddleware` replaces `X-Forwarded-For` with exactly
   one value, its own `REMOTE_ADDR`; later hops (Render) may append entries. Django splits on
   `,`, strips the leftmost entry and validates it with `ipaddress.ip_address`.
