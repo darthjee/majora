@@ -10,13 +10,14 @@ sets `X-Skip-Cache: true` per the [`X-Skip-Cache` rule](principles.md#x-skip-cac
 `permissions.yaml` entry: the `staff` role's `scope: staff` row already covers them.
 
 > **Status:** live for the shared `domains.json` endpoint and the shared filter validation
-> (#1498). Tab endpoints still land with their own implementation sub-issues of #1477; each
+> (#1498), and for the Visits tab's `visits.json` (#1506). The other tab endpoints still land with their own implementation sub-issues of #1477; each
 > appends its row below. Shared conventions:
 > [`specs/access-statistics/shared-infrastructure.md`](../specs/access-statistics/shared-infrastructure.md#api-conventions).
 
 | Action | Who can |
 |--------|---------|
 | List domains for the filter bar (`GET /staff/statistics/domains.json`) | **Staff-or-superuser** |
+| Visits over time for the Visits tab (`GET /staff/statistics/visits.json`) | **Staff-or-superuser** |
 
 Anonymous callers get `401` and non-staff callers (including DMs and game admins without
 staff) get `403`. No role can write through these endpoints.
@@ -54,3 +55,9 @@ until #1501 (client IP integrity) is resolved.
 
 - **`GET /staff/statistics/domains.json`** — every `Domain` as `[{"id": <int>, "domain":
   <str>}]`, ordered by `domain`, unpaginated. Takes no filter params (any sent are ignored).
+- **`GET /staff/statistics/visits.json`** — visits started in the range, per bucket. Takes the
+  shared filter params (`from`, `to`, `tz`, `granularity`, `user`, `domain`, `audience`); not
+  paginated. Returns the envelope `{"filters": {...}, "buckets": [{"start", "end",
+  "anonymous", "logged_in", "visits"}], "totals": {"anonymous", "logged_in", "visits"}}`,
+  every bucket of the range present (zero-filled) and `visits = anonymous + logged_in`. Only
+  aggregated counts are exposed: no user identities and no IPs.
