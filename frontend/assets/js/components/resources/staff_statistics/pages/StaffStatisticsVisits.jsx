@@ -1,18 +1,17 @@
 import StaffStatisticsAccessGate from './elements/StaffStatisticsAccessGate.jsx';
-import StaffStatisticsPlaceholder from './elements/StaffStatisticsPlaceholder.jsx';
-import StaffStatisticsShell from './elements/StaffStatisticsShell.jsx';
+import StaffStatisticsVisitsBody from './elements/StaffStatisticsVisitsBody.jsx';
 
 /**
  * Access statistics Visits tab page.
  *
+ * @description The body (and so the visits fetch) only mounts once
+ *   `StaffStatisticsAccessGate` confirmed the user is staff or superuser.
  * @returns {React.ReactElement} The Visits tab page.
  */
 export default function StaffStatisticsVisits() {
   return (
     <StaffStatisticsAccessGate>
-      <StaffStatisticsShell tab="visits">
-        <StaffStatisticsPlaceholder />
-      </StaffStatisticsShell>
+      <StaffStatisticsVisitsBody />
     </StaffStatisticsAccessGate>
   );
 }
