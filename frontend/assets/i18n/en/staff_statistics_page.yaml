@@ -41,3 +41,11 @@ staff_statistics_page:
       week: Week
       month: Month
     reset: Reset
+  visits:
+    title: Visits over time
+    total: Total
+    anonymous: Anonymous
+    logged_in: Logged-in
+    logged_in_share: Logged-in share
+    empty: No visits in this range
+    load_error: Unable to load visits.
