@@ -83,6 +83,7 @@ class DomainRouteOrderingTest extends TestCase
         $backendHost = 'https://localhost:3030/';
         $staticRoot = '/home/moria_user/moria.ffavs.net';
         $cacheCleanupMap = [];
+        $proxySecret = '';
         require self::prodBackendRulePath();
         require self::prodDomainRulePath();
 

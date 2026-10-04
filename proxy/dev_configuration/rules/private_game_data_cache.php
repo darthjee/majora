@@ -19,6 +19,10 @@
  * Deliberately has no CacheCleanupMiddleware: its collection/entity cleanup
  * is keyed off the *mutating* request's own path, which never applies to
  * these GET-only routes.
+ *
+ * SetClientIpMiddleware (issue #1501) runs first: it sets X-Forwarded-For to
+ * the client's REMOTE_ADDR and authenticates it with $proxySecret in
+ * X-Proxy-Secret, so Django can trust the client IP.
  */
 
 use Tent\Configuration;
@@ -41,6 +45,10 @@ Configuration::buildRule(
         ],
     ],
     'middlewares' => [
+        [
+            'class'  => 'Tent\\Middlewares\\SetClientIpMiddleware',
+            'secret' => $proxySecret
+        ],
         [
             'class' => 'Tent\\Middlewares\\CacheStalenessMiddleware',
             'location' => $cacheFolder,

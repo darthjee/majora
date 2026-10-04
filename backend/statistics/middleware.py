@@ -1,11 +1,12 @@
 """Request middleware tracking one statistics `Session` per visitor."""
 
-import secrets
 from datetime import timedelta
 
 from django.conf import settings as django_settings
 from django.utils import timezone
 
+from common.client_ip import client_ip
+from common.secret_compare import secret_matches
 from domains.models import Domain
 from statistics import cookies
 from statistics.models import Session
@@ -32,7 +33,7 @@ class StatisticsSessionMiddleware:
             request.statistics_session = None
             return self.get_response(request)
 
-        ip = self._client_ip(request)
+        ip = client_ip(request)
         domain = self._domain_for_request(request)
         request.statistics_session = self._load_or_create_session(request, ip, domain)
         self._track_visit(request)
@@ -46,15 +47,8 @@ class StatisticsSessionMiddleware:
 
     def _skip_requested(self, request):
         """Return whether this request carries a valid statistics-skip header."""
-        secret = Settings.skip_secret()
         header = request.META.get('HTTP_X_STATISTICS_SKIP_SECRET')
-        if not secret or not header:
-            return False
-        return secrets.compare_digest(header, secret)
-
-    def _client_ip(self, request):
-        """Return the trusted client IP, preferring `X-Forwarded-For` over `REMOTE_ADDR`."""
-        return request.META.get('HTTP_X_FORWARDED_FOR') or request.META.get('REMOTE_ADDR')
+        return secret_matches(header, Settings.skip_secret())
 
     def _domain_for_request(self, request):
         """Return the `Domain` matching the request's host, or `None` if unrecognized."""

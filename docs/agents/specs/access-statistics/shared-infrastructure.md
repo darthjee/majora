@@ -529,6 +529,19 @@ single client IPs. Tabs that display IPs (Visit list) show them as recorded, and
 pages must not present them as authoritative. The fix is tracked in the follow-up sub-issue
 listed below; it does not block the statistics implementation.
 
+**Resolution (#1501).** Tent now wires `SetClientIpMiddleware` and sends an `X-Proxy-Secret`
+header on the standard proxy rules to Django (`backend.php`, `private_game_data_cache.php`,
+`admin.php`, `redirects.php`), stripping any client-supplied copy. The custom-handler rules
+(`cache.php`, `delete.php`, `uploads.php`) go through `BackendClient`, whose header allow-list
+drops both headers, so Django records Tent's IP there (fail-safe, not client-chosen). Django
+trusts `X-Forwarded-For` only when that secret matches `PROXY_SECRET`, takes the leftmost
+valid entry, and otherwise falls back to `REMOTE_ADDR` (no request is rejected). Details in
+[access and security](access-and-security.md#client-ip-integrity). Still to verify after
+deploy: that `PROXY_SECRET` is set on both sides, and the
+[manual post-deploy check](access-and-security.md#post-deploy-check-manual-owner),
+including whether an edge proxy sits in front of Tent. `X-Forwarded-Host` (domain gate) is
+not covered by the secret gate yet; see `docs/agents/access-control/game.md`.
+
 ## Open questions
 
 - None. Tab-specific choices (metrics, payload keys, chart types, endpoint names) belong to
