@@ -311,5 +311,5 @@ Created by #1489 under #1477.
 
 | Issue | Layer | Implements |
 |-------|-------|------------|
-| TBD | Backend | |
-| TBD | Frontend | |
+| #1522 | Backend | [Metrics](#metrics), [Ordering](#ordering), [Filters](#filters) (row selection), [API](#api) (`visit-list.json`, shared `sort` helper, tests, access-control row); needs #1498 |
+| #1523 | Frontend | [Filters](#filters), [Chart and layout](#chart-and-layout) (sortable table, pagination, user and profile links, ongoing badge, states), `visitList` quantity type, translations; needs #1499 and #1522 |

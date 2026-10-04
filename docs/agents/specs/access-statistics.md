@@ -62,6 +62,8 @@ sub-issue), `specced` (filled in by its spec sub-issue).
 | #1517 | Implementation: Domains tab (domain bar chart and table) | Created by #1487; needs #1499, #1500 and #1516 |
 | #1519 | Implementation: Users ranking endpoint (`users.json`) | Created by #1488; needs #1498 |
 | #1520 | Implementation: Users tab (ranking table) | Created by #1488; needs #1499 and #1519 |
+| #1522 | Implementation: Visit list endpoint (`visit-list.json`) | Created by #1489; needs #1498 |
+| #1523 | Implementation: Visit list tab (paginated visit table) | Created by #1489; needs #1499 and #1522 |
 | #1490 | Remove the access statistics specs | Blocked by every implementation sub-issue |
 
 Each of #1482 to #1489 appends the implementation sub-issues it creates to this table.
