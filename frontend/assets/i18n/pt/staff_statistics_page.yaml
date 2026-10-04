@@ -41,3 +41,11 @@ staff_statistics_page:
       week: Semana
       month: Mês
     reset: Limpar filtros
+  visits:
+    title: Visitas ao longo do tempo
+    total: Total
+    anonymous: Anônimos
+    logged_in: Logados
+    logged_in_share: Proporção de logados
+    empty: Nenhuma visita neste período
+    load_error: Não foi possível carregar as visitas.

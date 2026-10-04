@@ -10,13 +10,17 @@
  *
  *   `GET.domains` (`/staff/statistics/domains.json`) lists every `Domain` row as
  *   `[{id, domain}]`, ordered by `domain` and unpaginated, feeding the filter bar's domain
- *   select. Each statistics tab adds its own quantity type (e.g. `overview`, `visits`); their
+ *   select. `GET.visits` (`/staff/statistics/visits.json`, issue #1507) returns the Visits
+ *   tab's zero-filled buckets and totals (anonymous / logged-in) for the requested filters.
+ *   Each statistics tab adds its own quantity type (e.g. `overview`, `visits`); their
  *   filters travel as the request query (see `StatisticsQuery`).
  */
 const domains = { path: () => '/staff/statistics/domains.json', permission: null };
+const visits = { path: () => '/staff/statistics/visits.json', permission: null };
 
 export default {
   GET: {
     domains: { regular: domains, private: domains },
+    visits: { regular: visits, private: visits },
   },
 };

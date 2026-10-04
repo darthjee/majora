@@ -7,6 +7,8 @@ import StaffStatisticsDuration from '../../../../../../../assets/js/components/r
 import StaffStatisticsDomains from '../../../../../../../assets/js/components/resources/staff_statistics/pages/StaffStatisticsDomains.jsx';
 import StaffStatisticsUsers from '../../../../../../../assets/js/components/resources/staff_statistics/pages/StaffStatisticsUsers.jsx';
 import StaffStatisticsVisitList from '../../../../../../../assets/js/components/resources/staff_statistics/pages/StaffStatisticsVisitList.jsx';
+import VisitsController
+  from '../../../../../../../assets/js/components/resources/staff_statistics/pages/controllers/VisitsController.js';
 import StaffStatisticsPageController
   from '../../../../../../../assets/js/components/resources/staff_statistics/pages/controllers/StaffStatisticsPageController.js';
 import StaffStatisticsFilterBarHelper
@@ -33,6 +35,7 @@ PAGES.forEach(([name, Component, path]) => {
       originalWindow = globalThis.window;
       globalThis.window = { location: { hash: path } };
       stubBuildEffect(StaffStatisticsPageController);
+      stubBuildEffect(VisitsController);
       spyOn(StaffStatisticsFilterBarHelper, 'render').and.returnValue(React.createElement('div'));
     });
 
@@ -46,15 +49,33 @@ PAGES.forEach(([name, Component, path]) => {
       expect(renderToStaticMarkup(React.createElement(Component))).toBe('');
     });
 
-    it('renders the shell with the placeholder and its tab active', function() {
+    it('renders the shell with its tab active', function() {
       spyOn(AccessStore, 'isStaffOrSuperUser').and.returnValue(true);
 
       const html = renderToStaticMarkup(React.createElement(Component));
 
       expect(html).toContain(Translator.t('staff_statistics_page.title'));
-      expect(html).toContain(Translator.t('staff_statistics_page.placeholder'));
       expect(html).toContain(`<a class="nav-link active" aria-current="page" href="${path}">`);
     });
+
+    if (name === 'StaffStatisticsVisits') {
+      it('renders the loading state instead of the placeholder', function() {
+        spyOn(AccessStore, 'isStaffOrSuperUser').and.returnValue(true);
+
+        const html = renderToStaticMarkup(React.createElement(Component));
+
+        expect(html).toContain(Translator.t('staff_statistics_page.charts_loading'));
+        expect(html).not.toContain(Translator.t('staff_statistics_page.placeholder'));
+      });
+    } else {
+      it('renders the placeholder', function() {
+        spyOn(AccessStore, 'isStaffOrSuperUser').and.returnValue(true);
+
+        const html = renderToStaticMarkup(React.createElement(Component));
+
+        expect(html).toContain(Translator.t('staff_statistics_page.placeholder'));
+      });
+    }
 
     if (name === 'StaffStatisticsVisitors') {
       it('renders the charts loading fallback or the lazily loaded chart', function() {

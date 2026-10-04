@@ -9,6 +9,14 @@ describe('resourceConfig staffStatistics (issue #1499)', function() {
     expect(domains.regular.permission).toBeNull();
   });
 
+  it('resolves GET.visits as a single un-branched variant (issue #1507)', function() {
+    const visits = resourceConfig.get('GET', 'staffStatistics', 'visits');
+
+    expect(visits.regular).toBe(visits.private);
+    expect(visits.regular.path()).toBe('/staff/statistics/visits.json');
+    expect(visits.regular.permission).toBeNull();
+  });
+
   it('returns null for an unconfigured quantity type', function() {
     expect(resourceConfig.get('GET', 'staffStatistics', 'collection')).toBeNull();
   });
