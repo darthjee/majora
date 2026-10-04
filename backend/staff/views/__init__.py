@@ -11,6 +11,7 @@ from .staff_photo_replace import staff_photo_replace
 from .staff_photos_index import staff_photos_index
 from .staff_photos_list import staff_photos_list
 from .staff_statistics_domains import staff_statistics_domains
+from .staff_statistics_visits import staff_statistics_visits
 from .staff_user_approve import staff_user_approve
 from .staff_user_deny import staff_user_deny
 from .staff_user_detail import staff_user_detail
@@ -42,4 +43,5 @@ __all__ = [
     'staff_photo_deletable',
     'staff_photo_delete',
     'staff_statistics_domains',
+    'staff_statistics_visits',
 ]
