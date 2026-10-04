@@ -182,12 +182,43 @@ class TestStatisticsSessionMiddleware:
         assert response.status_code == 200
         assert Session.objects.count() == 1
 
-    def test_forwarded_for_header_takes_precedence_over_remote_addr(self, client):
-        """Test that `X-Forwarded-For` is used over `REMOTE_ADDR` when present."""
+    def test_trusted_forwarded_for_header_takes_precedence_over_remote_addr(
+        self, client, monkeypatch
+    ):
+        """Test that `X-Forwarded-For` is used over `REMOTE_ADDR` when the proxy secret matches."""
+        monkeypatch.setenv('PROXY_SECRET', 'tent-secret')
         client.get(
             '/ready.json',
             REMOTE_ADDR='1.1.1.1',
             HTTP_X_FORWARDED_FOR='2.2.2.2',
+            HTTP_X_PROXY_SECRET='tent-secret',
+        )
+
+        session = Session.objects.get()
+        assert session.ip == '2.2.2.2'
+
+    def test_forged_forwarded_for_without_proxy_secret_stores_remote_addr(
+        self, client, monkeypatch
+    ):
+        """Test that a forged `X-Forwarded-For` without the proxy secret stores `REMOTE_ADDR`."""
+        monkeypatch.setenv('PROXY_SECRET', 'tent-secret')
+        client.get(
+            '/ready.json',
+            REMOTE_ADDR='1.1.1.1',
+            HTTP_X_FORWARDED_FOR='2.2.2.2',
+        )
+
+        session = Session.objects.get()
+        assert session.ip == '1.1.1.1'
+
+    def test_trusted_multi_value_forwarded_for_stores_leftmost_entry(self, client, monkeypatch):
+        """Test that a trusted multi-value `X-Forwarded-For` stores its leftmost entry."""
+        monkeypatch.setenv('PROXY_SECRET', 'tent-secret')
+        client.get(
+            '/ready.json',
+            REMOTE_ADDR='1.1.1.1',
+            HTTP_X_FORWARDED_FOR='2.2.2.2, 3.3.3.3',
+            HTTP_X_PROXY_SECRET='tent-secret',
         )
 
         session = Session.objects.get()
