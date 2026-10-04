@@ -50,6 +50,18 @@ describe('StaffStatisticsShell', function() {
     expect(filterBarState.resolvedGranularity).toBe('week');
   });
 
+  it('shows the granularity in the filter bar by default', function() {
+    render({ tab: 'visits' });
+
+    expect(filterBarState.showGranularity).toBeTrue();
+  });
+
+  it('passes a hidden granularity to the filter bar', function() {
+    render({ tab: 'overview', showGranularity: false });
+
+    expect(filterBarState.showGranularity).toBeFalse();
+  });
+
   it('falls back to the overview tab for an unknown key', function() {
     expect(render({ tab: 'nope' })).toContain('<a class="nav-link active" aria-current="page" href="#/staff/statistics?range=90d">');
   });

@@ -12,9 +12,12 @@ import StaffStatisticsFilterBarHelper from './helpers/StaffStatisticsFilterBarHe
  * @param {string} props.tabPath - Hash path of the current tab (e.g. `#/staff/statistics`).
  * @param {string} [props.resolvedGranularity] - Granularity the API resolved (`day` / `week` /
  *   `month`), shown next to "Auto".
+ * @param {boolean} [props.showGranularity] - Whether to render the granularity select
+ *   (default `true`). Hiding it never touches the `granularity` URL param, so it survives a
+ *   switch to another tab.
  * @returns {React.ReactElement} Rendered filter bar.
  */
-export default function StaffStatisticsFilterBar({ tabPath, resolvedGranularity }) {
+export default function StaffStatisticsFilterBar({ tabPath, resolvedGranularity, showGranularity = true }) {
   const filters = useMemo(() => StaffStatisticsFiltersController.currentFilters(), []);
   const initial = useMemo(() => StaffStatisticsFiltersController.initialState(filters), [filters]);
   const [rangeDraft, setRangeDraft] = useState(initial.rangeDraft);
@@ -30,7 +33,7 @@ export default function StaffStatisticsFilterBar({ tabPath, resolvedGranularity 
 
   return StaffStatisticsFilterBarHelper.render(
     {
-      filters, rangeDraft, customFrom, customTo, domains, resolvedGranularity,
+      filters, rangeDraft, customFrom, customTo, domains, resolvedGranularity, showGranularity,
     },
     {
       onRangeChange: (range) => controller.handleRangeChange(filters, range),

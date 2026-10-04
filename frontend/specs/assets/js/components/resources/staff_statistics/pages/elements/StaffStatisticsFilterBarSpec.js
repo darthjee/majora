@@ -42,6 +42,18 @@ describe('StaffStatisticsFilterBar', function() {
     expect(captured.state.resolvedGranularity).toBe('week');
   });
 
+  it('shows the granularity by default', function() {
+    renderAt(tabPath);
+
+    expect(captured.state.showGranularity).toBeTrue();
+  });
+
+  it('forwards a hidden granularity to the helper', function() {
+    renderAt(tabPath, { showGranularity: false });
+
+    expect(captured.state.showGranularity).toBeFalse();
+  });
+
   it('navigates when a filter changes', function() {
     renderAt(tabPath);
     captured.handlers.onChange('audience', 'logged_in');
