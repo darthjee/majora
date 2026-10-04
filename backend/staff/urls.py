@@ -69,4 +69,9 @@ urlpatterns = [
         views.staff_statistics_visits,
         name='staff-statistics-visits',
     ),
+    path(
+        'staff/statistics/overview.json',
+        views.staff_statistics_overview,
+        name='staff-statistics-overview',
+    ),
 ]
