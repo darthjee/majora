@@ -228,6 +228,7 @@ class BackendRuleCacheClearTest extends TestCase
     {
         $cacheFolder     = $this->cacheFolder;
         $cacheCleanupMap = [];
+        $proxySecret     = '';
         require $this->copyOf('/proxy/dev_configuration/rules/backend.php');
 
         return $this->matchedHandler();
@@ -238,6 +239,7 @@ class BackendRuleCacheClearTest extends TestCase
         $cacheFolder     = $this->cacheFolder;
         $backendHost     = 'https://localhost:3030/';
         $cacheCleanupMap = [];
+        $proxySecret     = '';
         require $this->copyOf('/proxy/prod_configuration/rules/backend.php');
 
         return $this->matchedHandler();

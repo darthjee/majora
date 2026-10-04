@@ -30,6 +30,10 @@
  * routes (this rule's matcher is a strict subset of backend.php's generic
  * `.json` catch-all) and Tent further partitions by request path within the
  * folder.
+ *
+ * SetClientIpMiddleware (issue #1501) runs first: it sets X-Forwarded-For to
+ * the client's REMOTE_ADDR and authenticates it with $proxySecret in
+ * X-Proxy-Secret, so Django can trust the client IP.
  */
 
 use Tent\Configuration;
@@ -57,6 +61,10 @@ Configuration::buildRule(
         ],
     ],
     'middlewares' => [
+        [
+            'class'  => 'Tent\\Middlewares\\SetClientIpMiddleware',
+            'secret' => $proxySecret
+        ],
         [
             'class' => 'Tent\\Middlewares\\CacheStalenessMiddleware',
             'location' => $privateCacheLocation,
