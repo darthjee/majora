@@ -1,6 +1,7 @@
 staff_statistics_page:
   title: Estatísticas de acesso
   placeholder: Esta aba ainda não está disponível.
+  charts_loading: Carregando gráficos...
   tabs:
     overview: Visão geral
     visits: Visitas

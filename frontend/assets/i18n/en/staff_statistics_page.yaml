@@ -1,6 +1,7 @@
 staff_statistics_page:
   title: Access statistics
   placeholder: This tab is not available yet.
+  charts_loading: Loading charts...
   tabs:
     overview: Overview
     visits: Visits
