@@ -17,6 +17,14 @@ describe('resourceConfig staffStatistics (issue #1499)', function() {
     expect(visits.regular.permission).toBeNull();
   });
 
+  it('resolves GET.overview as a single un-branched variant (issue #1504)', function() {
+    const overview = resourceConfig.get('GET', 'staffStatistics', 'overview');
+
+    expect(overview.regular).toBe(overview.private);
+    expect(overview.regular.path()).toBe('/staff/statistics/overview.json');
+    expect(overview.regular.permission).toBeNull();
+  });
+
   it('returns null for an unconfigured quantity type', function() {
     expect(resourceConfig.get('GET', 'staffStatistics', 'collection')).toBeNull();
   });
