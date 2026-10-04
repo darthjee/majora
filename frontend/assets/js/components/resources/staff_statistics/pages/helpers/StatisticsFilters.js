@@ -189,7 +189,7 @@ export default class StatisticsFilters {
    * @returns {{range: string, from: (string|null), to: (string|null)}} The range filters.
    */
   static #readRange(range, from, to) {
-    if (range === 'custom' && StatisticsFilters.#isValidPair(from, to)) {
+    if (range === 'custom' && StatisticsFilters.isValidRange(from, to)) {
       return { range, from, to };
     }
 
@@ -200,11 +200,11 @@ export default class StatisticsFilters {
   /**
    * Checks a custom date pair.
    *
-   * @param {string|null} from - Raw `from` param.
-   * @param {string|null} to - Raw `to` param.
+   * @param {string|null|undefined} from - First day (`YYYY-MM-DD`).
+   * @param {string|null|undefined} to - Last day (`YYYY-MM-DD`).
    * @returns {boolean} `true` when both dates are valid and `from <= to`.
    */
-  static #isValidPair(from, to) {
+  static isValidRange(from, to) {
     return StatisticsFilters.isValidDate(from) && StatisticsFilters.isValidDate(to) && from <= to;
   }
 
