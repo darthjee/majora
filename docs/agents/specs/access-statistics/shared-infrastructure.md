@@ -437,29 +437,38 @@ A `staffStatistics` resource in
 - **Dependency:** `recharts` (3.x) is added with
   `docker-compose run --rm majora_fe yarn add recharts`. React is 19.2, which Recharts 3
   supports.
-- **Lazy loading:** there is no `React.lazy` in the app yet. The chunk boundary is the chart
-  components only: `components/resources/staff_statistics/charts/index.js` re-exports every
-  chart, and the tab pages load it with
-  `const Charts = React.lazy(() => import('../charts/index.js'))` (one chunk for all
-  statistics charts), rendered inside `<Suspense fallback={<LoadingMessage />}>`
-  (`components/common/misc/LoadingMessage.jsx`). Pages, the shell, the filter bar and
-  controllers stay in the main bundle (they are small, and non-staff users never mount
-  them), so only Recharts and the chart helpers move to the lazy chunk.
+- **Lazy loading:** the chunk boundary is the chart components only:
+  `components/resources/staff_statistics/charts/index.js` re-exports every chart as a named
+  export (`export { default as TimeSeriesChart } from './TimeSeriesChart.jsx';`). The single
+  `React.lazy` entry into it is the shared wrapper
+  `pages/elements/StaffStatisticsCharts.jsx`
+  (`React.lazy(() => import('../../charts/index.js').then(...))`, mapping the named exports
+  to one component, so all statistics charts share one chunk). Tab pages never call
+  `React.lazy` themselves; they render
+  `<StaffStatisticsCharts chart="TimeSeriesChart" name="..." points={...} xKey="..." series={[...]} />`,
+  where `chart` is the export name and the other props go to the chart. The wrapper renders
+  `<Suspense fallback={<LoadingMessage message={Translator.t('staff_statistics_page.charts_loading')} />}>`
+  (`components/common/misc/LoadingMessage.jsx`; en `Loading charts...`, pt
+  `Carregando gráficos...`). Pages, the shell, the filter bar and controllers stay in the
+  main bundle (they are small, and non-staff users never mount them), so only Recharts and
+  the chart helpers move to the lazy chunk (`yarn build` lists it as a separate
+  `index-*.js` of about 377 kB / 110 kB gzip, while the main entry does not include
+  Recharts).
 - **Sizing:** charts use `<ResponsiveContainer width="100%" height={300}>` (fixed height,
   fluid width), wrapped in a `<div data-testid="statistics-<name>-chart">` owned by the
   component.
 - **Tests:** Jasmine runs in plain Node and renders with `renderToStaticMarkup` (no DOM, no
-  effects, no layout), so `ResponsiveContainer` never measures anything and no
-  `ResizeObserver` is touched. Smoke tests import the chart component directly (not through
-  the lazy chunk) and assert the `data-testid` wrapper renders for empty, single-point and
-  normal data. If Recharts 3 still reads `ResizeObserver` at import or render time under
-  Node, the Recharts setup sub-issue adds a no-op stub in
-  `frontend/specs/support/resizeObserverStub.js`, registered as a Jasmine helper like
-  `preloadTranslations.js`, only defining `globalThis.ResizeObserver` when it is missing.
-- **Colors:** there are no app CSS custom properties yet (only SCSS variables in
-  `assets/css/main.scss`). Add a `:root` block in `main.scss` declaring
-  `--majora-chart-1` … `--majora-chart-6` (starting from `$secondary-color` and
-  `$primary-color`), `--majora-chart-grid` and `--majora-chart-axis`, and use them as
+  effects, no layout), so `ResponsiveContainer` never measures anything. Recharts 3 imports
+  and renders under Node without a `ResizeObserver`, so **no stub is needed** (none is
+  registered). Smoke tests import the chart component directly (not through the lazy chunk)
+  and assert the `data-testid` wrapper renders for empty, single-point and normal data.
+  Under `renderToStaticMarkup`, `StaffStatisticsCharts` renders the `charts_loading` fallback
+  until the chunk's dynamic import has resolved; React caches the resolved lazy module, so
+  page specs must accept either the fallback or the chart wrapper (spec order is random).
+- **Colors:** a `:root` block in `assets/css/main.scss` (right after the SCSS color
+  variables) declares `--majora-chart-1` … `--majora-chart-6` (`$secondary-color`,
+  `$primary-color`, then teal, amber, rose and slate-blue), `--majora-chart-grid` and
+  `--majora-chart-axis`. Charts use them as
   `stroke="var(--majora-chart-1)"` / `fill=...`. Tabs pick series colors from these.
 - **Layout per chart**, matching `components/resources/staff_photo/pages/`:
 
