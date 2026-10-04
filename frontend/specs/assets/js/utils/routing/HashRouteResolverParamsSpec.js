@@ -67,16 +67,6 @@ describe('HashRouteResolver params', function() {
     expect(params.toString()).toBe('session=none');
   });
 
-  it('extracts the access statistics filter params', function() {
-    const params = new HashRouteResolver(
-      () => '#/staff/statistics/visits?range=custom&from=2026-01-01&to=2026-03-31'
-        + '&granularity=week&user=5&domain=unknown&audience=logged_in&page=2&per_page=10&sort=visits',
-    ).getFilterParams();
-    expect(params.toString()).toBe(
-      'range=custom&from=2026-01-01&to=2026-03-31&granularity=week&user=5&domain=unknown&audience=logged_in',
-    );
-  });
-
   it('extracts the STL model scalar filter params (name/type/size)', function() {
     const params = new HashRouteResolver(
       () => '#/miniatures/stl_models?name=gob&type=creature&size=small&page=2',

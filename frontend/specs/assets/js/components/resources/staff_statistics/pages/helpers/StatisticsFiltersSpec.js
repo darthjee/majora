@@ -117,6 +117,10 @@ describe('StatisticsFilters', function() {
       expect(StatisticsFilters.resolveDates({ range: '7d' }, '2026-01-03')).toEqual({ from: '2025-12-28', to: '2026-01-03' });
     });
 
+    it('treats an unknown range as 30d', function() {
+      expect(StatisticsFilters.resolveDates({ range: 'bogus' }, today)).toEqual({ from: '2026-03-02', to: today });
+    });
+
     it('returns the custom dates', function() {
       expect(StatisticsFilters.resolveDates({ range: 'custom', from: '2026-01-01', to: '2026-01-05' }, today))
         .toEqual({ from: '2026-01-01', to: '2026-01-05' });

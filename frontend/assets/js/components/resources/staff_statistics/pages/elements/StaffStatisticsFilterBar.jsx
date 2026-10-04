@@ -26,11 +26,7 @@ export default function StaffStatisticsFilterBar({ tabPath, resolvedGranularity 
     tabPath, setRangeDraft, setCustomFrom, setCustomTo, setDomains,
   }), [tabPath]);
 
-  useEffect(() => {
-    let active = true;
-    controller.fetchDomains(() => active);
-    return () => { active = false; };
-  }, [controller]);
+  useEffect(() => controller.buildDomainsEffect()(), [controller]);
 
   return StaffStatisticsFilterBarHelper.render(
     {

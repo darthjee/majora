@@ -55,6 +55,26 @@ describe('StaffStatisticsFiltersController', function() {
     });
   });
 
+  describe('#buildDomainsEffect', function() {
+    it('fetches the domains', async function() {
+      spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({ data: [{ id: 1, domain: 'a' }] }));
+
+      controller.buildDomainsEffect()();
+      await flushMicrotasks();
+
+      expect(setters.setDomains).toHaveBeenCalledWith([{ id: 1, domain: 'a' }]);
+    });
+
+    it('drops a response arriving after cleanup', async function() {
+      spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({ data: [] }));
+
+      controller.buildDomainsEffect()()();
+      await flushMicrotasks();
+
+      expect(setters.setDomains).not.toHaveBeenCalled();
+    });
+  });
+
   describe('#fetchDomains', function() {
     it('sets the fetched domains', async function() {
       const domains = [{ id: 1, domain: 'a.example' }];

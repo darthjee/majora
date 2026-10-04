@@ -66,6 +66,19 @@ export default class StaffStatisticsFiltersController {
   }
 
   /**
+   * Builds the effect loading the domain options.
+   *
+   * @returns {Function} Effect callback returning its cleanup (which drops a late response).
+   */
+  buildDomainsEffect() {
+    return () => {
+      let active = true;
+      this.fetchDomains(() => active);
+      return () => { active = false; };
+    };
+  }
+
+  /**
    * Fetches the domain options.
    *
    * @param {Function} [isActive] - Returns `false` once the component unmounted.
