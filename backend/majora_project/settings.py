@@ -21,9 +21,12 @@ CSRF_TRUSTED_ORIGINS = [
 # Behind the `darthjee/tent` proxy, the original `Host` is forwarded as `X-Forwarded-Host`
 # while `Host` itself is overwritten with the backend's internal service hostname. This makes
 # `request.get_host()` transparently prefer `X-Forwarded-Host` when present, so per-domain
-# lookups (e.g. `DomainGamesCache`) resolve the real requested domain. Safe because Tent's
+# lookups (e.g. `DomainGamesCache`) resolve the real requested domain. Tent's
 # `RenameHeaderMiddleware` always overwrites `X-Forwarded-Host` with whatever `Host` it
-# actually received — a client cannot smuggle a spoofed value past Tent to the backend.
+# actually received, so a client cannot smuggle a spoofed value *through Tent*. Tent is not
+# the only way in, though: Django is a public Render service, so a direct caller can still
+# send any `X-Forwarded-Host`. Unlike `X-Forwarded-For` (gated by `PROXY_SECRET`, see
+# `common/client_ip.py`), this header is not yet gated; a follow-up raised from #1501.
 #
 # `/games.json` (GET+POST) is always restricted to the games reachable from the requesting
 # domain, via `domains.Domain`/`domains.DomainGroup` (see `games/views/games/games_list.py`).

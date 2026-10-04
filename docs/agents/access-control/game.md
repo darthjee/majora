@@ -37,12 +37,17 @@ GameMaster to authorize a brand-new game.
   (`majora_project/settings.py`), which trusts the `X-Forwarded-Host` header set by the
   `darthjee/tent` proxy's `RenameHeaderMiddleware` (which unconditionally overwrites any
   client-supplied value with the actual `Host` it received — see
-  `docs/agents/external/tent/host-header.md`). This is safe under this project's architecture
-  where Tent is the sole entry point (see `docs/agents/architecture.md`/root `README.md`) and
-  Django is never reached directly by an external client; `ALLOWED_HOSTS` itself is `*` by
-  default and does not add a second layer of validation. If Django is ever exposed directly
-  (bypassing Tent), this header becomes spoofable and the domain gate above would no longer be
-  trustworthy — keep this assumption in mind before changing the deployment topology.
+  `docs/agents/external/tent/host-header.md`). That only protects requests that go through
+  Tent. In production Django is **publicly reachable**: it runs as a public Render web
+  service that Tent reaches over the internet (`scripts/render.sh`, `backend/bin/server.sh`),
+  and `ALLOWED_HOSTS` is `*` by default, so it adds no second layer of validation. A direct
+  caller can therefore send any `X-Forwarded-Host` and **spoof the domain gate above**,
+  seeing games scoped to another domain. Client-IP trust was fixed in #1501 with an
+  `X-Proxy-Secret` gate (see
+  `docs/agents/specs/access-statistics/access-and-security.md#client-ip-integrity`), but
+  `X-Forwarded-Host` is **not** covered by it yet. Applying the same secret gate to it is a
+  separate follow-up security change; until then, treat the domain gate as a visibility
+  filter, not a security boundary.
 
 ## Fields
 
