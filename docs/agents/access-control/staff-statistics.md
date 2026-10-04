@@ -9,8 +9,9 @@ sets `X-Skip-Cache: true` per the [`X-Skip-Cache` rule](principles.md#x-skip-cac
 (`@restricted`). None is warmed by Navi. There is no `EndpointPermission` /
 `permissions.yaml` entry: the `staff` role's `scope: staff` row already covers them.
 
-> **Status:** planned. Endpoints land with their implementation sub-issues of #1477 (shared
-> backend: #1498); each tab's implementation appends its row below. Shared conventions:
+> **Status:** live for the shared `domains.json` endpoint and the shared filter validation
+> (#1498). Tab endpoints still land with their own implementation sub-issues of #1477; each
+> appends its row below. Shared conventions:
 > [`specs/access-statistics/shared-infrastructure.md`](../specs/access-statistics/shared-infrastructure.md#api-conventions).
 
 | Action | Who can |
@@ -29,10 +30,16 @@ never returned to them.
 ## Input validation
 
 Filter params (`from`, `to`, `tz`, `granularity`, `user`, `domain`, `audience`, `page`,
-`per_page`) are validated strictly by one shared parser; anything invalid is `400` with
-`{"errors": {"<field>": ["<code>"]}}`. A well-formed but unknown `user` or `domain` id returns
-empty data, not an error. Queries go through the ORM only, and filter payloads are not
-logged.
+`per_page`) are validated strictly by one shared parser
+(`statistics/aggregation/params_parser.py`, wrapped by `parse_statistics_filters` in
+`staff/views/_staff_statistics_shared.py`); anything invalid is `400` with
+`{"errors": {"<field>": ["<code>"]}}`, every error reported at once. Codes: `invalid_date`
+(`from` / `to`), `from_after_to` and `range_too_long` (`range`, checked only when both dates
+parse; the cap is `MAJORA_STATISTICS_MAX_RANGE_DAYS`, default 366 inclusive days),
+`invalid_timezone`, `invalid_granularity`, `invalid_audience`, `invalid_user`,
+`invalid_domain`, `invalid_page` and `invalid_per_page` (`per_page > 100`). Unknown params
+are ignored. A well-formed but unknown `user` or `domain` id returns empty data, not an
+error. Queries go through the ORM only, and filter payloads are not logged.
 
 ## Data exposed
 
@@ -44,4 +51,4 @@ until #1501 (client IP integrity) is resolved.
 ## Endpoints
 
 - **`GET /staff/statistics/domains.json`** — every `Domain` as `[{"id": <int>, "domain":
-  <str>}]`, ordered by `domain`, unpaginated. Takes no filter params.
+  <str>}]`, ordered by `domain`, unpaginated. Takes no filter params (any sent are ignored).
