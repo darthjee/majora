@@ -1,0 +1,42 @@
+staff_statistics_page:
+  title: Access statistics
+  placeholder: This tab is not available yet.
+  tabs:
+    overview: Overview
+    visits: Visits
+    visitors: Visitors
+    duration: Duration
+    domains: Domains
+    users: Users
+    visit_list: Visit list
+  filters:
+    range: Date range
+    ranges:
+      '7d': Last 7 days
+      '30d': Last 30 days
+      '90d': Last 90 days
+      '12m': Last 12 months
+      custom: Custom
+    from: From
+    to: To
+    user: User
+    user_any: Any user
+    user_search_placeholder: Search users...
+    user_no_results: No users found.
+    user_deleted: deleted user
+    user_clear: Clear
+    domain: Domain
+    domain_any: Any domain
+    domain_unknown: Unknown
+    audience: Audience
+    audiences:
+      all: All
+      anonymous: Anonymous
+      logged_in: Logged-in
+    granularity: Granularity
+    granularities:
+      auto: Auto
+      day: Day
+      week: Week
+      month: Month
+    reset: Reset
