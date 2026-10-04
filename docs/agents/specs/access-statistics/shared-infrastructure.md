@@ -41,7 +41,8 @@ Settled in #1477 (Tabs, Filters and charting, Performance & security).
 - **Bounded responses:**
   - a range cap per request;
   - the Visit list paginated per [`pagination.md`](../../pagination.md);
-  - the Users ranking limited to the top N and paginated.
+  - the Users ranking paginated (no hard cap: the top N is the current page, see
+    [Users](users.md)).
 - **No server-side caching** at first. Responses are restricted, so the proxy doesn't cache
   them; `memory_cache` remains an option later.
 - The write cost of visit tracking is handled in #1478: exact `hits` via one atomic
@@ -134,8 +135,8 @@ chart.
   Bootstrap `<ul className="nav nav-tabs flex-wrap mb-3">` with `<a className="nav-link">`
   items and `aria-current` on the active one. Unlike `StaffPhotoTabs` (whose hrefs drop the
   query), each tab `href` is built with `statisticsHref(tabPath, filters)` (below), so the
-  current filters carry across tabs. `page` / `per_page` are **not** carried: switching tabs
-  resets pagination.
+  current filters carry across tabs. `page` / `per_page` (and the Users tab's `sort`) are
+  **not** carried: switching tabs resets pagination and sorting.
 - Every hash change remounts the page (`AppHelper.render` keys its fragment on the hash), so
   a filter change or tab switch is just a new hash. There is no in-page query state.
 
@@ -191,7 +192,9 @@ Filters live in the hash query of every statistics route, e.g.
 - **Allowlist:** append `range`, `from`, `to`, `granularity`, `user`, `domain`, `audience` to
   `FILTER_KEYS` in `HashRouteResolver.js` (and refresh the outdated `getFilterParams` JSDoc,
   which is already missing `category`, `completed` and `session`). `getFilterParams()` then
-  exposes them. None of these names clashes with an existing filter key.
+  exposes them. None of these names clashes with an existing filter key. Tab-specific params
+  (`page` / `per_page`, and `sort` on the [Users tab](users.md#ordering)) are **not** in
+  `FILTER_KEYS` and not carried across tabs.
 - **Writing the URL:** `statisticsHref(path, filters)` (in the statistics `helpers/`) builds
   `` `${path}?${query}` `` from the filter object, dropping defaults, and **without** the
   `page=1` that `buildFilteredHref` always adds (statistics tabs paginate only in the Visit
@@ -300,6 +303,10 @@ and `staff_users_list`'s `invalid_status` return), status `400`:
 `page` / `per_page` are validated strictly here (the shared `Paginator` silently falls back
 to defaults and has no maximum), then passed to it unchanged. Range checks only run when
 both dates parsed.
+
+Tabs may add their own params, validated by their endpoint on top of the shared parser and
+reported together with the shared errors: the [Users tab](users.md#ordering)'s `sort`
+(`invalid_sort`).
 
 #### Response envelope
 
