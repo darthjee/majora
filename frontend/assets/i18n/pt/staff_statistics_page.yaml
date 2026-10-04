@@ -49,6 +49,22 @@ staff_statistics_page:
     logged_in_share: Proporção de logados
     empty: Nenhuma visita neste período
     load_error: Não foi possível carregar as visitas.
+  visitors:
+    title: Visitantes ao longo do tempo
+    unique_visitors: Visitantes únicos
+    new: Novos
+    returning: Recorrentes
+    returning_share: Proporção de recorrentes
+    anonymous: Anônimos
+    logged_in: Logados
+    logged_in_share: Proporção de logados
+    total: Total
+    new_returning_title: Novos vs recorrentes
+    audience_title: Anônimos vs logados
+    totals_note: 'Os totais do período não são a soma das barras: um visitante visto em vários períodos conta uma vez.'
+    first_visit_note: '"Novo" significa a primeira visita registrada; visitas anteriores ao início do rastreamento não são contadas.'
+    empty: Nenhum visitante neste período
+    load_error: Não foi possível carregar os visitantes.
   overview:
     visits: Visitas
     unique_visitors: Visitantes únicos

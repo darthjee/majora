@@ -49,6 +49,22 @@ staff_statistics_page:
     logged_in_share: Logged-in share
     empty: No visits in this range
     load_error: Unable to load visits.
+  visitors:
+    title: Visitors over time
+    unique_visitors: Unique visitors
+    new: New
+    returning: Returning
+    returning_share: Returning share
+    anonymous: Anonymous
+    logged_in: Logged-in
+    logged_in_share: Logged-in share
+    total: Total
+    new_returning_title: New vs returning
+    audience_title: Anonymous vs logged-in
+    totals_note: 'Range totals are not sums of the bars: a visitor seen in several periods counts once.'
+    first_visit_note: '"New" means first visit recorded; visits before tracking started are not counted.'
+    empty: No visitors in this range
+    load_error: Unable to load visitors.
   overview:
     visits: Visits
     unique_visitors: Unique visitors
