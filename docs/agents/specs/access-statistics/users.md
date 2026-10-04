@@ -312,4 +312,9 @@ constant on `UsersRanking`), merging its error into the shared parser's errors.
 
 ## Implementation sub-issues
 
-_Created by #1488 under #1477 (filled in below)._
+Created by #1488 under #1477.
+
+| Issue | Layer | Implements |
+|-------|-------|------------|
+| #1519 | Backend | [Metrics](#metrics), [Ordering](#ordering), [Filters](#filters) (row selection), [API](#api) (`users.json`, `UsersRanking`, tests, access-control row); needs #1498 |
+| #1520 | Frontend | [Filters](#filters), [Chart and layout](#chart-and-layout) (sortable table, pagination, row click, profile link, states), `usersRanking` quantity type, translations; needs #1499 and #1519 |

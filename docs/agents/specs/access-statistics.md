@@ -28,7 +28,7 @@ sub-issue), `specced` (filled in by its spec sub-issue).
 - [Visitors](access-statistics/visitors.md): `specced` (#1485)
 - [Duration](access-statistics/duration.md): `specced` (#1486)
 - [Domains](access-statistics/domains.md): `specced` (#1487)
-- [Users](access-statistics/users.md): `stub` (#1488)
+- [Users](access-statistics/users.md): `specced` (#1488)
 - [Visit list](access-statistics/visit-list.md): `stub` (#1489)
 
 ## Sub-issue map
@@ -60,6 +60,8 @@ sub-issue), `specced` (filled in by its spec sub-issue).
 | #1514 | Implementation: Duration tab (duration, hits per visit and histogram charts) | Created by #1486; needs #1499, #1500 and #1513 |
 | #1516 | Implementation: Domains summary endpoint (`domains/summary.json`) | Created by #1487; needs #1498 |
 | #1517 | Implementation: Domains tab (domain bar chart and table) | Created by #1487; needs #1499, #1500 and #1516 |
+| #1519 | Implementation: Users ranking endpoint (`users.json`) | Created by #1488; needs #1498 |
+| #1520 | Implementation: Users tab (ranking table) | Created by #1488; needs #1499 and #1519 |
 | #1490 | Remove the access statistics specs | Blocked by every implementation sub-issue |
 
 Each of #1482 to #1489 appends the implementation sub-issues it creates to this table.
