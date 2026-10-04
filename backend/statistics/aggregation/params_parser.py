@@ -26,7 +26,6 @@ class StatisticsParamsParser:
     AUDIENCES = ('all', 'anonymous', 'logged_in')
     DEFAULT_SPAN_DAYS = 30
     MAX_PER_PAGE = 100
-    UNKNOWN_DOMAIN = 'unknown'
 
     def __init__(self, query_params, today=None):
         """Store the raw query params and an optional injected `today`."""
@@ -111,7 +110,7 @@ class StatisticsParamsParser:
     def _parse_domain(self):
         """Parse `domain` as a positive integer or `unknown` (default none)."""
         value = self._get('domain')
-        if value is None or value == self.UNKNOWN_DOMAIN:
+        if value is None or value == StatisticsFilters.UNKNOWN_DOMAIN:
             return value
         return self._positive_int_or_error('domain', value, 'invalid_domain')
 

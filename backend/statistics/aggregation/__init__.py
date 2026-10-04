@@ -5,12 +5,22 @@ time-zone-aware bucketing, the visit query, zero-filled series and pure metric h
 Never `import statistics` for the stdlib helpers: this app's name shadows that module.
 """
 
+from . import metrics
+from .bucket import Bucket
+from .bucket_calendar import BucketCalendar
 from .filters import StatisticsFilters
 from .granularity import Granularity
 from .params_parser import StatisticsParamsParser
+from .series import Series
+from .visit_query import VisitQuery
 
 __all__ = [
+    'Bucket',
+    'BucketCalendar',
     'Granularity',
+    'Series',
     'StatisticsFilters',
     'StatisticsParamsParser',
+    'VisitQuery',
+    'metrics',
 ]

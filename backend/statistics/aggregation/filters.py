@@ -9,6 +9,8 @@ from zoneinfo import ZoneInfo
 class StatisticsFilters:
     """Resolved statistics filters: local date range, zone, granularity and session filters."""
 
+    UNKNOWN_DOMAIN = 'unknown'
+
     from_date: date
     to_date: date
     tz: ZoneInfo
