@@ -1,12 +1,14 @@
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import StaffStatistics from '../../../../../../../assets/js/components/resources/staff_statistics/pages/StaffStatistics.jsx';
+import StaffStatisticsOverview from '../../../../../../../assets/js/components/resources/staff_statistics/pages/StaffStatisticsOverview.jsx';
 import StaffStatisticsVisits from '../../../../../../../assets/js/components/resources/staff_statistics/pages/StaffStatisticsVisits.jsx';
 import StaffStatisticsVisitors from '../../../../../../../assets/js/components/resources/staff_statistics/pages/StaffStatisticsVisitors.jsx';
 import StaffStatisticsDuration from '../../../../../../../assets/js/components/resources/staff_statistics/pages/StaffStatisticsDuration.jsx';
 import StaffStatisticsDomains from '../../../../../../../assets/js/components/resources/staff_statistics/pages/StaffStatisticsDomains.jsx';
 import StaffStatisticsUsers from '../../../../../../../assets/js/components/resources/staff_statistics/pages/StaffStatisticsUsers.jsx';
 import StaffStatisticsVisitList from '../../../../../../../assets/js/components/resources/staff_statistics/pages/StaffStatisticsVisitList.jsx';
+import OverviewController
+  from '../../../../../../../assets/js/components/resources/staff_statistics/pages/controllers/OverviewController.js';
 import VisitsController
   from '../../../../../../../assets/js/components/resources/staff_statistics/pages/controllers/VisitsController.js';
 import StaffStatisticsPageController
@@ -18,7 +20,7 @@ import Translator from '../../../../../../../assets/js/i18n/Translator.js';
 import { stubBuildEffect } from '../../../../../../support/controllerStubs.js';
 
 const PAGES = [
-  ['StaffStatistics', StaffStatistics, '#/staff/statistics'],
+  ['StaffStatisticsOverview', StaffStatisticsOverview, '#/staff/statistics'],
   ['StaffStatisticsVisits', StaffStatisticsVisits, '#/staff/statistics/visits'],
   ['StaffStatisticsVisitors', StaffStatisticsVisitors, '#/staff/statistics/visitors'],
   ['StaffStatisticsDuration', StaffStatisticsDuration, '#/staff/statistics/duration'],
@@ -26,6 +28,11 @@ const PAGES = [
   ['StaffStatisticsUsers', StaffStatisticsUsers, '#/staff/statistics/users'],
   ['StaffStatisticsVisitList', StaffStatisticsVisitList, '#/staff/statistics/visit-list'],
 ];
+
+const LOADING_KEYS = {
+  StaffStatisticsOverview: 'staff_statistics_page.overview.loading',
+  StaffStatisticsVisits: 'staff_statistics_page.charts_loading',
+};
 
 PAGES.forEach(([name, Component, path]) => {
   describe(name, function() {
@@ -35,6 +42,7 @@ PAGES.forEach(([name, Component, path]) => {
       originalWindow = globalThis.window;
       globalThis.window = { location: { hash: path } };
       stubBuildEffect(StaffStatisticsPageController);
+      stubBuildEffect(OverviewController);
       stubBuildEffect(VisitsController);
       spyOn(StaffStatisticsFilterBarHelper, 'render').and.returnValue(React.createElement('div'));
     });
@@ -58,13 +66,13 @@ PAGES.forEach(([name, Component, path]) => {
       expect(html).toContain(`<a class="nav-link active" aria-current="page" href="${path}">`);
     });
 
-    if (name === 'StaffStatisticsVisits') {
+    if (LOADING_KEYS[name]) {
       it('renders the loading state instead of the placeholder', function() {
         spyOn(AccessStore, 'isStaffOrSuperUser').and.returnValue(true);
 
         const html = renderToStaticMarkup(React.createElement(Component));
 
-        expect(html).toContain(Translator.t('staff_statistics_page.charts_loading'));
+        expect(html).toContain(Translator.t(LOADING_KEYS[name]));
         expect(html).not.toContain(Translator.t('staff_statistics_page.placeholder'));
       });
     } else {

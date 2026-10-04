@@ -27,9 +27,10 @@ export default class StaffStatisticsFilterBarHelper {
    * Renders the date range, user, domain, audience and granularity controls plus Reset.
    *
    * @param {{filters: object, rangeDraft: string, customFrom: string, customTo: string,
-   *   domains: Array<{id: number, domain: string}>, resolvedGranularity: (string|undefined)}}
-   *   state - Current URL filters, pending range / custom dates, domain options and the
-   *   resolved granularity.
+   *   domains: Array<{id: number, domain: string}>, resolvedGranularity: (string|undefined),
+   *   showGranularity: (boolean|undefined)}} state - Current URL filters, pending range /
+   *   custom dates, domain options, the resolved granularity and whether to show the
+   *   granularity select (hidden only when `false`).
    * @param {{onRangeChange: Function, onCustomDateChange: Function, onChange: Function,
    *   onReset: Function}} handlers - Range select, custom date (`(field, value)`), single
    *   filter (`(key, value)`) and reset handlers.
@@ -51,9 +52,7 @@ export default class StaffStatisticsFilterBarHelper {
         {StaffStatisticsFilterBarHelper.#renderSelect('audience', state.filters.audience, handlers, AUDIENCES.map(
           (audience) => [audience, t(`audiences.${audience}`)],
         ))}
-        {StaffStatisticsFilterBarHelper.#renderSelect('granularity', state.filters.granularity, handlers, GRANULARITIES.map(
-          (granularity) => [granularity, StaffStatisticsFilterBarHelper.#granularityLabel(granularity, state)],
-        ))}
+        {StaffStatisticsFilterBarHelper.#renderGranularity(state, handlers)}
         <div className="col-auto">
           <button
             type="button"
@@ -133,6 +132,14 @@ export default class StaffStatisticsFilterBarHelper {
     ];
 
     return StaffStatisticsFilterBarHelper.#renderSelect('domain', state.filters.domain, handlers, options);
+  }
+
+  static #renderGranularity(state, handlers) {
+    if (state.showGranularity === false) return null;
+
+    return StaffStatisticsFilterBarHelper.#renderSelect('granularity', state.filters.granularity, handlers, GRANULARITIES.map(
+      (granularity) => [granularity, StaffStatisticsFilterBarHelper.#granularityLabel(granularity, state)],
+    ));
   }
 
   static #granularityLabel(granularity, { resolvedGranularity }) {

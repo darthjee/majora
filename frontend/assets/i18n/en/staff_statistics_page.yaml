@@ -49,3 +49,15 @@ staff_statistics_page:
     logged_in_share: Logged-in share
     empty: No visits in this range
     load_error: Unable to load visits.
+  overview:
+    visits: Visits
+    unique_visitors: Unique visitors
+    logged_in_users: Logged-in users
+    average_duration: Average visit duration
+    new_vs_returning: New vs returning
+    new_visitors: 'New: {{count}}'
+    returning_visitors: 'Returning: {{count}}'
+    returning_share: '{{share}} returning'
+    first_visit_note: '"New" means first visit recorded; visits before tracking started are not counted.'
+    loading: Loading overview...
+    load_error: Unable to load the overview.

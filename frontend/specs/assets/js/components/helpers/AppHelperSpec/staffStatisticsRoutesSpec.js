@@ -1,5 +1,5 @@
 import AppHelper from '../../../../../../assets/js/components/helpers/AppHelper.jsx';
-import StaffStatistics from '../../../../../../assets/js/components/resources/staff_statistics/pages/StaffStatistics.jsx';
+import StaffStatisticsOverview from '../../../../../../assets/js/components/resources/staff_statistics/pages/StaffStatisticsOverview.jsx';
 import StaffStatisticsVisits from '../../../../../../assets/js/components/resources/staff_statistics/pages/StaffStatisticsVisits.jsx';
 import StaffStatisticsVisitors from '../../../../../../assets/js/components/resources/staff_statistics/pages/StaffStatisticsVisitors.jsx';
 import StaffStatisticsDuration from '../../../../../../assets/js/components/resources/staff_statistics/pages/StaffStatisticsDuration.jsx';
@@ -8,7 +8,7 @@ import StaffStatisticsUsers from '../../../../../../assets/js/components/resourc
 import StaffStatisticsVisitList from '../../../../../../assets/js/components/resources/staff_statistics/pages/StaffStatisticsVisitList.jsx';
 
 const CASES = [
-  ['staffStatistics', StaffStatistics],
+  ['staffStatistics', StaffStatisticsOverview],
   ['staffStatisticsVisits', StaffStatisticsVisits],
   ['staffStatisticsVisitors', StaffStatisticsVisitors],
   ['staffStatisticsDuration', StaffStatisticsDuration],

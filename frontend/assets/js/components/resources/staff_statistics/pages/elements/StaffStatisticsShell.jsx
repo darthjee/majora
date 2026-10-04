@@ -13,16 +13,24 @@ import StaffStatisticsTabs from './StaffStatisticsTabs.jsx';
  *   `domains`, `users` or `visit_list`).
  * @param {string} [props.resolvedGranularity] - Granularity the API resolved (the response's
  *   `filters.granularity`), shown next to "Auto" in the filter bar.
+ * @param {boolean} [props.showGranularity] - Whether the filter bar shows the granularity
+ *   select (default `true`).
  * @param {React.ReactNode} props.children - Tab body.
  * @returns {React.ReactElement} Rendered shell.
  */
-export default function StaffStatisticsShell({ tab, resolvedGranularity, children }) {
+export default function StaffStatisticsShell({
+  tab, resolvedGranularity, showGranularity = true, children,
+}) {
   const filters = useMemo(() => StaffStatisticsFiltersController.currentFilters(), []);
 
   return (
     <div className="container mt-4" data-testid="staff-statistics">
       <h1>{Translator.t('staff_statistics_page.title')}</h1>
-      <StaffStatisticsFilterBar tabPath={StatisticsTabs.hashPath(tab)} resolvedGranularity={resolvedGranularity} />
+      <StaffStatisticsFilterBar
+        tabPath={StatisticsTabs.hashPath(tab)}
+        resolvedGranularity={resolvedGranularity}
+        showGranularity={showGranularity}
+      />
       <StaffStatisticsTabs activeTab={StatisticsTabs.find(tab).key} filters={filters} />
       {children}
     </div>

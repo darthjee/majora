@@ -88,6 +88,22 @@ describe('StaffStatisticsFilterBarHelper', function() {
     expect(render({ resolvedGranularity: 'auto' })).not.toContain(`${t('granularities.auto')} (`);
   });
 
+  it('shows the granularity select when showGranularity is undefined', function() {
+    expect(render()).toContain('data-testid="statistics-filter-granularity"');
+  });
+
+  it('shows the granularity select when showGranularity is true', function() {
+    expect(render({ showGranularity: true })).toContain('data-testid="statistics-filter-granularity"');
+  });
+
+  it('hides the granularity select when showGranularity is false', function() {
+    const html = render({ showGranularity: false });
+
+    expect(html).not.toContain('data-testid="statistics-filter-granularity"');
+    expect(html).not.toContain(t('granularity'));
+    expect(html).toContain('data-testid="statistics-filter-audience"');
+  });
+
   it('passes the user filter to the user select', function() {
     const select = find(build({ filters: { ...DEFAULTS, user: '7' } }), (node) => node.type === StaffStatisticsUserSelect);
 
