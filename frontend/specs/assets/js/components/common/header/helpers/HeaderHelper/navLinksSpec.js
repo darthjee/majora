@@ -30,6 +30,8 @@ describe('HeaderHelper', function() {
         expect(html).toContain('Dashboard');
         expect(html).toContain('href="#/staff/photos"');
         expect(html).toContain(Translator.t('header.nav_staff_photos'));
+        expect(html).toContain('href="#/staff/statistics"');
+        expect(html).toContain(Translator.t('header.nav_staff_statistics'));
       });
 
       it('renders the Admin dropdown with Treasures/Staff Users/Dashboard items when the user is staff', function() {
@@ -40,6 +42,7 @@ describe('HeaderHelper', function() {
         expect(html).toContain('href="#/staff/users"');
         expect(html).toContain('href="#/staff/dashboard"');
         expect(html).toContain('href="#/staff/photos"');
+        expect(html).toContain('href="#/staff/statistics"');
       });
 
       it('does not render the Admin dropdown when the user is neither staff nor a superuser', function() {
@@ -49,6 +52,7 @@ describe('HeaderHelper', function() {
         expect(html).not.toContain('href="#/staff/users"');
         expect(html).not.toContain('href="#/staff/dashboard"');
         expect(html).not.toContain('href="#/staff/photos"');
+        expect(html).not.toContain('href="#/staff/statistics"');
       });
     });
 
