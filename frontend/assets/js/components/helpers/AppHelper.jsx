@@ -98,7 +98,7 @@ import StaffStatisticsDuration from '../resources/staff_statistics/pages/StaffSt
 import StaffStatisticsDomains from '../resources/staff_statistics/pages/StaffStatisticsDomains.jsx';
 import StaffStatisticsUsers from '../resources/staff_statistics/pages/StaffStatisticsUsers.jsx';
 import StaffStatisticsVisitList from '../resources/staff_statistics/pages/StaffStatisticsVisitList.jsx';
-import StaffStatistics from '../resources/staff_statistics/pages/StaffStatistics.jsx';
+import StaffStatisticsOverview from '../resources/staff_statistics/pages/StaffStatisticsOverview.jsx';
 import StlModel from '../resources/stl_model/pages/StlModel.jsx';
 import StlModelEdit from '../resources/stl_model/pages/StlModelEdit.jsx';
 import StlModelNew from '../resources/stl_model/pages/StlModelNew.jsx';
@@ -211,7 +211,7 @@ const PAGES = {
   staffStatisticsDomains: <StaffStatisticsDomains />,
   staffStatisticsUsers: <StaffStatisticsUsers />,
   staffStatisticsVisitList: <StaffStatisticsVisitList />,
-  staffStatistics: <StaffStatistics />,
+  staffStatistics: <StaffStatisticsOverview />,
   stlModels: <StlModels />,
   stlModel: <StlModel />,
   stlModelNew: <StlModelNew />,
