@@ -6,7 +6,7 @@ import Translator from '../../../../../../../../assets/js/i18n/Translator.js';
 import flushMicrotasks from '../../../../../../../support/flushMicrotasks.js';
 
 describe('StaffStatisticsCharts', function() {
-  const loadingText = Translator.t('staff_statistics_page.charts_loading');
+  const loadingText = () => Translator.t('staff_statistics_page.charts_loading');
   const chartTestId = 'data-testid="statistics-visitors-chart"';
 
   const render = () => renderToStaticMarkup(React.createElement(StaffStatisticsCharts, {
@@ -23,7 +23,7 @@ describe('StaffStatisticsCharts', function() {
 
   it('renders the loading fallback until the charts chunk resolves', function() {
     const html = render();
-    const showsFallback = html.includes(loadingText);
+    const showsFallback = html.includes(loadingText());
     const showsChart = html.includes(chartTestId);
 
     // The lazy chunk is cached once resolved, so an earlier spec may already have loaded it.
@@ -39,6 +39,6 @@ describe('StaffStatisticsCharts', function() {
     const html = render();
 
     expect(html).toContain(chartTestId);
-    expect(html).not.toContain(loadingText);
+    expect(html).not.toContain(loadingText());
   });
 });
