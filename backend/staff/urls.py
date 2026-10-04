@@ -59,4 +59,9 @@ urlpatterns = [
         views.staff_photo_delete,
         name='staff-photo-delete',
     ),
+    path(
+        'staff/statistics/domains.json',
+        views.staff_statistics_domains,
+        name='staff-statistics-domains',
+    ),
 ]
