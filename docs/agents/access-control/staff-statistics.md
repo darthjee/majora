@@ -10,8 +10,8 @@ sets `X-Skip-Cache: true` per the [`X-Skip-Cache` rule](principles.md#x-skip-cac
 `permissions.yaml` entry: the `staff` role's `scope: staff` row already covers them.
 
 > **Status:** live for the shared `domains.json` endpoint and the shared filter validation
-> (#1498), for the Visits tab's `visits.json` (#1506) and for the Overview tab's
-> `overview.json` (#1503). The other tab endpoints still land with their own implementation
+> (#1498), for the Visits tab's `visits.json` (#1506), for the Overview tab's
+> `overview.json` (#1503) and for the Visitors tab's `visitors.json` (#1509). The other tab endpoints still land with their own implementation
 > sub-issues of #1477; each appends its row below. Shared conventions:
 > [`specs/access-statistics/shared-infrastructure.md`](../specs/access-statistics/shared-infrastructure.md#api-conventions).
 
@@ -20,6 +20,7 @@ sets `X-Skip-Cache: true` per the [`X-Skip-Cache` rule](principles.md#x-skip-cac
 | List domains for the filter bar (`GET /staff/statistics/domains.json`) | **Staff-or-superuser** |
 | Visits over time for the Visits tab (`GET /staff/statistics/visits.json`) | **Staff-or-superuser** |
 | Overview KPIs for the Overview tab (`GET /staff/statistics/overview.json`) | **Staff-or-superuser** |
+| New vs returning visitors for the Visitors tab (`GET /staff/statistics/visitors.json`) | **Staff-or-superuser** |
 
 Anonymous callers get `401` and non-staff callers (including DMs and game admins without
 staff) get `403`. No role can write through these endpoints.
@@ -69,4 +70,14 @@ until #1501 (client IP integrity) is resolved.
   `{"filters": {...}, "totals": {"visits", "unique_visitors", "logged_in_users",
   "average_duration_seconds", "new_visitors", "returning_visitors"}}` with no `buckets`;
   `average_duration_seconds` is `null` when there are no visits. Only aggregated counts are
+  exposed: no user identities and no IPs.
+- **`GET /staff/statistics/visitors.json`** — distinct visitors (a logged-in user, or an
+  anonymous session) with visits started in the range, per bucket. Takes the shared filter
+  params (`from`, `to`, `tz`, `granularity`, `user`, `domain`, `audience`); not paginated.
+  Returns `{"filters": {...}, "buckets": [{"start", "end", "unique_visitors", "new_visitors",
+  "returning_visitors", "anonymous", "logged_in"}], "totals": {"unique_visitors",
+  "new_visitors", "returning_visitors", "anonymous", "logged_in"}}`, every bucket of the range
+  present (zero-filled). Totals are distinct counts over the range, not bucket sums. The
+  first-visit lookup that splits new from returning reads visits outside the range and the
+  `domain` / `audience` filters, but only to compute counts. Only aggregated counts are
   exposed: no user identities and no IPs.
