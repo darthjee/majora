@@ -2,7 +2,8 @@
 
 import ipaddress
 import os
-import secrets
+
+from common.secret_compare import secret_matches
 
 
 def proxy_secret():
@@ -18,11 +19,7 @@ def client_ip(request):
 
 def _from_trusted_proxy(request):
     """Return whether the request carries a `X-Proxy-Secret` matching `PROXY_SECRET`."""
-    secret = proxy_secret()
-    header = request.META.get('HTTP_X_PROXY_SECRET')
-    if not secret or not header:
-        return False
-    return secrets.compare_digest(header, secret)
+    return secret_matches(request.META.get('HTTP_X_PROXY_SECRET'), proxy_secret())
 
 
 def _forwarded_ip(request):

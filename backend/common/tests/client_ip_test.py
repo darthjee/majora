@@ -67,6 +67,12 @@ class TestClientIp:
         request = _request(HTTP_X_PROXY_SECRET='guess', HTTP_X_FORWARDED_FOR='1.2.3.4')
         assert client_ip(request) == '9.9.9.9'
 
+    def test_non_ascii_secret_header_falls_back(self, monkeypatch):
+        """Test that a non-ASCII X-Proxy-Secret falls back to REMOTE_ADDR instead of raising."""
+        monkeypatch.setenv('PROXY_SECRET', SECRET)
+        request = _request(HTTP_X_PROXY_SECRET='\xe9', HTTP_X_FORWARDED_FOR='1.2.3.4')
+        assert client_ip(request) == '9.9.9.9'
+
     def test_missing_secret_header_ignores_forwarded(self, monkeypatch):
         """Test that a missing X-Proxy-Secret header makes X-Forwarded-For be ignored."""
         monkeypatch.setenv('PROXY_SECRET', SECRET)

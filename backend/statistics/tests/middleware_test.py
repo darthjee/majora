@@ -390,6 +390,33 @@ class TestStatisticsSessionMiddleware:
         assert response.status_code == 200
         assert Session.objects.count() == 1
 
+    def test_creates_session_when_skip_header_non_ascii(self, client, monkeypatch):
+        """Test that a non-ASCII skip header falls through to normal recording, never a 500."""
+        monkeypatch.setenv('STATISTICS_SKIP_SECRET', 'shh')
+
+        response = client.get(
+            '/ready.json',
+            REMOTE_ADDR='1.2.3.4',
+            HTTP_X_STATISTICS_SKIP_SECRET='\xe9',
+        )
+
+        assert response.status_code == 200
+        assert Session.objects.count() == 1
+
+    def test_non_ascii_proxy_secret_records_remote_addr(self, client, monkeypatch):
+        """Test that a non-ASCII proxy secret header records REMOTE_ADDR, never a 500."""
+        monkeypatch.setenv('PROXY_SECRET', 'tent-secret')
+
+        response = client.get(
+            '/ready.json',
+            REMOTE_ADDR='1.2.3.4',
+            HTTP_X_PROXY_SECRET='\xe9',
+            HTTP_X_FORWARDED_FOR='5.6.7.8',
+        )
+
+        assert response.status_code == 200
+        assert Session.objects.get().ip == '1.2.3.4'
+
     def test_creates_session_when_skip_secret_not_configured(self, client, monkeypatch):
         """Test that an unset skip secret always falls through to normal recording."""
         monkeypatch.delenv('STATISTICS_SKIP_SECRET', raising=False)
