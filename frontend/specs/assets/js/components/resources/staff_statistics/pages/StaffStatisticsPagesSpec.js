@@ -55,5 +55,18 @@ PAGES.forEach(([name, Component, path]) => {
       expect(html).toContain(Translator.t('staff_statistics_page.placeholder'));
       expect(html).toContain(`<a class="nav-link active" aria-current="page" href="${path}">`);
     });
+
+    if (name === 'StaffStatisticsVisitors') {
+      it('renders the charts loading fallback or the lazily loaded chart', function() {
+        spyOn(AccessStore, 'isStaffOrSuperUser').and.returnValue(true);
+
+        const html = renderToStaticMarkup(React.createElement(Component));
+        const showsFallback = html.includes(Translator.t('staff_statistics_page.charts_loading'));
+        const showsChart = html.includes('data-testid="statistics-visitors-chart"');
+
+        // The lazy charts chunk is cached once resolved, so either state is valid here.
+        expect(showsFallback || showsChart).toBeTrue();
+      });
+    }
   });
 });
