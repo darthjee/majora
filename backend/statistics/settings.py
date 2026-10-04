@@ -27,3 +27,8 @@ class Settings:
     def session_touch_interval_seconds():
         """Return how stale `Session.last_seen_at` must be before it is rewritten (default: 60s)."""
         return env_int('MAJORA_STATISTICS_SESSION_TOUCH_INTERVAL_SECONDS', 60)
+
+    @staticmethod
+    def max_range_days():
+        """Return the maximum inclusive day span of a statistics query (default: 366)."""
+        return env_int('MAJORA_STATISTICS_MAX_RANGE_DAYS', 366)
