@@ -11,6 +11,8 @@ import OverviewController
   from '../../../../../../../assets/js/components/resources/staff_statistics/pages/controllers/OverviewController.js';
 import VisitsController
   from '../../../../../../../assets/js/components/resources/staff_statistics/pages/controllers/VisitsController.js';
+import VisitorsController
+  from '../../../../../../../assets/js/components/resources/staff_statistics/pages/controllers/VisitorsController.js';
 import StaffStatisticsPageController
   from '../../../../../../../assets/js/components/resources/staff_statistics/pages/controllers/StaffStatisticsPageController.js';
 import StaffStatisticsFilterBarHelper
@@ -32,6 +34,7 @@ const PAGES = [
 const LOADING_KEYS = {
   StaffStatisticsOverview: 'staff_statistics_page.overview.loading',
   StaffStatisticsVisits: 'staff_statistics_page.charts_loading',
+  StaffStatisticsVisitors: 'staff_statistics_page.charts_loading',
 };
 
 PAGES.forEach(([name, Component, path]) => {
@@ -44,6 +47,7 @@ PAGES.forEach(([name, Component, path]) => {
       stubBuildEffect(StaffStatisticsPageController);
       stubBuildEffect(OverviewController);
       stubBuildEffect(VisitsController);
+      stubBuildEffect(VisitorsController);
       spyOn(StaffStatisticsFilterBarHelper, 'render').and.returnValue(React.createElement('div'));
     });
 
@@ -82,19 +86,6 @@ PAGES.forEach(([name, Component, path]) => {
         const html = renderToStaticMarkup(React.createElement(Component));
 
         expect(html).toContain(Translator.t('staff_statistics_page.placeholder'));
-      });
-    }
-
-    if (name === 'StaffStatisticsVisitors') {
-      it('renders the charts loading fallback or the lazily loaded chart', function() {
-        spyOn(AccessStore, 'isStaffOrSuperUser').and.returnValue(true);
-
-        const html = renderToStaticMarkup(React.createElement(Component));
-        const showsFallback = html.includes(Translator.t('staff_statistics_page.charts_loading'));
-        const showsChart = html.includes('data-testid="statistics-visitors-chart"');
-
-        // The lazy charts chunk is cached once resolved, so either state is valid here.
-        expect(showsFallback || showsChart).toBeTrue();
       });
     }
   });
