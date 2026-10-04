@@ -92,6 +92,13 @@ import StaffUser from '../resources/staff_user/pages/StaffUser.jsx';
 import StaffUserEdit from '../resources/staff_user/pages/StaffUserEdit.jsx';
 import StaffUsers from '../resources/staff_user/pages/StaffUsers.jsx';
 import StaffPhotos from '../resources/staff_photo/pages/StaffPhotos.jsx';
+import StaffStatisticsVisits from '../resources/staff_statistics/pages/StaffStatisticsVisits.jsx';
+import StaffStatisticsVisitors from '../resources/staff_statistics/pages/StaffStatisticsVisitors.jsx';
+import StaffStatisticsDuration from '../resources/staff_statistics/pages/StaffStatisticsDuration.jsx';
+import StaffStatisticsDomains from '../resources/staff_statistics/pages/StaffStatisticsDomains.jsx';
+import StaffStatisticsUsers from '../resources/staff_statistics/pages/StaffStatisticsUsers.jsx';
+import StaffStatisticsVisitList from '../resources/staff_statistics/pages/StaffStatisticsVisitList.jsx';
+import StaffStatistics from '../resources/staff_statistics/pages/StaffStatistics.jsx';
 import StlModel from '../resources/stl_model/pages/StlModel.jsx';
 import StlModelEdit from '../resources/stl_model/pages/StlModelEdit.jsx';
 import StlModelNew from '../resources/stl_model/pages/StlModelNew.jsx';
@@ -198,6 +205,13 @@ const PAGES = {
   staffUser: <StaffUser />,
   staffUserEdit: <StaffUserEdit />,
   staffPhotos: <StaffPhotos />,
+  staffStatisticsVisits: <StaffStatisticsVisits />,
+  staffStatisticsVisitors: <StaffStatisticsVisitors />,
+  staffStatisticsDuration: <StaffStatisticsDuration />,
+  staffStatisticsDomains: <StaffStatisticsDomains />,
+  staffStatisticsUsers: <StaffStatisticsUsers />,
+  staffStatisticsVisitList: <StaffStatisticsVisitList />,
+  staffStatistics: <StaffStatistics />,
   stlModels: <StlModels />,
   stlModel: <StlModel />,
   stlModelNew: <StlModelNew />,

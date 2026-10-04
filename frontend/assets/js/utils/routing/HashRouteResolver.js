@@ -26,6 +26,13 @@ const ROUTES = [
   ['/staff/dashboard', 'staffDashboard'],
   ['/staff/crawler', 'staffCrawler'],
   ['/staff/photos', 'staffPhotos'],
+  ['/staff/statistics/visits', 'staffStatisticsVisits'],
+  ['/staff/statistics/visitors', 'staffStatisticsVisitors'],
+  ['/staff/statistics/duration', 'staffStatisticsDuration'],
+  ['/staff/statistics/domains', 'staffStatisticsDomains'],
+  ['/staff/statistics/users', 'staffStatisticsUsers'],
+  ['/staff/statistics/visit-list', 'staffStatisticsVisitList'],
+  ['/staff/statistics', 'staffStatistics'],
   ['/games/:game_slug/npcs/:character_id/treasures', 'npcCharacterTreasures'],
   ['/games/:game_slug/npcs/:character_id/items/new', 'npcCharacterItemNew'],
   ['/games/:game_slug/npcs/:character_id/items/:id/edit', 'npcCharacterItemEdit'],
@@ -125,6 +132,7 @@ const FILTER_KEYS = [
   'hidden', 'game_type', 'min_value', 'max_value', 'search',
   'type', 'race', 'roles', 'source', 'collection', 'tags', 'size',
   'category', 'completed', 'session',
+  'range', 'from', 'to', 'granularity', 'user', 'domain', 'audience',
 ];
 
 /**
@@ -200,7 +208,7 @@ export default class HashRouteResolver {
   }
 
   /**
-   * Return NPC/poll/treasure/STL model filter query params from hash.
+   * Return NPC/poll/treasure/STL model/task/statistics filter query params from hash.
    *
    * @description Every value present in the hash's `URLSearchParams` for a given key is
    *   preserved (via `.getAll()`/`.append()`), not collapsed to the last one — required for the
@@ -209,8 +217,9 @@ export default class HashRouteResolver {
    *   single key via `.get()` are unaffected, since `.get()` already returns just the first value.
    * @returns {URLSearchParams} Filter params (`public_slain`/`private_slain`/`name`/
    *   `public_allegiance`/`private_allegiance`/`status`/`hidden`/`game_type`/`min_value`/
-   *   `max_value`/`search`/`type`/`race`/`roles`/`source`/`collection`/`tags`/`size`), only set
-   *   when present in hash.
+   *   `max_value`/`search`/`type`/`race`/`roles`/`source`/`collection`/`tags`/`size`/
+   *   `category`/`completed`/`session`, plus the access statistics filters `range`/`from`/`to`/
+   *   `granularity`/`user`/`domain`/`audience`), only set when present in hash.
    */
   getFilterParams() {
     const query = HashQueryParams.parse(this.currentHash());

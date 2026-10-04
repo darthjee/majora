@@ -14,6 +14,7 @@ header:
   nav_staff_dashboard: Dashboard
   nav_staff_crawler: Crawler
   nav_staff_photos: Photos
+  nav_staff_statistics: Access statistics
   nav_my_games: My Games
   login: Login
   logoff: Logoff

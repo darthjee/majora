@@ -1,0 +1,42 @@
+staff_statistics_page:
+  title: Estatísticas de acesso
+  placeholder: Esta aba ainda não está disponível.
+  tabs:
+    overview: Visão geral
+    visits: Visitas
+    visitors: Visitantes
+    duration: Duração
+    domains: Domínios
+    users: Usuários
+    visit_list: Lista de visitas
+  filters:
+    range: Período
+    ranges:
+      '7d': Últimos 7 dias
+      '30d': Últimos 30 dias
+      '90d': Últimos 90 dias
+      '12m': Últimos 12 meses
+      custom: Personalizado
+    from: De
+    to: Até
+    user: Usuário
+    user_any: Qualquer usuário
+    user_search_placeholder: Buscar usuários...
+    user_no_results: Nenhum usuário encontrado.
+    user_deleted: usuário removido
+    user_clear: Limpar
+    domain: Domínio
+    domain_any: Qualquer domínio
+    domain_unknown: Desconhecido
+    audience: Público
+    audiences:
+      all: Todos
+      anonymous: Anônimos
+      logged_in: Logados
+    granularity: Granularidade
+    granularities:
+      auto: Automática
+      day: Dia
+      week: Semana
+      month: Mês
+    reset: Limpar filtros
