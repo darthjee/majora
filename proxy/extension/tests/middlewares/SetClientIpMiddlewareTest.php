@@ -123,8 +123,8 @@ class SetClientIpMiddlewareTest extends TestCase
     }
 
     /**
-     * build() ignores its attributes argument and always returns a usable
-     * instance, since this middleware is not configurable.
+     * build([]) returns a usable instance that sets X-Forwarded-For and,
+     * having no secret, sends no X-Proxy-Secret.
      */
     public function testBuildReturnsUsableInstance(): void
     {
@@ -135,5 +135,110 @@ class SetClientIpMiddlewareTest extends TestCase
         $result = $middleware->processRequest($request);
 
         $this->assertSame(['X-Forwarded-For' => '198.51.100.42'], $result->headers());
+    }
+
+    /**
+     * build() with a secret returns an instance that sends it.
+     */
+    public function testBuildWithSecretReturnsUsableInstance(): void
+    {
+        $_SERVER['REMOTE_ADDR'] = '198.51.100.42';
+        $middleware = SetClientIpMiddleware::build(['secret' => 'x']);
+        $request = $this->makeRequest([]);
+
+        $result = $middleware->processRequest($request);
+
+        $this->assertSame([
+            'X-Forwarded-For' => '198.51.100.42',
+            'X-Proxy-Secret' => 'x',
+        ], $result->headers());
+    }
+
+    /**
+     * When a secret is configured, it is sent in X-Proxy-Secret alongside
+     * the client IP.
+     */
+    public function testSetsSecretWhenConfigured(): void
+    {
+        $_SERVER['REMOTE_ADDR'] = '203.0.113.7';
+        $request = $this->makeRequest(['Content-Type' => 'application/json']);
+        $middleware = new SetClientIpMiddleware('s3cr3t');
+
+        $result = $middleware->processRequest($request);
+
+        $this->assertSame([
+            'Content-Type' => 'application/json',
+            'X-Forwarded-For' => '203.0.113.7',
+            'X-Proxy-Secret' => 's3cr3t',
+        ], $result->headers());
+    }
+
+    /**
+     * A client-supplied X-Proxy-Secret is stripped and replaced by the
+     * configured secret.
+     */
+    public function testReplacesClientSecretWhenConfigured(): void
+    {
+        $_SERVER['REMOTE_ADDR'] = '203.0.113.7';
+        $request = $this->makeRequest(['X-Proxy-Secret' => 'guess']);
+        $middleware = new SetClientIpMiddleware('s3cr3t');
+
+        $result = $middleware->processRequest($request);
+
+        $this->assertSame([
+            'X-Forwarded-For' => '203.0.113.7',
+            'X-Proxy-Secret' => 's3cr3t',
+        ], $result->headers());
+    }
+
+    /**
+     * A differently-cased client-supplied X-Proxy-Secret is also stripped
+     * and replaced by the configured secret.
+     */
+    public function testReplacesClientSecretRegardlessOfCase(): void
+    {
+        $_SERVER['REMOTE_ADDR'] = '203.0.113.7';
+        $request = $this->makeRequest([
+            'x-proxy-secret' => 'guess',
+            'X-PROXY-SECRET' => 'other-guess',
+        ]);
+        $middleware = new SetClientIpMiddleware('s3cr3t');
+
+        $result = $middleware->processRequest($request);
+
+        $this->assertSame([
+            'X-Forwarded-For' => '203.0.113.7',
+            'X-Proxy-Secret' => 's3cr3t',
+        ], $result->headers());
+    }
+
+    /**
+     * With an empty secret, a client-supplied X-Proxy-Secret is stripped and
+     * nothing is sent in its place.
+     */
+    public function testStripsClientSecretWhenSecretEmpty(): void
+    {
+        $_SERVER['REMOTE_ADDR'] = '203.0.113.7';
+        $request = $this->makeRequest(['x-Proxy-Secret' => 'guess']);
+        $middleware = new SetClientIpMiddleware('');
+
+        $result = $middleware->processRequest($request);
+
+        $this->assertSame(['X-Forwarded-For' => '203.0.113.7'], $result->headers());
+    }
+
+    /**
+     * With no secret attribute at all, a client-supplied X-Proxy-Secret is
+     * stripped and nothing is sent in its place.
+     */
+    public function testStripsClientSecretWhenSecretMissing(): void
+    {
+        $_SERVER['REMOTE_ADDR'] = '203.0.113.7';
+        $request = $this->makeRequest(['X-Proxy-Secret' => 'guess']);
+        $middleware = SetClientIpMiddleware::build([]);
+
+        $result = $middleware->processRequest($request);
+
+        $this->assertSame(['X-Forwarded-For' => '203.0.113.7'], $result->headers());
     }
 }
