@@ -11,7 +11,7 @@ from .filters import StatisticsFilters
 from .granularity import Granularity
 
 _DATE_PATTERN = re.compile(r'^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
-_POSITIVE_INT_PATTERN = re.compile(r'^[0-9]+$')
+_POSITIVE_INT_PATTERN = re.compile(r'^[0-9]{1,19}$')
 
 
 @lru_cache(maxsize=1)
@@ -26,6 +26,9 @@ class StatisticsParamsParser:
     AUDIENCES = ('all', 'anonymous', 'logged_in')
     DEFAULT_SPAN_DAYS = 30
     MAX_PER_PAGE = 100
+    MAX_INT = 2**63 - 1
+    MIN_DATE = date(1970, 1, 1)
+    MAX_DATE = date(9998, 12, 31)
 
     def __init__(self, query_params, today=None):
         """Store the raw query params and an optional injected `today`."""
@@ -136,13 +139,13 @@ class StatisticsParamsParser:
             self._add_error(field, code)
         return number
 
-    @staticmethod
-    def _positive_int(value):
-        """Return `value` as an integer when it is a positive decimal integer, else `None`."""
+    @classmethod
+    def _positive_int(cls, value):
+        """Return `value` as an integer when it is in `1..MAX_INT`, else `None`."""
         if not _POSITIVE_INT_PATTERN.match(value):
             return None
         number = int(value)
-        return number if number > 0 else None
+        return number if 0 < number <= cls.MAX_INT else None
 
     def _parse_dates(self, tz):
         """Parse `from` / `to` with their defaults, then run the range checks."""
@@ -164,13 +167,21 @@ class StatisticsParamsParser:
         return self._today or datetime.now(tz).date()
 
     def _parse_date(self, field, default):
-        """Parse a `YYYY-MM-DD` param, recording `invalid_date` on failure."""
+        """Parse a `YYYY-MM-DD` param in `MIN_DATE..MAX_DATE`, else record `invalid_date`."""
         value = self._get(field)
         if value is None:
             return default
-        parsed = self._iso_date(value)
+        parsed = self._bounded_date(value)
         if parsed is None:
             self._add_error(field, 'invalid_date')
+        return parsed
+
+    @classmethod
+    def _bounded_date(cls, value):
+        """Return `value` as a date when it is valid and in `MIN_DATE..MAX_DATE`, else `None`."""
+        parsed = cls._iso_date(value)
+        if parsed is None or not cls.MIN_DATE <= parsed <= cls.MAX_DATE:
+            return None
         return parsed
 
     @staticmethod

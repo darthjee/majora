@@ -34,10 +34,12 @@ Filter params (`from`, `to`, `tz`, `granularity`, `user`, `domain`, `audience`, 
 (`statistics/aggregation/params_parser.py`, wrapped by `parse_statistics_filters` in
 `staff/views/_staff_statistics_shared.py`); anything invalid is `400` with
 `{"errors": {"<field>": ["<code>"]}}`, every error reported at once. Codes: `invalid_date`
-(`from` / `to`), `from_after_to` and `range_too_long` (`range`, checked only when both dates
+(`from` / `to`, also outside `1970-01-01`..`9998-12-31`), `from_after_to` and `range_too_long` (`range`, checked only when both dates
 parse; the cap is `MAJORA_STATISTICS_MAX_RANGE_DAYS`, default 366 inclusive days),
 `invalid_timezone`, `invalid_granularity`, `invalid_audience`, `invalid_user`,
-`invalid_domain`, `invalid_page` and `invalid_per_page` (`per_page > 100`). Unknown params
+`invalid_domain`, `invalid_page` and `invalid_per_page` (`per_page > 100`); integer params
+are capped at `2**63 − 1` (at most 19 digits) so they cannot overflow `int()` or the id
+columns. Unknown params
 are ignored. A well-formed but unknown `user` or `domain` id returns empty data, not an
 error. Queries go through the ORM only, and filter payloads are not logged.
 

@@ -204,6 +204,63 @@ class TestStatisticsParamsParserErrors:
         """Test that `per_page > 100` yields `invalid_per_page`."""
         assert _errors({'per_page': '101'}) == {'per_page': ['invalid_per_page']}
 
+    def test_from_before_minimum_date(self):
+        """Test that a `from` before 1970-01-01 yields `invalid_date`."""
+        assert _errors({'from': '1969-12-31'}) == {'from': ['invalid_date']}
+
+    def test_from_at_year_one_ahead_of_utc(self):
+        """Test that `from=0001-01-01` in a zone ahead of UTC yields `invalid_date`."""
+        errors = _errors({'from': '0001-01-01', 'to': '0001-01-02', 'tz': 'Asia/Tokyo'})
+        assert errors == {'from': ['invalid_date'], 'to': ['invalid_date']}
+
+    def test_to_after_maximum_date(self):
+        """Test that `to=9999-12-31` yields `invalid_date`."""
+        assert _errors({'from': '9999-12-01', 'to': '9999-12-31'}) == {
+            'from': ['invalid_date'], 'to': ['invalid_date'],
+        }
+
+    def test_minimum_date_is_accepted(self):
+        """Test that `from=1970-01-01` is accepted and its UTC start is computable."""
+        filters, errors = _parse({'from': '1970-01-01', 'to': '1970-01-31', 'tz': 'Asia/Tokyo'})
+        assert errors == {}
+        assert filters.start_utc.year == 1969
+
+    def test_maximum_date_is_accepted(self):
+        """Test that `to=9998-12-31` is accepted and its UTC end is computable."""
+        filters, errors = _parse({'from': '9998-12-01', 'to': '9998-12-31', 'tz': 'Etc/GMT+12'})
+        assert errors == {}
+        assert filters.end_utc.year == 9999
+
+    def test_user_at_maximum_id_is_accepted(self):
+        """Test that `user=2**63-1` is accepted."""
+        filters, errors = _parse({'user': str(2**63 - 1)})
+        assert errors == {}
+        assert filters.user_id == 2**63 - 1
+
+    def test_user_above_maximum_id(self):
+        """Test that `user=2**63` yields `invalid_user`."""
+        assert _errors({'user': str(2**63)}) == {'user': ['invalid_user']}
+
+    def test_very_long_user(self):
+        """Test that a 5000-digit `user` yields `invalid_user` instead of raising."""
+        assert _errors({'user': '9' * 5000}) == {'user': ['invalid_user']}
+
+    def test_domain_above_maximum_id(self):
+        """Test that a 20-digit `domain` yields `invalid_domain`."""
+        assert _errors({'domain': '1' * 20}) == {'domain': ['invalid_domain']}
+
+    def test_very_long_domain(self):
+        """Test that a 5000-digit `domain` yields `invalid_domain` instead of raising."""
+        assert _errors({'domain': '1' * 5000}) == {'domain': ['invalid_domain']}
+
+    def test_very_long_page(self):
+        """Test that a 5000-digit `page` yields `invalid_page` instead of raising."""
+        assert _errors({'page': '1' * 5000}) == {'page': ['invalid_page']}
+
+    def test_very_long_per_page(self):
+        """Test that a 5000-digit `per_page` yields `invalid_per_page` instead of raising."""
+        assert _errors({'per_page': '1' * 5000}) == {'per_page': ['invalid_per_page']}
+
     def test_filters_are_none_on_error(self):
         """Test that no filters are returned when there are errors."""
         filters, _ = _parse({'audience': 'bots'})

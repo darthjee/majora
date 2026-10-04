@@ -291,15 +291,21 @@ and `staff_users_list`'s `invalid_status` return), status `400`:
 
 | Field key | Code | When |
 |-----------|------|------|
-| `from` / `to` | `invalid_date` | Not a valid `YYYY-MM-DD` date |
+| `from` / `to` | `invalid_date` | Not a valid `YYYY-MM-DD` date, or outside `1970-01-01`..`9998-12-31` |
 | `range` | `from_after_to` | `from > to` |
 | `range` | `range_too_long` | `to − from + 1 > Settings.max_range_days()` |
 | `tz` | `invalid_timezone` | Not in `zoneinfo.available_timezones()` |
 | `granularity` | `invalid_granularity` | Not one of the enum values |
 | `audience` | `invalid_audience` | Not one of the enum values |
-| `user` | `invalid_user` | Not a positive integer |
-| `domain` | `invalid_domain` | Not a positive integer nor `unknown` |
-| `page` / `per_page` | `invalid_page` / `invalid_per_page` | Not a positive integer, or `per_page > 100` |
+| `user` | `invalid_user` | Not a positive integer ≤ `2**63 − 1` |
+| `domain` | `invalid_domain` | Not a positive integer ≤ `2**63 − 1` nor `unknown` |
+| `page` / `per_page` | `invalid_page` / `invalid_per_page` | Not a positive integer ≤ `2**63 − 1`, or `per_page > 100` |
+
+The bounds keep every accepted value safe downstream: the date window lets the UTC range
+(`to + 1 day`, `astimezone`) be computed in any zone without overflowing `datetime`, and
+integers are matched against `^[0-9]{1,19}$` before conversion, then capped at the
+`BigAutoField` maximum, so huge ids never reach the database and over-long digit strings never
+reach `int()`.
 
 `page` / `per_page` are validated strictly here (the shared `Paginator` silently falls back
 to defaults and has no maximum), then passed to it unchanged. Range checks only run when
