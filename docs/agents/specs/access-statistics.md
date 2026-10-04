@@ -29,7 +29,7 @@ sub-issue), `specced` (filled in by its spec sub-issue).
 - [Duration](access-statistics/duration.md): `specced` (#1486)
 - [Domains](access-statistics/domains.md): `specced` (#1487)
 - [Users](access-statistics/users.md): `specced` (#1488)
-- [Visit list](access-statistics/visit-list.md): `stub` (#1489)
+- [Visit list](access-statistics/visit-list.md): `specced` (#1489)
 
 ## Sub-issue map
 

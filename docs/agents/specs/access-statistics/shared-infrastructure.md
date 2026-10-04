@@ -135,8 +135,8 @@ chart.
   Bootstrap `<ul className="nav nav-tabs flex-wrap mb-3">` with `<a className="nav-link">`
   items and `aria-current` on the active one. Unlike `StaffPhotoTabs` (whose hrefs drop the
   query), each tab `href` is built with `statisticsHref(tabPath, filters)` (below), so the
-  current filters carry across tabs. `page` / `per_page` (and the Users tab's `sort`) are
-  **not** carried: switching tabs resets pagination and sorting.
+  current filters carry across tabs. `page` / `per_page` (and the `sort` of the Users and
+  Visit list tabs) are **not** carried: switching tabs resets pagination and sorting.
 - Every hash change remounts the page (`AppHelper.render` keys its fragment on the hash), so
   a filter change or tab switch is just a new hash. There is no in-page query state.
 
@@ -193,7 +193,8 @@ Filters live in the hash query of every statistics route, e.g.
   `FILTER_KEYS` in `HashRouteResolver.js` (and refresh the outdated `getFilterParams` JSDoc,
   which is already missing `category`, `completed` and `session`). `getFilterParams()` then
   exposes them. None of these names clashes with an existing filter key. Tab-specific params
-  (`page` / `per_page`, and `sort` on the [Users tab](users.md#ordering)) are **not** in
+  (`page` / `per_page`, and `sort` on the [Users](users.md#ordering) and
+  [Visit list](visit-list.md#ordering) tabs) are **not** in
   `FILTER_KEYS` and not carried across tabs.
 - **Writing the URL:** `statisticsHref(path, filters)` (in the statistics `helpers/`) builds
   `` `${path}?${query}` `` from the filter object, dropping defaults, and **without** the
@@ -305,8 +306,9 @@ to defaults and has no maximum), then passed to it unchanged. Range checks only 
 both dates parsed.
 
 Tabs may add their own params, validated by their endpoint on top of the shared parser and
-reported together with the shared errors: the [Users tab](users.md#ordering)'s `sort`
-(`invalid_sort`).
+reported together with the shared errors: the `sort` of the [Users](users.md#ordering) and
+[Visit list](visit-list.md#ordering) tabs, both rejected with the single shared
+`invalid_sort` code.
 
 #### Response envelope
 
