@@ -2,9 +2,10 @@ import {
   Bar, BarChart, CartesianGrid, Legend, Tooltip, XAxis, YAxis,
 } from 'recharts';
 import VisitsChartTooltip from '../VisitsChartTooltip.jsx';
-import visitsSeries from './visitsSeries.js';
+import { AUDIENCE_SERIES, chartSeries } from './chartSeries.js';
 
 const AXIS_STROKE = 'var(--majora-chart-axis)';
+const LABEL_PREFIX = 'staff_statistics_page.visits';
 
 /**
  * Rendering helper for the `VisitsChart` component.
@@ -27,7 +28,7 @@ export default class VisitsChartHelper {
         <YAxis allowDecimals={false} stroke={AXIS_STROKE} />
         <Tooltip content={<VisitsChartTooltip series={series} />} />
         <Legend />
-        {visitsSeries(series).map(VisitsChartHelper.#renderBar)}
+        {chartSeries(AUDIENCE_SERIES, series, LABEL_PREFIX).map(VisitsChartHelper.#renderBar)}
       </BarChart>
     );
   }
