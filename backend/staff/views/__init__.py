@@ -12,6 +12,7 @@ from .staff_photos_index import staff_photos_index
 from .staff_photos_list import staff_photos_list
 from .staff_statistics_domains import staff_statistics_domains
 from .staff_statistics_overview import staff_statistics_overview
+from .staff_statistics_visitors import staff_statistics_visitors
 from .staff_statistics_visits import staff_statistics_visits
 from .staff_user_approve import staff_user_approve
 from .staff_user_deny import staff_user_deny
@@ -46,4 +47,5 @@ __all__ = [
     'staff_statistics_domains',
     'staff_statistics_overview',
     'staff_statistics_visits',
+    'staff_statistics_visitors',
 ]
