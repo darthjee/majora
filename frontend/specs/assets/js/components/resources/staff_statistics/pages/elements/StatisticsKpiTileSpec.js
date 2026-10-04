@@ -24,6 +24,14 @@ describe('StatisticsKpiTile', function() {
     );
   });
 
+  it('renders the label as plain text without href', function() {
+    const html = render({ href: undefined });
+
+    expect(html).toContain('<h3 class="card-title h6 text-muted">Visits</h3>');
+    expect(html).not.toContain('<a');
+    expect(html).not.toContain('stretched-link');
+  });
+
   it('renders the value', function() {
     expect(render()).toContain('<p class="display-6 mb-1" data-testid="tile-value">1,234</p>');
   });
