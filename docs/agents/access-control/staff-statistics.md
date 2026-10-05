@@ -12,8 +12,8 @@ sets `X-Skip-Cache: true` per the [`X-Skip-Cache` rule](principles.md#x-skip-cac
 > **Status:** live for the shared `domains.json` endpoint and the shared filter validation
 > (#1498), for the Visits tab's `visits.json` (#1506), for the Overview tab's
 > `overview.json` (#1503), for the Visitors tab's `visitors.json` (#1509) and for the
-> Duration tab's `duration.json` (#1513) and for the Users tab's `users.json` (#1519). The other tab
-> endpoints still land with their own implementation
+> Duration tab's `duration.json` (#1513), for the Users tab's `users.json` (#1519) and for the
+> Visit list tab's `visit-list.json` (#1522). The other tab endpoints still land with their own implementation
 > sub-issues of #1477; each appends its row below. Shared conventions:
 > [`specs/access-statistics/shared-infrastructure.md`](../specs/access-statistics/shared-infrastructure.md#api-conventions).
 
@@ -25,6 +25,7 @@ sets `X-Skip-Cache: true` per the [`X-Skip-Cache` rule](principles.md#x-skip-cac
 | New vs returning visitors for the Visitors tab (`GET /staff/statistics/visitors.json`) | **Staff-or-superuser** |
 | Visit duration and hits per visit for the Duration tab (`GET /staff/statistics/duration.json`) | **Staff-or-superuser** |
 | Logged-in users ranking for the Users tab (`GET /staff/statistics/users.json`) | **Staff-or-superuser** |
+| Raw visit list for the Visit list tab (`GET /staff/statistics/visit-list.json`) | **Staff-or-superuser** |
 
 Anonymous callers get `401` and non-staff callers (including DMs and game admins without
 staff) get `403`. No role can write through these endpoints.
@@ -46,7 +47,7 @@ Filter params (`from`, `to`, `tz`, `granularity`, `user`, `domain`, `audience`, 
 parse; the cap is `MAJORA_STATISTICS_MAX_RANGE_DAYS`, default 366 inclusive days),
 `invalid_timezone`, `invalid_granularity`, `invalid_audience`, `invalid_user`,
 `invalid_domain`, `invalid_page` and `invalid_per_page` (`per_page > 100`), plus
-`invalid_sort` for the tab-specific `sort` param of `users.json` only (merged into the same
+`invalid_sort` for the tab-specific `sort` param of `users.json` and `visit-list.json` (merged into the same
 `errors` object); integer params
 are capped at `2**63 − 1` (at most 19 digits) so they cannot overflow `int()` or the id
 columns. Unknown params
@@ -59,6 +60,11 @@ error. Queries go through the ORM only, and filter payloads are not logged.
 also shows display name and email) and, where a tab exposes them, raw stored IPs. There is no
 masking and no superuser-only tier, consistent with staff already seeing user details in `/staff/users`. Stored IPs are **best effort**
 until #1501 (client IP integrity) is resolved.
+
+The Visit list tab (`visit-list.json`) exposes, per visit, the raw stored IP, the
+**statistics session id** (new: the other tabs only expose user ids, never session ids) and
+the user identity (id, username, display name, email). The session cookie token
+(`Session.token`) is **never** exposed by any statistics endpoint.
 
 ## Endpoints
 
@@ -108,3 +114,16 @@ until #1501 (client IP integrity) is resolved.
   "hits", "last_seen_at", "domains": [{"id", "domain"}]}`; `audience=anonymous` gives an
   empty list. Unlike the other statistics endpoints, it **exposes user identities** (id,
   username, display name, email) to staff, as `staff/users.json` already does. No IPs.
+- **`GET /staff/statistics/visit-list.json`** — one row per visit started in the range
+  (still-open visits included). Takes the shared filter params (`from`, `to`, `tz`, `user`,
+  `domain`, `audience`; `granularity` is validated but ignored) plus `sort` (`started_at` by
+  default, `last_seen`, `duration`, `hits`; always descending, ties broken by visit id
+  descending; ordered and sliced in the database; anything else, including an empty `sort=`,
+  is `invalid_sort`). Paginated: a plain JSON array (no envelope, no totals) with the
+  `page` / `pages` / `per_page` / `total` headers (`per_page ≤ 100`). Each row is `{"id",
+  "started_at", "last_seen_at", "duration_seconds", "hits", "ongoing", "ip", "domain": {"id",
+  "domain"}, "session_id", "user": {"id", "name", "display_name", "email"} | null}`; a session
+  without a domain gives `{"id": "unknown", "domain": null}` and anonymous (or deleted-user)
+  visits give `user: null`. It **exposes raw IPs, statistics session ids and user
+  identities** to staff, and never the session token. Not warmed by Navi; sets
+  `X-Skip-Cache: true`.
