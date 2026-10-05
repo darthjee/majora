@@ -69,6 +69,15 @@ describe('accessRouteConfig', function() {
       expect(accessRouteConfig.get('staffPhotos')).toEqual([{ kind: 'staffOrSuperuser' }]);
     });
 
+    it('declares a staffOrSuperuser-only descriptor for every access statistics page', function() {
+      [
+        'staffStatistics', 'staffStatisticsVisits', 'staffStatisticsVisitors', 'staffStatisticsDuration',
+        'staffStatisticsDomains', 'staffStatisticsUsers', 'staffStatisticsVisitList',
+      ].forEach((page) => {
+        expect(accessRouteConfig.get(page)).withContext(page).toEqual([{ kind: 'staffOrSuperuser' }]);
+      });
+    });
+
     it('returns an empty array for pages without an access check', function() {
       expect(accessRouteConfig.get('games')).toEqual([]);
       expect(accessRouteConfig.get('home')).toEqual([]);

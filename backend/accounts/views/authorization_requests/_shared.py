@@ -16,13 +16,14 @@ _EXPIRABLE_STATUSES = (AuthorizationRequest.STATUS_OPEN, AuthorizationRequest.ST
 def client_ip(request):
     """Return the requester's IP, read only from `REMOTE_ADDR`.
 
-    Deliberately does not honor `X-Forwarded-For`, unlike
-    `statistics.middleware.StatisticsSessionMiddleware` (which prefers it for analytics,
-    an accepted risk there): this IP is shown to a human as a trust signal when
-    approving/denying a login request, so a client-spoofable header would undermine that
-    signal. `REMOTE_ADDR` is set by the actual TCP connection and cannot be forged by the
-    client, at the cost of being less accurate (e.g. reporting a reverse proxy's own IP)
-    when this app sits behind a proxy without trusted-proxy-count validation configured.
+    Deliberately does not honor `X-Forwarded-For`, not even through the proxy-secret-gated
+    `common.client_ip.client_ip` used by `statistics.middleware.StatisticsSessionMiddleware`
+    (adopting that resolver here is a separate decision): this IP is shown to a human as a
+    trust signal when approving/denying a login request, so a client-spoofable header would
+    undermine that signal. `REMOTE_ADDR` is set by the actual TCP connection and cannot be
+    forged by the client, at the cost of being less accurate (e.g. reporting a reverse
+    proxy's own IP) when this app sits behind a proxy without trusted-proxy-count validation
+    configured.
     """
     return request.META.get('REMOTE_ADDR')
 

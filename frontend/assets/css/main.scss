@@ -4,6 +4,17 @@ $primary-color: #3a3a5c;
 $secondary-color: #6b48a0;
 $background-color: #f5f5f5;
 
+:root {
+  --majora-chart-1: #{$secondary-color};
+  --majora-chart-2: #{$primary-color};
+  --majora-chart-3: #2a9d8f;
+  --majora-chart-4: #e9a23b;
+  --majora-chart-5: #d1495b;
+  --majora-chart-6: #5c7cba;
+  --majora-chart-grid: #dee2e6;
+  --majora-chart-axis: #6c757d;
+}
+
 body {
   background-color: $background-color;
   color: $primary-color;

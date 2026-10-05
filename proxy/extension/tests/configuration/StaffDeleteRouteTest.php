@@ -44,6 +44,7 @@ class StaffDeleteRouteTest extends TestCase
     {
         $cacheFolder     = $this->tmpDir;
         $cacheCleanupMap = [];
+        $proxySecret     = '';
         require $this->copyOf('/proxy/dev_configuration/rules/delete.php');
         require $this->copyOf('/proxy/dev_configuration/rules/backend.php');
 
@@ -56,6 +57,7 @@ class StaffDeleteRouteTest extends TestCase
         $backendHost     = 'https://localhost:3030/';
         $photosPath      = '/var/www/html';
         $cacheCleanupMap = [];
+        $proxySecret     = '';
         require $this->copyOf('/proxy/prod_configuration/rules/delete.php');
         require $this->copyOf('/proxy/prod_configuration/rules/backend.php');
 

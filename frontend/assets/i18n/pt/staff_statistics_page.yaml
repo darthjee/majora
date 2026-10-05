@@ -1,0 +1,150 @@
+staff_statistics_page:
+  title: Estatísticas de acesso
+  placeholder: Esta aba ainda não está disponível.
+  charts_loading: Carregando gráficos...
+  tabs:
+    overview: Visão geral
+    visits: Visitas
+    visitors: Visitantes
+    duration: Duração
+    domains: Domínios
+    users: Usuários
+    visit_list: Lista de visitas
+  filters:
+    range: Período
+    ranges:
+      '7d': Últimos 7 dias
+      '30d': Últimos 30 dias
+      '90d': Últimos 90 dias
+      '12m': Últimos 12 meses
+      custom: Personalizado
+    from: De
+    to: Até
+    user: Usuário
+    user_any: Qualquer usuário
+    user_search_placeholder: Buscar usuários...
+    user_no_results: Nenhum usuário encontrado.
+    user_deleted: usuário removido
+    user_clear: Limpar
+    domain: Domínio
+    domain_any: Qualquer domínio
+    domain_unknown: Desconhecido
+    audience: Público
+    audiences:
+      all: Todos
+      anonymous: Anônimos
+      logged_in: Logados
+    granularity: Granularidade
+    granularities:
+      auto: Automática
+      day: Dia
+      week: Semana
+      month: Mês
+    reset: Limpar filtros
+  visits:
+    title: Visitas ao longo do tempo
+    total: Total
+    anonymous: Anônimos
+    logged_in: Logados
+    logged_in_share: Proporção de logados
+    empty: Nenhuma visita neste período
+    load_error: Não foi possível carregar as visitas.
+  visitors:
+    title: Visitantes ao longo do tempo
+    unique_visitors: Visitantes únicos
+    new: Novos
+    returning: Recorrentes
+    returning_share: Proporção de recorrentes
+    anonymous: Anônimos
+    logged_in: Logados
+    logged_in_share: Proporção de logados
+    total: Total
+    new_returning_title: Novos vs recorrentes
+    audience_title: Anônimos vs logados
+    totals_note: 'Os totais do período não são a soma das barras: um visitante visto em vários períodos conta uma vez.'
+    first_visit_note: '"Novo" significa a primeira visita registrada; visitas anteriores ao início do rastreamento não são contadas.'
+    empty: Nenhum visitante neste período
+    load_error: Não foi possível carregar os visitantes.
+  duration:
+    title: Duração das visitas ao longo do tempo
+    visits: Visitas
+    average_duration: Duração média
+    median_duration: Duração mediana
+    average_hits: Média de acessos por visita
+    median_hits: Mediana de acessos por visita
+    single_hit_share: Visitas de um único acesso
+    duration_chart: Duração das visitas
+    hits_chart: Acessos por visita
+    histogram_chart: Distribuição das durações
+    histogram_share: Parcela das visitas
+    empty: Nenhuma visita neste período
+    load_error: Não foi possível carregar as durações das visitas.
+    bins:
+      zero: 0 s
+      under_30s: '<30 s'
+      '30s_1m': 30 s–1 m
+      '1m_3m': 1–3 m
+      '3m_10m': 3–10 m
+      '10m_30m': 10–30 m
+      '30m_1h': 30 m–1 h
+      over_1h: '≥1 h'
+  domains:
+    title: Visitas por domínio
+    unknown: Desconhecido
+    domain: Domínio
+    group: Grupo
+    visits: Visitas
+    anonymous: Anônimos
+    logged_in: Logados
+    logged_in_share: Proporção de logados
+    unique_visitors: Visitantes únicos
+    average_duration: Duração média
+    median_duration: Duração mediana
+    chart: Visitas por domínio
+    empty: Nenhuma visita neste período
+    load_error: Não foi possível carregar as estatísticas de domínios.
+    total: Total
+    sort_ascending: ordenado de forma crescente
+    sort_descending: ordenado de forma decrescente
+  users:
+    title: Usuários
+    user: Usuário
+    visits: Visitas
+    time_on_site: Tempo no site
+    average_duration: Duração média
+    hits: Acessos
+    domains: Domínios
+    last_seen: Visto por último
+    unknown_domain: desconhecido
+    profile: Perfil
+    sorted_descending: Ordenado de forma decrescente
+    empty: Nenhum usuário logado neste período.
+    load_error: Não foi possível carregar os usuários.
+  visit_list:
+    title: Lista de visitas
+    user: Usuário
+    ip: IP
+    domain: Domínio
+    started_at: Início
+    last_seen: Visto por último
+    duration: Duração
+    hits: Acessos
+    anonymous: Anônimo
+    unknown_domain: desconhecido
+    ongoing: em andamento
+    profile: Perfil
+    sorted_descending: Ordenado de forma decrescente
+    empty: Nenhuma visita neste período.
+    load_error: Não foi possível carregar as visitas.
+  overview:
+    visits: Visitas
+    unique_visitors: Visitantes únicos
+    logged_in_users: Usuários logados
+    average_duration: Duração média da visita
+    new_vs_returning: Novos vs recorrentes
+    new_visitors: 'Novos: {{count}}'
+    returning_visitors: 'Recorrentes: {{count}}'
+    returning_share: '{{share}} recorrentes'
+    first_visit_note: '"Novo" significa a primeira visita registrada; visitas anteriores ao início do rastreamento não são contadas.'
+    loading: Carregando visão geral...
+    load_error: Não foi possível carregar a visão geral.

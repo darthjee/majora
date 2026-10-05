@@ -59,4 +59,44 @@ urlpatterns = [
         views.staff_photo_delete,
         name='staff-photo-delete',
     ),
+    path(
+        'staff/statistics/domains.json',
+        views.staff_statistics_domains,
+        name='staff-statistics-domains',
+    ),
+    path(
+        'staff/statistics/visits.json',
+        views.staff_statistics_visits,
+        name='staff-statistics-visits',
+    ),
+    path(
+        'staff/statistics/overview.json',
+        views.staff_statistics_overview,
+        name='staff-statistics-overview',
+    ),
+    path(
+        'staff/statistics/visitors.json',
+        views.staff_statistics_visitors,
+        name='staff-statistics-visitors',
+    ),
+    path(
+        'staff/statistics/duration.json',
+        views.staff_statistics_duration,
+        name='staff-statistics-duration',
+    ),
+    path(
+        'staff/statistics/domains/summary.json',
+        views.staff_statistics_domains_summary,
+        name='staff-statistics-domains-summary',
+    ),
+    path(
+        'staff/statistics/users.json',
+        views.staff_statistics_users,
+        name='staff-statistics-users',
+    ),
+    path(
+        'staff/statistics/visit-list.json',
+        views.staff_statistics_visit_list,
+        name='staff-statistics-visit-list',
+    ),
 ]

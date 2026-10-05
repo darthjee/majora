@@ -1,0 +1,71 @@
+import resourceConfig from '../../../../../assets/js/utils/requests/resourceConfig.js';
+
+describe('resourceConfig staffStatistics (issue #1499)', function() {
+  it('resolves GET.domains as a single un-branched variant', function() {
+    const domains = resourceConfig.get('GET', 'staffStatistics', 'domains');
+
+    expect(domains.regular).toBe(domains.private);
+    expect(domains.regular.path()).toBe('/staff/statistics/domains.json');
+    expect(domains.regular.permission).toBeNull();
+  });
+
+  it('resolves GET.visits as a single un-branched variant (issue #1507)', function() {
+    const visits = resourceConfig.get('GET', 'staffStatistics', 'visits');
+
+    expect(visits.regular).toBe(visits.private);
+    expect(visits.regular.path()).toBe('/staff/statistics/visits.json');
+    expect(visits.regular.permission).toBeNull();
+  });
+
+  it('resolves GET.overview as a single un-branched variant (issue #1504)', function() {
+    const overview = resourceConfig.get('GET', 'staffStatistics', 'overview');
+
+    expect(overview.regular).toBe(overview.private);
+    expect(overview.regular.path()).toBe('/staff/statistics/overview.json');
+    expect(overview.regular.permission).toBeNull();
+  });
+
+  it('resolves GET.visitors as a single un-branched variant (issue #1510)', function() {
+    const visitors = resourceConfig.get('GET', 'staffStatistics', 'visitors');
+
+    expect(visitors.regular).toBe(visitors.private);
+    expect(visitors.regular.path()).toBe('/staff/statistics/visitors.json');
+    expect(visitors.regular.permission).toBeNull();
+  });
+
+  it('resolves GET.duration as a single un-branched variant (issue #1514)', function() {
+    const duration = resourceConfig.get('GET', 'staffStatistics', 'duration');
+
+    expect(duration.regular).toBe(duration.private);
+    expect(duration.regular.path()).toBe('/staff/statistics/duration.json');
+    expect(duration.regular.permission).toBeNull();
+  });
+
+  it('resolves GET.domainsSummary as a single un-branched variant (issue #1517)', function() {
+    const domainsSummary = resourceConfig.get('GET', 'staffStatistics', 'domainsSummary');
+
+    expect(domainsSummary.regular).toBe(domainsSummary.private);
+    expect(domainsSummary.regular.path()).toBe('/staff/statistics/domains/summary.json');
+    expect(domainsSummary.regular.permission).toBeNull();
+  });
+
+  it('resolves GET.usersRanking as a single un-branched variant (issue #1520)', function() {
+    const usersRanking = resourceConfig.get('GET', 'staffStatistics', 'usersRanking');
+
+    expect(usersRanking.regular).toBe(usersRanking.private);
+    expect(usersRanking.regular.path()).toBe('/staff/statistics/users.json');
+    expect(usersRanking.regular.permission).toBeNull();
+  });
+
+  it('resolves GET.visitList as a single un-branched variant (issue #1523)', function() {
+    const visitList = resourceConfig.get('GET', 'staffStatistics', 'visitList');
+
+    expect(visitList.regular).toBe(visitList.private);
+    expect(visitList.regular.path()).toBe('/staff/statistics/visit-list.json');
+    expect(visitList.regular.permission).toBeNull();
+  });
+
+  it('returns null for an unconfigured quantity type', function() {
+    expect(resourceConfig.get('GET', 'staffStatistics', 'collection')).toBeNull();
+  });
+});

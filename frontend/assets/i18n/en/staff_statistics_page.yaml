@@ -1,0 +1,150 @@
+staff_statistics_page:
+  title: Access statistics
+  placeholder: This tab is not available yet.
+  charts_loading: Loading charts...
+  tabs:
+    overview: Overview
+    visits: Visits
+    visitors: Visitors
+    duration: Duration
+    domains: Domains
+    users: Users
+    visit_list: Visit list
+  filters:
+    range: Date range
+    ranges:
+      '7d': Last 7 days
+      '30d': Last 30 days
+      '90d': Last 90 days
+      '12m': Last 12 months
+      custom: Custom
+    from: From
+    to: To
+    user: User
+    user_any: Any user
+    user_search_placeholder: Search users...
+    user_no_results: No users found.
+    user_deleted: deleted user
+    user_clear: Clear
+    domain: Domain
+    domain_any: Any domain
+    domain_unknown: Unknown
+    audience: Audience
+    audiences:
+      all: All
+      anonymous: Anonymous
+      logged_in: Logged-in
+    granularity: Granularity
+    granularities:
+      auto: Auto
+      day: Day
+      week: Week
+      month: Month
+    reset: Reset
+  visits:
+    title: Visits over time
+    total: Total
+    anonymous: Anonymous
+    logged_in: Logged-in
+    logged_in_share: Logged-in share
+    empty: No visits in this range
+    load_error: Unable to load visits.
+  visitors:
+    title: Visitors over time
+    unique_visitors: Unique visitors
+    new: New
+    returning: Returning
+    returning_share: Returning share
+    anonymous: Anonymous
+    logged_in: Logged-in
+    logged_in_share: Logged-in share
+    total: Total
+    new_returning_title: New vs returning
+    audience_title: Anonymous vs logged-in
+    totals_note: 'Range totals are not sums of the bars: a visitor seen in several periods counts once.'
+    first_visit_note: '"New" means first visit recorded; visits before tracking started are not counted.'
+    empty: No visitors in this range
+    load_error: Unable to load visitors.
+  duration:
+    title: Visit duration over time
+    visits: Visits
+    average_duration: Average duration
+    median_duration: Median duration
+    average_hits: Average hits per visit
+    median_hits: Median hits per visit
+    single_hit_share: Single-hit share
+    duration_chart: Visit duration
+    hits_chart: Hits per visit
+    histogram_chart: Duration distribution
+    histogram_share: Share of visits
+    empty: No visits in this range
+    load_error: Unable to load visit durations.
+    bins:
+      zero: 0 s
+      under_30s: '<30 s'
+      '30s_1m': 30 s–1 m
+      '1m_3m': 1–3 m
+      '3m_10m': 3–10 m
+      '10m_30m': 10–30 m
+      '30m_1h': 30 m–1 h
+      over_1h: '≥1 h'
+  domains:
+    title: Visits by domain
+    unknown: Unknown
+    domain: Domain
+    group: Group
+    visits: Visits
+    anonymous: Anonymous
+    logged_in: Logged-in
+    logged_in_share: Logged-in share
+    unique_visitors: Unique visitors
+    average_duration: Average duration
+    median_duration: Median duration
+    chart: Visits per domain
+    empty: No visits in this range
+    load_error: Unable to load domain statistics.
+    total: Total
+    sort_ascending: sorted ascending
+    sort_descending: sorted descending
+  users:
+    title: Users
+    user: User
+    visits: Visits
+    time_on_site: Time on site
+    average_duration: Avg duration
+    hits: Hits
+    domains: Domains
+    last_seen: Last seen
+    unknown_domain: unknown
+    profile: Profile
+    sorted_descending: Sorted descending
+    empty: No logged-in users in this range.
+    load_error: Unable to load users.
+  visit_list:
+    title: Visit list
+    user: User
+    ip: IP
+    domain: Domain
+    started_at: Start
+    last_seen: Last seen
+    duration: Duration
+    hits: Hits
+    anonymous: Anonymous
+    unknown_domain: unknown
+    ongoing: ongoing
+    profile: Profile
+    sorted_descending: Sorted descending
+    empty: No visits in this range.
+    load_error: Unable to load visits.
+  overview:
+    visits: Visits
+    unique_visitors: Unique visitors
+    logged_in_users: Logged-in users
+    average_duration: Average visit duration
+    new_vs_returning: New vs returning
+    new_visitors: 'New: {{count}}'
+    returning_visitors: 'Returning: {{count}}'
+    returning_share: '{{share}} returning'
+    first_visit_note: '"New" means first visit recorded; visits before tracking started are not counted.'
+    loading: Loading overview...
+    load_error: Unable to load the overview.

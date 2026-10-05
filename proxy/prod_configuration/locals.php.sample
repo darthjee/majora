@@ -5,3 +5,8 @@ $photosPath = '/var/www/html';
 $filesPath = '/var/www/html';
 $staticRoot = '/home/moria_user/moria.ffavs.net';
 $cacheFolder = './cache';
+// Shared secret sent to Django in X-Proxy-Secret (SetClientIpMiddleware).
+// The server-side locals.php must hold the same value as Render's
+// PROXY_SECRET env var. Empty disables it (Django then ignores
+// X-Forwarded-For and records REMOTE_ADDR).
+$proxySecret = '';

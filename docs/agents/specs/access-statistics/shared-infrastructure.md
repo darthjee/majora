@@ -291,15 +291,21 @@ and `staff_users_list`'s `invalid_status` return), status `400`:
 
 | Field key | Code | When |
 |-----------|------|------|
-| `from` / `to` | `invalid_date` | Not a valid `YYYY-MM-DD` date |
+| `from` / `to` | `invalid_date` | Not a valid `YYYY-MM-DD` date, or outside `1970-01-01`..`9998-12-31` |
 | `range` | `from_after_to` | `from > to` |
 | `range` | `range_too_long` | `to − from + 1 > Settings.max_range_days()` |
 | `tz` | `invalid_timezone` | Not in `zoneinfo.available_timezones()` |
 | `granularity` | `invalid_granularity` | Not one of the enum values |
 | `audience` | `invalid_audience` | Not one of the enum values |
-| `user` | `invalid_user` | Not a positive integer |
-| `domain` | `invalid_domain` | Not a positive integer nor `unknown` |
-| `page` / `per_page` | `invalid_page` / `invalid_per_page` | Not a positive integer, or `per_page > 100` |
+| `user` | `invalid_user` | Not a positive integer ≤ `2**63 − 1` |
+| `domain` | `invalid_domain` | Not a positive integer ≤ `2**63 − 1` nor `unknown` |
+| `page` / `per_page` | `invalid_page` / `invalid_per_page` | Not a positive integer ≤ `2**63 − 1`, or `per_page > 100` |
+
+The bounds keep every accepted value safe downstream: the date window lets the UTC range
+(`to + 1 day`, `astimezone`) be computed in any zone without overflowing `datetime`, and
+integers are matched against `^[0-9]{1,19}$` before conversion, then capped at the
+`BigAutoField` maximum, so huge ids never reach the database and over-long digit strings never
+reach `int()`.
 
 `page` / `per_page` are validated strictly here (the shared `Paginator` silently falls back
 to defaults and has no maximum), then passed to it unchanged. Range checks only run when
@@ -431,29 +437,38 @@ A `staffStatistics` resource in
 - **Dependency:** `recharts` (3.x) is added with
   `docker-compose run --rm majora_fe yarn add recharts`. React is 19.2, which Recharts 3
   supports.
-- **Lazy loading:** there is no `React.lazy` in the app yet. The chunk boundary is the chart
-  components only: `components/resources/staff_statistics/charts/index.js` re-exports every
-  chart, and the tab pages load it with
-  `const Charts = React.lazy(() => import('../charts/index.js'))` (one chunk for all
-  statistics charts), rendered inside `<Suspense fallback={<LoadingMessage />}>`
-  (`components/common/misc/LoadingMessage.jsx`). Pages, the shell, the filter bar and
-  controllers stay in the main bundle (they are small, and non-staff users never mount
-  them), so only Recharts and the chart helpers move to the lazy chunk.
+- **Lazy loading:** the chunk boundary is the chart components only:
+  `components/resources/staff_statistics/charts/index.js` re-exports every chart as a named
+  export (`export { default as TimeSeriesChart } from './TimeSeriesChart.jsx';`). The single
+  `React.lazy` entry into it is the shared wrapper
+  `pages/elements/StaffStatisticsCharts.jsx`
+  (`React.lazy(() => import('../../charts/index.js').then(...))`, mapping the named exports
+  to one component, so all statistics charts share one chunk). Tab pages never call
+  `React.lazy` themselves; they render
+  `<StaffStatisticsCharts chart="TimeSeriesChart" name="..." points={...} xKey="..." series={[...]} />`,
+  where `chart` is the export name and the other props go to the chart. The wrapper renders
+  `<Suspense fallback={<LoadingMessage message={Translator.t('staff_statistics_page.charts_loading')} />}>`
+  (`components/common/misc/LoadingMessage.jsx`; en `Loading charts...`, pt
+  `Carregando gráficos...`). Pages, the shell, the filter bar and controllers stay in the
+  main bundle (they are small, and non-staff users never mount them), so only Recharts and
+  the chart helpers move to the lazy chunk (`yarn build` lists it as a separate
+  `index-*.js` of about 377 kB / 110 kB gzip, while the main entry does not include
+  Recharts).
 - **Sizing:** charts use `<ResponsiveContainer width="100%" height={300}>` (fixed height,
   fluid width), wrapped in a `<div data-testid="statistics-<name>-chart">` owned by the
   component.
 - **Tests:** Jasmine runs in plain Node and renders with `renderToStaticMarkup` (no DOM, no
-  effects, no layout), so `ResponsiveContainer` never measures anything and no
-  `ResizeObserver` is touched. Smoke tests import the chart component directly (not through
-  the lazy chunk) and assert the `data-testid` wrapper renders for empty, single-point and
-  normal data. If Recharts 3 still reads `ResizeObserver` at import or render time under
-  Node, the Recharts setup sub-issue adds a no-op stub in
-  `frontend/specs/support/resizeObserverStub.js`, registered as a Jasmine helper like
-  `preloadTranslations.js`, only defining `globalThis.ResizeObserver` when it is missing.
-- **Colors:** there are no app CSS custom properties yet (only SCSS variables in
-  `assets/css/main.scss`). Add a `:root` block in `main.scss` declaring
-  `--majora-chart-1` … `--majora-chart-6` (starting from `$secondary-color` and
-  `$primary-color`), `--majora-chart-grid` and `--majora-chart-axis`, and use them as
+  effects, no layout), so `ResponsiveContainer` never measures anything. Recharts 3 imports
+  and renders under Node without a `ResizeObserver`, so **no stub is needed** (none is
+  registered). Smoke tests import the chart component directly (not through the lazy chunk)
+  and assert the `data-testid` wrapper renders for empty, single-point and normal data.
+  Under `renderToStaticMarkup`, `StaffStatisticsCharts` renders the `charts_loading` fallback
+  until the chunk's dynamic import has resolved; React caches the resolved lazy module, so
+  page specs must accept either the fallback or the chart wrapper (spec order is random).
+- **Colors:** a `:root` block in `assets/css/main.scss` (right after the SCSS color
+  variables) declares `--majora-chart-1` … `--majora-chart-6` (`$secondary-color`,
+  `$primary-color`, then teal, amber, rose and slate-blue), `--majora-chart-grid` and
+  `--majora-chart-axis`. Charts use them as
   `stroke="var(--majora-chart-1)"` / `fill=...`. Tabs pick series colors from these.
 - **Layout per chart**, matching `components/resources/staff_photo/pages/`:
 
@@ -513,6 +528,19 @@ Consequence for the tabs: stored IPs are **best effort and spoofable**, not guar
 single client IPs. Tabs that display IPs (Visit list) show them as recorded, and the spec
 pages must not present them as authoritative. The fix is tracked in the follow-up sub-issue
 listed below; it does not block the statistics implementation.
+
+**Resolution (#1501).** Tent now wires `SetClientIpMiddleware` and sends an `X-Proxy-Secret`
+header on the standard proxy rules to Django (`backend.php`, `private_game_data_cache.php`,
+`admin.php`, `redirects.php`), stripping any client-supplied copy. The custom-handler rules
+(`cache.php`, `delete.php`, `uploads.php`) go through `BackendClient`, whose header allow-list
+drops both headers, so Django records Tent's IP there (fail-safe, not client-chosen). Django
+trusts `X-Forwarded-For` only when that secret matches `PROXY_SECRET`, takes the leftmost
+valid entry, and otherwise falls back to `REMOTE_ADDR` (no request is rejected). Details in
+[access and security](access-and-security.md#client-ip-integrity). Still to verify after
+deploy: that `PROXY_SECRET` is set on both sides, and the
+[manual post-deploy check](access-and-security.md#post-deploy-check-manual-owner),
+including whether an edge proxy sits in front of Tent. `X-Forwarded-Host` (domain gate) is
+not covered by the secret gate yet; see `docs/agents/access-control/game.md`.
 
 ## Open questions
 
