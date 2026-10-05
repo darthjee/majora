@@ -5,6 +5,7 @@ from .staff_recovery_token import StaffRecoveryTokenSerializer
 from .staff_user_detail import StaffUserDetailSerializer
 from .staff_user_list import StaffUserListSerializer
 from .staff_user_update import StaffUserUpdateSerializer
+from .statistics_user_identity import StatisticsUserIdentitySerializer
 
 __all__ = [
     'StaffPhotoListSerializer',
@@ -12,4 +13,5 @@ __all__ = [
     'StaffUserDetailSerializer',
     'StaffUserListSerializer',
     'StaffUserUpdateSerializer',
+    'StatisticsUserIdentitySerializer',
 ]
