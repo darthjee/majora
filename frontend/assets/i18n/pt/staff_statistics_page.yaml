@@ -65,6 +65,29 @@ staff_statistics_page:
     first_visit_note: '"Novo" significa a primeira visita registrada; visitas anteriores ao início do rastreamento não são contadas.'
     empty: Nenhum visitante neste período
     load_error: Não foi possível carregar os visitantes.
+  duration:
+    title: Duração das visitas ao longo do tempo
+    visits: Visitas
+    average_duration: Duração média
+    median_duration: Duração mediana
+    average_hits: Média de acessos por visita
+    median_hits: Mediana de acessos por visita
+    single_hit_share: Visitas de um único acesso
+    duration_chart: Duração das visitas
+    hits_chart: Acessos por visita
+    histogram_chart: Distribuição das durações
+    histogram_share: Parcela das visitas
+    empty: Nenhuma visita neste período
+    load_error: Não foi possível carregar as durações das visitas.
+    bins:
+      zero: 0 s
+      under_30s: '<30 s'
+      '30s_1m': 30 s–1 m
+      '1m_3m': 1–3 m
+      '3m_10m': 3–10 m
+      '10m_30m': 10–30 m
+      '30m_1h': 30 m–1 h
+      over_1h: '≥1 h'
   overview:
     visits: Visitas
     unique_visitors: Visitantes únicos
