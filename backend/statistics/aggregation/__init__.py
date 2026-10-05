@@ -3,13 +3,14 @@
 Plain classes, one per file: request filter parsing and validation, granularity resolution,
 time-zone-aware bucketing, the visit query, zero-filled series, pure metric helpers and the
 per-endpoint aggregations built on top of them (e.g. `VisitsSeries`, `VisitorsSeries`,
-`DurationSeries`, `OverviewTotals`, `UsersRanking`, `VisitList`).
+`DurationSeries`, `OverviewTotals`, `DomainsSummary`, `UsersRanking`, `VisitList`).
 Never `import statistics` for the stdlib helpers: this app's name shadows that module.
 """
 
 from . import metrics
 from .bucket import Bucket
 from .bucket_calendar import BucketCalendar
+from .domains_summary import DomainsSummary
 from .duration_series import DurationSeries
 from .filters import StatisticsFilters
 from .granularity import Granularity
@@ -25,6 +26,7 @@ from .visits_series import VisitsSeries
 __all__ = [
     'Bucket',
     'BucketCalendar',
+    'DomainsSummary',
     'DurationSeries',
     'Granularity',
     'OverviewTotals',
