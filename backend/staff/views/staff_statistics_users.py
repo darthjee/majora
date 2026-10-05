@@ -1,7 +1,6 @@
 """View returning the logged-in users ranking of the access statistics, staff/superuser only."""
 
 from django.contrib.auth.models import User
-from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -9,6 +8,7 @@ from rest_framework.response import Response
 from games.decorators import restricted
 from games.paginator import Paginator
 from games.views.common import require_staff
+from staff.serializers import StatisticsUserIdentitySerializer
 from statistics.aggregation import UsersRanking
 
 from ._staff_statistics_shared import parse_sort, parse_statistics_filters
@@ -43,7 +43,7 @@ class _UserIdentities:
         """Return the rows with identity keys first, skipping users deleted since the ranking."""
         users = self._users()
         return [
-            {**self._identity(users[row['id']]), **row}
+            {**StatisticsUserIdentitySerializer(users[row['id']]).data, **row}
             for row in self._rows
             if row['id'] in users
         ]
@@ -54,21 +54,3 @@ class _UserIdentities:
             return {}
         ids = [row['id'] for row in self._rows]
         return User.objects.select_related('profile').in_bulk(ids)
-
-    @classmethod
-    def _identity(cls, user):
-        """Return the identity keys of `user`, with the staff users list key names."""
-        return {
-            'id': user.id,
-            'name': user.username,
-            'display_name': cls._display_name(user),
-            'email': user.email,
-        }
-
-    @staticmethod
-    def _display_name(user):
-        """Return the profile's display name, or `None` when blank or without a profile."""
-        try:
-            return user.profile.display_name or None
-        except ObjectDoesNotExist:
-            return None

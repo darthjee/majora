@@ -1,9 +1,10 @@
-"""Pure metric helpers over plain lists (no DB).
+"""Pure metric helpers over plain values and lists (no DB).
 
 Never `import statistics` here: this app's name shadows the stdlib module.
 """
 
 from bisect import bisect_right
+from datetime import timezone
 
 
 def count(values):
@@ -37,6 +38,11 @@ def median(values):
 def duration_seconds(started_at, last_seen_at):
     """Return the whole-second duration between two datetimes (sub-seconds truncated)."""
     return int((last_seen_at - started_at).total_seconds())
+
+
+def iso_utc(value):
+    """Return `value` as an ISO 8601 UTC timestamp with a `Z` suffix (whole seconds)."""
+    return value.astimezone(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
 
 
 def histogram(values, edges):
