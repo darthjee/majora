@@ -20,9 +20,12 @@
  *   tab's zero-filled buckets, totals (visits, single-hit visits, average / median duration
  *   and hits) and the fixed 8-bin duration histogram. `GET.domainsSummary`
  *   (`/staff/statistics/domains/summary.json`, issue #1517) returns the Domains tab's
- *   per-domain rows (the "unknown" row last) and totals.
+ *   per-domain rows (the "unknown" row last) and totals. `GET.usersRanking`
+ *   (`/staff/statistics/users.json`, issue #1520) returns the Users tab's paginated plain
+ *   array of logged-in user rows, ordered server-side by the `sort` query param.
  *   Each statistics tab adds its own quantity type (e.g. `overview`, `visits`, `visitors`,
- *   `duration`, `domainsSummary`); their filters travel as the request query (see `StatisticsQuery`).
+ *   `duration`, `domainsSummary`, `usersRanking`); their filters travel as the request query
+ *   (see `StatisticsQuery`).
  */
 const domains = { path: () => '/staff/statistics/domains.json', permission: null };
 const overview = { path: () => '/staff/statistics/overview.json', permission: null };
@@ -30,6 +33,7 @@ const visits = { path: () => '/staff/statistics/visits.json', permission: null }
 const visitors = { path: () => '/staff/statistics/visitors.json', permission: null };
 const duration = { path: () => '/staff/statistics/duration.json', permission: null };
 const domainsSummary = { path: () => '/staff/statistics/domains/summary.json', permission: null };
+const usersRanking = { path: () => '/staff/statistics/users.json', permission: null };
 
 export default {
   GET: {
@@ -39,5 +43,6 @@ export default {
     visitors: { regular: visitors, private: visitors },
     duration: { regular: duration, private: duration },
     domainsSummary: { regular: domainsSummary, private: domainsSummary },
+    usersRanking: { regular: usersRanking, private: usersRanking },
   },
 };
