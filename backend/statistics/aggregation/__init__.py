@@ -3,7 +3,7 @@
 Plain classes, one per file: request filter parsing and validation, granularity resolution,
 time-zone-aware bucketing, the visit query, zero-filled series, pure metric helpers and the
 per-endpoint aggregations built on top of them (e.g. `VisitsSeries`, `VisitorsSeries`,
-`DurationSeries`, `OverviewTotals`, `UsersRanking`).
+`DurationSeries`, `OverviewTotals`, `UsersRanking`, `VisitList`).
 Never `import statistics` for the stdlib helpers: this app's name shadows that module.
 """
 
@@ -17,6 +17,7 @@ from .overview_totals import OverviewTotals
 from .params_parser import StatisticsParamsParser
 from .series import Series
 from .users_ranking import UsersRanking
+from .visit_list import VisitList
 from .visit_query import VisitQuery
 from .visitors_series import VisitorsSeries
 from .visits_series import VisitsSeries
@@ -31,6 +32,7 @@ __all__ = [
     'StatisticsFilters',
     'StatisticsParamsParser',
     'UsersRanking',
+    'VisitList',
     'VisitQuery',
     'VisitorsSeries',
     'VisitsSeries',
