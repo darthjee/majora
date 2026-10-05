@@ -12,8 +12,9 @@ sets `X-Skip-Cache: true` per the [`X-Skip-Cache` rule](principles.md#x-skip-cac
 > **Status:** live for the shared `domains.json` endpoint and the shared filter validation
 > (#1498), for the Visits tab's `visits.json` (#1506), for the Overview tab's
 > `overview.json` (#1503), for the Visitors tab's `visitors.json` (#1509) and for the
-> Duration tab's `duration.json` (#1513), for the Users tab's `users.json` (#1519) and for the
-> Visit list tab's `visit-list.json` (#1522). The other tab endpoints still land with their own implementation
+> Duration tab's `duration.json` (#1513), for the Users tab's `users.json` (#1519), for the
+> Visit list tab's `visit-list.json` (#1522) and for the Domains tab's `domains/summary.json`
+> (#1516). The other tab endpoints still land with their own implementation
 > sub-issues of #1477; each appends its row below. Shared conventions:
 > [`specs/access-statistics/shared-infrastructure.md`](../specs/access-statistics/shared-infrastructure.md#api-conventions).
 
@@ -26,6 +27,7 @@ sets `X-Skip-Cache: true` per the [`X-Skip-Cache` rule](principles.md#x-skip-cac
 | Visit duration and hits per visit for the Duration tab (`GET /staff/statistics/duration.json`) | **Staff-or-superuser** |
 | Logged-in users ranking for the Users tab (`GET /staff/statistics/users.json`) | **Staff-or-superuser** |
 | Raw visit list for the Visit list tab (`GET /staff/statistics/visit-list.json`) | **Staff-or-superuser** |
+| Per-domain comparison for the Domains tab (`GET /staff/statistics/domains/summary.json`) | **Staff-or-superuser** |
 
 Anonymous callers get `401` and non-staff callers (including DMs and game admins without
 staff) get `403`. No role can write through these endpoints.
@@ -127,3 +129,16 @@ the user identity (id, username, display name, email). The session cookie token
   visits give `user: null`. It **exposes raw IPs, statistics session ids and user
   identities** to staff, and never the session token. Not warmed by Navi; sets
   `X-Skip-Cache: true`.
+- **`GET /staff/statistics/domains/summary.json`** — per-domain comparison of the visits
+  started in the range. Takes the shared filter params (`from`, `to`, `tz`, `user`, `domain`,
+  `audience`; `granularity` is validated and echoed but ignored); not paginated. Returns
+  `{"filters": {...}, "domains": [{"id", "domain", "group", "visits", "anonymous",
+  "logged_in", "unique_visitors", "average_duration_seconds", "median_duration_seconds"}],
+  "totals": {same six metric keys}}` with no `buckets`. Without a `domain` filter every
+  configured domain is present (zero-filled) plus the "unknown" row (`{"id": "unknown",
+  "domain": null, "group": null}`, always last); `domain=<id>` keeps that row (a missing id
+  gives `[]` and zero totals) and `domain=unknown` keeps only the unknown row. Durations are
+  `null` on rows without visits; totals are computed over all the matched visits, not summed
+  from rows. It exposes domain hostnames and group names (hostnames are already staff-visible
+  through `domains.json`) and aggregated values only: no user identities and no IPs. Not
+  warmed by Navi; sets `X-Skip-Cache: true`.
