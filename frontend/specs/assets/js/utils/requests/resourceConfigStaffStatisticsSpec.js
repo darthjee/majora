@@ -41,6 +41,14 @@ describe('resourceConfig staffStatistics (issue #1499)', function() {
     expect(duration.regular.permission).toBeNull();
   });
 
+  it('resolves GET.domainsSummary as a single un-branched variant (issue #1517)', function() {
+    const domainsSummary = resourceConfig.get('GET', 'staffStatistics', 'domainsSummary');
+
+    expect(domainsSummary.regular).toBe(domainsSummary.private);
+    expect(domainsSummary.regular.path()).toBe('/staff/statistics/domains/summary.json');
+    expect(domainsSummary.regular.permission).toBeNull();
+  });
+
   it('returns null for an unconfigured quantity type', function() {
     expect(resourceConfig.get('GET', 'staffStatistics', 'collection')).toBeNull();
   });
