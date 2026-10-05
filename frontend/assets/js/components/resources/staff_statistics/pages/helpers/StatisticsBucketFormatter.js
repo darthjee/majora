@@ -79,6 +79,18 @@ export default class StatisticsBucketFormatter {
   }
 
   /**
+   * Formats a number with at most one decimal place.
+   *
+   * @description Used by the hits per visit axis and tooltip (e.g. `2.5`, `3`).
+   * @param {number} value - The number.
+   * @param {string} [locale] - Locale (defaults to the browser locale).
+   * @returns {string} The formatted number (e.g. `1,234.5`).
+   */
+  static decimal(value, locale = undefined) {
+    return new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(value);
+  }
+
+  /**
    * Formats a 0..1 share as a whole-number percentage.
    *
    * @param {number} share - The share between 0 and 1.

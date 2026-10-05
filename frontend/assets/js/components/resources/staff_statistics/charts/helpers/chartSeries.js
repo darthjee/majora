@@ -21,6 +21,26 @@ export const NEW_RETURNING_SERIES = [
 ];
 
 /**
+ * Average vs median visit duration series (issue #1514).
+ *
+ * @type {{key: string, color: string, labelKey: string}[]}
+ */
+export const DURATION_SERIES = [
+  { key: 'average_duration_seconds', color: 'var(--majora-chart-1)', labelKey: 'average_duration' },
+  { key: 'median_duration_seconds', color: 'var(--majora-chart-2)', labelKey: 'median_duration' },
+];
+
+/**
+ * Average vs median hits per visit series (issue #1514).
+ *
+ * @type {{key: string, color: string}[]}
+ */
+export const HITS_SERIES = [
+  { key: 'average_hits', color: 'var(--majora-chart-1)' },
+  { key: 'median_hits', color: 'var(--majora-chart-2)' },
+];
+
+/**
  * Resolves the visible chart series in stack order.
  *
  * @description Keeps the order of `definitions` (bottom of the stack first) whatever the

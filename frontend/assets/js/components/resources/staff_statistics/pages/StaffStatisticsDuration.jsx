@@ -1,18 +1,17 @@
 import StaffStatisticsAccessGate from './elements/StaffStatisticsAccessGate.jsx';
-import StaffStatisticsPlaceholder from './elements/StaffStatisticsPlaceholder.jsx';
-import StaffStatisticsShell from './elements/StaffStatisticsShell.jsx';
+import StaffStatisticsDurationBody from './elements/StaffStatisticsDurationBody.jsx';
 
 /**
  * Access statistics Duration tab page.
  *
+ * @description The body (and so the duration fetch) only mounts once
+ *   `StaffStatisticsAccessGate` confirmed the user is staff or superuser.
  * @returns {React.ReactElement} The Duration tab page.
  */
 export default function StaffStatisticsDuration() {
   return (
     <StaffStatisticsAccessGate>
-      <StaffStatisticsShell tab="duration">
-        <StaffStatisticsPlaceholder />
-      </StaffStatisticsShell>
+      <StaffStatisticsDurationBody />
     </StaffStatisticsAccessGate>
   );
 }

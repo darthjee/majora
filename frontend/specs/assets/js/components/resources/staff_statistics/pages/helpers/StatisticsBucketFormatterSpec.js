@@ -61,6 +61,24 @@ describe('StatisticsBucketFormatter', function() {
     });
   });
 
+  describe('.decimal', function() {
+    it('formats an integer without decimals', function() {
+      expect(StatisticsBucketFormatter.decimal(3, locale)).toBe('3');
+    });
+
+    it('keeps one decimal', function() {
+      expect(StatisticsBucketFormatter.decimal(2.5, locale)).toBe('2.5');
+    });
+
+    it('rounds to one decimal', function() {
+      expect(StatisticsBucketFormatter.decimal(2.26, locale)).toBe('2.3');
+    });
+
+    it('groups thousands', function() {
+      expect(StatisticsBucketFormatter.decimal(1234.5, locale)).toBe('1,234.5');
+    });
+  });
+
   describe('.percent', function() {
     it('formats zero', function() {
       expect(StatisticsBucketFormatter.percent(0, locale)).toBe('0%');

@@ -16,13 +16,17 @@
  *   tab's KPI totals (no buckets) for the requested filters. `GET.visitors`
  *   (`/staff/statistics/visitors.json`, issue #1510) returns the Visitors tab's zero-filled
  *   buckets and totals (unique / new / returning / anonymous / logged-in visitors).
- *   Each statistics tab adds its own quantity type (e.g. `overview`, `visits`, `visitors`); their
+ *   `GET.duration` (`/staff/statistics/duration.json`, issue #1514) returns the Duration
+ *   tab's zero-filled buckets, totals (visits, single-hit visits, average / median duration
+ *   and hits) and the fixed 8-bin duration histogram.
+ *   Each statistics tab adds its own quantity type (e.g. `overview`, `visits`, `visitors`, `duration`); their
  *   filters travel as the request query (see `StatisticsQuery`).
  */
 const domains = { path: () => '/staff/statistics/domains.json', permission: null };
 const overview = { path: () => '/staff/statistics/overview.json', permission: null };
 const visits = { path: () => '/staff/statistics/visits.json', permission: null };
 const visitors = { path: () => '/staff/statistics/visitors.json', permission: null };
+const duration = { path: () => '/staff/statistics/duration.json', permission: null };
 
 export default {
   GET: {
@@ -30,5 +34,6 @@ export default {
     overview: { regular: overview, private: overview },
     visits: { regular: visits, private: visits },
     visitors: { regular: visitors, private: visitors },
+    duration: { regular: duration, private: duration },
   },
 };

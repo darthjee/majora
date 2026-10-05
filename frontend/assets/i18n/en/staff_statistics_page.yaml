@@ -65,6 +65,29 @@ staff_statistics_page:
     first_visit_note: '"New" means first visit recorded; visits before tracking started are not counted.'
     empty: No visitors in this range
     load_error: Unable to load visitors.
+  duration:
+    title: Visit duration over time
+    visits: Visits
+    average_duration: Average duration
+    median_duration: Median duration
+    average_hits: Average hits per visit
+    median_hits: Median hits per visit
+    single_hit_share: Single-hit share
+    duration_chart: Visit duration
+    hits_chart: Hits per visit
+    histogram_chart: Duration distribution
+    histogram_share: Share of visits
+    empty: No visits in this range
+    load_error: Unable to load visit durations.
+    bins:
+      zero: 0 s
+      under_30s: '<30 s'
+      '30s_1m': 30 s–1 m
+      '1m_3m': 1–3 m
+      '3m_10m': 3–10 m
+      '10m_30m': 10–30 m
+      '30m_1h': 30 m–1 h
+      over_1h: '≥1 h'
   overview:
     visits: Visits
     unique_visitors: Unique visitors
