@@ -44,7 +44,7 @@ GameMaster to authorize a brand-new game.
   caller can therefore send any `X-Forwarded-Host` and **spoof the domain gate above**,
   seeing games scoped to another domain. Client-IP trust was fixed in #1501 with an
   `X-Proxy-Secret` gate (see
-  `docs/agents/specs/access-statistics/access-and-security.md#client-ip-integrity`), but
+  `docs/agents/statistics.md#client-ip-integrity`), but
   `X-Forwarded-Host` is **not** covered by it yet. Applying the same secret gate to it is a
   separate follow-up security change; until then, treat the domain gate as a visibility
   filter, not a security boundary.

@@ -7,7 +7,7 @@ The `statistics` app records site access per visitor. It has two models:
   `last_seen_at`.
 - **`Visit`** — a burst of activity under a `Session` (`started_at`, `last_seen_at`,
   exact `hits`), closed after an inactivity window. See the
-  [access statistics data model](../specs/access-statistics/data-model.md) for the design.
+  [access statistics data model](../statistics.md#data-model) for the design.
 
 ## Writes
 
