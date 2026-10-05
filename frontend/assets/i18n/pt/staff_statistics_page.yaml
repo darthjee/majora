@@ -106,6 +106,20 @@ staff_statistics_page:
     total: Total
     sort_ascending: ordenado de forma crescente
     sort_descending: ordenado de forma decrescente
+  users:
+    title: Usuários
+    user: Usuário
+    visits: Visitas
+    time_on_site: Tempo no site
+    average_duration: Duração média
+    hits: Acessos
+    domains: Domínios
+    last_seen: Visto por último
+    unknown_domain: desconhecido
+    profile: Perfil
+    sorted_descending: Ordenado de forma decrescente
+    empty: Nenhum usuário logado neste período.
+    load_error: Não foi possível carregar os usuários.
   overview:
     visits: Visitas
     unique_visitors: Visitantes únicos
