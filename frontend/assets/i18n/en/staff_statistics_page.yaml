@@ -88,6 +88,54 @@ staff_statistics_page:
       '10m_30m': 10–30 m
       '30m_1h': 30 m–1 h
       over_1h: '≥1 h'
+  domains:
+    title: Visits by domain
+    unknown: Unknown
+    domain: Domain
+    group: Group
+    visits: Visits
+    anonymous: Anonymous
+    logged_in: Logged-in
+    logged_in_share: Logged-in share
+    unique_visitors: Unique visitors
+    average_duration: Average duration
+    median_duration: Median duration
+    chart: Visits per domain
+    empty: No visits in this range
+    load_error: Unable to load domain statistics.
+    total: Total
+    sort_ascending: sorted ascending
+    sort_descending: sorted descending
+  users:
+    title: Users
+    user: User
+    visits: Visits
+    time_on_site: Time on site
+    average_duration: Avg duration
+    hits: Hits
+    domains: Domains
+    last_seen: Last seen
+    unknown_domain: unknown
+    profile: Profile
+    sorted_descending: Sorted descending
+    empty: No logged-in users in this range.
+    load_error: Unable to load users.
+  visit_list:
+    title: Visit list
+    user: User
+    ip: IP
+    domain: Domain
+    started_at: Start
+    last_seen: Last seen
+    duration: Duration
+    hits: Hits
+    anonymous: Anonymous
+    unknown_domain: unknown
+    ongoing: ongoing
+    profile: Profile
+    sorted_descending: Sorted descending
+    empty: No visits in this range.
+    load_error: Unable to load visits.
   overview:
     visits: Visits
     unique_visitors: Unique visitors

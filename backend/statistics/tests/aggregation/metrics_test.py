@@ -1,6 +1,7 @@
 """Tests for `statistics.aggregation.metrics`."""
 
 from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 
 from statistics.aggregation import metrics
 
@@ -82,6 +83,25 @@ class TestDurationSeconds:
         """Test that a multi-hour span is returned in whole seconds."""
         last_seen_at = self.started_at + timedelta(hours=3, minutes=2, seconds=5)
         assert metrics.duration_seconds(self.started_at, last_seen_at) == 10925
+
+
+class TestIsoUtc:
+    """Tests for `metrics.iso_utc()`."""
+
+    def test_utc_value(self):
+        """Test that a UTC datetime is rendered with a `Z` suffix."""
+        value = datetime(2026, 1, 2, 3, 4, 5, tzinfo=timezone.utc)
+        assert metrics.iso_utc(value) == '2026-01-02T03:04:05Z'
+
+    def test_converts_to_utc(self):
+        """Test that a datetime in another time zone is converted to UTC."""
+        value = datetime(2026, 1, 2, 0, 30, tzinfo=ZoneInfo('America/Sao_Paulo'))
+        assert metrics.iso_utc(value) == '2026-01-02T03:30:00Z'
+
+    def test_drops_sub_seconds(self):
+        """Test that sub-second parts are dropped."""
+        value = datetime(2026, 1, 2, 3, 4, 5, 999999, tzinfo=timezone.utc)
+        assert metrics.iso_utc(value) == '2026-01-02T03:04:05Z'
 
 
 class TestHistogram:

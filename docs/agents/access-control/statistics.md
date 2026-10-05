@@ -24,11 +24,12 @@ header. No role can create, update or delete these rows through any endpoint.
 | Authenticated | none |
 | Player | none |
 | GameMaster | none |
-| Staff | aggregated reads only, through the staff statistics endpoints (planned, see [Staff Statistics](staff-statistics.md)) |
+| Staff | read-only: aggregated statistics plus raw per-visit rows (`visit-list.json`: raw IP, statistics session id, user identity; never `Session.token`), through the staff statistics endpoints (see [Staff Statistics](staff-statistics.md)) |
 | Superuser | read-only, through Django Admin |
 
-**There are no CRUD endpoints or serializers for `Session` or `Visit`.** Nothing is exposed
-to players or DMs. The only client-visible artifact is the `HttpOnly` statistics cookie,
+**There are no write endpoints for `Session` or `Visit`.** The only serializer is the
+read-only, staff-only `StaffStatisticsVisitSerializer` behind `visit-list.json`, which never
+reads `Session.token`. Nothing is exposed to players or DMs. The only client-visible artifact is the `HttpOnly` statistics cookie,
 which carries the signed session token and nothing else.
 
 Both models are registered in Django Admin with `ReadOnlyStatisticsAdmin`

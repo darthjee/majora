@@ -13,6 +13,12 @@ import VisitsController
   from '../../../../../../../assets/js/components/resources/staff_statistics/pages/controllers/VisitsController.js';
 import DurationController
   from '../../../../../../../assets/js/components/resources/staff_statistics/pages/controllers/DurationController.js';
+import DomainsController
+  from '../../../../../../../assets/js/components/resources/staff_statistics/pages/controllers/DomainsController.js';
+import UsersController
+  from '../../../../../../../assets/js/components/resources/staff_statistics/pages/controllers/UsersController.js';
+import VisitListController
+  from '../../../../../../../assets/js/components/resources/staff_statistics/pages/controllers/VisitListController.js';
 import VisitorsController
   from '../../../../../../../assets/js/components/resources/staff_statistics/pages/controllers/VisitorsController.js';
 import StaffStatisticsPageController
@@ -38,6 +44,9 @@ const LOADING_KEYS = {
   StaffStatisticsVisits: 'staff_statistics_page.charts_loading',
   StaffStatisticsVisitors: 'staff_statistics_page.charts_loading',
   StaffStatisticsDuration: 'staff_statistics_page.charts_loading',
+  StaffStatisticsDomains: 'staff_statistics_page.charts_loading',
+  StaffStatisticsUsers: 'staff_statistics_page.charts_loading',
+  StaffStatisticsVisitList: 'staff_statistics_page.charts_loading',
 };
 
 PAGES.forEach(([name, Component, path]) => {
@@ -52,6 +61,9 @@ PAGES.forEach(([name, Component, path]) => {
       stubBuildEffect(VisitsController);
       stubBuildEffect(VisitorsController);
       stubBuildEffect(DurationController);
+      stubBuildEffect(DomainsController);
+      stubBuildEffect(UsersController);
+      stubBuildEffect(VisitListController);
       spyOn(StaffStatisticsFilterBarHelper, 'render').and.returnValue(React.createElement('div'));
     });
 
@@ -74,23 +86,13 @@ PAGES.forEach(([name, Component, path]) => {
       expect(html).toContain(`<a class="nav-link active" aria-current="page" href="${path}">`);
     });
 
-    if (LOADING_KEYS[name]) {
-      it('renders the loading state instead of the placeholder', function() {
-        spyOn(AccessStore, 'isStaffOrSuperUser').and.returnValue(true);
+    it('renders the loading state instead of the placeholder', function() {
+      spyOn(AccessStore, 'isStaffOrSuperUser').and.returnValue(true);
 
-        const html = renderToStaticMarkup(React.createElement(Component));
+      const html = renderToStaticMarkup(React.createElement(Component));
 
-        expect(html).toContain(Translator.t(LOADING_KEYS[name]));
-        expect(html).not.toContain(Translator.t('staff_statistics_page.placeholder'));
-      });
-    } else {
-      it('renders the placeholder', function() {
-        spyOn(AccessStore, 'isStaffOrSuperUser').and.returnValue(true);
-
-        const html = renderToStaticMarkup(React.createElement(Component));
-
-        expect(html).toContain(Translator.t('staff_statistics_page.placeholder'));
-      });
-    }
+      expect(html).toContain(Translator.t(LOADING_KEYS[name]));
+      expect(html).not.toContain(Translator.t('staff_statistics_page.placeholder'));
+    });
   });
 });

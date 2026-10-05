@@ -88,6 +88,54 @@ staff_statistics_page:
       '10m_30m': 10–30 m
       '30m_1h': 30 m–1 h
       over_1h: '≥1 h'
+  domains:
+    title: Visitas por domínio
+    unknown: Desconhecido
+    domain: Domínio
+    group: Grupo
+    visits: Visitas
+    anonymous: Anônimos
+    logged_in: Logados
+    logged_in_share: Proporção de logados
+    unique_visitors: Visitantes únicos
+    average_duration: Duração média
+    median_duration: Duração mediana
+    chart: Visitas por domínio
+    empty: Nenhuma visita neste período
+    load_error: Não foi possível carregar as estatísticas de domínios.
+    total: Total
+    sort_ascending: ordenado de forma crescente
+    sort_descending: ordenado de forma decrescente
+  users:
+    title: Usuários
+    user: Usuário
+    visits: Visitas
+    time_on_site: Tempo no site
+    average_duration: Duração média
+    hits: Acessos
+    domains: Domínios
+    last_seen: Visto por último
+    unknown_domain: desconhecido
+    profile: Perfil
+    sorted_descending: Ordenado de forma decrescente
+    empty: Nenhum usuário logado neste período.
+    load_error: Não foi possível carregar os usuários.
+  visit_list:
+    title: Lista de visitas
+    user: Usuário
+    ip: IP
+    domain: Domínio
+    started_at: Início
+    last_seen: Visto por último
+    duration: Duração
+    hits: Acessos
+    anonymous: Anônimo
+    unknown_domain: desconhecido
+    ongoing: em andamento
+    profile: Perfil
+    sorted_descending: Ordenado de forma decrescente
+    empty: Nenhuma visita neste período.
+    load_error: Não foi possível carregar as visitas.
   overview:
     visits: Visitas
     unique_visitors: Visitantes únicos
