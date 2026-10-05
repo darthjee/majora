@@ -79,4 +79,9 @@ urlpatterns = [
         views.staff_statistics_visitors,
         name='staff-statistics-visitors',
     ),
+    path(
+        'staff/statistics/duration.json',
+        views.staff_statistics_duration,
+        name='staff-statistics-duration',
+    ),
 ]
