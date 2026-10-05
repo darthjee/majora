@@ -120,6 +120,22 @@ staff_statistics_page:
     sorted_descending: Sorted descending
     empty: No logged-in users in this range.
     load_error: Unable to load users.
+  visit_list:
+    title: Visit list
+    user: User
+    ip: IP
+    domain: Domain
+    started_at: Start
+    last_seen: Last seen
+    duration: Duration
+    hits: Hits
+    anonymous: Anonymous
+    unknown_domain: unknown
+    ongoing: ongoing
+    profile: Profile
+    sorted_descending: Sorted descending
+    empty: No visits in this range.
+    load_error: Unable to load visits.
   overview:
     visits: Visits
     unique_visitors: Unique visitors
