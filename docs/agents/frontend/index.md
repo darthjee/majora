@@ -13,5 +13,6 @@ Files
 - api-client-requests.md — API Client and Resource Data Requests
 - logging.md — Logging
 - bootstrap-linting-tests.md — Bootstrap, Linting & Tests
+- charts.md — Charts (Recharts conventions)
 
 Each file preserves the original headings and contents from the consolidated document.
