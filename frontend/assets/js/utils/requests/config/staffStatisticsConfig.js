@@ -23,8 +23,10 @@
  *   per-domain rows (the "unknown" row last) and totals. `GET.usersRanking`
  *   (`/staff/statistics/users.json`, issue #1520) returns the Users tab's paginated plain
  *   array of logged-in user rows, ordered server-side by the `sort` query param.
+ *   `GET.visitList` (`/staff/statistics/visit-list.json`, issue #1523) returns the Visit list
+ *   tab's paginated plain array of visit rows, ordered server-side by the `sort` query param.
  *   Each statistics tab adds its own quantity type (e.g. `overview`, `visits`, `visitors`,
- *   `duration`, `domainsSummary`, `usersRanking`); their filters travel as the request query
+ *   `duration`, `domainsSummary`, `usersRanking`, `visitList`); their filters travel as the request query
  *   (see `StatisticsQuery`).
  */
 const domains = { path: () => '/staff/statistics/domains.json', permission: null };
@@ -34,6 +36,7 @@ const visitors = { path: () => '/staff/statistics/visitors.json', permission: nu
 const duration = { path: () => '/staff/statistics/duration.json', permission: null };
 const domainsSummary = { path: () => '/staff/statistics/domains/summary.json', permission: null };
 const usersRanking = { path: () => '/staff/statistics/users.json', permission: null };
+const visitList = { path: () => '/staff/statistics/visit-list.json', permission: null };
 
 export default {
   GET: {
@@ -44,5 +47,6 @@ export default {
     duration: { regular: duration, private: duration },
     domainsSummary: { regular: domainsSummary, private: domainsSummary },
     usersRanking: { regular: usersRanking, private: usersRanking },
+    visitList: { regular: visitList, private: visitList },
   },
 };
