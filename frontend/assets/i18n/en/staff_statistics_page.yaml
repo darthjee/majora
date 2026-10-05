@@ -106,6 +106,20 @@ staff_statistics_page:
     total: Total
     sort_ascending: sorted ascending
     sort_descending: sorted descending
+  users:
+    title: Users
+    user: User
+    visits: Visits
+    time_on_site: Time on site
+    average_duration: Avg duration
+    hits: Hits
+    domains: Domains
+    last_seen: Last seen
+    unknown_domain: unknown
+    profile: Profile
+    sorted_descending: Sorted descending
+    empty: No logged-in users in this range.
+    load_error: Unable to load users.
   overview:
     visits: Visits
     unique_visitors: Unique visitors
