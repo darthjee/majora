@@ -103,21 +103,27 @@ class _UserSummary:
     @classmethod
     def _domain_entries(cls, rows):
         """Return the distinct domains by hostname, with the unknown entry last when present."""
-        known = {row[_DOMAIN_ID]: row[_HOSTNAME] for row in rows if row[_DOMAIN_ID] is not None}
-        entries = [{'id': id_, 'domain': host} for id_, host in sorted(known.items(), key=_host)]
-        if any(row[_DOMAIN_ID] is None for row in rows):
+        entries = cls._known_domains(rows)
+        if cls._has_unknown_domain(rows):
             entries.append(dict(cls.UNKNOWN_DOMAIN))
         return entries
+
+    @staticmethod
+    def _known_domains(rows):
+        """Return one `{id, domain}` entry per distinct known domain, by hostname then id."""
+        known = {row[_DOMAIN_ID]: row[_HOSTNAME] for row in rows if row[_DOMAIN_ID] is not None}
+        ordered = sorted(known.items(), key=lambda item: (item[1], item[0]))
+        return [{'id': domain_id, 'domain': hostname} for domain_id, hostname in ordered]
+
+    @staticmethod
+    def _has_unknown_domain(rows):
+        """Return whether any row's session has no domain."""
+        return any(row[_DOMAIN_ID] is None for row in rows)
 
     @staticmethod
     def _iso_utc(value):
         """Return `value` as an ISO 8601 UTC timestamp with a `Z` suffix."""
         return value.astimezone(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
-
-
-def _host(item):
-    """Return the sort key of a `(domain_id, hostname)` pair: the hostname, then the id."""
-    return item[1], item[0]
 
 
 class _RankedRows:
