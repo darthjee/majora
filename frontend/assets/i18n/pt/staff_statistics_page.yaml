@@ -88,6 +88,24 @@ staff_statistics_page:
       '10m_30m': 10–30 m
       '30m_1h': 30 m–1 h
       over_1h: '≥1 h'
+  domains:
+    title: Visitas por domínio
+    unknown: Desconhecido
+    domain: Domínio
+    group: Grupo
+    visits: Visitas
+    anonymous: Anônimos
+    logged_in: Logados
+    logged_in_share: Proporção de logados
+    unique_visitors: Visitantes únicos
+    average_duration: Duração média
+    median_duration: Duração mediana
+    chart: Visitas por domínio
+    empty: Nenhuma visita neste período
+    load_error: Não foi possível carregar as estatísticas de domínios.
+    total: Total
+    sort_ascending: ordenado de forma crescente
+    sort_descending: ordenado de forma decrescente
   overview:
     visits: Visitas
     unique_visitors: Visitantes únicos

@@ -6,3 +6,4 @@ export { default as VisitorsNewReturningChart } from './VisitorsNewReturningChar
 export { default as DurationChart } from './DurationChart.jsx';
 export { default as HitsPerVisitChart } from './HitsPerVisitChart.jsx';
 export { default as DurationHistogramChart } from './DurationHistogramChart.jsx';
+export { default as DomainsChart } from './DomainsChart.jsx';

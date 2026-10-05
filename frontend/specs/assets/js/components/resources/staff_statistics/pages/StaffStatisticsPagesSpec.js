@@ -13,6 +13,8 @@ import VisitsController
   from '../../../../../../../assets/js/components/resources/staff_statistics/pages/controllers/VisitsController.js';
 import DurationController
   from '../../../../../../../assets/js/components/resources/staff_statistics/pages/controllers/DurationController.js';
+import DomainsController
+  from '../../../../../../../assets/js/components/resources/staff_statistics/pages/controllers/DomainsController.js';
 import VisitorsController
   from '../../../../../../../assets/js/components/resources/staff_statistics/pages/controllers/VisitorsController.js';
 import StaffStatisticsPageController
@@ -38,6 +40,7 @@ const LOADING_KEYS = {
   StaffStatisticsVisits: 'staff_statistics_page.charts_loading',
   StaffStatisticsVisitors: 'staff_statistics_page.charts_loading',
   StaffStatisticsDuration: 'staff_statistics_page.charts_loading',
+  StaffStatisticsDomains: 'staff_statistics_page.charts_loading',
 };
 
 PAGES.forEach(([name, Component, path]) => {
@@ -52,6 +55,7 @@ PAGES.forEach(([name, Component, path]) => {
       stubBuildEffect(VisitsController);
       stubBuildEffect(VisitorsController);
       stubBuildEffect(DurationController);
+      stubBuildEffect(DomainsController);
       spyOn(StaffStatisticsFilterBarHelper, 'render').and.returnValue(React.createElement('div'));
     });
 
