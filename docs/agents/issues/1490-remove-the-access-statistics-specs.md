@@ -15,6 +15,7 @@ Blocked by every implementation sub-issue of #1477: #1498, #1499, #1500, #1503, 
 
 The spec is a temporary design doc. Once the feature ships, it goes stale and duplicates the
 code. Permanent docs already link into it, so deleting it naively would leave broken links:
+
 - `docs/agents/access-control/statistics.md` links to `specs/access-statistics/data-model.md`;
 - `docs/agents/access-control/staff-statistics.md` links to
   `specs/access-statistics/shared-infrastructure.md` and still carries a "Status: planned" note;
