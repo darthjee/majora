@@ -1,9 +1,11 @@
 """Tests for the staff statistics users view (GET /staff/statistics/users.json)."""
 
 from datetime import datetime, timedelta, timezone
+from unittest.mock import patch
 
 import pytest
 from django.db import connection
+from django.db.models.query import QuerySet
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
@@ -24,6 +26,7 @@ ROW_KEYS = [
     'id', 'name', 'display_name', 'email', 'visits', 'time_on_site_seconds',
     'average_duration_seconds', 'hits', 'last_seen_at', 'domains',
 ]
+_IN_BULK = QuerySet.in_bulk
 
 
 def _visit(session, day, hour=12, seconds=0, hits=1):
@@ -196,6 +199,20 @@ class TestStaffStatisticsUsersResponse(_UsersViewSetup):
         with CaptureQueriesContext(connection) as full:
             self._staff_get(client)
         assert len(empty) == len(full) - 1
+
+    def test_user_deleted_mid_request_is_skipped(self, client):
+        """Test that a user deleted between the ranking and the user lookup is skipped."""
+        borin = self.borin
+
+        def in_bulk_after_deleting_borin(queryset, *args, **kwargs):
+            """Delete borin, then run the real `in_bulk`."""
+            borin.delete()
+            return _IN_BULK(queryset, *args, **kwargs)
+
+        with patch.object(QuerySet, 'in_bulk', in_bulk_after_deleting_borin):
+            response = self._staff_get(client)
+        assert response.status_code == 200
+        assert _ids(response) == [self.aria.id, self.carol.id]
 
 
 @pytest.mark.django_db

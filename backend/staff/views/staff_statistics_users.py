@@ -40,9 +40,13 @@ class _UserIdentities:
         self._rows = list(rows)
 
     def merge(self):
-        """Return the rows with `id`, `name`, `display_name` and `email` first."""
+        """Return the rows with identity keys first, skipping users deleted since the ranking."""
         users = self._users()
-        return [{**self._identity(users[row['id']]), **row} for row in self._rows]
+        return [
+            {**self._identity(users[row['id']]), **row}
+            for row in self._rows
+            if row['id'] in users
+        ]
 
     def _users(self):
         """Return the page's users by id, skipping the query for an empty page."""
