@@ -1,5 +1,7 @@
 """Tests for `statistics.aggregation.metrics`."""
 
+from datetime import datetime, timedelta, timezone
+
 from statistics.aggregation import metrics
 
 
@@ -58,6 +60,28 @@ class TestMedian:
     def test_empty_is_none(self):
         """Test that an empty input gives `None`."""
         assert metrics.median([]) is None
+
+
+class TestDurationSeconds:
+    """Tests for `metrics.duration_seconds()`."""
+
+    def setup_method(self):
+        """Set up a reference start time."""
+        self.started_at = datetime(2026, 1, 1, 12, 0, tzinfo=timezone.utc)
+
+    def test_equal_timestamps_give_zero(self):
+        """Test that a visit ending when it started lasts zero seconds."""
+        assert metrics.duration_seconds(self.started_at, self.started_at) == 0
+
+    def test_truncates_sub_seconds(self):
+        """Test that sub-second parts are truncated, not rounded."""
+        last_seen_at = self.started_at + timedelta(seconds=1, milliseconds=900)
+        assert metrics.duration_seconds(self.started_at, last_seen_at) == 1
+
+    def test_multi_hour_span(self):
+        """Test that a multi-hour span is returned in whole seconds."""
+        last_seen_at = self.started_at + timedelta(hours=3, minutes=2, seconds=5)
+        assert metrics.duration_seconds(self.started_at, last_seen_at) == 10925
 
 
 class TestHistogram:

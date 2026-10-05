@@ -34,6 +34,11 @@ def median(values):
     return (ordered[middle - 1] + ordered[middle]) / 2
 
 
+def duration_seconds(started_at, last_seen_at):
+    """Return the whole-second duration between two datetimes (sub-seconds truncated)."""
+    return int((last_seen_at - started_at).total_seconds())
+
+
 def histogram(values, edges):
     """Return `[{'lower', 'upper', 'count'}]` bins for ascending `edges`; the last is open."""
     counts = [0] * len(edges)
