@@ -11,7 +11,8 @@ sets `X-Skip-Cache: true` per the [`X-Skip-Cache` rule](principles.md#x-skip-cac
 
 > **Status:** live for the shared `domains.json` endpoint and the shared filter validation
 > (#1498), for the Visits tab's `visits.json` (#1506), for the Overview tab's
-> `overview.json` (#1503) and for the Visitors tab's `visitors.json` (#1509). The other tab endpoints still land with their own implementation
+> `overview.json` (#1503), for the Visitors tab's `visitors.json` (#1509) and for the
+> Duration tab's `duration.json` (#1513). The other tab endpoints still land with their own implementation
 > sub-issues of #1477; each appends its row below. Shared conventions:
 > [`specs/access-statistics/shared-infrastructure.md`](../specs/access-statistics/shared-infrastructure.md#api-conventions).
 
@@ -21,6 +22,7 @@ sets `X-Skip-Cache: true` per the [`X-Skip-Cache` rule](principles.md#x-skip-cac
 | Visits over time for the Visits tab (`GET /staff/statistics/visits.json`) | **Staff-or-superuser** |
 | Overview KPIs for the Overview tab (`GET /staff/statistics/overview.json`) | **Staff-or-superuser** |
 | New vs returning visitors for the Visitors tab (`GET /staff/statistics/visitors.json`) | **Staff-or-superuser** |
+| Visit duration and hits per visit for the Duration tab (`GET /staff/statistics/duration.json`) | **Staff-or-superuser** |
 
 Anonymous callers get `401` and non-staff callers (including DMs and game admins without
 staff) get `403`. No role can write through these endpoints.
@@ -81,3 +83,13 @@ until #1501 (client IP integrity) is resolved.
   first-visit lookup that splits new from returning reads visits outside the range and the
   `domain` / `audience` filters, but only to compute counts. Only aggregated counts are
   exposed: no user identities and no IPs.
+- **`GET /staff/statistics/duration.json`** — duration (`last_seen_at - started_at`, whole
+  seconds) and hits of the visits started in the range, per bucket. Takes the shared filter
+  params (`from`, `to`, `tz`, `granularity`, `user`, `domain`, `audience`); not paginated.
+  Returns `{"filters": {...}, "buckets": [{"start", "end", "visits", "single_hit_visits",
+  "average_duration_seconds", "median_duration_seconds", "average_hits", "median_hits"}],
+  "totals": {same six keys}, "histogram": [{"lower", "upper", "count"}]}`, every bucket of the
+  range present (zero-filled). Averages and medians are `null` without visits; totals are
+  computed over all the visits of the range, not summed from buckets. The histogram has fixed
+  edges in seconds (`0, 1, 30, 60, 180, 600, 1800, 3600`, last bin `upper: null`). Only
+  aggregated values are exposed: no user identities and no IPs.

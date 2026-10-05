@@ -57,12 +57,9 @@ class OverviewTotals:
         ).count()
 
     @staticmethod
-    def _duration_seconds(row):
-        """Return the whole-second duration of one visit row."""
-        return int((row[_LAST_SEEN_AT] - row[_STARTED_AT]).total_seconds())
-
-    @classmethod
-    def _average_duration(cls, rows):
+    def _average_duration(rows):
         """Return the rounded average visit duration in seconds, or `None` without visits."""
-        average = metrics.average([cls._duration_seconds(row) for row in rows])
+        average = metrics.average([
+            metrics.duration_seconds(row[_STARTED_AT], row[_LAST_SEEN_AT]) for row in rows
+        ])
         return None if average is None else round(average)
