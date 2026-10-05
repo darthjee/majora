@@ -1,11 +1,11 @@
 import { Table } from 'react-bootstrap';
 import Translator from '../../../../../../i18n/Translator.js';
 import StatisticsBucketFormatter from '../../helpers/StatisticsBucketFormatter.js';
+import StatisticsDateTimeFormatter from '../../helpers/StatisticsDateTimeFormatter.js';
 import StatisticsDurationFormatter from '../../helpers/StatisticsDurationFormatter.js';
 import { sortHref } from '../../helpers/usersSort.js';
 
 const EMPTY = '—';
-const DATE_TIME_OPTIONS = { dateStyle: 'medium', timeStyle: 'short' };
 const t = (key) => Translator.t(`staff_statistics_page.users.${key}`);
 const count = (value) => StatisticsBucketFormatter.count(value);
 const duration = (value) => StatisticsDurationFormatter.format(value);
@@ -17,9 +17,7 @@ const duration = (value) => StatisticsDurationFormatter.format(value);
  * @returns {string} The formatted date and time, or a dash when missing.
  */
 export function formatLastSeen(value) {
-  if (!value) return EMPTY;
-
-  return new Intl.DateTimeFormat(undefined, DATE_TIME_OPTIONS).format(new Date(value));
+  return StatisticsDateTimeFormatter.format(value);
 }
 
 /**

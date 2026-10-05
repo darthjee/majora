@@ -120,6 +120,22 @@ staff_statistics_page:
     sorted_descending: Ordenado de forma decrescente
     empty: Nenhum usuário logado neste período.
     load_error: Não foi possível carregar os usuários.
+  visit_list:
+    title: Lista de visitas
+    user: Usuário
+    ip: IP
+    domain: Domínio
+    started_at: Início
+    last_seen: Visto por último
+    duration: Duração
+    hits: Acessos
+    anonymous: Anônimo
+    unknown_domain: desconhecido
+    ongoing: em andamento
+    profile: Perfil
+    sorted_descending: Ordenado de forma decrescente
+    empty: Nenhuma visita neste período.
+    load_error: Não foi possível carregar as visitas.
   overview:
     visits: Visitas
     unique_visitors: Visitantes únicos

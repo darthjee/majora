@@ -57,6 +57,14 @@ describe('resourceConfig staffStatistics (issue #1499)', function() {
     expect(usersRanking.regular.permission).toBeNull();
   });
 
+  it('resolves GET.visitList as a single un-branched variant (issue #1523)', function() {
+    const visitList = resourceConfig.get('GET', 'staffStatistics', 'visitList');
+
+    expect(visitList.regular).toBe(visitList.private);
+    expect(visitList.regular.path()).toBe('/staff/statistics/visit-list.json');
+    expect(visitList.regular.permission).toBeNull();
+  });
+
   it('returns null for an unconfigured quantity type', function() {
     expect(resourceConfig.get('GET', 'staffStatistics', 'collection')).toBeNull();
   });
