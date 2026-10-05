@@ -1,7 +1,5 @@
 """The logged-in users ranking of the staff access statistics."""
 
-from datetime import timezone
-
 from . import metrics
 from .filters import StatisticsFilters
 from .visit_query import VisitQuery
@@ -80,7 +78,7 @@ class _UserSummary:
             'id': self.user_id,
             **self._values,
             'domains': self._domains,
-            'last_seen_at': self._iso_utc(self._values['last_seen_at']),
+            'last_seen_at': metrics.iso_utc(self._values['last_seen_at']),
         }
 
     @classmethod
@@ -119,11 +117,6 @@ class _UserSummary:
     def _has_unknown_domain(rows):
         """Return whether any row's session has no domain."""
         return any(row[_DOMAIN_ID] is None for row in rows)
-
-    @staticmethod
-    def _iso_utc(value):
-        """Return `value` as an ISO 8601 UTC timestamp with a `Z` suffix."""
-        return value.astimezone(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
 
 
 class _RankedRows:
