@@ -1,8 +1,9 @@
 import Translator from '../../../../../i18n/Translator.js';
 import StatisticsBucketFormatter from '../../pages/helpers/StatisticsBucketFormatter.js';
-import visitsSeries from './visitsSeries.js';
+import { AUDIENCE_SERIES, chartSeries } from './chartSeries.js';
 
-const t = (key) => Translator.t(`staff_statistics_page.visits.${key}`);
+const LABEL_PREFIX = 'staff_statistics_page.visits';
+const t = (key) => Translator.t(`${LABEL_PREFIX}.${key}`);
 
 /**
  * Rendering helper for the `VisitsChartTooltip` component.
@@ -21,7 +22,7 @@ export default class VisitsChartTooltipHelper {
     return (
       <div className="bg-body border rounded p-2 small" data-testid="statistics-visits-tooltip">
         <div className="fw-bold">{StatisticsBucketFormatter.range(point.start, point.end)}</div>
-        {visitsSeries(series).map(({ key, label }) => (
+        {chartSeries(AUDIENCE_SERIES, series, LABEL_PREFIX).map(({ key, label }) => (
           <div key={key}>{`${label}: ${StatisticsBucketFormatter.count(point[key])}`}</div>
         ))}
         <div>{`${t('total')}: ${StatisticsBucketFormatter.count(point.visits)}`}</div>

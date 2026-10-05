@@ -6,39 +6,58 @@ import StatisticsBucketFormatter from '../helpers/StatisticsBucketFormatter.js';
 import StatisticsQuery from '../helpers/StatisticsQuery.js';
 
 /**
- * Maps a visits bucket to a chart point.
+ * Divides a part by the bucket's unique visitors.
  *
- * @param {object} bucket - A `{ start, end, anonymous, logged_in, visits }` bucket.
+ * @param {number} part - The numerator.
+ * @param {number} uniqueVisitors - The bucket's unique visitors.
+ * @returns {number|null} The share, or `null` when the bucket has no visitors.
+ */
+function share(part, uniqueVisitors) {
+  return uniqueVisitors === 0 ? null : part / uniqueVisitors;
+}
+
+/**
+ * Maps a visitors bucket to a chart point.
+ *
+ * @param {object} bucket - A `{ start, end, unique_visitors, new_visitors,
+ *   returning_visitors, anonymous, logged_in }` bucket.
  * @param {string} granularity - The resolved granularity.
  * @param {string} [locale] - Locale of the axis label.
  * @returns {object} The chart point.
  */
 function toPoint(bucket, granularity, locale) {
-  const { start, end, anonymous, logged_in: loggedIn, visits } = bucket;
+  const {
+    start, end, unique_visitors: uniqueVisitors, returning_visitors: returningVisitors,
+    logged_in: loggedIn,
+  } = bucket;
 
   return {
     start,
     end,
     label: StatisticsBucketFormatter.label(start, granularity, locale),
-    anonymous,
+    unique_visitors: uniqueVisitors,
+    new_visitors: bucket.new_visitors,
+    returning_visitors: returningVisitors,
+    anonymous: bucket.anonymous,
     logged_in: loggedIn,
-    visits,
-    loggedInShare: visits === 0 ? null : loggedIn / visits,
+    returningShare: share(returningVisitors, uniqueVisitors),
+    loggedInShare: share(loggedIn, uniqueVisitors),
   };
 }
 
 /**
- * Loads the Visits tab data (issue #1507).
+ * Loads the Visitors tab data (issue #1510).
  *
  * @description The page access check happens in `StaffStatisticsAccessGate`, so this
- *   controller only loads `GET /staff/statistics/visits.json` for the hash filters. A filter
- *   change navigates to a new hash, remounting the page, so a mount-time fetch is enough.
+ *   controller only loads `GET /staff/statistics/visitors.json` for the hash filters. A
+ *   filter change navigates to a new hash, remounting the page, so a mount-time fetch is
+ *   enough.
  */
-export default class VisitsController extends BasePageController {
+export default class VisitorsController extends BasePageController {
   /**
-   * Creates a visits controller.
+   * Creates a visitors controller.
    *
-   * @param {Function} setData - Setter of the mapped data (see `VisitsController.map`).
+   * @param {Function} setData - Setter of the mapped data (see `VisitorsController.map`).
    * @param {Function} setLoading - Loading flag setter.
    * @param {Function} setError - Error message setter.
    */
@@ -50,14 +69,15 @@ export default class VisitsController extends BasePageController {
   }
 
   /**
-   * Maps the visits endpoint response to the chart data.
+   * Maps the visitors endpoint response to the charts data.
    *
    * @description Keeps the buckets' order (oldest first), labels them by the resolved
-   *   granularity and derives the series to stack from the audience filter.
+   *   granularity, derives the returning / logged-in shares (`null` for buckets without
+   *   visitors) and the audience chart series from the audience filter.
    * @param {object} response - The `{ filters, buckets, totals }` response body.
    * @param {string} [locale] - Locale of the axis labels (defaults to the browser locale).
-   * @returns {{points: object[], series: string[], totals: object, audience: string,
-   *   granularity: string, empty: boolean}} The chart data.
+   * @returns {{points: object[], audienceSeries: string[], totals: object, audience: string,
+   *   granularity: string, empty: boolean}} The charts data.
    */
   static map(response, locale = undefined) {
     const { filters = {}, buckets = [], totals } = response;
@@ -65,11 +85,11 @@ export default class VisitsController extends BasePageController {
 
     return {
       points: buckets.map((bucket) => toPoint(bucket, filters.granularity, locale)),
-      series: audienceSeries(audience),
+      audienceSeries: audienceSeries(audience),
       totals,
       audience,
       granularity: filters.granularity,
-      empty: totals.visits === 0,
+      empty: totals.unique_visitors === 0,
     };
   }
 
@@ -83,7 +103,7 @@ export default class VisitsController extends BasePageController {
       let mounted = true;
       const safeSet = this.buildSafeSetter(() => mounted);
 
-      this.#fetchVisits(safeSet);
+      this.#fetchVisitors(safeSet);
 
       return () => {
         mounted = false;
@@ -91,15 +111,15 @@ export default class VisitsController extends BasePageController {
     };
   }
 
-  #fetchVisits(safeSet) {
+  #fetchVisitors(safeSet) {
     return RequestStore.ensure({
-      componentName: 'VisitsController',
+      componentName: 'VisitorsController',
       resource: 'staffStatistics',
-      quantityType: 'visits',
+      quantityType: 'visitors',
       query: StatisticsQuery.fromHash(),
     })
-      .then(({ data }) => safeSet(this.setData, VisitsController.map(data)))
-      .catch(() => safeSet(this.setError, Translator.t('staff_statistics_page.visits.load_error')))
+      .then(({ data }) => safeSet(this.setData, VisitorsController.map(data)))
+      .catch(() => safeSet(this.setError, Translator.t('staff_statistics_page.visitors.load_error')))
       .finally(() => safeSet(this.setLoading, false));
   }
 }

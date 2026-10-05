@@ -13,18 +13,22 @@
  *   select. `GET.visits` (`/staff/statistics/visits.json`, issue #1507) returns the Visits
  *   tab's zero-filled buckets and totals (anonymous / logged-in) for the requested filters.
  *   `GET.overview` (`/staff/statistics/overview.json`, issue #1504) returns the Overview
- *   tab's KPI totals (no buckets) for the requested filters.
- *   Each statistics tab adds its own quantity type (e.g. `overview`, `visits`); their
+ *   tab's KPI totals (no buckets) for the requested filters. `GET.visitors`
+ *   (`/staff/statistics/visitors.json`, issue #1510) returns the Visitors tab's zero-filled
+ *   buckets and totals (unique / new / returning / anonymous / logged-in visitors).
+ *   Each statistics tab adds its own quantity type (e.g. `overview`, `visits`, `visitors`); their
  *   filters travel as the request query (see `StatisticsQuery`).
  */
 const domains = { path: () => '/staff/statistics/domains.json', permission: null };
 const overview = { path: () => '/staff/statistics/overview.json', permission: null };
 const visits = { path: () => '/staff/statistics/visits.json', permission: null };
+const visitors = { path: () => '/staff/statistics/visitors.json', permission: null };
 
 export default {
   GET: {
     domains: { regular: domains, private: domains },
     overview: { regular: overview, private: overview },
     visits: { regular: visits, private: visits },
+    visitors: { regular: visitors, private: visitors },
   },
 };
