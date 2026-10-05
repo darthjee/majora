@@ -9,14 +9,8 @@ sets `X-Skip-Cache: true` per the [`X-Skip-Cache` rule](principles.md#x-skip-cac
 (`@restricted`). None is warmed by Navi. There is no `EndpointPermission` /
 `permissions.yaml` entry: the `staff` role's `scope: staff` row already covers them.
 
-> **Status:** live for the shared `domains.json` endpoint and the shared filter validation
-> (#1498), for the Visits tab's `visits.json` (#1506), for the Overview tab's
-> `overview.json` (#1503), for the Visitors tab's `visitors.json` (#1509) and for the
-> Duration tab's `duration.json` (#1513), for the Users tab's `users.json` (#1519), for the
-> Visit list tab's `visit-list.json` (#1522) and for the Domains tab's `domains/summary.json`
-> (#1516). The other tab endpoints still land with their own implementation
-> sub-issues of #1477; each appends its row below. Shared conventions:
-> [`specs/access-statistics/shared-infrastructure.md`](../specs/access-statistics/shared-infrastructure.md#api-conventions).
+Shared filter, envelope and aggregation conventions:
+[Access Statistics](../statistics.md#api-conventions).
 
 | Action | Who can |
 |--------|---------|
@@ -31,6 +25,16 @@ sets `X-Skip-Cache: true` per the [`X-Skip-Cache` rule](principles.md#x-skip-cac
 
 Anonymous callers get `401` and non-staff callers (including DMs and game admins without
 staff) get `403`. No role can write through these endpoints.
+
+## Frontend
+
+Every tab route under `/staff/statistics` is gated with `[{ kind: 'staffOrSuperuser' }]` in
+`frontend/assets/js/utils/access/accessRouteConfig.js`, and the "Access statistics" menu
+entry is shown only to staff and superusers. Each page also wraps its body in
+`StaffStatisticsAccessGate`, which renders nothing until `AccessStore.ensureStaffOrSuperUser()`
+resolves and redirects anyone else to `#/`. The `staffStatistics` RequestStore resource has
+no entry in `RequestPermissionResolvers.js`: there is no restricted/full split, and the route
+gate handles access (the `staffUser` precedent).
 
 ## Check order
 
@@ -61,7 +65,7 @@ error. Queries go through the ORM only, and filter payloads are not logged.
 **All staff see everything**: aggregated counts, user identities (id, username; the Users tab
 also shows display name and email) and, where a tab exposes them, raw stored IPs. There is no
 masking and no superuser-only tier, consistent with staff already seeing user details in `/staff/users`. Stored IPs are **best effort**
-until #1501 (client IP integrity) is resolved.
+(see [client IP integrity](../statistics.md#client-ip-integrity)).
 
 The Visit list tab (`visit-list.json`) exposes, per visit, the raw stored IP, the
 **statistics session id** (new: the other tabs only expose user ids, never session ids) and
