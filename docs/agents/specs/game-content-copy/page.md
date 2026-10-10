@@ -47,7 +47,8 @@ One tab per content type, modeled on `StaffPhotoTabs`; the list of tabs comes fr
 | `factions` | Factions | `GameFaction` |
 | `possessions` | Possessions | `GamePossession` |
 
-Per-tab columns and details are defined by the tab pages (#1552–#1557).
+Unlike `StaffPhotoTabs` (whose links only carry `type`), tab links keep `from`/`to`. Per-tab
+columns and details are defined by the tab pages (#1552–#1557).
 
 ## Source list
 
@@ -64,7 +65,8 @@ Per-tab columns and details are defined by the tab pages (#1552–#1557).
   1. `POST staff/copies/<type>/<id>.json` `{target}` — creates the copy and its associated rows
      (one transaction). The response lists the pending links.
   2. For each pending link of that entity, `POST /uploads/link/<image|file>/<upload_id>/submit`
-     (proxy) with its token.
+     (proxy) with its token — a new `UploadClient` method (today it only builds
+     `/uploads/<type>/<id>/submit`).
 - One failing entity (or one failing link) never affects the others: the page keeps going.
 - The page shows a per-entity result (copied / failed with reason, e.g. "source gone" on `404`,
   "name already used" on `422`) and a per-file progress (pending / linked / failed with its error
@@ -89,7 +91,13 @@ Per-tab columns and details are defined by the tab pages (#1552–#1557).
 
 ## Frontend structure
 
-A `staffCopy` resource config and page controller gated on `AccessStore.ensureStaffOrSuperUser()`
-(see [permissions.md](permissions.md#frontend)). The selectors, tabs, source list, per-entity /
+A `staffCopy` resource config and a `staffCopies` page controller gated on
+`AccessStore.ensureStaffOrSuperUser()`; route registration is listed in
+[permissions.md](permissions.md#frontend). The selectors, tabs, source list, per-entity /
 per-file progress and pending-links list are separate components so each tab page only adds its
-own row rendering.
+own row rendering. Closest existing models: the bulk run in `StaffPhotoActions` and
+`StaffPhotoBulkSummary` (progress), and `StaffPhotoConfirmModal` (re-copy confirmation).
+
+`from`/`to` are already filter keys (date ranges on the staff statistics pages); no conflict,
+since they live on different routes, but `getFilterParams()` returns them like any other
+filter.

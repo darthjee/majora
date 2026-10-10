@@ -22,6 +22,8 @@ is in [hard-links.md](hard-links.md).
 - Photo/file rows of the copy are created with `ready=false`. Every listing already filters on
   `ready=True`, so they stay invisible until linked.
 - Only source photos/files with `ready=true` are copied; not-ready ones are skipped.
+- A `GameDocumentFile`'s `photo` FK is set to its copied photo row at copy time (it is not a
+  cover and its finalize does nothing, like the regular flow).
 - For each copied photo/file row, one copy-origin `Upload` is created (see
   [hard-links.md](hard-links.md#upload-extension)): `origin='copy'`, `status='pending'`, `user` =
   the requesting staff member, `source_path` = the source row's path, `file_path` = the new path
@@ -39,22 +41,42 @@ is in [hard-links.md](hard-links.md).
   target game has `copied_from` = this source row.
 - Copying a flagged row again (after confirmation on the page) is allowed and creates another
   copy.
+- `copied_from` is provenance only, staff-visible: it is never exposed by regular or restricted
+  game serializers (it could leak an entity id from another domain or a hidden one). It is nulled
+  when the source is deleted, including through the source game's deletion. The implementation
+  issues document it in the product entity pages (`game-item.md`, `game-document.md`,
+  `game-recipe.md`, and the faction/common item/possession pages once they exist).
+
+### Same-game references
+
+Apart from `copied_from`, a copy never references a row of another game. Each tab page defines
+how its in-game FKs are resolved in the target (e.g. #1554 for `GameRecipe.game_common_item`).
+
+### Character links and history
+
+The copy is created with **no** character links: `CharacterItem`, `CharacterFaction`,
+`CharacterRecipe`, `CharacterDocument` and `CharacterPossession` rows pointing to the source are
+never copied or re-pointed. Historical (`versioning`) records of the source are not copied
+either; the copy starts a fresh history.
 
 ### Names
 
 Name clashes with existing target entities are allowed, except where a unique constraint exists:
-factions (`unique_faction_name_per_game`) → `422` validation error, nothing created.
+factions (`unique_faction_name_per_game`) → `422`
+`{"errors": {"name": ["unique"]}}`, nothing created. `422` is chosen deliberately, as for other
+staff-view conflicts (regular faction create/update answer `400` with the same `unique` code).
 
 ### `hidden`
 
-The copy keeps the source's `hidden` value.
+The copy keeps the source's `hidden` value (all copyable models except `GameFaction`, which has
+none).
 
 ### Cover photo
 
-The copy's cover `photo` FK stays null at copy time, even when the source has one. It is set by
+For models with a cover `photo` FK (recipes have none), the copy's cover `photo` FK stays null at copy time, even when the source has one. It is set by
 the finalize of the matching photo's link (`is_cover`, see
-[hard-links.md](hard-links.md#finalize)). The regular "first photo becomes cover" logic does not
-apply to copies.
+[hard-links.md](hard-links.md#finalize)). The per-type `mark_ready` cover handlers do not apply
+to copies.
 
 ## API
 
@@ -77,6 +99,9 @@ Backend endpoints of the copy phase. All are `.json`, staff/superuser only, and 
 - `404` — unknown `<type>`, or the source entity no longer exists (or is not in a game).
 - `422` — validation error, e.g. faction name already used in the target game.
 
+The `201` response also carries `X-Cache-Clear` for the target game's stale paths, cleared on
+every domain (see [permissions.md](permissions.md#cache)).
+
 The list endpoint answers `400` when `from` or `to` is missing/unknown or both are the same
 game. Per-type row fields are defined by the tab pages.
 
@@ -89,11 +114,12 @@ game. Per-type row fields are defined by the tab pages.
   pending with `error=source_missing`, visible on the page for retry
   ([hard-links.md](hard-links.md#failures)).
 - **Target game / copied entity deleted while links are pending**: cascade deletes remove the
-  copied rows and, through the `GenericRelation` below, their `Upload`s. A later link request
+  copied rows and, through the cleanup below, their `Upload`s. A later link request
   returns `404` and the page drops it. No file was ever written for unlinked rows.
-- **`Upload` cleanup**: `Upload` points to its row through a `GenericForeignKey` and no model
-  declares a `GenericRelation` today, so deletes don't cascade. The copyable photo/file models
-  declare a `GenericRelation` to `Upload` so deleting them (or their game) deletes their
-  `Upload`s.
+- **`Upload` cleanup**: `Upload` points to its row through a `GenericForeignKey`, so deletes
+  don't cascade. Deleting a copied photo/file row (or its game) deletes its copy-origin
+  `Upload`s explicitly (`pre_delete` hook filtered on `origin='copy'`); no `GenericRelation`, so
+  regular/staff uploads keep today's behavior (see
+  [hard-links.md](hard-links.md#upload-extension)).
 - **Large documents**: a document with many files is still copied in one transaction; the
   transaction only writes rows (no file I/O), so its duration stays bounded by the row count.
