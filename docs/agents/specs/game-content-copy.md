@@ -27,9 +27,9 @@ Access rules for the planned endpoints: [Staff Copy](../access-control/staff-cop
 
 ## Tab pages
 
-Pending — each is written by its own issue and builds on the global pages above:
+Each is written by its own issue and builds on the global pages above (unlinked ones are pending):
 
-- Items — #1552
+- [Items](game-content-copy/items.md) — #1552
 - Common items — #1553
 - Recipes — #1554
 - Documents — #1555
