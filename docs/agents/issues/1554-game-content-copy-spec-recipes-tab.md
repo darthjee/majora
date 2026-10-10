@@ -1,6 +1,7 @@
 # Issue: Game content copy spec: Recipes tab
 
 ## Description
+
 Part of the "copy content between games" epic (#1550). Write the tab spec page
 `docs/agents/specs/game-content-copy/recipes.md` for the **Recipes** tab (`GameRecipe`). It must
 reference the global pages (`page.md`, `copy-flow.md`, `hard-links.md`, `permissions.md`) and
@@ -8,12 +9,14 @@ only add what is specific to recipes, following the structure of `items.md` and
 `common-items.md`. Docs only: no code changes.
 
 ## Problem
+
 `GameRecipe` is the only copyable model with a required in-game FK (`game_common_item`,
 `CASCADE`), and a copy never references a row of another game
 ([copy-flow.md](../specs/game-content-copy/copy-flow.md#same-game-references)). The spec must define how that
 dependency is resolved in the target game, alongside the usual per-tab sections.
 
 ## Expected Behavior
+
 `recipes.md` exists, is linked from `docs/agents/specs/game-content-copy.md` (Tab pages), and covers:
 
 - **Model** — tab slug `recipes`, label "Recipes", `GameRecipe` fields; recipes have no photos.
