@@ -2,20 +2,66 @@
 
 export LOG_LEVEL=debug
 
-RESOURCE_FILES=(
-  navi/resources/games.yml
-  navi/resources/npcs.yml
-  navi/resources/pcs.yml
-  navi/resources/permissions.yml
-  navi/resources/treasures.yml
-  navi/resources/items.yml
-  navi/resources/factions.yml
-  navi/resources/possessions.yml
-  navi/resources/documents.yml
-  navi/resources/sessions.yml
-  navi/resources/clients.yml
-  navi/resources/domains.yml
-)
+NAVI_DIR="${NAVI_DIR:-navi}"
+NAVI_CONFIG_FILE="${NAVI_CONFIG_FILE:-$NAVI_DIR/navi_config.yaml}"
+
+function require_env() {
+  local missing=0
+  local var
+  for var in "$@"; do
+    if [ -z "${!var}" ]; then
+      echo "ERROR: $var is not set" >&2
+      missing=1
+    fi
+  done
+  if [ $missing -ne 0 ]; then
+    exit 1
+  fi
+}
+
+function load_resource_files() {
+  if [ ! -f "$NAVI_CONFIG_FILE" ]; then
+    echo "ERROR: Navi config file not found: $NAVI_CONFIG_FILE" >&2
+    exit 1
+  fi
+
+  RESOURCE_FILES=()
+  local entry
+  while IFS= read -r entry; do
+    [ -n "$entry" ] && RESOURCE_FILES+=("$NAVI_DIR/$entry")
+  done < <(
+    awk '
+      { sub(/\r$/, "") }
+      /^include:[[:space:]]*(#.*)?$/ { in_include = 1; next }
+      in_include && /^[^[:space:]#]/ { in_include = 0 }
+      in_include && /^[[:space:]]+-[[:space:]]+/ {
+        line = $0
+        sub(/^[[:space:]]+-[[:space:]]+/, "", line)
+        sub(/[[:space:]]+#.*$/, "", line)
+        sub(/[[:space:]]+$/, "", line)
+        gsub(/^["'\'']|["'\'']$/, "", line)
+        print line
+      }
+    ' "$NAVI_CONFIG_FILE"
+  )
+
+  if [ ${#RESOURCE_FILES[@]} -eq 0 ]; then
+    echo "ERROR: no resource files found under 'include:' in $NAVI_CONFIG_FILE" >&2
+    exit 1
+  fi
+
+  local missing=0
+  local f
+  for f in "${RESOURCE_FILES[@]}"; do
+    if [ ! -f "$f" ]; then
+      echo "ERROR: resource file listed in $NAVI_CONFIG_FILE not found: $f" >&2
+      missing=1
+    fi
+  done
+  if [ $missing -ne 0 ]; then
+    exit 1
+  fi
+}
 
 function push_config() {
   FILE_ARGS=()
@@ -30,7 +76,12 @@ function push_all_configs() {
   IFS=',' read -ra URLS <<< "$MAJORA_PRODUCTION_URLS"
   for i in "${!URLS[@]}"; do
     export NAVI_NAMEPACE="${NAVI_NAMEPACE_BASE}-$((i + 1))"
-    export MAJORA_PRODUCTION_URL="${URLS[$i]}"
+    local url="${URLS[$i]}"
+    # Trim surrounding whitespace, then drop a trailing slash so request
+    # URLs don't end up as https://host//games.json.
+    url="${url#"${url%%[![:space:]]*}"}"
+    url="${url%"${url##*[![:space:]]}"}"
+    export MAJORA_PRODUCTION_URL="${url%/}"
     push_config
   done
 }
@@ -51,9 +102,12 @@ ACTION=$1
 
 case $ACTION in
   "config")
+    require_env NAVI_URL NAVI_API_TOKEN MAJORA_PRODUCTION_URLS STATISTICS_SKIP_SECRET
+    load_resource_files
     push_all_configs
     ;;
   "engine-start")
+    require_env NAVI_URL NAVI_API_TOKEN MAJORA_PRODUCTION_URLS
     start_engine
     ;;
   *)
