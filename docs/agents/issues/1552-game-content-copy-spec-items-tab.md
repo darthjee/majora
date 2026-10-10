@@ -1,14 +1,17 @@
 # Issue: Game content copy spec: Items tab
 
 ## Description
+
 Part of the "copy content between games" epic (#1550). Write the **Items** tab page of the game-content-copy spec, `docs/agents/specs/game-content-copy/items.md`, and link it from the index `docs/agents/specs/game-content-copy.md` (replacing the pending "Items — #1552" entry). Docs only, no code changes.
 
 The shared rules (page, copy flow, `copied_from`, `hidden` kept as source, cover set at link finalize, `Upload` link kind, proxy link handler, pending/failed links, permissions) live in the global pages written by #1551 (`page.md`, `copy-flow.md`, `hard-links.md`, `permissions.md`, already merged). The Items page must **reference** them, not repeat them, and only add what is specific to `GameItem`.
 
 ## Problem
+
 The global spec leaves per-type details to the tab pages: which fields and associated rows are copied, how the photo path is built, the list endpoint row fields and the frontend columns. Without the Items page, the implementation issue for this tab has no definition to follow.
 
 ## Expected Behavior
+
 `items.md` defines, for tab slug `items` (model `GameItem`):
 
 - **Copied fields**: `name`, `description`, `hidden` (kept as source); `game` = target; `copied_from` = source; `photo` null at copy time.
