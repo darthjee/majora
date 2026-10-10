@@ -5,6 +5,20 @@ export LOG_LEVEL=debug
 NAVI_DIR="${NAVI_DIR:-navi}"
 NAVI_CONFIG_FILE="${NAVI_CONFIG_FILE:-$NAVI_DIR/navi_config.yaml}"
 
+function require_env() {
+  local missing=0
+  local var
+  for var in "$@"; do
+    if [ -z "${!var}" ]; then
+      echo "ERROR: $var is not set" >&2
+      missing=1
+    fi
+  done
+  if [ $missing -ne 0 ]; then
+    exit 1
+  fi
+}
+
 function load_resource_files() {
   if [ ! -f "$NAVI_CONFIG_FILE" ]; then
     echo "ERROR: Navi config file not found: $NAVI_CONFIG_FILE" >&2
@@ -88,10 +102,12 @@ ACTION=$1
 
 case $ACTION in
   "config")
+    require_env NAVI_URL NAVI_API_TOKEN MAJORA_PRODUCTION_URLS STATISTICS_SKIP_SECRET
     load_resource_files
     push_all_configs
     ;;
   "engine-start")
+    require_env NAVI_URL NAVI_API_TOKEN MAJORA_PRODUCTION_URLS
     start_engine
     ;;
   *)
