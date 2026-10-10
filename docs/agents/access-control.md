@@ -42,6 +42,8 @@ regardless of any other rule listed below.
 - [Staff Crawler](access-control/staff-crawler.md) — the staff-only crawler debug-harness endpoints
 - [Staff Photos](access-control/staff-photo.md) — the staff-only cross-type photo list / replace /
   delete endpoints
+- [Staff Copy](access-control/staff-copy.md) — **planned**: the staff-only game content copy
+  endpoints and the copy-origin `Upload` link flow
 - [CharacterPhoto](access-control/character-photo.md)
 - [CharacterTreasure](access-control/character-treasure.md)
 - [GameTreasure](access-control/game-treasure.md)
