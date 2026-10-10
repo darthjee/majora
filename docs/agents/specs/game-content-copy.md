@@ -30,7 +30,7 @@ Access rules for the planned endpoints: [Staff Copy](../access-control/staff-cop
 Each is written by its own issue and builds on the global pages above (unlinked ones are pending):
 
 - [Items](game-content-copy/items.md) — #1552
-- Common items — #1553
+- [Common items](game-content-copy/common-items.md) — #1553
 - Recipes — #1554
 - Documents — #1555
 - Factions — #1556
