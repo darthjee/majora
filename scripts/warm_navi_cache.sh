@@ -62,7 +62,12 @@ function push_all_configs() {
   IFS=',' read -ra URLS <<< "$MAJORA_PRODUCTION_URLS"
   for i in "${!URLS[@]}"; do
     export NAVI_NAMEPACE="${NAVI_NAMEPACE_BASE}-$((i + 1))"
-    export MAJORA_PRODUCTION_URL="${URLS[$i]}"
+    local url="${URLS[$i]}"
+    # Trim surrounding whitespace, then drop a trailing slash so request
+    # URLs don't end up as https://host//games.json.
+    url="${url#"${url%%[![:space:]]*}"}"
+    url="${url%"${url##*[![:space:]]}"}"
+    export MAJORA_PRODUCTION_URL="${url%/}"
     push_config
   done
 }
