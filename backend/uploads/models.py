@@ -40,11 +40,13 @@ class Upload(models.Model):
     STATUS_PENDING = 'pending'
     STATUS_UPLOADING = 'uploading'
     STATUS_UPLOADED = 'uploaded'
+    STATUS_FAILED = 'failed'
 
     STATUS_CHOICES = [
         (STATUS_PENDING, 'Pending'),
         (STATUS_UPLOADING, 'Uploading'),
         (STATUS_UPLOADED, 'Uploaded'),
+        (STATUS_FAILED, 'Failed'),
     ]
 
     UPLOAD_TYPE_IMAGE = 'image'
@@ -57,10 +59,28 @@ class Upload(models.Model):
 
     ORIGIN_REGULAR = 'regular'
     ORIGIN_STAFF = 'staff'
+    ORIGIN_COPY = 'copy'
 
     ORIGIN_CHOICES = [
         (ORIGIN_REGULAR, 'regular'),
         (ORIGIN_STAFF, 'staff'),
+        (ORIGIN_COPY, 'copy'),
+    ]
+
+    ERROR_SOURCE_MISSING = 'source_missing'
+    ERROR_PATH_REJECTED = 'path_rejected'
+    ERROR_CROSS_DEVICE = 'cross_device'
+    ERROR_TARGET_EXISTS = 'target_exists'
+    ERROR_PERMISSION = 'permission'
+    ERROR_UNKNOWN = 'unknown'
+
+    ERROR_CHOICES = [
+        (ERROR_SOURCE_MISSING, 'source_missing'),
+        (ERROR_PATH_REJECTED, 'path_rejected'),
+        (ERROR_CROSS_DEVICE, 'cross_device'),
+        (ERROR_TARGET_EXISTS, 'target_exists'),
+        (ERROR_PERMISSION, 'permission'),
+        (ERROR_UNKNOWN, 'unknown'),
     ]
 
     user = models.ForeignKey(
@@ -83,6 +103,9 @@ class Upload(models.Model):
     origin = models.CharField(
         max_length=10, choices=ORIGIN_CHOICES, default=ORIGIN_REGULAR
     )
+    source_path = models.CharField(max_length=512, null=True, blank=True)
+    is_cover = models.BooleanField(default=False)
+    error = models.CharField(max_length=32, choices=ERROR_CHOICES, null=True, blank=True)
 
     objects = UploadQuerySet.as_manager()
 
@@ -102,19 +125,46 @@ class Upload(models.Model):
         """Return True when the upload was initiated from the staff photos page."""
         return self.origin == self.ORIGIN_STAFF
 
+    @property
+    def is_copy_origin(self):
+        """Return True when the upload is a hard-link job created by a game content copy."""
+        return self.origin == self.ORIGIN_COPY
+
+    def renew(self, user):
+        """Re-issue the token and expiry, reset to pending, clear the error and reassign user."""
+        self.token = self._new_token()
+        self.expiration_time = self._new_expiration_time()
+        self.status = self.STATUS_PENDING
+        self.error = None
+        self.user = user
+        self.save()
+
     def save(self, *args, **kwargs):
         """Persist the upload record, enforcing immutability after upload."""
-        if self.pk is not None:
-            existing = Upload.objects.filter(pk=self.pk).values('status').first()
-            if existing and existing['status'] == self.STATUS_UPLOADED:
-                raise ValueError('Upload record cannot be modified once status is uploaded.')
+        self._ensure_not_uploaded()
         if not self.token:
-            self.token = secrets.token_urlsafe(32)
+            self.token = self._new_token()
         if not self.expiration_time:
-            self.expiration_time = timezone.now() + timedelta(
-                minutes=Settings.upload_expiration_minutes()
-            )
+            self.expiration_time = self._new_expiration_time()
         super().save(*args, **kwargs)
+
+    def _ensure_not_uploaded(self):
+        """Raise ValueError when the stored record is already `uploaded`."""
+        if self.pk is None:
+            return
+        existing = Upload.objects.filter(pk=self.pk).values('status').first()
+        if existing and existing['status'] == self.STATUS_UPLOADED:
+            raise ValueError('Upload record cannot be modified once status is uploaded.')
+
+    @staticmethod
+    def _new_token():
+        """Return a fresh random upload token."""
+        return secrets.token_urlsafe(32)
+
+    @staticmethod
+    def _new_expiration_time():
+        """Return the expiration time for an upload issued now."""
+        return timezone.now() + timedelta(minutes=Settings.upload_expiration_minutes())
 
     def __str__(self):
         """Return string representation of the upload."""

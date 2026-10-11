@@ -6,6 +6,8 @@ from .staff_copies_games import staff_copies_games
 from .staff_copies_index import staff_copies_index
 from .staff_copies_list import staff_copies_list
 from .staff_copy_create import staff_copy_create
+from .staff_copy_link_renew import staff_copy_link_renew
+from .staff_copy_links import staff_copy_links
 from .staff_crawler import staff_crawler
 from .staff_crawler_clear import staff_crawler_clear
 from .staff_crawler_summary import staff_crawler_summary
@@ -51,6 +53,8 @@ __all__ = [
     'staff_copies_games',
     'staff_copies_list',
     'staff_copy_create',
+    'staff_copy_link_renew',
+    'staff_copy_links',
     'staff_photos_index',
     'staff_photos_list',
     'staff_photo_replace',

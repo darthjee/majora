@@ -48,3 +48,15 @@ class UploadFinalizeFixtureMixin:
         upload.content_object = photo
         upload.save()
         return upload, photo
+
+    @classmethod
+    def _create_copy_upload(cls, user, content_object, **kwargs):
+        """Create a copy-origin `Upload` linked to `content_object` (a copied photo/file row)."""
+        defaults = {
+            'file_path': 'photos/games/target/copy/photo.jpg',
+            'source_path': 'photos/games/source/original/photo.jpg',
+        }
+        defaults.update(kwargs)
+        return Upload.objects.create(
+            user=user, origin=Upload.ORIGIN_COPY, content_object=content_object, **defaults
+        )

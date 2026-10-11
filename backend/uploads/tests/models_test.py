@@ -179,6 +179,103 @@ class TestUpload(TestCase):
         )
         assert upload.is_staff_origin is True
 
+    def test_copy_fields_default_values(self):
+        """Test that source_path, is_cover and error default to empty values."""
+        upload = Upload.objects.create(
+            user=self.user,
+            file_path='photos/games/my-game/file_abc123.jpg',
+        )
+        upload.refresh_from_db()
+        assert upload.source_path is None
+        assert upload.is_cover is False
+        assert upload.error is None
+        assert upload.is_copy_origin is False
+
+    def test_copy_origin_flag(self):
+        """Test that a copy upload reports is_copy_origin and not is_staff_origin."""
+        upload = Upload.objects.create(
+            user=self.user,
+            file_path='photos/games/my-game/file_abc123.jpg',
+            origin=Upload.ORIGIN_COPY,
+        )
+        assert upload.is_copy_origin is True
+        assert upload.is_staff_origin is False
+
+    def test_failed_status_and_error_persist(self):
+        """Test that the failed status and an error code can be stored."""
+        upload = Upload.objects.create(
+            user=self.user,
+            file_path='photos/games/my-game/file_abc123.jpg',
+            origin=Upload.ORIGIN_COPY,
+            status=Upload.STATUS_FAILED,
+            error=Upload.ERROR_CROSS_DEVICE,
+        )
+        upload.refresh_from_db()
+        assert upload.status == Upload.STATUS_FAILED
+        assert upload.error == Upload.ERROR_CROSS_DEVICE
+
+
+class TestUploadRenew(TestCase):
+    """Tests for Upload.renew()."""
+
+    @classmethod
+    def setUpTestData(cls):
+        """Set up common test fixtures."""
+        cls.user = UserFactory(username='carol', password='secret-password')
+        cls.other_user = UserFactory(username='dave', password='secret-password')
+
+    def _expired_failed_upload(self):
+        """Create an expired, failed copy upload owned by `self.user`."""
+        return Upload.objects.create(
+            user=self.user,
+            file_path='photos/games/my-game/file_abc123.jpg',
+            origin=Upload.ORIGIN_COPY,
+            status=Upload.STATUS_FAILED,
+            error=Upload.ERROR_UNKNOWN,
+            expiration_time=timezone.now() - timedelta(minutes=5),
+        )
+
+    def test_renew_rotates_token(self):
+        """Test that renew issues a new token."""
+        upload = self._expired_failed_upload()
+        old_token = upload.token
+        upload.renew(self.other_user)
+        upload.refresh_from_db()
+        assert upload.token != old_token
+
+    def test_renew_extends_expiration(self):
+        """Test that renew sets a future expiration time."""
+        upload = self._expired_failed_upload()
+        upload.renew(self.other_user)
+        upload.refresh_from_db()
+        assert upload.expiration_time > timezone.now() + timedelta(minutes=59)
+
+    def test_renew_resets_status_and_error(self):
+        """Test that renew resets the status to pending and clears the error."""
+        upload = self._expired_failed_upload()
+        upload.renew(self.other_user)
+        upload.refresh_from_db()
+        assert upload.status == Upload.STATUS_PENDING
+        assert upload.error is None
+
+    def test_renew_reassigns_user(self):
+        """Test that renew reassigns the upload to the renewing user."""
+        upload = self._expired_failed_upload()
+        upload.renew(self.other_user)
+        upload.refresh_from_db()
+        assert upload.user == self.other_user
+
+    def test_renew_on_uploaded_upload_raises(self):
+        """Test that renew on an uploaded upload still raises ValueError."""
+        upload = Upload.objects.create(
+            user=self.user,
+            file_path='photos/games/my-game/file_abc123.jpg',
+            origin=Upload.ORIGIN_COPY,
+            status=Upload.STATUS_UPLOADED,
+        )
+        with pytest.raises(ValueError):
+            upload.renew(self.other_user)
+
 
 class TestUploadActiveQuerySet(TestCase):
     """Tests for the Upload active-upload queryset helpers."""
