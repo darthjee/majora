@@ -1,8 +1,9 @@
 """Registry of the photo/file models whose copies are shared through hard-link uploads.
 
 Every copyable photo/file model has one `CopyLink` entry here, declaring how its rows reach
-their game (used by the pending-links list), how a copied row becomes its owner's cover, and
-which proxy cache paths its finalize clears. This module is free of view/HTTP concerns.
+their game and how they are described (used by the pending-links list), how a copied row
+becomes its owner's cover, and which proxy cache paths its finalize clears. This module is
+free of view/HTTP concerns.
 
 `cache_paths(row, upload)` is a **per-type hook**: it returns `[]` until the tab issues fill it
 in, following the "Cache" section of each tab spec under `docs/agents/specs/game-content-copy/`
@@ -42,6 +43,17 @@ class CopyLink:
             'pk', flat=True
         )
 
+    def load_rows(self, ids):
+        """Return the rows with the given ids, with what describing them needs preloaded."""
+        return self.model.objects.filter(pk__in=list(ids)).select_related(
+            *self._select_related()
+        )
+
+    def describe_rows(self, rows):
+        """Return `{row_id: owner_description_or_None}` for the given rows."""
+        owners = self.photo_type.load_owners(rows)
+        return {pk: self.photo_type.describe_owner(owner) for pk, owner in owners.items()}
+
     def set_cover(self, row):
         """Make `row` its owner's cover photo; a no-op unless the owner has a cover FK."""
 
@@ -50,6 +62,10 @@ class CopyLink:
         if self._cache_paths is None:
             return []
         return self._cache_paths(row, upload)
+
+    def _select_related(self):
+        """Return the relations to preload when describing rows."""
+        return self.photo_type.select_related
 
 
 class CoverCopyLink(CopyLink):
@@ -65,6 +81,23 @@ class CoverCopyLink(CopyLink):
         owner = getattr(row, self._owner_field)
         owner.photo = row
         owner.save()
+
+
+class DocumentFileCopyLink(CopyLink):
+    """Copy link of `GameDocumentFile`: the copied file is described as the file itself."""
+
+    def __init__(self, cache_paths=None):
+        """Configure the entry for `GameDocumentFile`."""
+        super().__init__(GameDocumentFile, 'game_document__game', cache_paths=cache_paths)
+
+    def describe_rows(self, rows):
+        """Return `{file_id: description}`, using the document-file photo type's wording."""
+        describer = photo_types.find('game_document_file')
+        return {row.pk: describer.describe_owner(row) for row in rows}
+
+    def _select_related(self):
+        """Return the relations to preload when describing files."""
+        return ('game_document__game',)
 
 
 class DocumentFilePhotoCopyLink(CopyLink):
@@ -87,7 +120,7 @@ COPY_LINKS = (
     CoverCopyLink(GameFactionPhoto, 'faction'),
     CoverCopyLink(GamePossessionPhoto, 'game_possession'),
     CoverCopyLink(GameDocumentPhoto, 'game_document'),
-    CopyLink(GameDocumentFile, 'game_document__game'),
+    DocumentFileCopyLink(),
     DocumentFilePhotoCopyLink(),
 )
 

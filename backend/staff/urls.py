@@ -62,6 +62,7 @@ urlpatterns = [
     path('staff/copies.json', views.staff_copies_index, name='staff-copies-index'),
     # Reserved paths (games, links) must stay before the generic `<str:copy_type>` routes.
     path('staff/copies/games.json', views.staff_copies_games, name='staff-copies-games'),
+    path('staff/copies/links.json', views.staff_copy_links, name='staff-copy-links'),
     path(
         'staff/copies/<str:copy_type>.json',
         views.staff_copies_list,

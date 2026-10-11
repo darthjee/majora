@@ -29,11 +29,16 @@ def resolve_list_games(params):
 
 def resolve_target_game(data):
     """Return `(target_game, None)`, or `(None, 400 Response)` when `target` is invalid."""
-    resolver = GameSlugResolver(data if isinstance(data, dict) else {})
-    target_game = resolver.resolve('target')
+    return resolve_game_param(data if isinstance(data, dict) else {}, 'target')
+
+
+def resolve_game_param(params, name):
+    """Return `(game, None)`, or `(None, 400 Response)` when the `name` slug is invalid."""
+    resolver = GameSlugResolver(params)
+    game = resolver.resolve(name)
     if resolver.errors:
         return None, resolver.error_response()
-    return target_game, None
+    return game, None
 
 
 def same_game_error(param):
