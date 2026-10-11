@@ -39,6 +39,9 @@ class GameCommonItem(models.Model):
     category = models.CharField(
         max_length=16, choices=CATEGORY_CHOICES, default=CATEGORY_OTHER,
     )
+    copied_from = models.ForeignKey(
+        'self', on_delete=models.SET_NULL, null=True, blank=True, related_name='copies',
+    )
     history = HistoricalRecords(app='versioning', user_db_constraint=False)
 
     class Meta:
