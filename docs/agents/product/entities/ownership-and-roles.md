@@ -59,7 +59,7 @@ Django-admin-only actions (e.g. Treasure or Game deletion — see
 [access-control.md](access-control.md)'s existing admin carve-out), regardless of how far
 the Staff role's endpoint-level parity with Superuser grows.
 
-Three explicit, named exceptions to this game-scoped carve-out exist:
+Four explicit, named exceptions to this game-scoped carve-out exist:
 
 - (Issue #619) Staff may upload a photo for a **PC**
   (`POST /games/:game_slug/pcs/:id/photo_upload.json`), for any game, without being a
@@ -75,6 +75,14 @@ Three explicit, named exceptions to this game-scoped carve-out exist:
 - (Issue #915) Staff may use the narrow NPC `PATCH`
   (`PATCH /games/:game_slug/npcs/:id.json`, `NpcPlayerEditPermission`), for any game, without
   being a player or GameMaster of that game; the same permission also gates NPC photo upload.
+- (Issue #1568) Staff may **create copies of game content** — items, common items, recipes,
+  documents, factions and possessions — in any game (`POST /staff/copies/<type>/<id>.json`,
+  `require_staff`), without being a player or GameMaster of the source or the target game. The
+  route is not under `/games/:game_slug`, but it creates game-scoped rows in the target game, so
+  it is listed here. It grants only the *creation* of the copy: no edit, delete or GameMaster
+  capability over the source or the copied rows, which stay governed by their own game-scoped
+  permissions. A GameMaster without Staff cannot copy, even between their own games. See
+  [Staff Copy](../../access-control/staff-copy.md).
 
 ---
 
@@ -160,7 +168,7 @@ is removed entirely; the frontend now gates the money-edit UI on the existing `c
 | PC vs NPC | `npc=False` → PC (has player); `npc=True` → NPC (no player) |
 | Player account link | `Player.user` nullable — player without a login has no owner |
 | Player PC ownership | Zero or one — `unique_player_character` plain `UniqueConstraint` on `Character.player`, no `condition=` (MySQL doesn't support it; unnecessary anyway since MySQL already treats every `NULL` as distinct) (issue #589) |
-| Staff role | `user.is_staff` — global; full parity with Superuser on any non-game-scoped endpoint (User management, global Treasure management); no authority over game-scoped editing, with named exceptions: PC photo upload init (issue #619), Player roster List (issue #589, read-only) and — since issue #915 — the narrow NPC `PATCH` (which shares `NpcPlayerEditPermission` with NPC photo upload) |
+| Staff role | `user.is_staff` — global; full parity with Superuser on any non-game-scoped endpoint (User management, global Treasure management); no authority over game-scoped editing, with named exceptions: PC photo upload init (issue #619), Player roster List (issue #589, read-only), the narrow NPC `PATCH` (since issue #915; shares `NpcPlayerEditPermission` with NPC photo upload) and — since issue #1568 — creating copies of game content in any game (`POST /staff/copies/<type>/<id>.json`; creation only, no edit/delete/GameMaster rights over the source or the copy) |
 | NPC narrow player PATCH | Any player of the game (via `Player.games`), OR any Staff account (`user.is_staff`, global — added by issue #915), in addition to the Editing rights above — NPC-only; `name`, `role`, `public_description`, `links`, `allegiance` (→`public_allegiance`), `slain` (→`public_slain`) and `money` (added by issue #915) fields only |
 | NPC photo upload (init/finalize) | Any player of the game (via `Player.games`), OR any Staff account (`user.is_staff`, global), in addition to the Editing rights above — NPC-only, same `NpcPlayerEditPermission` as the narrow player PATCH row above (issue #429) |
 | PC photo upload (init) | Any player of the game (via `Player.games`), OR any Staff account (`user.is_staff`, global), in addition to the Editing rights above — PC-only, new `CharacterPhotoUploadPermission` (issue #619); full PC editing still uses `CharacterEditPermission` unchanged |
