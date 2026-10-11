@@ -3,6 +3,8 @@ import { runCases } from './support.js';
 const CASES = [
   { hash: '#/staff/users', expected: 'staffUsers' },
   { hash: '#/staff/photos', expected: 'staffPhotos' },
+  { hash: '#/staff/copies', expected: 'staffCopies' },
+  { hash: '#/staff/copies?from=a&to=b&type=items', expected: 'staffCopies' },
   {
     hash: '#/staff/users/7/edit',
     expected: 'staffUserEdit',

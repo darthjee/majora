@@ -30,6 +30,8 @@ describe('HeaderHelper', function() {
         expect(html).toContain('Dashboard');
         expect(html).toContain('href="#/staff/photos"');
         expect(html).toContain(Translator.t('header.nav_staff_photos'));
+        expect(html).toContain('href="#/staff/copies"');
+        expect(html).toContain(Translator.t('header.nav_staff_copies'));
         expect(html).toContain('href="#/staff/statistics"');
         expect(html).toContain(Translator.t('header.nav_staff_statistics'));
       });
@@ -42,6 +44,7 @@ describe('HeaderHelper', function() {
         expect(html).toContain('href="#/staff/users"');
         expect(html).toContain('href="#/staff/dashboard"');
         expect(html).toContain('href="#/staff/photos"');
+        expect(html).toContain('href="#/staff/copies"');
         expect(html).toContain('href="#/staff/statistics"');
       });
 
@@ -52,6 +55,7 @@ describe('HeaderHelper', function() {
         expect(html).not.toContain('href="#/staff/users"');
         expect(html).not.toContain('href="#/staff/dashboard"');
         expect(html).not.toContain('href="#/staff/photos"');
+        expect(html).not.toContain('href="#/staff/copies"');
         expect(html).not.toContain('href="#/staff/statistics"');
       });
     });

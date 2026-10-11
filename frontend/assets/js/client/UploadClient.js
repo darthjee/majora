@@ -61,6 +61,27 @@ export default class UploadClient extends BaseClient {
   }
 
   /**
+   * Links a copied upload to its source file (issue #1571).
+   *
+   * @description Sends a body-less POST to the proxy link handler, authenticated by the upload
+   *   token returned by the staff copy (or renew) endpoint. The proxy answers `404` when the
+   *   copied row or its game was deleted in the meantime.
+   * @param {string} uploadType - Upload type (`image` or `file`), used to build the URL.
+   * @param {number|string} uploadId - Upload ID returned by the copy/renew endpoint.
+   * @param {string} token - Upload token returned by the copy/renew endpoint.
+   * @returns {Promise<Response>} fetch response from the upload link endpoint.
+   */
+  linkUpload(uploadType, uploadId, token) {
+    return this.request(`/uploads/link/${uploadType}/${uploadId}/submit`, {
+      method: 'POST',
+      headers: {
+        'X-Upload-Token': token,
+      },
+      signal: AbortSignal.timeout(UPLOAD_TIMEOUT_MS),
+    });
+  }
+
+  /**
    * Runs the full init-then-submit upload round trip for a single file.
    *
    * @description Calls initUpload, and if it does not respond ok, short-circuits to

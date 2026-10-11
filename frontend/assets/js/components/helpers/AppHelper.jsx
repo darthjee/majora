@@ -92,6 +92,7 @@ import StaffUser from '../resources/staff_user/pages/StaffUser.jsx';
 import StaffUserEdit from '../resources/staff_user/pages/StaffUserEdit.jsx';
 import StaffUsers from '../resources/staff_user/pages/StaffUsers.jsx';
 import StaffPhotos from '../resources/staff_photo/pages/StaffPhotos.jsx';
+import StaffCopies from '../resources/staff_copy/pages/StaffCopies.jsx';
 import StaffStatisticsVisits from '../resources/staff_statistics/pages/StaffStatisticsVisits.jsx';
 import StaffStatisticsVisitors from '../resources/staff_statistics/pages/StaffStatisticsVisitors.jsx';
 import StaffStatisticsDuration from '../resources/staff_statistics/pages/StaffStatisticsDuration.jsx';
@@ -205,6 +206,7 @@ const PAGES = {
   staffUser: <StaffUser />,
   staffUserEdit: <StaffUserEdit />,
   staffPhotos: <StaffPhotos />,
+  staffCopies: <StaffCopies />,
   staffStatisticsVisits: <StaffStatisticsVisits />,
   staffStatisticsVisitors: <StaffStatisticsVisitors />,
   staffStatisticsDuration: <StaffStatisticsDuration />,

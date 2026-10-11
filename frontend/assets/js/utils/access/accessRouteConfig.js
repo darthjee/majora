@@ -80,6 +80,7 @@ const ROUTE_TEMPLATES = {
   staffUser: [{ kind: 'staffOrSuperuser' }],
   staffUserEdit: [{ kind: 'staffOrSuperuser' }],
   staffPhotos: [{ kind: 'staffOrSuperuser' }],
+  staffCopies: [{ kind: 'staffOrSuperuser' }],
   staffStatisticsVisits: [{ kind: 'staffOrSuperuser' }],
   staffStatisticsVisitors: [{ kind: 'staffOrSuperuser' }],
   staffStatisticsDuration: [{ kind: 'staffOrSuperuser' }],
