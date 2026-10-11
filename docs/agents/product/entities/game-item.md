@@ -11,3 +11,11 @@ owned catalog row. A **CharacterItem** links a `GameItem` to a PC or NPC, with i
 [access-control/game-item.md](access-control/game-item.md) and
 [access-control/character-item.md](access-control/character-item.md) for the full endpoint and
 permission breakdown.
+
+`GameItem` has a nullable, self-referencing `copied_from` FK (issue #1568): a provenance link to
+the entity it was copied from when Staff copied it from another game (see
+[Staff Copy](../../access-control/staff-copy.md)). It is the one allowed cross-game reference.
+When the source is deleted, directly or through its game's deletion, it is set to null
+(`on_delete=SET_NULL`) and the copy survives. A copy of a copy points to its immediate source,
+not to the original. It is staff-only provenance and is never exposed by regular or restricted
+game serializers. It is not a character link and carries no edit rights.

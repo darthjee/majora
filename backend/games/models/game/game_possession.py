@@ -17,6 +17,9 @@ class GamePossession(models.Model):
         related_name='+',
     )
     hidden = models.BooleanField(default=False)
+    copied_from = models.ForeignKey(
+        'self', on_delete=models.SET_NULL, null=True, blank=True, related_name='copies',
+    )
     history = HistoricalRecords(app='versioning', user_db_constraint=False)
 
     class Meta:

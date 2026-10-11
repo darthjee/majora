@@ -2,6 +2,10 @@
 
 from .staff_cache_clear import staff_cache_clear
 from .staff_cache_summary import staff_cache_summary
+from .staff_copies_games import staff_copies_games
+from .staff_copies_index import staff_copies_index
+from .staff_copies_list import staff_copies_list
+from .staff_copy_create import staff_copy_create
 from .staff_crawler import staff_crawler
 from .staff_crawler_clear import staff_crawler_clear
 from .staff_crawler_summary import staff_crawler_summary
@@ -43,6 +47,10 @@ __all__ = [
     'staff_crawler',
     'staff_crawler_clear',
     'staff_crawler_summary',
+    'staff_copies_index',
+    'staff_copies_games',
+    'staff_copies_list',
+    'staff_copy_create',
     'staff_photos_index',
     'staff_photos_list',
     'staff_photo_replace',

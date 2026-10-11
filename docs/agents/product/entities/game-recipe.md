@@ -17,6 +17,12 @@ Majora (nothing is consumed or added to an inventory).
   `hidden` flag (independent of the recipe's); deleting the character, the recipe or its output
   item deletes the link. See
   [access-control/character-recipe.md](../../access-control/character-recipe.md).
+- `GameRecipe` 0..1 — N `GameRecipe` through the nullable **`copied_from`** self-FK (issue #1568):
+  provenance link to the recipe it was copied from by Staff from another game (see
+  [Staff Copy](../../access-control/staff-copy.md)) — the one allowed cross-game reference.
+  Deleting the source (or its game) sets it to null (`SET_NULL`) and the copy survives; a copy of
+  a copy points to its immediate source. Staff-only, never exposed by regular or restricted game
+  serializers.
 
 ## Fields
 

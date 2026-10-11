@@ -22,6 +22,9 @@ class GameRecipe(models.Model):
     crafting_cost = models.IntegerField(default=0, validators=[MinValueValidator(0)])
     ingredients = models.TextField(blank=True, default='')
     checks = models.TextField(blank=True, default='')
+    copied_from = models.ForeignKey(
+        'self', on_delete=models.SET_NULL, null=True, blank=True, related_name='copies',
+    )
     history = HistoricalRecords(app='versioning', user_db_constraint=False)
 
     class Meta:
