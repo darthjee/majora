@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import StaffCopiesController from './controllers/StaffCopiesController.js';
 import StaffCopiesHelper from './helpers/StaffCopiesHelper.jsx';
+import useStaffCopySelection from './hooks/useStaffCopySelection.js';
+import Noop from '../../../../utils/Noop.js';
 
 /**
  * Hook holding every piece of staff copy page state, plus the controller wired to it.
@@ -35,10 +37,16 @@ function useStaffCopiesState() {
  * @returns {React.ReactElement} Staff copy page.
  */
 export default function StaffCopies() {
-  const { state } = useStaffCopiesState();
+  const { state, controller } = useStaffCopiesState();
+  const selection = useStaffCopySelection(state.rows);
 
   if (state.loading) return StaffCopiesHelper.renderLoading();
   if (state.error) return StaffCopiesHelper.renderError(state.error);
 
-  return StaffCopiesHelper.renderLoading();
+  return StaffCopiesHelper.render({ ...state, selectedIds: selection.selectedIds }, {
+    onSelectGame: (key, slug) => controller.changeSelection(key, slug),
+    onToggle: selection.onToggle,
+    onToggleAll: selection.onToggleAll,
+    onCopy: Noop.noop,
+  });
 }
