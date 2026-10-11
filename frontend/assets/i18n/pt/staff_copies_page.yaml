@@ -1,0 +1,62 @@
+staff_copies_page:
+  title: Copiar conteúdo
+  loading: Carregando...
+  error: Falha ao carregar. Tente novamente.
+  source_label: Jogo de origem
+  target_label: Jogo de destino
+  select_placeholder: Selecione um jogo
+  same_game_error: A origem e o destino precisam ser jogos diferentes.
+  select_games_hint: Selecione um jogo de origem e um de destino.
+  no_types: Ainda não há tipos de conteúdo disponíveis.
+  empty: Não há nada para copiar neste jogo.
+  types:
+    items: Itens
+    common_items: Itens comuns
+    recipes: Receitas
+    documents: Documentos
+    factions: Facções
+    possessions: Posses
+  select_column: Selecionar
+  name_column: Nome
+  status_column: Status
+  select_all: Selecionar todos desta página
+  copied_to_target: Já copiado
+  copy: Copiar selecionados
+  retry: Tentar novamente
+  recopy_confirm_title: Copiar novamente?
+  recopy_confirm_body: Alguns dos itens selecionados já foram copiados para o jogo de destino. Copiá-los de novo cria cópias novas e independentes.
+  recopy_confirm_accept: Copiar novamente
+  recopy_confirm_cancel: Cancelar
+  entity_status:
+    pending: Pendente
+    copying: Copiando...
+    copied: Copiado
+    failed: Com falha
+  entity_error:
+    not_found: A origem não existe mais
+    name_taken: Nome já usado no jogo de destino
+    bad_request: Requisição inválida
+    unknown: Falha ao copiar
+  progress: '{{done}} de {{total}} copiados'
+  link_status:
+    pending: Pendente
+    linking: Vinculando...
+    linked: Vinculado
+    failed: Com falha
+  link_kind:
+    image: Foto
+    file: Arquivo
+  link_error:
+    source_missing: Arquivo de origem não encontrado
+    path_rejected: Caminho recusado
+    cross_device: Dispositivo de armazenamento diferente
+    target_exists: O arquivo de destino já existe
+    permission: Permissão negada
+    in_flight: Já há um vínculo em andamento
+    unknown: Erro desconhecido
+  links_title: Arquivos pendentes e com falha
+  links_empty: Nenhum arquivo pendente.
+  links_entity_column: Entrada copiada
+  links_kind_column: Tipo
+  links_status_column: Status
+  links_error_column: Erro

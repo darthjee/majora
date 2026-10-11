@@ -1,0 +1,62 @@
+staff_copies_page:
+  title: Copy content
+  loading: Loading...
+  error: Failed to load. Please try again.
+  source_label: Source game
+  target_label: Target game
+  select_placeholder: Select a game
+  same_game_error: Source and target must be different games.
+  select_games_hint: Select a source and a target game.
+  no_types: No content types are available yet.
+  empty: There is nothing to copy in this game.
+  types:
+    items: Items
+    common_items: Common items
+    recipes: Recipes
+    documents: Documents
+    factions: Factions
+    possessions: Possessions
+  select_column: Select
+  name_column: Name
+  status_column: Status
+  select_all: Select all on this page
+  copied_to_target: Already copied
+  copy: Copy selected
+  retry: Retry
+  recopy_confirm_title: Copy again?
+  recopy_confirm_body: Some selected rows were already copied into the target game. Copying them again creates new, independent copies.
+  recopy_confirm_accept: Copy again
+  recopy_confirm_cancel: Cancel
+  entity_status:
+    pending: Pending
+    copying: Copying...
+    copied: Copied
+    failed: Failed
+  entity_error:
+    not_found: Source no longer exists
+    name_taken: Name already used in the target game
+    bad_request: Invalid request
+    unknown: Copy failed
+  progress: '{{done}} of {{total}} copied'
+  link_status:
+    pending: Pending
+    linking: Linking...
+    linked: Linked
+    failed: Failed
+  link_kind:
+    image: Photo
+    file: File
+  link_error:
+    source_missing: Source file missing
+    path_rejected: Path rejected
+    cross_device: Different storage device
+    target_exists: Target file already exists
+    permission: Permission denied
+    in_flight: A link is already in progress
+    unknown: Unknown error
+  links_title: Pending and failed files
+  links_empty: No pending files.
+  links_entity_column: Copied entry
+  links_kind_column: Kind
+  links_status_column: Status
+  links_error_column: Error
