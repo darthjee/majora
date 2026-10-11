@@ -58,6 +58,9 @@ columns and details are defined by the tab pages (#1552–#1557).
 - Rows with `copied_to_target: true` (already copied into the selected target, see
   [copy-flow.md](copy-flow.md#copied_from)) are flagged. Copying a flagged row again asks for
   confirmation first; confirming creates another, independent copy.
+- The factions tab also flags rows with `name_taken_in_target: true` ("name already used"); they
+  stay selectable, and the copy answers `422` if the name is still taken (see
+  [factions.md](factions.md#names)).
 
 ## Execution and progress
 

@@ -50,6 +50,10 @@ Renew resolves `<upload_id>` only after `require_staff`: a non-copy upload is `4
   domain and games without a domain group — staff-only.
 - Source list rows expose the source entity's fields (per tab, see the spec's tab pages) plus
   `copied_to_target`. Hidden source entities are listed (staff see everything).
+- Factions list rows also expose `name_taken_in_target`, a boolean derived from the target
+  game's faction names (staff-only, like the rest of the list). It reveals only whether the name
+  exists in the target, never the target faction's id or data. See the spec's
+  [factions page](../specs/game-content-copy/factions.md#names).
 - Copy and renew responses expose only `{id}` / `{upload_id, upload_type, token}`: never
   `file_path` or `source_path`. The `token` goes only to the staff member who created or renewed
   the upload.
