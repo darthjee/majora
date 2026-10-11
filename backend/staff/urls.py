@@ -59,6 +59,9 @@ urlpatterns = [
         views.staff_photo_delete,
         name='staff-photo-delete',
     ),
+    path('staff/copies.json', views.staff_copies_index, name='staff-copies-index'),
+    # Reserved paths (games, links) must stay before the generic `<str:copy_type>` routes.
+    path('staff/copies/games.json', views.staff_copies_games, name='staff-copies-games'),
     path(
         'staff/statistics/domains.json',
         views.staff_statistics_domains,

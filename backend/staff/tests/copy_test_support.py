@@ -66,3 +66,34 @@ def register_copy_types(monkeypatch, *entries):
     """Replace the copy-type registry with `entries` for the duration of a test."""
     monkeypatch.setattr(copy_types, 'COPY_TYPES', tuple(entries))
     monkeypatch.setattr(copy_types, '_BY_SLUG', {entry.slug: entry for entry in entries})
+
+
+class StaffCopyGateBehavior(StaffCopyActorsMixin):
+    """Shared staff-gate and `X-Skip-Cache` tests; subclasses define `send(client, token)`."""
+
+    def send(self, client, token=None):
+        """Issue the endpoint's request with an optional token."""
+        raise NotImplementedError
+
+    def send_wrong_method(self, client, token=None):
+        """Issue a request with a method the endpoint does not accept."""
+        raise NotImplementedError
+
+    def test_unauthenticated_returns_401_with_skip_cache(self, client):
+        """Test that an anonymous request returns 401 with X-Skip-Cache."""
+        response = self.send(client)
+        assert response.status_code == 401
+        assert response['X-Skip-Cache'] == 'true'
+
+    def test_regular_user_returns_403_with_skip_cache(self, client):
+        """Test that a regular user gets 403 not_allowed with X-Skip-Cache."""
+        response = self.send(client, self.regular_token)
+        assert response.status_code == 403
+        assert response.json() == {'errors': {'detail': ['not_allowed']}}
+        assert response['X-Skip-Cache'] == 'true'
+
+    def test_wrong_method_returns_405_with_skip_cache(self, client):
+        """Test that a wrong HTTP method returns 405 with X-Skip-Cache."""
+        response = self.send_wrong_method(client, self.staff_token)
+        assert response.status_code == 405
+        assert response['X-Skip-Cache'] == 'true'
