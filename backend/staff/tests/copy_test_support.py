@@ -2,6 +2,7 @@
 
 import json
 
+import pytest
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 
@@ -97,3 +98,19 @@ class StaffCopyGateBehavior(StaffCopyActorsMixin):
         response = self.send_wrong_method(client, self.staff_token)
         assert response.status_code == 405
         assert response['X-Skip-Cache'] == 'true'
+
+
+class FakeCopyTypeRegistryMixin:
+    """Mixin registering a `FakeCopyType` from `setup_method`, undone after each test."""
+
+    def register_fake_copy_type(self, slug, model):
+        """Register a fake copy type over `model` under `slug` and keep it as `self.fake`."""
+        self._registry_patch = pytest.MonkeyPatch()
+        self.fake = FakeCopyType(slug, model)
+        register_copy_types(self._registry_patch, self.fake)
+
+    def teardown_method(self):
+        """Restore the real copy-type registry."""
+        patch = getattr(self, '_registry_patch', None)
+        if patch is not None:
+            patch.undo()
