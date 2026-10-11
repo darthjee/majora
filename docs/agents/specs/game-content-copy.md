@@ -33,7 +33,7 @@ Each is written by its own issue and builds on the global pages above (unlinked 
 - [Common items](game-content-copy/common-items.md) — #1553
 - [Recipes](game-content-copy/recipes.md) — #1554
 - [Documents](game-content-copy/documents.md) — #1555
-- Factions — #1556
+- [Factions](game-content-copy/factions.md) — #1556
 - Possessions — #1557
 
 ## Backward compatibility and testing (summary)
