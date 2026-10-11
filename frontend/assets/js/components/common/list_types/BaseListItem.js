@@ -45,7 +45,7 @@ export default class BaseListItem {
   // @typescript-eslint/class-literal-property-style is named directly, so the
   // bare directive below suppresses it wherever the plugin (e.g. Codacy's
   // scan) is actually loaded.
-   
+  // eslint-disable-next-line -- class-literal-property-style false positive, see justification above
   get formattedValue() {
     return null;
   }
@@ -62,7 +62,7 @@ export default class BaseListItem {
   // @typescript-eslint/class-literal-property-style is named directly, so the
   // bare directive below suppresses it wherever the plugin (e.g. Codacy's
   // scan) is actually loaded.
-   
+  // eslint-disable-next-line -- class-literal-property-style false positive, see justification above
   get availabilityText() {
     return null;
   }
