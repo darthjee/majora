@@ -285,4 +285,141 @@ class UploadStatusClientTest extends TestCase
             $this->assertSame('Internal Server Error', $e->body());
         }
     }
+
+    // -------------------------------------------------------------------------
+    // requestLinkStartStatus() / requestFailedStatus() (issue #1570)
+    // -------------------------------------------------------------------------
+
+    /**
+     * The link start sends status=uploading (forwarding X-Upload-Token) and
+     * returns both paths.
+     */
+    public function testRequestLinkStartStatusReturnsBothPaths(): void
+    {
+        $httpClient   = $this->createMock(HttpClientInterface::class);
+        $statusClient = new UploadStatusClient(new BackendClient('http://backend:8080', $httpClient), 'file');
+
+        $httpClient->expects($this->once())
+            ->method('request')
+            ->with(
+                'PATCH',
+                'http://backend:8080/uploads/file/7.json',
+                [
+                    'X-Upload-Token'  => 'up-tok',
+                    'Content-Type'    => 'application/json',
+                    'Host'            => 'backend',
+                    'Accept-Encoding' => 'gzip',
+                ],
+                json_encode(['status' => 'uploading'])
+            )
+            ->willReturn([
+                'httpCode' => 200,
+                'body'     => '{"file_path":"files/9/doc.pdf","source_path":"files/3/doc.pdf"}',
+                'headers'  => [],
+            ]);
+
+        $this->assertSame(
+            ['file_path' => 'files/9/doc.pdf', 'source_path' => 'files/3/doc.pdf'],
+            $statusClient->requestLinkStartStatus('7', ['X-Upload-Token' => 'up-tok', 'X-Trace-Id' => 'x'])
+        );
+    }
+
+    /**
+     * A 200 missing (or with an empty / non-string) source_path or file_path
+     * raises a 500.
+     *
+     * @dataProvider incompleteLinkBodies
+     */
+    public function testRequestLinkStartStatusThrowsWhenAPathIsMissing(string $body): void
+    {
+        $httpClient   = $this->createMock(HttpClientInterface::class);
+        $statusClient = new UploadStatusClient(new BackendClient('http://backend:8080', $httpClient), 'image');
+        $httpClient->method('request')->willReturn(['httpCode' => 200, 'body' => $body, 'headers' => []]);
+
+        try {
+            $statusClient->requestLinkStartStatus('7', []);
+            $this->fail('Expected BackendErrorException to be thrown.');
+        } catch (BackendErrorException $e) {
+            $this->assertSame(500, $e->httpCode());
+            $this->assertSame('Internal Server Error', $e->body());
+        }
+    }
+
+    public static function incompleteLinkBodies(): array
+    {
+        return [
+            'missing source_path' => ['{"file_path":"photos/9/a.jpg"}'],
+            'missing file_path'   => ['{"source_path":"photos/3/a.jpg"}'],
+            'empty source_path'   => ['{"file_path":"photos/9/a.jpg","source_path":""}'],
+            'non-string path'     => ['{"file_path":["x"],"source_path":"photos/3/a.jpg"}'],
+            'not json'            => ['nope'],
+        ];
+    }
+
+    /**
+     * A backend 403/404 on link start is relayed as-is.
+     *
+     * @dataProvider relayedCodes
+     */
+    public function testRequestLinkStartStatusRelaysBackendError(int $code, string $body): void
+    {
+        $httpClient   = $this->createMock(HttpClientInterface::class);
+        $statusClient = new UploadStatusClient(new BackendClient('http://backend:8080', $httpClient), 'image');
+        $httpClient->method('request')->willReturn(['httpCode' => $code, 'body' => $body, 'headers' => []]);
+
+        try {
+            $statusClient->requestLinkStartStatus('7', []);
+            $this->fail('Expected BackendErrorException to be thrown.');
+        } catch (BackendErrorException $e) {
+            $this->assertSame($code, $e->httpCode());
+            $this->assertSame($body, $e->body());
+        }
+    }
+
+    public static function relayedCodes(): array
+    {
+        return [
+            'forbidden' => [403, '{"detail":"Forbidden"}'],
+            'not found' => [404, '{"detail":"Not found"}'],
+        ];
+    }
+
+    /**
+     * The failed call sends status=failed with the error code.
+     */
+    public function testRequestFailedStatusSendsErrorField(): void
+    {
+        $httpClient   = $this->createMock(HttpClientInterface::class);
+        $statusClient = new UploadStatusClient(new BackendClient('http://backend:8080', $httpClient), 'image');
+
+        $httpClient->expects($this->once())
+            ->method('request')
+            ->with(
+                'PATCH',
+                'http://backend:8080/uploads/image/7.json',
+                $this->anything(),
+                json_encode(['status' => 'failed', 'error' => 'cross_device'])
+            )
+            ->willReturn(['httpCode' => 200, 'body' => '{}', 'headers' => []]);
+
+        $statusClient->requestFailedStatus('7', 'cross_device', ['X-Upload-Token' => 'up-tok']);
+    }
+
+    /**
+     * A non-200 failed call throws with the backend's code and body.
+     */
+    public function testRequestFailedStatusThrowsOnNonTwoHundred(): void
+    {
+        $httpClient   = $this->createMock(HttpClientInterface::class);
+        $statusClient = new UploadStatusClient(new BackendClient('http://backend:8080', $httpClient), 'image');
+        $httpClient->method('request')->willReturn(['httpCode' => 400, 'body' => 'bad', 'headers' => []]);
+
+        try {
+            $statusClient->requestFailedStatus('7', 'bogus', []);
+            $this->fail('Expected BackendErrorException to be thrown.');
+        } catch (BackendErrorException $e) {
+            $this->assertSame(400, $e->httpCode());
+            $this->assertSame('bad', $e->body());
+        }
+    }
 }

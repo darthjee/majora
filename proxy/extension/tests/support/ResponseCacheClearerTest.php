@@ -247,4 +247,152 @@ class ResponseCacheClearerTest extends TestCase
             )
         );
     }
+
+    // -------------------------------------------------------------------------
+    // Cross-domain mode (issue #1570)
+    // -------------------------------------------------------------------------
+
+    private function domainFolder(string $seed): string
+    {
+        $dir = $this->cacheDir . '/domain_' . hash('sha256', $seed);
+        mkdir($dir, 0755, true);
+        return $dir;
+    }
+
+    /**
+     * A listed path is cleared in every domain_* folder and in the flat root;
+     * unlisted paths stay cached everywhere.
+     */
+    public function testCrossDomainClearsEveryDomainFolderAndRoot(): void
+    {
+        $domainA = $this->domainFolder('a.example');
+        $domainB = $this->domainFolder('b.example');
+
+        $inA       = $this->makeCacheEntry('/games/foo.json', 'abc', $domainA);
+        $inB       = $this->makeCacheEntry('/games/foo.json', 'abc', $domainB);
+        $inRoot    = $this->makeCacheEntry('/games/foo.json');
+        $otherInA  = $this->makeCacheEntry('/games/foo/npcs.json', 'abc', $domainA);
+        $otherRoot = $this->makeCacheEntry('/games/foo/npcs.json');
+
+        ResponseCacheClearer::forRoot($this->cacheDir)
+            ->clearFrom(['X-Cache-Clear: /games/foo.json'], 200);
+
+        $this->assertDirectoryDoesNotExist($inA);
+        $this->assertDirectoryDoesNotExist($inB);
+        $this->assertDirectoryDoesNotExist($inRoot);
+        $this->assertDirectoryExists($otherInA);
+        $this->assertDirectoryExists($otherRoot);
+    }
+
+    /**
+     * Folders not named domain_<64 hex> (and plain files) are never treated
+     * as domain folders.
+     */
+    public function testCrossDomainIgnoresNonDomainEntries(): void
+    {
+        $other   = $this->cacheDir . '/other';
+        $short   = $this->cacheDir . '/domain_abc';
+        $upper   = $this->cacheDir . '/domain_' . strtoupper(hash('sha256', 'x'));
+        mkdir($other, 0755, true);
+        mkdir($short, 0755, true);
+        mkdir($upper, 0755, true);
+        file_put_contents($this->cacheDir . '/domain_' . hash('sha256', 'file'), 'not a dir');
+
+        $inOther = $this->makeCacheEntry('/games/foo.json', 'abc', $other);
+        $inShort = $this->makeCacheEntry('/games/foo.json', 'abc', $short);
+        $inUpper = $this->makeCacheEntry('/games/foo.json', 'abc', $upper);
+
+        ResponseCacheClearer::forRoot($this->cacheDir)
+            ->clearFrom(['X-Cache-Clear: /games/foo.json'], 200);
+
+        $this->assertDirectoryExists($inOther);
+        $this->assertDirectoryExists($inShort);
+        $this->assertDirectoryExists($inUpper);
+        $this->assertFileExists($this->cacheDir . '/domain_' . hash('sha256', 'file'));
+    }
+
+    /**
+     * A domain_* entry that is a symlink to a folder outside the root is
+     * skipped, while the other folders are still cleared.
+     */
+    public function testCrossDomainSkipsSymlinkedDomainFolderOutsideRoot(): void
+    {
+        $outside = $this->rootDir . '/outside';
+        mkdir($outside, 0755, true);
+        $outsideEntry = $this->makeCacheEntry('/games/foo.json', 'abc', $outside);
+        symlink($outside, $this->cacheDir . '/domain_' . hash('sha256', 'evil'));
+
+        $domain  = $this->domainFolder('good.example');
+        $inGood  = $this->makeCacheEntry('/games/foo.json', 'abc', $domain);
+        $inRoot  = $this->makeCacheEntry('/games/foo.json');
+
+        ResponseCacheClearer::forRoot($this->cacheDir)
+            ->clearFrom(['X-Cache-Clear: /games/foo.json'], 200);
+
+        $this->assertDirectoryExists($outsideEntry);
+        $this->assertDirectoryDoesNotExist($inGood);
+        $this->assertDirectoryDoesNotExist($inRoot);
+    }
+
+    /**
+     * Invalid paths are skipped in cross-domain mode; valid ones are cleared.
+     */
+    public function testCrossDomainSkipsInvalidPaths(): void
+    {
+        $domain  = $this->domainFolder('a.example');
+        $outside = $this->makeCacheEntry('/secret.json', 'abc', $this->rootDir);
+        $valid   = $this->makeCacheEntry('/games/foo.json', 'abc', $domain);
+
+        ResponseCacheClearer::forRoot($this->cacheDir)->clearFrom(
+            ['X-Cache-Clear: /../secret.json, /../../secret.json, /games/foo, /games/foo.json'],
+            200
+        );
+
+        $this->assertDirectoryExists($outside);
+        $this->assertDirectoryDoesNotExist($valid);
+    }
+
+    /**
+     * Non-2xx responses never clear anything in cross-domain mode.
+     */
+    public function testCrossDomainNonSuccessIsNoOp(): void
+    {
+        $domain = $this->domainFolder('a.example');
+        $inA    = $this->makeCacheEntry('/games/foo.json', 'abc', $domain);
+        $inRoot = $this->makeCacheEntry('/games/foo.json');
+
+        foreach ([301, 400, 403, 404, 500] as $code) {
+            ResponseCacheClearer::forRoot($this->cacheDir)
+                ->clearFrom(['X-Cache-Clear: /games/foo.json'], $code);
+        }
+
+        $this->assertDirectoryExists($inA);
+        $this->assertDirectoryExists($inRoot);
+    }
+
+    /**
+     * forRoot('') is a no-op.
+     */
+    public function testCrossDomainEmptyRootIsNoOp(): void
+    {
+        $domain = $this->domainFolder('a.example');
+        $inA    = $this->makeCacheEntry('/games/foo.json', 'abc', $domain);
+        $inRoot = $this->makeCacheEntry('/games/foo.json');
+
+        ResponseCacheClearer::forRoot('')->clearFrom(['X-Cache-Clear: /games/foo.json'], 200);
+
+        $this->assertDirectoryExists($inA);
+        $this->assertDirectoryExists($inRoot);
+    }
+
+    /**
+     * A missing cache root is harmless.
+     */
+    public function testCrossDomainMissingRootIsHarmless(): void
+    {
+        ResponseCacheClearer::forRoot($this->rootDir . '/missing')
+            ->clearFrom(['X-Cache-Clear: /games/foo.json'], 200);
+
+        $this->assertDirectoryDoesNotExist($this->rootDir . '/missing');
+    }
 }

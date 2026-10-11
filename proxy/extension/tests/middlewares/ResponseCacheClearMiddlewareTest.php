@@ -317,4 +317,64 @@ class ResponseCacheClearMiddlewareTest extends TestCase
         $this->assertSame(204, $response->httpCode());
         $this->assertDirectoryExists($entry);
     }
+
+    // -------------------------------------------------------------------------
+    // cross_domain attribute (issue #1570)
+    // -------------------------------------------------------------------------
+
+    /**
+     * build() defaults to single-folder mode.
+     */
+    public function testBuildDefaultsToSingleFolder(): void
+    {
+        $this->assertFalse(ResponseCacheClearMiddleware::build(['location' => $this->cacheDir])->isCrossDomain());
+    }
+
+    /**
+     * With cross_domain, the listed paths are cleared in every domain_*
+     * folder and in the root, and the header is stripped.
+     */
+    public function testCrossDomainClearsAcrossFoldersAndStrips(): void
+    {
+        $domainA = $this->cacheDir . '/domain_' . hash('sha256', 'a.example');
+        $domainB = $this->cacheDir . '/domain_' . hash('sha256', 'b.example');
+        $inRoot  = $this->makeCacheEntry('/games/foo.json');
+        $inA     = $this->makeCacheEntry('/domain_' . hash('sha256', 'a.example') . '/games/foo.json');
+        $inB     = $this->makeCacheEntry('/domain_' . hash('sha256', 'b.example') . '/games/foo.json');
+        $other   = $this->makeCacheEntry('/domain_' . hash('sha256', 'a.example') . '/games/bar.json');
+
+        $middleware = ResponseCacheClearMiddleware::build([
+            'location'     => $this->cacheDir,
+            'cross_domain' => true,
+        ]);
+        $response = new Response([
+            'httpCode' => 201,
+            'headers'  => ['Content-Type: application/json', 'X-Cache-Clear: /games/foo.json'],
+        ]);
+
+        $result = $middleware->processResponse($response);
+
+        $this->assertTrue($middleware->isCrossDomain());
+        $this->assertSame(['Content-Type: application/json'], $result->headers());
+        $this->assertDirectoryDoesNotExist($inRoot);
+        $this->assertDirectoryDoesNotExist($inA);
+        $this->assertDirectoryDoesNotExist($inB);
+        $this->assertDirectoryExists($other);
+        $this->assertDirectoryExists($domainA);
+        $this->assertDirectoryExists($domainB);
+    }
+
+    /**
+     * Cross-domain non-2xx: nothing cleared, header still stripped.
+     */
+    public function testCrossDomainFailureStripsWithoutClearing(): void
+    {
+        $inA = $this->makeCacheEntry('/domain_' . hash('sha256', 'a.example') . '/games/foo.json');
+
+        $result = ResponseCacheClearMiddleware::build(['location' => $this->cacheDir, 'cross_domain' => true])
+            ->processResponse(new Response(['httpCode' => 403, 'headers' => ['X-Cache-Clear: /games/foo.json']]));
+
+        $this->assertSame([], $result->headers());
+        $this->assertDirectoryExists($inA);
+    }
 }
