@@ -50,18 +50,21 @@ class CopyLinkFinalizer:
     def _fail(self, data):
         """Record the failure reason, or return 400 when it is missing or unknown."""
         error = data.get('error')
-        if error not in _ERRORS:
+        if not isinstance(error, str) or error not in _ERRORS:
             return Response({'errors': {'error': ['invalid_error']}}, status=400)
         self._upload.error = error
         self._save_status(Upload.STATUS_FAILED)
         return Response(status=200)
 
     def _finalize(self, data):
-        """Mark the copied row ready, set the cover if needed, and list stale cache paths."""
-        self._save_status(Upload.STATUS_UPLOADED)
+        """Mark the copied row ready, set the cover if needed, and list stale cache paths.
+
+        A deleted row returns 404 before the status is saved, so the upload stays mutable.
+        """
         row = self._locked_row()
         if row is None:
             return Response(status=404)
+        self._save_status(Upload.STATUS_UPLOADED)
         return self._mark_ready(row, copy_links.find_for_model(type(row)))
 
     def _mark_ready(self, row, entry):

@@ -49,10 +49,15 @@ def upload_finalize(request, upload_type, upload_id):
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     new_status = request.data.get('status')
-    if new_status not in _valid_statuses_for(upload):
+    if not _is_valid_status(upload, new_status):
         return Response({'errors': {'status': ['invalid_status']}}, status=400)
 
     return _apply_status(request, upload, new_status)
+
+
+def _is_valid_status(upload, new_status):
+    """Return True if `new_status` is a string the upload's origin accepts."""
+    return isinstance(new_status, str) and new_status in _valid_statuses_for(upload)
 
 
 def _valid_statuses_for(upload):

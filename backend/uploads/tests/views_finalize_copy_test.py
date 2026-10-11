@@ -92,6 +92,17 @@ class TestCopyFinalizeLinkFlow(CopyFinalizeSupport):
         upload.refresh_from_db()
         assert upload.status == Upload.STATUS_UPLOADED
 
+    def test_uploaded_with_deleted_row_returns_404_and_keeps_status(self, client, monkeypatch):
+        """Test that a vanished copied row returns 404 without marking the upload uploaded."""
+        upload = self.copy_upload(self.photo, status=Upload.STATUS_UPLOADING)
+        monkeypatch.setattr(
+            'uploads.copy_link_finalizer.CopyLinkFinalizer._locked_row', lambda self: None
+        )
+        response = self.patch(client, upload, {'status': 'uploaded'})
+        assert response.status_code == 404
+        upload.refresh_from_db()
+        assert upload.status == Upload.STATUS_UPLOADING
+
     def test_uploaded_sets_cover_when_is_cover(self, client):
         """Test that a cover copy points the owner's `photo` FK at the row."""
         upload = self.copy_upload(self.photo, is_cover=True)
@@ -178,6 +189,8 @@ class TestCopyFinalizeFailure(CopyFinalizeSupport):
         {'status': 'failed'},
         {'status': 'failed', 'error': 'exploded'},
         {'status': 'failed', 'error': None},
+        {'status': 'failed', 'error': []},
+        {'status': 'failed', 'error': {}},
     ])
     def test_failed_without_valid_error_returns_400(self, client, payload):
         """Test that a missing or unknown error returns 400 and leaves the upload unchanged."""
@@ -198,6 +211,28 @@ class TestCopyFinalizeFailure(CopyFinalizeSupport):
         )
         assert response.status_code == 400
         assert response.json() == {'errors': {'status': ['invalid_status']}}
+
+    @pytest.mark.parametrize('new_status', [[], {}, ['failed'], {'status': 'failed'}])
+    def test_non_string_status_on_copy_upload_returns_400(self, client, new_status):
+        """Test that a non-string status on a copy upload returns 400 invalid_status."""
+        upload = self.copy_upload(self.photo)
+        response = self.patch(client, upload, {'status': new_status, 'error': 'unknown'})
+        assert response.status_code == 400
+        assert response.json() == {'errors': {'status': ['invalid_status']}}
+        upload.refresh_from_db()
+        assert upload.status == Upload.STATUS_PENDING
+
+    @pytest.mark.parametrize('new_status', [[], {}, ['uploading'], {'status': 'uploading'}])
+    def test_non_string_status_on_regular_upload_returns_400(self, client, new_status):
+        """Test that a non-string status on a regular upload returns 400 invalid_status."""
+        upload = Upload.objects.create(
+            user=self.dm_user, content_object=self.photo, file_path='photos/regular.png'
+        )
+        response = self.patch(client, upload, {'status': new_status}, token=self.dm_token)
+        assert response.status_code == 400
+        assert response.json() == {'errors': {'status': ['invalid_status']}}
+        upload.refresh_from_db()
+        assert upload.status == Upload.STATUS_PENDING
 
     def test_failed_on_staff_upload_returns_400(self, client):
         """Test that a staff-origin upload refuses `failed` as an invalid status."""
