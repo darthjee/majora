@@ -74,6 +74,56 @@ class UploadStatusClient
     }
 
     /**
+     * Starts a copy-link upload (issue #1570): calls the backend with
+     * status=uploading and returns both the target `file_path` and the
+     * copy's `source_path`.
+     *
+     * @param string $uploadId The upload id.
+     * @param array  $headers  Incoming request headers to forward.
+     * @return array{file_path: string, source_path: string}
+     * @throws BackendErrorException When the backend answers non-200 (its
+     *                                code and body are relayed as-is), or a
+     *                                200 body lacks either non-empty path
+     *                                (500).
+     */
+    public function requestLinkStartStatus(string $uploadId, array $headers): array
+    {
+        $result = $this->updateStatus($uploadId, 'uploading', $headers);
+        $body   = (string) ($result['body'] ?? '');
+
+        if ($result['httpCode'] !== 200) {
+            throw new BackendErrorException($result['httpCode'], $body);
+        }
+
+        $filePath   = self::stringField($body, 'file_path');
+        $sourcePath = self::stringField($body, 'source_path');
+        if ($filePath === null || $sourcePath === null) {
+            throw new BackendErrorException(500, 'Internal Server Error');
+        }
+
+        return ['file_path' => $filePath, 'source_path' => $sourcePath];
+    }
+
+    /**
+     * Marks an upload as failed with the given error code (issue #1570),
+     * sending `{"status":"failed","error":"<code>"}`.
+     *
+     * @param string $uploadId The upload id.
+     * @param string $error    Error code (e.g. 'source_missing').
+     * @param array  $headers  Incoming request headers to forward.
+     * @return void
+     * @throws BackendErrorException When the backend answers non-200.
+     */
+    public function requestFailedStatus(string $uploadId, string $error, array $headers): void
+    {
+        $result = $this->updateStatus($uploadId, 'failed', $headers, ['error' => $error]);
+
+        if ($result['httpCode'] !== 200) {
+            throw new BackendErrorException($result['httpCode'], (string) ($result['body'] ?? ''));
+        }
+    }
+
+    /**
      * Calls the backend with status=uploaded and returns its headers (so the
      * caller can act on backend-driven instructions such as X-Cache-Clear,
      * see ResponseCacheClearer) along with the optional `previous_path`
@@ -143,15 +193,16 @@ class UploadStatusClient
      *                         (the backend expects a JSON body regardless
      *                         of how the original multipart request was
      *                         encoded), and overrides Host/X-Forwarded-Host.
+     * @param array  $extra    Extra JSON body fields (e.g. ['error' => ...]).
      * @return array{body: string, httpCode: int, headers: string[]}
      */
-    private function updateStatus(string $uploadId, string $status, array $headers): array
+    private function updateStatus(string $uploadId, string $status, array $headers, array $extra = []): array
     {
         return $this->client->request(
             'PATCH',
             '/uploads/' . $this->uploadType . '/' . $uploadId . '.json',
             $headers,
-            json_encode(['status' => $status]),
+            json_encode(array_merge(['status' => $status], $extra)),
             self::EXTRA_ALLOWED_FORWARD_HEADERS,
             ['Content-Type' => 'application/json']
         );
