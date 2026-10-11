@@ -32,6 +32,7 @@ require_once __DIR__ . '/lib/support/UploadStorageResolver.php';
 require_once __DIR__ . '/lib/support/ResponseCacheClearer.php';
 require_once __DIR__ . '/lib/middlewares/ResponseCacheClearMiddleware.php';
 require_once __DIR__ . '/lib/handlers/UploadHandler.php';
+require_once __DIR__ . '/lib/handlers/LinkHandler.php';
 require_once __DIR__ . '/lib/handlers/DeleteHandler.php';
 require_once __DIR__ . '/lib/exceptions/ShellCommandFailedException.php';
 require_once __DIR__ . '/lib/support/ShellExecutorInterface.php';
