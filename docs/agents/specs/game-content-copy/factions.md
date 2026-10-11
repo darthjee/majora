@@ -6,7 +6,9 @@ the **Factions** tab; everything else follows the global pages: [page.md](page.m
 [permissions.md](permissions.md).
 
 `GameFaction` is the simplest copyable type in fields (no `hidden`, no `description`), but the
-only one with a unique name per game, so it is the only type whose copy can answer `422`.
+only one with a unique name per game, so it is the only type whose copy can answer `422`. Its
+copy also adds an entry to every target character's list of available factions, so those cached
+lists are cleared too.
 
 ## Model
 
@@ -100,17 +102,28 @@ only whether a name exists in the target, never the target faction's id or data.
 
 ## Cache
 
-The copy `201` and the cover link's finalize send `X-Cache-Clear` for the target game's faction
-family, cleared on every domain ([permissions.md](permissions.md#cache)):
+The copy `201` and the cover link's finalize send `X-Cache-Clear`, cleared on every domain
+([permissions.md](permissions.md#cache)), with:
 
-- `/games/<target>/factions.json`
-- `/games/<target>/factions/<copy-id>.json`
+- the target game's faction family:
+  - `/games/<target>/factions.json`
+  - `/games/<target>/factions/<copy-id>.json`
 
-Built by reusing `GameResourceCachePaths('factions')` (default collection/member suffixes, no
-`FULL_FAMILY`), the same family as the staff photo type `game_faction`
-(`backend/staff/photo_types.py`, `backend/staff/photo_cache_paths.py`). No member lists
-(`/games/<target>/factions/<copy-id>/characters.json`, `.../characters/all.json`) need clearing:
-the copy has no members and its id was never cached before.
+  Built by reusing `GameResourceCachePaths('factions')` (default collection/member suffixes, no
+  `FULL_FAMILY`), the same family as the staff photo type `game_faction`
+  (`backend/staff/photo_types.py`, `backend/staff/photo_cache_paths.py`). No member lists
+  (`/games/<target>/factions/<copy-id>/characters.json`, `.../characters/all.json`) need
+  clearing: the copy has no members and its id was never cached before.
+- `/games/<target>/pcs/<id>/factions/available.json` for **every** PC, and
+  `/games/<target>/npcs/<id>/factions/available.json` for **every** NPC, of the target game
+  (`pcs` vs `npcs` by the character's `npc` flag). These lists are built from the target game's
+  characters at response time. The copy adds an entry to each of them, and
+  `character_factions_available` (`backend/games/views/game/factions/_faction_exchange.py`)
+  caches them except for a hidden NPC (`X-Skip-Cache`); clearing a hidden NPC's path anyway is
+  harmless. A target game with no characters adds no such path.
+
+Nothing else needs clearing: the `factions/available/all.json` variants always send
+`X-Skip-Cache`.
 
 A `422` creates nothing and clears nothing.
 
@@ -137,6 +150,8 @@ Per-type cases, on top of the global strategy ([../game-content-copy.md](../game
   clash and on a re-copy of a not-renamed copy, with nothing created (no faction, photo or
   `Upload`); list row fields (`photo` only when ready), `name_taken_in_target` true and false;
   cover finalize sets the copy's `photo`; pending-links query reaching the game through
-  `faction__game`; `X-Cache-Clear` paths.
+  `faction__game`; `X-Cache-Clear` holds the faction family plus one `factions/available.json`
+  path per target PC and NPC, and only the family when the target game has no characters; a
+  `422` clears nothing.
 - **frontend** — row rendering: thumbnail, placeholder, name, "already copied" flag, "name
   already used" badge with the row still selectable; "name already used" result on `422`.

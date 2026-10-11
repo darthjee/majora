@@ -6,7 +6,9 @@ the **Documents** tab; everything else follows the global pages: [page.md](page.
 [permissions.md](permissions.md).
 
 `GameDocument` is the richest copyable type: besides its own fields it owns versioned pages,
-many photos (one of which is the cover), many files, and an optional photo per file.
+many photos (one of which is the cover), many files, and an optional photo per file. Its copy
+also adds an entry to every target character's list of available documents, so those cached
+lists are cleared too.
 
 ## Model
 
@@ -175,6 +177,21 @@ untouched. Link finalizes do not change pages, so they do not clear them. Per-pa
 (`pages/<page-id>.json`, `pages/<page-id>/all.json`) need no clearing: the copied pages are new
 ids, never cached before.
 
+The copy `201` and the cover link's finalize also clear
+`/games/<target>/pcs/<id>/documents/available.json` for **every** PC, and
+`/games/<target>/npcs/<id>/documents/available.json` for **every** NPC, of the target game
+(`pcs` vs `npcs` by the character's `npc` flag). These lists are built from the target game's
+characters at response time. The copy adds an entry to each of them, and
+`character_documents_available` (`backend/games/views/game/documents/_document_exchange.py`)
+caches them except for a hidden NPC (`X-Skip-Cache`); clearing a hidden NPC's path anyway is
+harmless. A target game with no characters adds no such path. The other link finalizes
+(non-cover photos, files, file photos) do not change the list's rows (`id`, `name`,
+`photo_path`), so they keep clearing just the family.
+
+Nothing else needs clearing: the `documents/available/all.json` variants always send
+`X-Skip-Cache`, and no character's `documents.json` list changes because the copy has no
+owners.
+
 ## Frontend
 
 Only the row component is tab-specific ([page.md](page.md#frontend-structure)). Columns:
@@ -200,6 +217,8 @@ Per-type cases, on top of the global strategy ([../game-content-copy.md](../game
   count in the `201`; name clash allowed; list row fields and counts, `photo` only when ready,
   hidden documents listed; cover finalize sets the copy's `photo`, other finalizes only set
   `ready`; pending-links query for each of the three record types; `X-Cache-Clear` paths,
-  including the page lists on the copy `201`.
+  including the page lists on the copy `201`, plus one `documents/available.json` path per target
+  PC and NPC on the copy `201` and the cover finalize (only the family, and the page lists on the
+  `201`, when the target game has no characters), and none on the other finalizes.
 - **frontend** — row rendering: thumbnail, placeholder, name, counts, hidden badge, "already
   copied" flag.
