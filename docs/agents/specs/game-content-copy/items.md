@@ -5,6 +5,9 @@ the **Items** tab; everything else follows the global pages: [page.md](page.md),
 [copy-flow.md](copy-flow.md), [hard-links.md](hard-links.md) and
 [permissions.md](permissions.md).
 
+The copy also adds an entry to every target character's list of available items, so those
+cached lists are cleared too.
+
 ## Model
 
 - Tab slug `items`, label "Items", model `GameItem` (`backend/games/models/game/game_item.py`):
@@ -75,16 +78,27 @@ Global shapes in [copy-flow.md](copy-flow.md#api).
 
 ## Cache
 
-The copy `201` and the cover link's finalize send `X-Cache-Clear` for the target game's item
-family, cleared on every domain ([permissions.md](permissions.md#cache)):
+The copy `201` and the cover link's finalize send `X-Cache-Clear`, cleared on every domain
+([permissions.md](permissions.md#cache)), with:
 
-- `/games/<target>/items.json`
-- `/games/<target>/items/all.json`
-- `/games/<target>/items/<copy-id>.json`
-- `/games/<target>/items/<copy-id>/full.json`
+- the target game's item family:
+  - `/games/<target>/items.json`
+  - `/games/<target>/items/all.json`
+  - `/games/<target>/items/<copy-id>.json`
+  - `/games/<target>/items/<copy-id>/full.json`
 
-Built by reusing `GameResourceCachePaths('items', **FULL_FAMILY)`, the same family as the staff
-photo type `game_item` (`backend/staff/photo_types.py`).
+  Built by reusing `GameResourceCachePaths('items', **FULL_FAMILY)`, the same family as the
+  staff photo type `game_item` (`backend/staff/photo_types.py`).
+- `/games/<target>/pcs/<id>/items/available.json` for **every** PC, and
+  `/games/<target>/npcs/<id>/items/available.json` for **every** NPC, of the target game (`pcs`
+  vs `npcs` by the character's `npc` flag). These lists are built from the target game's
+  characters at response time. The copy adds an entry to each of them, and
+  `character_items_available` (`backend/games/views/game/items/_item_exchange.py`) caches them
+  except for a hidden NPC (`X-Skip-Cache`); clearing a hidden NPC's path anyway is harmless. A
+  target game with no characters adds no such path.
+
+Nothing else needs clearing: the `items/available/all.json` variants always send
+`X-Skip-Cache`, and no character's `items.json` list changes because the copy has no owners.
 
 ## Frontend
 
@@ -104,6 +118,8 @@ Per-type cases, on top of the global strategy ([../game-content-copy.md](../game
   `photo` null at copy time; one link with `is_cover=true` for a ready cover, at the expected
   path and extension; no link for no photo or a not-ready cover; a non-cover `GameItemPhoto` is
   ignored; `CharacterItem` rows not copied; name clash allowed; list row fields (`photo` only
-  when ready), hidden items listed; finalize sets the copy's `photo`; `X-Cache-Clear` paths;
-  pending-links query reaching the game through `game_item__game`.
+  when ready), hidden items listed; finalize sets the copy's `photo`; pending-links query
+  reaching the game through `game_item__game`; `X-Cache-Clear` holds the item family plus one
+  `items/available.json` path per target PC and NPC, and only the family when the target game
+  has no characters.
 - **frontend** — row rendering: thumbnail, placeholder, hidden badge, "already copied" flag.

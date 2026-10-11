@@ -114,9 +114,6 @@ Nothing else needs clearing: the `possessions/available/all.json` variants alway
 `X-Skip-Cache`, and no character's `possessions.json` list changes because the copy has no
 owners.
 
-The same per-character gap in the items, documents and factions pages is tracked in #1565; this
-page states the rule locally until it moves to a shared place.
-
 ## Frontend
 
 Only the row component is tab-specific ([page.md](page.md#frontend-structure)). Columns:
