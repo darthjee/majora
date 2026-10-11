@@ -19,7 +19,7 @@ that the URL's `upload_type` segment matches the row's stored value.
 | Create (`POST /treasures/<id>/photo_upload.json`) | Superuser always; additionally the treasure's owning game's GameMaster, when exclusive to a game |
 | Create (`POST /miniatures/stl_models/<id>/photo_upload.json`) | **Staff-or-superuser** (`require_staff`) — see [StlModel](stl-model.md) |
 | Create (`POST /staff/photos/<photo_type>/<photo_id>/replace.json`) | **Staff-or-superuser** (`require_staff`) — see [Staff Photos](staff-photo.md) |
-| Read | Only the user who initiated the upload (indirectly, via the 201 response at creation time) |
+| Read | Only the user who initiated the upload (indirectly, via the 201 response at creation time). Copy-origin exceptions (**Staff-or-superuser**): renew returns a fresh `token` to the renewing staff member, `GET /staff/copies/links.json` lists `status`/`error` (no paths, no token), and `PATCH ... status=uploading` returns `source_path` next to `file_path` — see [Copy-origin uploads](#copy-origin-uploads) |
 | Update / Delete | No public endpoint; status transitions are handled internally |
 
 ## Fields
@@ -32,10 +32,24 @@ that the URL's `upload_type` segment matches the row's stored value.
   `ready=True`), included so a caller can chain a second, dependent upload before the first
   finalises (e.g. [GameDocument](game-document.md)'s file→photo chain).
 - All other fields (`file_path`, `expiration_time`, `status`, `user`, `content_type`,
-  `object_id`, `origin`) are internal, never returned by any endpoint.
-- `origin` (`regular` default / `staff`) records which flow created the upload: every per-entity
-  init endpoint creates `regular` uploads; only the staff replace endpoint creates `staff` ones.
-  It selects the finalize branch (see [Staff-origin uploads](#staff-origin-uploads)).
+  `object_id`, `origin`, `source_path`, `is_cover`, `error`) are internal, never returned by any
+  endpoint — except for the copy-origin exceptions below.
+- `origin` (`regular` default / `staff` / `copy`) records which flow created the upload: every
+  per-entity init endpoint creates `regular` uploads; only the staff replace endpoint creates
+  `staff` ones; only the staff copy endpoints create `copy` ones (hard-link jobs). It selects the
+  finalize branch (see [Staff-origin uploads](#staff-origin-uploads) and
+  [Copy-origin uploads](#copy-origin-uploads)).
+- `status` is `pending`, `uploading`, `uploaded` or `failed`. `failed` is reachable only by
+  copy-origin uploads.
+- `source_path` (nullable) — the source row's path a copy upload hard-links from; null for
+  non-copy uploads. Generated server-side, never accepted from a request.
+- `is_cover` (boolean, default false) — the copied source row was its owner's cover `photo`.
+- `error` (nullable) — why a copy link failed: `source_missing`, `path_rejected`,
+  `cross_device`, `target_exists`, `permission` or `unknown`.
+- **Copy-origin exceptions** (see [Staff Copy](staff-copy.md#exceptions-to-upload)): renew
+  returns a fresh `token` to the renewing staff member (the only endpoint besides init that
+  returns a token); `GET /staff/copies/links.json` exposes `status` and `error`;
+  `PATCH ... status=uploading` returns `source_path` next to `file_path`.
 
 ## Route shape and the no-leak ordering guarantee
 
@@ -96,6 +110,39 @@ be the upload's owner) — only the object-level permission class differs, by `c
   staff replace never changes which photo the owning entity points to. The response is `200`
   `{"previous_path": <old path>}` only when the old path is non-empty and differs from the new
   one (the extension changed), so the proxy can delete the old file; otherwise `200` with no body.
+
+## Copy-origin uploads
+
+`PATCH /uploads/<upload_type>/<id>.json` on an `origin='copy'` upload (a hard-link job created by
+a [Staff Copy](staff-copy.md) endpoint, consumed by the proxy link handler) differs from the
+regular flow:
+
+- **Authorization:** `require_staff` **replaces** the per-type permission check, exactly as for
+  staff-origin uploads (staff are often not editors of the target game). The token, owning-user,
+  expiry and not-already-uploaded checks still apply, and the staff check belongs to the
+  uniform-`403` group that runs before the `upload_type` `404`, preserving the
+  [no-leak ordering](#route-shape-and-the-no-leak-ordering-guarantee).
+- **Transitions:** `pending → uploading → uploaded`, and `pending`/`uploading → failed`. A
+  `failed` upload accepts no further `PATCH` (uniform `403`, like `uploaded`) until it is renewed.
+- **Start:** `status=uploading` returns `{"file_path": ..., "source_path": ...}` (regular and
+  staff uploads keep returning only `file_path`).
+- **Failure:** `status=failed` with an `error` from the fixed choices records the failure and
+  returns `200`. It is `400` when the `error` is missing or outside the choices
+  (`{"errors": {"error": ["invalid_error"]}}`), and `400 invalid_status` when sent for a regular
+  or staff upload.
+- **`uploaded`:** `CopyLinkFinalizer`, in one transaction, locks the copied row and sets
+  `ready=True`; when `is_cover` is set, it points the owner's cover `photo` FK at the row. The
+  per-type `mark_ready` handlers are **skipped**. The `200` response carries `X-Cache-Clear` with
+  the target game's stale paths, supplied by a per-type hook (`staff/copy_links.py`).
+- **Cleanup:** a `pre_delete` receiver on every copyable photo/file model (`GameItemPhoto`,
+  `GameCommonItemPhoto`, `GameFactionPhoto`, `GamePossessionPhoto`, `GameDocumentPhoto`,
+  `GameDocumentFile`, `GameDocumentFilePhoto`) deletes the row's `origin='copy'` uploads when the
+  row — or its game, through the cascade — is deleted. A `GenericRelation` is deliberately **not**
+  used: it would also delete regular/staff uploads and break `StaffUploadFinalizer`'s
+  `404 {cleanup_path}` orphan-file cleanup. A later link `PATCH` then gets `403` (upload not
+  found).
+- **Renew and pending links:** `POST /staff/copies/links/<upload_id>/renew.json` and
+  `GET /staff/copies/links.json` are staff-or-superuser; see [Staff Copy](staff-copy.md).
 
 Regular (`origin='regular'`) uploads keep the behaviour described above unchanged.
 
