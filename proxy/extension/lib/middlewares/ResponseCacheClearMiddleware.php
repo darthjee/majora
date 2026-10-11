@@ -50,34 +50,66 @@ use Tent\RequestHandlers\ResponseCacheClearer;
  *
  * `location` must be the folder the rule caches under. Omitted or empty, the
  * header is still stripped but nothing is cleared.
+ *
+ * ## Cross-domain mode (issue #1570)
+ *
+ * With `'cross_domain' => true`, `location` is the cache *root*
+ * (`$cacheFolder`) and the listed paths are cleared in the root and in every
+ * `domain_<hash>` folder under it (see ResponseCacheClearer::forRoot()).
+ * Used by the staff copy request rule. Header stripping is unchanged.
  */
 class ResponseCacheClearMiddleware extends Middleware
 {
     /** @var string Cache folder path ('' disables clearing). */
     private string $cachePath;
 
+    /** @var boolean Whether paths are cleared across every domain folder. */
+    private bool $crossDomain;
+
     /** @var ResponseCacheClearer Parses, validates and clears the listed paths. */
     private ResponseCacheClearer $clearer;
 
     /**
-     * @param string $cachePath Cache folder the rule caches under; '' disables
-     *                          clearing (the header is still stripped).
+     * @param string  $cachePath   Cache folder the rule caches under (or the
+     *                             cache root in cross-domain mode); ''
+     *                             disables clearing (the header is still
+     *                             stripped).
+     * @param boolean $crossDomain Whether to clear across every domain folder
+     *                             under $cachePath.
      */
-    public function __construct(string $cachePath)
+    public function __construct(string $cachePath, bool $crossDomain = false)
     {
-        $this->cachePath = $cachePath;
-        $this->clearer   = ResponseCacheClearer::forPath($cachePath);
+        $this->cachePath   = $cachePath;
+        $this->crossDomain = $crossDomain;
+        $this->clearer     = ($crossDomain
+            ? ResponseCacheClearer::forRoot($cachePath)
+            : ResponseCacheClearer::forPath($cachePath));
     }
 
     /**
      * Builds the middleware from configuration attributes.
      *
-     * @param array $attributes Supports 'location' (cache folder path).
+     * @param array $attributes Supports 'location' (cache folder path, or the
+     *                          cache root when cross-domain) and
+     *                          'cross_domain' (boolean, default false).
      * @return ResponseCacheClearMiddleware
      */
     public static function build(array $attributes): ResponseCacheClearMiddleware
     {
-        return new self((string) ($attributes['location'] ?? ''));
+        return new self(
+            (string) ($attributes['location'] ?? ''),
+            (bool) ($attributes['cross_domain'] ?? false)
+        );
+    }
+
+    /**
+     * Whether the middleware clears across every domain folder.
+     *
+     * @return boolean
+     */
+    public function isCrossDomain(): bool
+    {
+        return $this->crossDomain;
     }
 
     /**

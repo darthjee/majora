@@ -39,6 +39,26 @@ use Tent\Models\FolderLocation;
  *
  * Built without a cache location (null), it is a no-op, so handlers stay
  * functional when no `cache_path` is configured.
+ *
+ * ## Cross-domain mode (issue #1570)
+ *
+ * forRoot() builds a clearer from the cache *root* (`$cacheFolder`, not the
+ * per-request `domain_<sha256>` folder). Header parsing, the 2xx check and
+ * isValidPath() are unchanged, but each valid path is then cleared in every
+ * target folder:
+ *
+ *   - the root itself (dev's flat layout, with no domain subfolders);
+ *   - every directory directly under the root whose name matches
+ *     `domain_<64 hex chars>` (prod's per-domain layout), enumerated at
+ *     clear time since new domains appear at runtime.
+ *
+ * Each domain folder must pass PathTraversalGuard against the root (so a
+ * symlinked `domain_*` pointing elsewhere is skipped and logged), and the
+ * usual per-path guard runs inside each folder; a folder failing either
+ * check is skipped while the others are still cleared. It is used where a
+ * mutation affects a game on every domain: the staff copy request and the
+ * copy-link finalize. The single-folder mode above is the default and is
+ * unchanged.
  */
 class ResponseCacheClearer
 {
@@ -50,6 +70,13 @@ class ResponseCacheClearer
      */
     public const HEADER_NAME = 'X-Cache-Clear';
 
+    /**
+     * Name pattern of the per-domain cache folders under the cache root.
+     *
+     * @var string
+     */
+    private const DOMAIN_FOLDER_PATTERN = '/^domain_[0-9a-f]{64}$/';
+
     /** @var FolderLocation|null Cache folder, or null to disable clearing. */
     private ?FolderLocation $location;
 
@@ -58,6 +85,9 @@ class ResponseCacheClearer
 
     /** @var CacheDirResolver|null Resolves a path to its cache directory. */
     private ?CacheDirResolver $resolver;
+
+    /** @var string|null Cache root in cross-domain mode, null otherwise. */
+    private ?string $root = null;
 
     /**
      * @param FolderLocation|null $location Cache folder (must match the one the
@@ -83,6 +113,24 @@ class ResponseCacheClearer
     }
 
     /**
+     * Builds a cross-domain clearer from the cache root: each cleared path
+     * is removed from the root itself and from every `domain_<hash>` folder
+     * directly under it.
+     *
+     * @param string $cacheRoot Cache root folder; '' disables clearing.
+     * @return self
+     */
+    public static function forRoot(string $cacheRoot): self
+    {
+        $clearer = new self(null);
+        if ($cacheRoot !== '') {
+            $clearer->root = $cacheRoot;
+        }
+
+        return $clearer;
+    }
+
+    /**
      * Clears every valid path listed in the response's X-Cache-Clear
      * header(s). Does nothing unless $httpCode is 2xx, the clearer has a
      * cache location, and the header is present.
@@ -94,17 +142,28 @@ class ResponseCacheClearer
      */
     public function clearFrom(array $responseHeaders, int $httpCode): void
     {
-        if ($this->location === null || $httpCode < 200 || $httpCode > 299) {
+        if (($this->location === null && $this->root === null) || $httpCode < 200 || $httpCode > 299) {
             return;
         }
 
+        $paths = [];
         foreach (self::pathsFrom($responseHeaders) as $path) {
             if (!self::isValidPath($path)) {
                 Logger::warn('[cache-clear] - skipped invalid path: ' . json_encode($path));
                 continue;
             }
 
-            $this->clearPath($path);
+            $paths[] = $path;
+        }
+
+        if ($paths === []) {
+            return;
+        }
+
+        foreach ($this->targetClearers() as $clearer) {
+            foreach ($paths as $path) {
+                $clearer->clearPath($path);
+            }
         }
     }
 
@@ -190,6 +249,65 @@ class ResponseCacheClearer
         }
 
         return true;
+    }
+
+    /**
+     * The single-folder clearers to apply: this clearer itself in
+     * single-folder mode, or one per target folder in cross-domain mode.
+     *
+     * @return self[]
+     */
+    private function targetClearers(): array
+    {
+        if ($this->root === null) {
+            return [$this];
+        }
+
+        return array_map(
+            fn (string $folder): self => new self(new FolderLocation($folder)),
+            $this->crossDomainFolders()
+        );
+    }
+
+    /**
+     * Lists the cross-domain target folders: the root itself (when it is a
+     * directory) plus every `domain_<hash>` directory directly under it whose
+     * real path stays inside the root. Folders failing that guard are skipped
+     * and logged.
+     *
+     * @return string[]
+     */
+    private function crossDomainFolders(): array
+    {
+        $root = rtrim((string) $this->root, '/');
+        if ($root === '' || !is_dir($root)) {
+            return [];
+        }
+
+        $folders = [$root];
+        $entries = scandir($root);
+
+        foreach (($entries === false ? [] : $entries) as $entry) {
+            if (!preg_match(self::DOMAIN_FOLDER_PATTERN, $entry)) {
+                continue;
+            }
+
+            $folder = $root . '/' . $entry;
+            if (!is_dir($folder)) {
+                continue;
+            }
+
+            try {
+                PathTraversalGuard::assertRealPathWithinBase($root, $folder);
+            } catch (InvalidArgumentException $e) {
+                Logger::warn('[cache-clear] - skipped domain folder escaping cache root: ' . $entry);
+                continue;
+            }
+
+            $folders[] = $folder;
+        }
+
+        return $folders;
     }
 
     /**
