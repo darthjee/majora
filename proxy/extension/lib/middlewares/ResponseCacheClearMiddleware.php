@@ -77,7 +77,7 @@ class ResponseCacheClearMiddleware extends Middleware
      * @param boolean $crossDomain Whether to clear across every domain folder
      *                             under $cachePath.
      */
-    public function __construct(string $cachePath, bool $crossDomain = false)
+    public function __construct(string $cachePath, bool $crossDomain=false)
     {
         $this->cachePath   = $cachePath;
         $this->crossDomain = $crossDomain;

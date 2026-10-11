@@ -196,7 +196,7 @@ class UploadStatusClient
      * @param array  $extra    Extra JSON body fields (e.g. ['error' => ...]).
      * @return array{body: string, httpCode: int, headers: string[]}
      */
-    private function updateStatus(string $uploadId, string $status, array $headers, array $extra = []): array
+    private function updateStatus(string $uploadId, string $status, array $headers, array $extra=[]): array
     {
         return $this->client->request(
             'PATCH',
