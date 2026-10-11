@@ -23,11 +23,13 @@ from games.views.common import check_game_edit, require_staff
 from miniatures.models import CollectionPhoto, SourcePhoto, StlModelPhoto
 from permissions import EndpointPermission
 
+from .copy_link_finalizer import CopyLinkFinalizer
 from .models import Upload
 from .staff_upload_finalizer import StaffUploadFinalizer
 
 _FORBIDDEN = Response(status=status.HTTP_403_FORBIDDEN)
 _VALID_STATUSES = {Upload.STATUS_UPLOADING, Upload.STATUS_UPLOADED}
+_COPY_VALID_STATUSES = _VALID_STATUSES | {Upload.STATUS_FAILED}
 
 
 @restricted
@@ -47,9 +49,21 @@ def upload_finalize(request, upload_type, upload_id):
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     new_status = request.data.get('status')
-    if new_status not in _VALID_STATUSES:
+    if new_status not in _valid_statuses_for(upload):
         return Response({'errors': {'status': ['invalid_status']}}, status=400)
 
+    return _apply_status(request, upload, new_status)
+
+
+def _valid_statuses_for(upload):
+    """Return the statuses a PATCH may set: copy uploads also accept `failed`."""
+    return _COPY_VALID_STATUSES if upload.is_copy_origin else _VALID_STATUSES
+
+
+def _apply_status(request, upload, new_status):
+    """Dispatch the transition to the upload origin's finalizer and return the Response."""
+    if upload.is_copy_origin:
+        return CopyLinkFinalizer(upload).apply(new_status, request.data)
     if upload.is_staff_origin:
         return StaffUploadFinalizer(upload).apply(new_status)
 
@@ -72,7 +86,7 @@ def _validate_upload(request, upload):
         return _FORBIDDEN
     if _is_expired(upload):
         return _FORBIDDEN
-    if upload.status == Upload.STATUS_UPLOADED:
+    if upload.status in (Upload.STATUS_UPLOADED, Upload.STATUS_FAILED):
         return _FORBIDDEN
     return _check_permission(request, upload)
 
@@ -90,8 +104,11 @@ def _is_expired(upload):
 def _check_permission(request, upload):
     """Return a permission error Response if the user may not edit the upload target, else None.
 
-    Staff-origin uploads are authorized by `require_staff` instead of the per-type check.
+    Staff- and copy-origin uploads are authorized by `require_staff` instead of the per-type
+    check.
     """
+    if upload.is_copy_origin:
+        return CopyLinkFinalizer(upload).check_permission(request)
     if upload.is_staff_origin:
         return StaffUploadFinalizer(upload).check_permission(request)
     content_object = upload.content_object
