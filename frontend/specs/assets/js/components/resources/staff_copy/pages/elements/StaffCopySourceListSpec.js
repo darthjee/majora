@@ -12,7 +12,7 @@ describe('StaffCopySourceList', function() {
 
   beforeEach(function() {
     props = {
-      selection: { type: 'items', from: 'a', to: 'b' },
+      selection: { type: 'unregistered_type', from: 'a', to: 'b' },
       rows: [{ id: 1, name: 'Sword' }, { id: 2, name: 'Shield' }],
       pagination: { page: 1, pages: 2, perPage: 10 },
       selectedIds: [],
@@ -40,7 +40,7 @@ describe('StaffCopySourceList', function() {
     expect(html).toContain(`<th>${Translator.t('staff_copies_page.status_column')}</th>`);
     expect(html).toContain('<td>Sword</td>');
     expect(html).toContain('<td>Shield</td>');
-    expect(html).toContain('type=items');
+    expect(html).toContain('type=unregistered_type');
     expect(html).toContain('from=a');
     expect(html).toContain('to=b');
   });

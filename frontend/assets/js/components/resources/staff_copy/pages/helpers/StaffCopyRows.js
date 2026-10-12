@@ -1,15 +1,22 @@
 import Translator from '../../../../../i18n/Translator.js';
 import StaffCopyFallbackRow from '../elements/StaffCopyFallbackRow.jsx';
+import StaffCopyItemRow from '../elements/rows/StaffCopyItemRow.jsx';
 
 const NAME_COLUMN_KEY = 'staff_copies_page.name_column';
 
 /**
- * Registered row renderers, keyed by copy type slug. **Ships empty** (issue #1571); each tab
- * issue (#1572–#1577) adds its own entry.
+ * Registered row renderers, keyed by copy type slug. Each tab issue (#1572–#1577) adds its own
+ * entry here — a row component under `elements/rows/` plus the i18n keys of its column headers —
+ * so the registration happens at module load, wherever the source list is rendered.
  *
  * @type {Object<string, {component: Function, columns: string[]}>}
  */
-const ROWS = {};
+const ROWS = {
+  items: {
+    component: StaffCopyItemRow,
+    columns: ['staff_copies_page.photo_column', NAME_COLUMN_KEY, 'staff_copies_page.hidden_column'],
+  },
+};
 
 /**
  * Slug → row-component registry of the staff copy source list (issue #1571).
