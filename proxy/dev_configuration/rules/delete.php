@@ -4,9 +4,10 @@
  * (DELETE /staff/photos/<photo_type>/<photo_id>.json). Loaded before
  * rules/backend.php so it takes precedence over the generic `.json` proxy.
  *
- * 'cache_path' is where X-Cache-Clear paths from the backend's responses
- * are cleared (see ResponseCacheClearer); it must match the cache folder
- * used by rules/backend.php.
+ * 'cache_path' is the cache root ($cacheFolder): X-Cache-Clear paths from
+ * the backend's responses are cleared from it and from every domain folder
+ * under it (ResponseCacheClearer::forRoot, cross-domain mode). Dev's flat
+ * layout has no domain folders, so only the root itself is cleared.
  */
 
 use Tent\Configuration;

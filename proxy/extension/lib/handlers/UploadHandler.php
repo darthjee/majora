@@ -28,8 +28,9 @@ use Tent\Models\Response;
  * appropriate volume at <basePath>/<file_path> via UploadStorageResolver.
  *
  * After a successful finalize (status=uploaded) call, any X-Cache-Clear
- * header on the backend response is handed to ResponseCacheClearer, which
- * clears the listed paths from the cache folder. When the finalize body
+ * header on the backend response is handed to a cross-domain
+ * ResponseCacheClearer (forRoot, issue #1580), which clears the listed paths
+ * from the cache root and from every domain cache folder under it. When the finalize body
  * carries a `previous_path` (a staff replace changed the extension), that
  * old file is deleted through SecurePhotoStorage. The client response is
  * built from scratch, so neither the header nor `previous_path` ever
@@ -61,7 +62,7 @@ class UploadHandler extends RequestHandler
     /** @var string Base path where 'file' uploads are written */
     private string $filesBasePath;
 
-    /** @var ResponseCacheClearer Clears cache paths listed in X-Cache-Clear. */
+    /** @var ResponseCacheClearer Cross-domain clearer for X-Cache-Clear paths. */
     private ResponseCacheClearer $cacheClearer;
 
     /**
@@ -69,20 +70,20 @@ class UploadHandler extends RequestHandler
      * @param HttpClientInterface|null $httpClient     HTTP client (defaults to CurlHttpClient).
      * @param string                   $photosBasePath Base directory for 'image' upload storage.
      * @param string                   $filesBasePath  Base directory for 'file' upload storage.
-     * @param string                   $cachePath      Cache folder X-Cache-Clear paths are cleared
-     *                                                 from ('' disables clearing).
+     * @param string                   $cacheRoot      Cache root cleared across every domain
+     *                                                 folder ('' disables clearing).
      */
     public function __construct(
         string $host,
         ?HttpClientInterface $httpClient=null,
         string $photosBasePath='',
         string $filesBasePath='',
-        string $cachePath=''
+        string $cacheRoot=''
     ) {
         $this->client = new BackendClient($host, $httpClient);
         $this->photosBasePath = $photosBasePath;
         $this->filesBasePath = $filesBasePath;
-        $this->cacheClearer = ResponseCacheClearer::forPath($cachePath);
+        $this->cacheClearer = ResponseCacheClearer::forRoot($cacheRoot);
     }
 
     /**
@@ -90,7 +91,8 @@ class UploadHandler extends RequestHandler
      *
      * @param array $params Must contain 'host' (string), 'photos_path' (string) and
      *                      'files_path' (string); may contain 'cache_path'
-     *                      (string) to enable X-Cache-Clear handling.
+     *                      (string, the cache root) to enable cross-domain
+     *                      X-Cache-Clear handling.
      * @return self
      */
     public static function build(array $params): self

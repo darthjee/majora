@@ -3,11 +3,13 @@
 namespace Tent\Configuration\Tests;
 
 use PHPUnit\Framework\TestCase;
+use ReflectionProperty;
 use Tent\Configuration;
 use Tent\Models\Request;
 use Tent\Models\Rule;
 use Tent\RequestHandlers\DefaultProxyRequestHandler;
 use Tent\RequestHandlers\DeleteHandler;
+use Tent\RequestHandlers\ResponseCacheClearer;
 
 /**
  * `DELETE /staff/photos/<type>/<id>.json` must reach DeleteHandler (which
@@ -15,6 +17,8 @@ use Tent\RequestHandlers\DeleteHandler;
  * `rules/backend.php` (issue #1472). Loads the real dev/prod `delete.php`
  * and `backend.php` rule files in configure.php's order, from temporary
  * copies (see BackendRuleCacheClearTest for why copies are required).
+ * DeleteHandler must also be wired with the cache root ($cacheFolder), so
+ * X-Cache-Clear paths are cleared across every domain folder (issue #1580).
  *
  * Run via docker-compose:
  *   docker-compose run proxy_tests
@@ -66,10 +70,9 @@ class StaffDeleteRouteTest extends TestCase
 
     private function assertRouting(): void
     {
-        $this->assertInstanceOf(
-            DeleteHandler::class,
-            $this->matchedHandler('DELETE', '/staff/photos/main/3.json')
-        );
+        $staffHandler = $this->matchedHandler('DELETE', '/staff/photos/main/3.json');
+        $this->assertInstanceOf(DeleteHandler::class, $staffHandler);
+        $this->assertSame($this->tmpDir, $this->clearerRootOf($staffHandler));
         $this->assertInstanceOf(
             DeleteHandler::class,
             $this->matchedHandler('DELETE', '/games/my-game/pcs/4/photos/7.json')
@@ -82,6 +85,13 @@ class StaffDeleteRouteTest extends TestCase
             DefaultProxyRequestHandler::class,
             $this->matchedHandler('DELETE', '/staff/photos/../3.json')
         );
+    }
+
+    private function clearerRootOf(DeleteHandler $handler): ?string
+    {
+        $clearer = (new ReflectionProperty(DeleteHandler::class, 'cacheClearer'))->getValue($handler);
+
+        return (new ReflectionProperty(ResponseCacheClearer::class, 'root'))->getValue($clearer);
     }
 
     private function copyOf(string $relativePath): string

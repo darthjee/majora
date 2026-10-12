@@ -9,10 +9,11 @@
  * Both matchers are anchored regexes, so each request reaches the right
  * handler whatever the rule order.
  *
- * UploadHandler's 'cache_path' is where X-Cache-Clear paths from the
- * backend's responses are cleared (see ResponseCacheClearer); it must match
- * the cache folder used by rules/backend.php. LinkHandler's 'cache_path' is
- * the cache root: it clears across every domain folder (cross-domain mode).
+ * Both handlers' 'cache_path' is the cache root ($cacheFolder): X-Cache-Clear
+ * paths from the backend's responses are cleared from it and from every
+ * domain folder under it (ResponseCacheClearer::forRoot, cross-domain mode).
+ * Dev's flat layout has no domain folders, so only the root itself is
+ * cleared.
  */
 
 use Tent\Configuration;

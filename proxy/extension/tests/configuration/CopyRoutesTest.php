@@ -16,6 +16,7 @@ use Tent\RequestHandlers\DefaultProxyRequestHandler;
 use Tent\RequestHandlers\LinkHandler;
 use Tent\RequestHandlers\ProxyRequestHandler;
 use Tent\RequestHandlers\RequestHandler;
+use Tent\RequestHandlers\ResponseCacheClearer;
 use Tent\RequestHandlers\UploadHandler;
 
 /**
@@ -25,6 +26,8 @@ use Tent\RequestHandlers\UploadHandler;
  * BackendRuleCacheClearTest for why copies are required):
  *
  *   - the narrowed UploadHandler matcher and the new LinkHandler matcher;
+ *   - UploadHandler's clearer wired with the cache root ($cacheFolder), so it
+ *     clears across every domain folder (issue #1580);
  *   - the copy request rule (`POST /staff/copies/<type>/<id>.json`), whose
  *     ResponseCacheClearMiddleware runs in cross-domain mode, while other
  *     staff/copies routes keep going through backend.php.
@@ -95,7 +98,9 @@ class CopyRoutesTest extends TestCase
 
     private function assertRouting(): void
     {
-        $this->assertInstanceOf(UploadHandler::class, $this->matchedHandler('POST', '/uploads/image/1/submit'));
+        $uploadHandler = $this->matchedHandler('POST', '/uploads/image/1/submit');
+        $this->assertInstanceOf(UploadHandler::class, $uploadHandler);
+        $this->assertSame($this->cacheFolder, $this->clearerRootOf($uploadHandler));
         $this->assertInstanceOf(UploadHandler::class, $this->matchedHandler('POST', '/uploads/file/1/submit'));
         $this->assertInstanceOf(LinkHandler::class, $this->matchedHandler('POST', '/uploads/link/image/1/submit'));
         $this->assertInstanceOf(LinkHandler::class, $this->matchedHandler('POST', '/uploads/link/file/1/submit'));
@@ -221,6 +226,13 @@ class CopyRoutesTest extends TestCase
         }
 
         $this->fail('No ResponseCacheClearMiddleware on handler');
+    }
+
+    private function clearerRootOf(UploadHandler $handler): ?string
+    {
+        $clearer = (new ReflectionProperty(UploadHandler::class, 'cacheClearer'))->getValue($handler);
+
+        return (new ReflectionProperty(ResponseCacheClearer::class, 'root'))->getValue($clearer);
     }
 
     private function copyOf(string $relativePath): string

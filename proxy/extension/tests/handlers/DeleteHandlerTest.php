@@ -637,4 +637,115 @@ class DeleteHandlerTest extends TestCase
 
         $this->assertSame(400, $response->httpCode());
     }
+
+    // -------------------------------------------------------------------------
+    // Cross-domain clearing (issue #1580)
+    // -------------------------------------------------------------------------
+
+    /**
+     * A successful staff delete clears the X-Cache-Clear paths from the cache
+     * root and from every domain_<sha256> folder under it, leaving unlisted
+     * paths untouched.
+     */
+    public function testStaffDeleteClearsCacheAcrossDomains(): void
+    {
+        $this->makePhotoFile('photos/staff/3/photo.jpg');
+        $cacheDir = $this->photosDir . '/cache';
+        $folders  = [
+            $cacheDir,
+            $cacheDir . '/domain_' . hash('sha256', 'a.example'),
+            $cacheDir . '/domain_' . hash('sha256', 'b.example'),
+        ];
+        $listed    = [];
+        $untouched = [];
+        foreach ($folders as $folder) {
+            $listed[]    = $this->makeCacheEntry($folder, '/games/my-game/npcs.json');
+            $untouched[] = $this->makeCacheEntry($folder, '/games/my-game/pcs.json');
+        }
+
+        $httpClient = $this->createMock(HttpClientInterface::class);
+        $handler    = new DeleteHandler('http://backend:8080', $httpClient, $this->photosDir, $cacheDir);
+
+        $httpClient->expects($this->exactly(2))
+            ->method('request')
+            ->willReturnOnConsecutiveCalls(
+                [
+                    'httpCode' => 200,
+                    'body'     => '{"deletable":true,"path":"photos/staff/3/photo.jpg"}',
+                    'headers'  => [],
+                ],
+                ['httpCode' => 204, 'body' => '', 'headers' => ['X-Cache-Clear: /games/my-game/npcs.json']]
+            );
+
+        $response = $handler->handleRequest($this->makeRequest('/staff/photos/main/3.json'));
+
+        $this->assertSame(204, $response->httpCode());
+        $this->assertSame([], $response->headers());
+        foreach ($listed as $dir) {
+            $this->assertDirectoryDoesNotExist($dir);
+        }
+        foreach ($untouched as $dir) {
+            $this->assertDirectoryExists($dir);
+        }
+    }
+
+    /**
+     * A successful delete without X-Cache-Clear (the regular character photo
+     * delete) clears nothing, in the root or in any domain folder.
+     */
+    public function testDeleteWithoutXCacheClearClearsNothingInAnyDomain(): void
+    {
+        $this->makePhotoFile('42/photo.jpg');
+        $cacheDir = $this->photosDir . '/cache';
+        $entries  = [];
+        foreach ([
+            $cacheDir,
+            $cacheDir . '/domain_' . hash('sha256', 'a.example'),
+            $cacheDir . '/domain_' . hash('sha256', 'b.example'),
+        ] as $folder) {
+            $entries[] = $this->makeCacheEntry($folder, '/games/my-game/pcs.json');
+        }
+
+        $httpClient = $this->createMock(HttpClientInterface::class);
+        $handler    = new DeleteHandler('http://backend:8080', $httpClient, $this->photosDir, $cacheDir);
+
+        $httpClient->expects($this->exactly(2))
+            ->method('request')
+            ->willReturnOnConsecutiveCalls(
+                ['httpCode' => 200, 'body' => '{"deletable":true,"path":"42/photo.jpg"}', 'headers' => []],
+                ['httpCode' => 204, 'body' => '', 'headers' => []]
+            );
+
+        $response = $handler->handleRequest($this->makeRequest($this->deletePath('my-game', 'pcs', '42', '7')));
+
+        $this->assertSame(204, $response->httpCode());
+        foreach ($entries as $dir) {
+            $this->assertDirectoryExists($dir);
+        }
+    }
+
+    /**
+     * build() hands 'cache_path' to the clearer as the cross-domain cache
+     * root.
+     */
+    public function testBuildPassesCachePathToClearerAsRoot(): void
+    {
+        $cacheDir = $this->photosDir . '/cache';
+        $handler  = DeleteHandler::build([
+            'host'        => 'http://backend:8080',
+            'photos_path' => $this->photosDir,
+            'cache_path'  => $cacheDir,
+        ]);
+
+        $handlerReflection = new \ReflectionClass($handler);
+        $clearerProp       = $handlerReflection->getProperty('cacheClearer');
+        $clearerProp->setAccessible(true);
+        $clearer = $clearerProp->getValue($handler);
+
+        $clearerReflection = new \ReflectionClass($clearer);
+        $rootProp          = $clearerReflection->getProperty('root');
+        $rootProp->setAccessible(true);
+
+        $this->assertSame($cacheDir, $rootProp->getValue($clearer));
+    }
 }

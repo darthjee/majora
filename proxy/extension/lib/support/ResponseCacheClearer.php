@@ -56,9 +56,10 @@ use Tent\Models\FolderLocation;
  * symlinked `domain_*` pointing elsewhere is skipped and logged), and the
  * usual per-path guard runs inside each folder; a folder failing either
  * check is skipped while the others are still cleared. It is used where a
- * mutation affects a game on every domain: the staff copy request and the
- * copy-link finalize. The single-folder mode above is the default and is
- * unchanged.
+ * mutation affects a game on every domain: the staff copy request, the
+ * copy-link finalize (LinkHandler), and, since issue #1580, the staff photo
+ * delete (DeleteHandler) and upload finalize (UploadHandler). The
+ * single-folder mode above is the default and is unchanged.
  */
 class ResponseCacheClearer
 {

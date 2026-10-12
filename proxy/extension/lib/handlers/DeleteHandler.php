@@ -27,8 +27,10 @@ use Tent\Models\Response;
  *      SecurePhotoStorage (a missing file counts as already deleted).
  *   3. Calls the backend DELETE <base>.json to remove the database record,
  *      and forwards its response through — after clearing any cache paths
- *      its X-Cache-Clear header lists (2xx only, via ResponseCacheClearer)
- *      and stripping that header from what the client receives.
+ *      its X-Cache-Clear header lists (2xx only, via a cross-domain
+ *      ResponseCacheClearer: the cache root and every domain cache folder
+ *      under it, issue #1580) and stripping that header from what the
+ *      client receives.
  *
  * Authorization is enforced by the backend on both calls.
  */
@@ -55,34 +57,34 @@ class DeleteHandler extends RequestHandler
     /** @var SecurePhotoStorage Guards file deletion against path traversal. */
     private SecurePhotoStorage $photoStorage;
 
-    /** @var ResponseCacheClearer Clears cache paths listed in X-Cache-Clear. */
+    /** @var ResponseCacheClearer Cross-domain clearer for X-Cache-Clear paths. */
     private ResponseCacheClearer $cacheClearer;
 
     /**
      * @param string                   $host           Backend host URL.
      * @param HttpClientInterface|null $httpClient     HTTP client (defaults to CurlHttpClient).
      * @param string                   $photosBasePath Base directory photos are stored under.
-     * @param string                   $cachePath      Cache folder X-Cache-Clear paths are cleared
-     *                                                 from ('' disables clearing).
+     * @param string                   $cacheRoot      Cache root cleared across every domain
+     *                                                 folder ('' disables clearing).
      */
     public function __construct(
         string $host,
         ?HttpClientInterface $httpClient=null,
         string $photosBasePath='',
-        string $cachePath=''
+        string $cacheRoot=''
     ) {
         $this->client = new BackendClient($host, $httpClient);
         $this->photosBasePath = $photosBasePath;
         $this->photoStorage = new SecurePhotoStorage($photosBasePath);
-        $this->cacheClearer = ResponseCacheClearer::forPath($cachePath);
+        $this->cacheClearer = ResponseCacheClearer::forRoot($cacheRoot);
     }
 
     /**
      * Builds a DeleteHandler from configuration parameters.
      *
      * @param array $params Must contain 'host' (string) and 'photos_path' (string);
-     *                      may contain 'cache_path' (string) to enable
-     *                      X-Cache-Clear handling.
+     *                      may contain 'cache_path' (string, the cache root) to
+     *                      enable cross-domain X-Cache-Clear handling.
      * @return self
      */
     public static function build(array $params): self
