@@ -82,7 +82,8 @@ Four explicit, named exceptions to this game-scoped carve-out exist:
   it is listed here. It grants only the *creation* of the copy: no edit, delete or GameMaster
   capability over the source or the copied rows, which stay governed by their own game-scoped
   permissions. A GameMaster without Staff cannot copy, even between their own games. See
-  [Staff Copy](../../access-control/staff-copy.md).
+  [Staff Copy](../../access-control/staff-copy.md) and
+  [Game Content Copy](../../game-content-copy.md).
 
 ---
 
