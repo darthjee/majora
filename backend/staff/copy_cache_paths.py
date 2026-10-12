@@ -12,8 +12,10 @@ from .photo_cache_paths import (
     GameResourceCachePaths,
 )
 
+_AVAILABLE_FACTIONS = GameCharactersAvailableCachePaths('factions')
 _AVAILABLE_ITEMS = GameCharactersAvailableCachePaths('items')
 _AVAILABLE_POSSESSIONS = GameCharactersAvailableCachePaths('possessions')
+_FACTIONS = GameResourceCachePaths('factions')
 _RECIPES = GameResourceCachePaths('recipes', **FULL_FAMILY)
 
 
@@ -43,3 +45,8 @@ def possessions_copy_cache_paths(possession):
     """Return the possession family of `possession` plus every character's available list."""
     family = photo_types.find('game_possession').cache_paths(possession)
     return family + _AVAILABLE_POSSESSIONS.paths(possession.game)
+
+
+def factions_copy_cache_paths(faction):
+    """Return the faction family of `faction` plus every character's `factions/available.json`."""
+    return _FACTIONS.paths(faction) + _AVAILABLE_FACTIONS.paths(faction.game)
