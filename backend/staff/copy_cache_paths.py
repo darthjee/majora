@@ -12,6 +12,7 @@ from .photo_cache_paths import (
     GameResourceCachePaths,
 )
 
+_AVAILABLE_DOCUMENTS = GameCharactersAvailableCachePaths('documents')
 _AVAILABLE_FACTIONS = GameCharactersAvailableCachePaths('factions')
 _AVAILABLE_ITEMS = GameCharactersAvailableCachePaths('items')
 _AVAILABLE_POSSESSIONS = GameCharactersAvailableCachePaths('possessions')
@@ -50,3 +51,28 @@ def possessions_copy_cache_paths(possession):
 def factions_copy_cache_paths(faction):
     """Return the faction family of `faction` plus every character's `factions/available.json`."""
     return _FACTIONS.paths(faction) + _AVAILABLE_FACTIONS.paths(faction.game)
+
+
+def documents_family_cache_paths(document):
+    """Return the document family of `document` (lists, detail, photos and files)."""
+    return photo_types.find('game_document').cache_paths(document)
+
+
+def documents_pages_cache_paths(document):
+    """Return the page lists of `document`: `pages.json` and `pages/all.json`."""
+    base = f'/games/{document.game.game_slug}/documents/{document.pk}/pages'
+    return [f'{base}.json', f'{base}/all.json']
+
+
+def documents_cover_cache_paths(document):
+    """Return the document family plus every character's `documents/available.json`."""
+    return documents_family_cache_paths(document) + _AVAILABLE_DOCUMENTS.paths(document.game)
+
+
+def documents_copy_cache_paths(document):
+    """Return the family, the page lists and every character's available list of `document`."""
+    return (
+        documents_family_cache_paths(document)
+        + documents_pages_cache_paths(document)
+        + _AVAILABLE_DOCUMENTS.paths(document.game)
+    )

@@ -6,7 +6,13 @@ import pytest
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 
-from games.models import GameDocumentFile, GameItemPhoto, GamePhoto
+from games.models import (
+    GameDocumentFile,
+    GameDocumentFilePhoto,
+    GameDocumentPhoto,
+    GameItemPhoto,
+    GamePhoto,
+)
 from games.tests.factories import GameDocumentFactory, GameFactory
 from staff import photo_types
 from staff.tests.copy_test_support import StaffCopyActorsMixin, StaffCopyGateBehavior
@@ -177,6 +183,35 @@ class TestStaffCopyLinksSelection(CopyLinksSupport):
         first = self.copy_upload(other)
         second = self.copy_upload(self.photo)
         assert self.upload_ids(client) == [first.pk, second.pk]
+
+
+@pytest.mark.django_db
+class TestStaffCopyLinksDocuments(CopyLinksSupport):
+    """Tests for the pending links of the three document record types."""
+
+    def setup_method(self):
+        """Set up the actors and games."""
+        self.setup_links()
+
+    def _document_uploads(self, game):
+        """Create a document photo, file and file photo link in `game`; return their uploads."""
+        document = GameDocumentFactory(game=game)
+        photo = GameDocumentPhoto.objects.create(game_document=document, path='photos/a.png')
+        file_photo = GameDocumentFilePhoto.objects.create(path='photos/f/photo.png')
+        document_file = GameDocumentFile.objects.create(
+            game_document=document, path='files/a.pdf', photo=file_photo,
+        )
+        return [
+            self.copy_upload(photo, is_cover=True),
+            self.copy_upload(document_file, upload_type=Upload.UPLOAD_TYPE_FILE),
+            self.copy_upload(file_photo),
+        ]
+
+    def test_all_three_record_types_are_listed(self, client):
+        """Test that document photo, file and file photo links of the target are listed."""
+        uploads = self._document_uploads(self.game)
+        self._document_uploads(self.other_game)
+        assert self.upload_ids(client) == [upload.pk for upload in uploads]
 
 
 @pytest.mark.django_db

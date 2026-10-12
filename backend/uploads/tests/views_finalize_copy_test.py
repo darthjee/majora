@@ -10,6 +10,7 @@ from rest_framework.authtoken.models import Token
 from games.models import (
     GameCommonItemPhoto,
     GameDocumentFile,
+    GameDocumentFilePhoto,
     GameDocumentPhoto,
     GameFactionPhoto,
     GameItemPhoto,
@@ -128,13 +129,11 @@ class TestCopyFinalizeLinkFlow(CopyFinalizeSupport):
         self.item.refresh_from_db()
         assert self.item.photo_id is None
 
-    def test_uploaded_has_no_cache_clear_by_default(self, client):
+    def test_uploaded_has_no_cache_clear_by_default(self, client, monkeypatch):
         """Test that an entry without a hook sends no `X-Cache-Clear`."""
-        document = GameDocumentFactory(game=self.game)
-        photo = GameDocumentPhoto.objects.create(
-            game_document=document, path='photos/games/target/copy.png', ready=False
-        )
-        response = self.finalize(client, self.copy_upload(photo))
+        entry = copy_links.find_for_model(GameItemPhoto)
+        monkeypatch.setattr(entry, '_cache_paths', None)
+        response = self.finalize(client, self.copy_upload(self.photo))
         assert not response.has_header('X-Cache-Clear')
 
     def test_uploaded_faction_cover_sets_photo_and_sends_copy_cache_clear(self, client):
@@ -263,6 +262,77 @@ class TestCopyFinalizeLinkFlow(CopyFinalizeSupport):
         )
         response = self.patch(client, upload, {'status': 'uploading'}, token=self.dm_token)
         assert response.json() == {'file_path': 'photos/regular.png'}
+
+
+@pytest.mark.django_db
+class TestCopyFinalizeDocuments(CopyFinalizeSupport):
+    """Tests for the finalize of the three document record types."""
+
+    def setup_method(self):
+        """Create the actors, a target document, one PC and one NPC."""
+        self.setup_actors()
+        self.document = GameDocumentFactory(game=self.game)
+        self.pc = CharacterFactory(game=self.game, npc=False)
+        self.npc = CharacterFactory(game=self.game, npc=True)
+        self.photo = GameDocumentPhoto.objects.create(
+            game_document=self.document, path='photos/games/target/copy.png', ready=False,
+        )
+
+    def _family(self):
+        """Return the expected documents family paths of the target document."""
+        base, pk = f'/games/{self.game.game_slug}/documents', self.document.pk
+        return [
+            f'{base}.json', f'{base}/all.json', f'{base}/{pk}.json', f'{base}/{pk}/full.json',
+            f'{base}/{pk}/photos.json', f'{base}/{pk}/photos/all.json',
+            f'{base}/{pk}/files.json', f'{base}/{pk}/files/all.json',
+        ]
+
+    def _available(self):
+        """Return the expected PC and NPC `documents/available.json` paths."""
+        slug = self.game.game_slug
+        return [
+            f'/games/{slug}/pcs/{self.pc.pk}/documents/available.json',
+            f'/games/{slug}/npcs/{self.npc.pk}/documents/available.json',
+        ]
+
+    def _file(self, photo=None):
+        """Create a not-ready copied file of the target document."""
+        return GameDocumentFile.objects.create(
+            game_document=self.document, path='files/copy.pdf', ready=False, photo=photo,
+        )
+
+    def test_cover_sets_photo_and_clears_family_and_available_lists(self, client):
+        """Test that a cover finalize sets the photo and clears family plus available lists."""
+        response = self.finalize(client, self.copy_upload(self.photo, is_cover=True))
+        self.document.refresh_from_db()
+        assert self.document.photo_id == self.photo.pk
+        assert response['X-Cache-Clear'] == ', '.join(self._family() + self._available())
+
+    def test_non_cover_photo_only_sets_ready_and_clears_family(self, client):
+        """Test that a non-cover photo finalize only sets ready and clears the family."""
+        response = self.finalize(client, self.copy_upload(self.photo))
+        self.photo.refresh_from_db()
+        self.document.refresh_from_db()
+        assert (self.photo.ready, self.document.photo_id) == (True, None)
+        assert response['X-Cache-Clear'] == ', '.join(self._family())
+
+    def test_file_only_sets_ready_and_clears_family(self, client):
+        """Test that a file finalize only sets ready and clears the family."""
+        document_file = self._file()
+        upload = self.copy_upload(document_file, upload_type=Upload.UPLOAD_TYPE_FILE)
+        response = self.finalize(client, upload)
+        document_file.refresh_from_db()
+        assert document_file.ready is True
+        assert response['X-Cache-Clear'] == ', '.join(self._family())
+
+    def test_file_photo_only_sets_ready_and_clears_family(self, client):
+        """Test that a file photo finalize only sets ready and clears the family."""
+        file_photo = GameDocumentFilePhoto.objects.create(path='photos/f/photo.png')
+        self._file(photo=file_photo)
+        response = self.finalize(client, self.copy_upload(file_photo))
+        file_photo.refresh_from_db()
+        assert file_photo.ready is True
+        assert response['X-Cache-Clear'] == ', '.join(self._family())
 
 
 @pytest.mark.django_db

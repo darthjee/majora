@@ -5,10 +5,10 @@ their game and how they are described (used by the pending-links list), how a co
 becomes its owner's cover, and which proxy cache paths its finalize clears. This module is
 free of view/HTTP concerns.
 
-`cache_paths(row, upload)` is a **per-type hook**: it returns `[]` until the tab issues fill it
-in, following the "Cache" section of each tab spec under `docs/agents/specs/game-content-copy/`
-(`items.md`, `common-items.md`, `documents.md`, `factions.md`, `possessions.md`). A tab plugs its
-builder in by passing `cache_paths=<callable(row, upload)>` to its entry below.
+`cache_paths(row, upload)` is a **per-type hook** following the "Cache" section of each tab
+spec under `docs/agents/specs/game-content-copy/` (`items.md`, `common-items.md`, `documents.md`,
+`factions.md`, `possessions.md`). Every entry below plugs its builder in by passing
+`cache_paths=<callable(row, upload)>`; an entry without a hook returns `[]`.
 """
 
 from games.models import (
@@ -23,6 +23,8 @@ from games.models import (
 from staff import photo_types
 from staff.copy_cache_paths import (
     common_items_copy_cache_paths,
+    documents_cover_cache_paths,
+    documents_family_cache_paths,
     factions_copy_cache_paths,
     items_copy_cache_paths,
     possessions_copy_cache_paths,
@@ -140,6 +142,28 @@ def _possession_photo_cache_paths(row, upload):
     return possessions_copy_cache_paths(row.game_possession)
 
 
+def _document_photo_cache_paths(row, upload):
+    """Return the paths of a linked `GameDocumentPhoto`: a cover also clears available lists."""
+    if upload.is_cover:
+        return documents_cover_cache_paths(row.game_document)
+    return documents_family_cache_paths(row.game_document)
+
+
+def _document_file_cache_paths(row, upload):
+    """Return the document family of the document owning a linked `GameDocumentFile`."""
+    return documents_family_cache_paths(row.game_document)
+
+
+def _document_file_photo_cache_paths(row, upload):
+    """Return the document family reached through the file pointing at a linked file photo."""
+    file = GameDocumentFile.objects.select_related('game_document__game').filter(
+        photo=row,
+    ).first()
+    if file is None:
+        return []
+    return documents_family_cache_paths(file.game_document)
+
+
 COPY_LINKS = (
     CoverCopyLink(GameItemPhoto, 'game_item', cache_paths=_item_photo_cache_paths),
     CoverCopyLink(
@@ -149,9 +173,11 @@ COPY_LINKS = (
     CoverCopyLink(
         GamePossessionPhoto, 'game_possession', cache_paths=_possession_photo_cache_paths,
     ),
-    CoverCopyLink(GameDocumentPhoto, 'game_document'),
-    DocumentFileCopyLink(),
-    DocumentFilePhotoCopyLink(),
+    CoverCopyLink(
+        GameDocumentPhoto, 'game_document', cache_paths=_document_photo_cache_paths,
+    ),
+    DocumentFileCopyLink(cache_paths=_document_file_cache_paths),
+    DocumentFilePhotoCopyLink(cache_paths=_document_file_photo_cache_paths),
 )
 
 
