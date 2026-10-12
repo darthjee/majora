@@ -11,6 +11,7 @@ import pollConfig from './config/pollConfig.js';
 import taskConfig from './config/taskConfig.js';
 import staffUserConfig from './config/staffUserConfig.js';
 import staffPhotoConfig from './config/staffPhotoConfig.js';
+import staffCopyConfig from './config/staffCopyConfig.js';
 import staffStatisticsConfig from './config/staffStatisticsConfig.js';
 import gameDocumentPhotoConfig from './config/gameDocumentPhotoConfig.js';
 import gameDocumentFileConfig from './config/gameDocumentFileConfig.js';
@@ -38,6 +39,7 @@ const RESOURCES = {
   task: taskConfig,
   staffUser: staffUserConfig,
   staffPhoto: staffPhotoConfig,
+  staffCopy: staffCopyConfig,
   staffStatistics: staffStatisticsConfig,
   gameDocumentPhoto: gameDocumentPhotoConfig,
   gameDocumentFile: gameDocumentFileConfig,
@@ -75,7 +77,7 @@ export default {
    * @param {string} method - HTTP method (e.g. `'GET'`, `'POST'`, `'PATCH'`, `'PUT'`).
    * @param {string} resource - Resource name (`'game'`, `'npc'`, `'pc'`, `'item'`, `'possession'`,
    *   `'commonItem'`, `'treasure'`, `'session'`, `'document'`, `'poll'`, `'task'`, `'staffUser'`,
-   *   `'staffPhoto'`, `'staffStatistics'`, `'gameDocumentPhoto'`, `'gameDocumentFile'`, `'gameDocumentPage'`, `'characterDocumentFile'`,
+   *   `'staffPhoto'`, `'staffCopy'`, `'staffStatistics'`, `'gameDocumentPhoto'`, `'gameDocumentFile'`, `'gameDocumentPage'`, `'characterDocumentFile'`,
    *   `'characterDocumentPhoto'`, `'stlModel'`, `'source'`, `'collection'`, `'faction'`,
    *   `'recipe'`, `'characterRecipe'`).
    * @param {string} quantityType - `'collection'`, `'single'`, or a resource-specific key.

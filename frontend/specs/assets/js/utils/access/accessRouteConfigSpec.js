@@ -69,6 +69,10 @@ describe('accessRouteConfig', function() {
       expect(accessRouteConfig.get('staffPhotos')).toEqual([{ kind: 'staffOrSuperuser' }]);
     });
 
+    it('declares a staffOrSuperuser-only descriptor for the staff copy page', function() {
+      expect(accessRouteConfig.get('staffCopies')).toEqual([{ kind: 'staffOrSuperuser' }]);
+    });
+
     it('declares a staffOrSuperuser-only descriptor for every access statistics page', function() {
       [
         'staffStatistics', 'staffStatisticsVisits', 'staffStatisticsVisitors', 'staffStatisticsDuration',

@@ -8,6 +8,7 @@ const CASES = [
   { page: 'staffUser', hash: '#/staff/users/1', expected: () => Translator.t('staff_user_page.loading') },
   { page: 'staffUserEdit', hash: '#/staff/users/1/edit', expected: () => Translator.t('staff_user_page.loading') },
   { page: 'staffPhotos', hash: '#/staff/photos', expected: () => Translator.t('staff_photos_page.loading') },
+  { page: 'staffCopies', hash: '#/staff/copies', expected: () => Translator.t('staff_copies_page.loading') },
   { page: 'myAccount', hash: '#/my_account', expected: () => Translator.t('my_account_page.loading') },
   {
     page: 'accountAuthorizationRequests',

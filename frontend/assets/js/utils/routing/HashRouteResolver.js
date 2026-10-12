@@ -26,6 +26,7 @@ const ROUTES = [
   ['/staff/dashboard', 'staffDashboard'],
   ['/staff/crawler', 'staffCrawler'],
   ['/staff/photos', 'staffPhotos'],
+  ['/staff/copies', 'staffCopies'],
   ['/staff/statistics/visits', 'staffStatisticsVisits'],
   ['/staff/statistics/visitors', 'staffStatisticsVisitors'],
   ['/staff/statistics/duration', 'staffStatisticsDuration'],
