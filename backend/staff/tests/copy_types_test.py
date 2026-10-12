@@ -3,18 +3,20 @@
 import pytest
 from django.test import RequestFactory
 
-from games.models import GameCommonItem, GameItem
+from games.models import GameCommonItem, GameItem, GamePossession
 from games.tests.factories import (
     CharacterFactory,
     GameCommonItemFactory,
     GameFactory,
     GameItemFactory,
+    GamePossessionFactory,
     UserFactory,
 )
 from staff import copy_types
 from staff.copy_types import RESERVED_SLUGS, CopyType, ModelCopyType
 from staff.copy_types_common_items import CommonItemsCopyType
 from staff.copy_types_items import ItemsCopyType
+from staff.copy_types_possessions import PossessionsCopyType
 from staff.copy_types_recipes import RecipesCopyType
 from staff.tests.copy_test_support import FakeCopyType, ScaffoldCopyType, register_copy_types
 from uploads.models import Upload
@@ -46,6 +48,14 @@ class TestCopyTypesRegistry:
     def test_find_recipes_returns_the_recipes_copy_type(self):
         """Test that `recipes` resolves to the `RecipesCopyType` entry."""
         assert isinstance(copy_types.find('recipes'), RecipesCopyType)
+
+    def test_possessions_is_registered_last(self):
+        """Test that `possessions` is the last registered copy type."""
+        assert copy_types.slugs()[-1] == 'possessions'
+
+    def test_find_possessions_returns_the_possessions_copy_type(self):
+        """Test that `possessions` resolves to the `PossessionsCopyType` entry."""
+        assert isinstance(copy_types.find('possessions'), PossessionsCopyType)
 
     def test_find_unknown_slug_returns_none(self):
         """Test that an unregistered slug resolves to None."""
@@ -304,6 +314,40 @@ class TestCommonItemsCopyType:
         assert self.copy_type.cache_paths(self.copy) == [
             f'{base}.json', f'{base}/all.json', f'{base}/{self.copy.pk}.json',
             f'{base}/{self.copy.pk}/full.json',
+        ]
+
+
+@pytest.mark.django_db
+class TestPossessionsCopyType:
+    """Tests for the `PossessionsCopyType` hooks."""
+
+    def setup_method(self):
+        """Set up the copy type, a target game and a possession living in it."""
+        self.copy_type = PossessionsCopyType()
+        self.target = GameFactory(name='Target', game_slug='target')
+        self.copy = GamePossessionFactory(game=self.target)
+
+    def test_slug_and_model(self):
+        """Test that the copy type is registered under `possessions` over GamePossession."""
+        assert (self.copy_type.slug, self.copy_type.model) == ('possessions', GamePossession)
+
+    def test_copied_fields(self):
+        """Test that name, description and hidden are copied."""
+        assert self.copy_type.copied_fields == ('name', 'description', 'hidden')
+
+    def test_photo_segments(self):
+        """Test that the cover segments are `games/<target>/possessions/<copy-id>`."""
+        segments = PossessionsCopyType._photo_segments(self.copy)
+        assert segments == ['games', 'target', 'possessions', self.copy.pk]
+
+    def test_cache_paths_are_the_family_and_available_lists(self):
+        """Test that the cache paths are the family plus each character's available list."""
+        pc = CharacterFactory(game=self.target, npc=False)
+        base = '/games/target/possessions'
+        assert self.copy_type.cache_paths(self.copy) == [
+            f'{base}.json', f'{base}/all.json', f'{base}/{self.copy.pk}.json',
+            f'{base}/{self.copy.pk}/full.json',
+            f'/games/target/pcs/{pc.pk}/possessions/available.json',
         ]
 
 

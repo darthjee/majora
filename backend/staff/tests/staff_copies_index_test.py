@@ -33,6 +33,7 @@ class TestStaffCopiesIndexView(StaffCopyGateBehavior):
         response = self.send(client, self.staff_token)
         assert response.status_code == 200
         assert response.json()['types'][:3] == ['items', 'common_items', 'recipes']
+        assert response.json()['types'][-1] == 'possessions'
         assert response['X-Skip-Cache'] == 'true'
 
     def test_superuser_returns_200(self, client):

@@ -14,6 +14,7 @@ This module is free of view/HTTP concerns.
 from .copy_type_base import CopyType, ModelCopyType
 from .copy_types_common_items import CommonItemsCopyType
 from .copy_types_items import ItemsCopyType
+from .copy_types_possessions import PossessionsCopyType
 from .copy_types_recipes import RecipesCopyType
 
 __all__ = ['COPY_TYPES', 'RESERVED_SLUGS', 'CopyType', 'ModelCopyType', 'find', 'slugs']
@@ -22,6 +23,7 @@ COPY_TYPES = (
     ItemsCopyType(),
     CommonItemsCopyType(),
     RecipesCopyType(),
+    PossessionsCopyType(),
 )
 
 RESERVED_SLUGS = frozenset({'games', 'links'})
