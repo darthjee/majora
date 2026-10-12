@@ -20,6 +20,8 @@ staff_copies_page:
   name_column: Name
   photo_column: Photo
   hidden_column: Visibility
+  category_column: Category
+  price_column: Price
   hidden_badge: Hidden
   status_column: Status
   select_all: Select all on this page
