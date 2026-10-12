@@ -15,6 +15,7 @@ from staff import copy_types
 from staff.copy_types import RESERVED_SLUGS, CopyType, ModelCopyType
 from staff.copy_types_common_items import CommonItemsCopyType
 from staff.copy_types_items import ItemsCopyType
+from staff.copy_types_recipes import RecipesCopyType
 from staff.tests.copy_test_support import FakeCopyType, ScaffoldCopyType, register_copy_types
 from uploads.models import Upload
 
@@ -37,6 +38,14 @@ class TestCopyTypesRegistry:
     def test_find_common_items_returns_the_common_items_copy_type(self):
         """Test that `common_items` resolves to the `CommonItemsCopyType` entry."""
         assert isinstance(copy_types.find('common_items'), CommonItemsCopyType)
+
+    def test_recipes_is_registered_right_after_common_items(self):
+        """Test that `recipes` is the third registered copy type."""
+        assert copy_types.slugs()[:3] == ['items', 'common_items', 'recipes']
+
+    def test_find_recipes_returns_the_recipes_copy_type(self):
+        """Test that `recipes` resolves to the `RecipesCopyType` entry."""
+        assert isinstance(copy_types.find('recipes'), RecipesCopyType)
 
     def test_find_unknown_slug_returns_none(self):
         """Test that an unregistered slug resolves to None."""

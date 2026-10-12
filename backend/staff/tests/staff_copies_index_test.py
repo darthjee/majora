@@ -29,10 +29,10 @@ class TestStaffCopiesIndexView(StaffCopyGateBehavior):
         return self.post_json(client, URL, {}, token)
 
     def test_staff_gets_registered_types_items_first(self, client):
-        """Test that a staff user gets the registered types, `items` then `common_items`."""
+        """Test that a staff user gets the registered types in tab order."""
         response = self.send(client, self.staff_token)
         assert response.status_code == 200
-        assert response.json()['types'][:2] == ['items', 'common_items']
+        assert response.json()['types'][:3] == ['items', 'common_items', 'recipes']
         assert response['X-Skip-Cache'] == 'true'
 
     def test_superuser_returns_200(self, client):

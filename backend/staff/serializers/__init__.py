@@ -4,6 +4,7 @@ from .staff_copy_common_item import StaffCopyCommonItemSerializer
 from .staff_copy_game import StaffCopyGameSerializer
 from .staff_copy_item import StaffCopyItemSerializer
 from .staff_copy_link import StaffCopyLinkSerializer
+from .staff_copy_recipe import StaffCopyRecipeSerializer
 from .staff_copy_result import StaffCopyResultLinkSerializer
 from .staff_photo_list import StaffPhotoListSerializer
 from .staff_recovery_token import StaffRecoveryTokenSerializer
@@ -18,6 +19,7 @@ __all__ = [
     'StaffCopyGameSerializer',
     'StaffCopyItemSerializer',
     'StaffCopyLinkSerializer',
+    'StaffCopyRecipeSerializer',
     'StaffCopyResultLinkSerializer',
     'StaffPhotoListSerializer',
     'StaffRecoveryTokenSerializer',

@@ -2,8 +2,8 @@
 
 `CopyType` only declares a tab's slug and model. `ModelCopyType` adds the behavior every tab
 repeats, so a tab declares its row serializer and copied fields and overrides the small hooks
-it needs (`source_queryset`, `copy_associations`, `cache_paths`). Apart from building the
-`Response`, this module is free of view/HTTP concerns.
+it needs (`source_queryset`, `copy_associations`, `cache_paths`, `copy_result`). Apart from
+building the `Response`, this module is free of view/HTTP concerns.
 """
 
 from django.db import transaction
@@ -81,6 +81,15 @@ class ModelCopyType(CopyType):
         """Return the target game's proxy cache paths made stale by `copy`."""
         return []
 
+    def copy_result(self, request, source, target_game):
+        """Copy `source` into `target_game` and return `(copy, uploads, extra_cache_paths)`.
+
+        `extra_cache_paths` are stale paths of rows created or changed besides the copy (e.g. a
+        dependency copied along); the default copy has none.
+        """
+        copy, uploads = self.copy_instance(request, source, target_game)
+        return copy, uploads, []
+
     def copy_instance(self, request, source, target_game):
         """Copy `source` into `target_game` and return `(copy, uploads)`.
 
@@ -91,11 +100,11 @@ class ModelCopyType(CopyType):
         return copy, self.copy_associations(request, source, copy)
 
     def _copy_current(self, request, source_id, target_game):
-        """Re-read the source and copy it, returning `(copy, uploads)`, or None if it is gone."""
+        """Re-read the source and copy it, returning `copy_result`'s tuple, or None if gone."""
         source = self.model.objects.filter(pk=source_id).first()
         if source is None:
             return None
-        return self.copy_instance(request, source, target_game)
+        return self.copy_result(request, source, target_game)
 
     def _create_copy(self, source, target_game):
         """Create the copy row from the copied fields, in `target_game`, tracing `source`."""
@@ -107,8 +116,9 @@ class ModelCopyType(CopyType):
         """Return `{field: source_value}` for the copied fields."""
         return {field: getattr(source, field) for field in self.copied_fields}
 
-    def _copy_response(self, copy, uploads):
+    def _copy_response(self, copy, uploads, extra_cache_paths):
         """Return the `201 {id, links}` Response carrying `X-Cache-Clear`."""
         links = StaffCopyResultLinkSerializer(uploads, many=True).data
         response = Response({'id': copy.pk, 'links': links}, status=201)
-        return attach_cache_clear(response, self.cache_paths(copy))
+        paths = self.cache_paths(copy) + list(extra_cache_paths)
+        return attach_cache_clear(response, paths)
