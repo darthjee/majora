@@ -9,18 +9,12 @@
  * Both matchers are anchored regexes, so each request reaches the right
  * handler whatever the rule order.
  *
- * UploadHandler's 'cache_path' is where X-Cache-Clear paths from the
- * backend's responses are cleared (see ResponseCacheClearer); it must match
- * rules/backend.php's domain-scoped cache location. LinkHandler's
- * 'cache_path' is the cache root ($cacheFolder): it clears across every
- * domain folder (cross-domain mode).
+ * Both handlers' 'cache_path' is the cache root ($cacheFolder): X-Cache-Clear
+ * paths from the backend's responses are cleared from it and from every
+ * domain folder under it (ResponseCacheClearer::forRoot, cross-domain mode).
  */
 
-use Tent\Cache\DomainHash;
 use Tent\Configuration;
-use Tent\Models\Request;
-
-$responseCacheLocation = "$cacheFolder/" . DomainHash::hash(new Request());
 
 Configuration::buildRule(
     [
@@ -29,7 +23,7 @@ Configuration::buildRule(
         'host'        => $backendHost,
         'photos_path' => $photosPath,
         'files_path'  => $filesPath,
-        'cache_path'  => $responseCacheLocation,
+        'cache_path'  => $cacheFolder,
     ],
     'matchers' => [
         ['method' => 'POST', 'pattern' => '#^/uploads/(image|file)/\d+/submit$#', 'type' => 'regex'],
