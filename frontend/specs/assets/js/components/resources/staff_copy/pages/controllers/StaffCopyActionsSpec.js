@@ -44,6 +44,36 @@ describe('StaffCopyActions', function() {
     });
   });
 
+  describe('#renew', function() {
+    let mutateSpy;
+
+    beforeEach(function() {
+      mutateSpy = spyOn(RequestStore, 'mutate');
+    });
+
+    it('renews the token and returns the parsed body', async function() {
+      const body = { upload_id: 5, upload_type: 'image', token: 'new' };
+      mutateSpy.and.returnValue(Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(body) }));
+
+      expect(await actions.renew(5)).toEqual({ ok: true, status: 200, data: body });
+      expect(mutateSpy).toHaveBeenCalledWith(jasmine.objectContaining({
+        method: 'POST', quantityType: 'renew', params: { uploadId: 5 },
+      }));
+    });
+
+    it('returns the failed status without data', async function() {
+      mutateSpy.and.returnValue(Promise.resolve({ ok: false, status: 409 }));
+
+      expect(await actions.renew(5)).toEqual({ ok: false, status: 409, data: null });
+    });
+
+    it('maps network errors to an undefined status', async function() {
+      mutateSpy.and.returnValue(Promise.reject(new Error('offline')));
+
+      expect(await actions.renew(5)).toEqual({ ok: false, status: undefined, data: null });
+    });
+  });
+
   describe('#link', function() {
     const link = { upload_id: 5, upload_type: 'image', token: 'tok' };
 

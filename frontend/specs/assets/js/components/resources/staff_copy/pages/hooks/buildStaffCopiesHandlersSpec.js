@@ -13,6 +13,7 @@ describe('buildStaffCopiesHandlers', function() {
 
   beforeEach(function() {
     controller = jasmine.createSpyObj('controller', ['changeSelection', 'runCopy']);
+    controller.links = jasmine.createSpyObj('links', ['retry']);
     setPendingCopy = jasmine.createSpy('setPendingCopy');
     selection = { onToggle: jasmine.createSpy('onToggle'), onToggleAll: jasmine.createSpy('onToggleAll') };
   });
@@ -35,6 +36,14 @@ describe('buildStaffCopiesHandlers', function() {
     expect(controller.changeSelection).toHaveBeenCalledWith('from', 'a');
     expect(page.onToggle).toBe(selection.onToggle);
     expect(page.onToggleAll).toBe(selection.onToggleAll);
+  });
+
+  it('retries a link through the links controller', function() {
+    const link = { upload_id: 4 };
+
+    build([]).page.onRetry(link);
+
+    expect(controller.links.retry).toHaveBeenCalledWith(link);
   });
 
   it('runs right away when no row was copied before (no confirmation)', function() {

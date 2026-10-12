@@ -4,7 +4,7 @@ import Translator from '../../../../../../../../assets/js/i18n/Translator.js';
 import Noop from '../../../../../../../../assets/js/utils/Noop.js';
 
 const HANDLERS = {
-  onSelectGame: Noop.noop, onToggle: Noop.noop, onToggleAll: Noop.noop, onCopy: Noop.noop,
+  onSelectGame: Noop.noop, onToggle: Noop.noop, onToggleAll: Noop.noop, onCopy: Noop.noop, onRetry: Noop.noop,
 };
 
 /**
@@ -75,6 +75,19 @@ describe('StaffCopiesHelper', function() {
       });
 
       expect(html).toContain(Translator.t('staff_copies_page.entity_status.copying'));
+    });
+
+    it('renders the pending links list when a target is set, even with no types', function() {
+      const html = render({ types: [], links: [] });
+
+      expect(html).toContain(Translator.t('staff_copies_page.links_title'));
+      expect(html).toContain(Translator.t('staff_copies_page.links_empty'));
+    });
+
+    it('hides the pending links list without a target', function() {
+      const html = render({ selection: { type: 'items', from: 'a', to: '' }, links: [] });
+
+      expect(html).not.toContain(Translator.t('staff_copies_page.links_title'));
     });
 
     it('forwards selector changes with their key', function() {

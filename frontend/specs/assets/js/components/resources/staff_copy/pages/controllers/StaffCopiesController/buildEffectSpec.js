@@ -16,7 +16,7 @@ describe('StaffCopiesController', function() {
    * @returns {void}
    */
   function stubEnsure(results) {
-    ensureSpy.and.callFake(({ quantityType }) => results[quantityType]);
+    ensureSpy.and.callFake(({ quantityType }) => results[quantityType] ?? Promise.resolve({ data: [] }));
   }
 
   /**

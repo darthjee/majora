@@ -20,16 +20,42 @@ function useStaffCopiesState() {
   const [error, setError] = useState(null);
   const [listError, setListError] = useState(null);
   const [run, setRun] = useState(null);
+  const [links, setLinks] = useState(null);
+  const [retrying, setRetrying] = useState([]);
+  const [linkErrors, setLinkErrors] = useState({});
 
   const controller = useMemo(() => new StaffCopiesController({
-    setTypes, setGames, setSelection, setRows, setPagination, setLoading, setError, setListError, setRun,
+    setTypes,
+    setGames,
+    setSelection,
+    setRows,
+    setPagination,
+    setLoading,
+    setError,
+    setListError,
+    setRun,
+    setLinks,
+    setRetrying,
+    setLinkErrors,
   }), []);
 
   useEffect(() => controller.buildEffect()(), [controller]);
 
   return {
     state: {
-      types, games, selection, rows, pagination, loading, error, listError, run, running: Boolean(run?.running),
+      types,
+      games,
+      selection,
+      rows,
+      pagination,
+      loading,
+      error,
+      listError,
+      run,
+      running: Boolean(run?.running),
+      links,
+      retrying,
+      linkErrors,
     },
     controller,
   };
@@ -37,8 +63,8 @@ function useStaffCopiesState() {
 
 /**
  * Render the staff-only game content copy page (issue #1571): source/target game selectors,
- * per-type tabs, the selectable source list, the sequential copy run with its progress, and the
- * re-copy confirmation.
+ * per-type tabs, the selectable source list, the sequential copy run with its progress, the
+ * re-copy confirmation and the pending / failed links list with retry.
  *
  * @returns {React.ReactElement} Staff copy page.
  */

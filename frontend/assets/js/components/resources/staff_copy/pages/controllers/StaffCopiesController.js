@@ -5,6 +5,7 @@ import BasePageController from '../../../../common/base/controllers/BasePageCont
 import StaffCopyUrl from '../helpers/StaffCopyUrl.js';
 import StaffCopyActions from './StaffCopyActions.js';
 import StaffCopyRunner from './StaffCopyRunner.js';
+import StaffCopyLinksController from './StaffCopyLinksController.js';
 
 const COMPONENT_NAME = 'StaffCopiesController';
 const RESOURCE = 'staffCopy';
@@ -18,7 +19,8 @@ const SAME_GAME_ERROR_KEY = 'staff_copies_page.same_game_error';
  *   parallel, resolves the `type`/`from`/`to` selection from the hash query (a stale type falls
  *   back to the first one, unknown games are dropped), lists the copyable rows of the active
  *   type once both games are selected and differ, and runs the sequential copy of the selected
- *   rows (guarding the page against unloading meanwhile). Every state update goes through a safe setter
+ *   rows (guarding the page against unloading meanwhile). The pending / failed links of the
+ *   target game are handled by `this.links` (a `StaffCopyLinksController`). Every state update goes through a safe setter
  *   so updates landing after unmount are ignored. Error state holds i18n keys, translated at
  *   render time.
  */
@@ -36,6 +38,9 @@ export default class StaffCopiesController extends BasePageController {
    * @param {Function} setters.setError - Load error (i18n key) setter.
    * @param {Function} setters.setListError - List load / validation error (i18n key) setter.
    * @param {Function} setters.setRun - Copy run snapshot setter (see `StaffCopyRunner`).
+   * @param {Function} setters.setLinks - Pending / failed links list setter.
+   * @param {Function} setters.setRetrying - Upload ids being retried setter.
+   * @param {Function} setters.setLinkErrors - Upload id to local link error map setter.
    * @param {object} [deps] - Injectable dependencies.
    * @param {StaffCopyActions} [deps.actions] - Outcome-returning copy / link actions.
    * @param {object} [deps.win] - `beforeunload` listener target (defaults to `window`).
@@ -48,6 +53,7 @@ export default class StaffCopiesController extends BasePageController {
     this.selection = { type: '', from: '', to: '' };
     this.mounted = false;
     this.safeSet = this.buildSafeSetter(() => this.mounted);
+    this.links = new StaffCopyLinksController(setters, { actions, safeSet: this.safeSet });
   }
 
   /**
@@ -123,7 +129,7 @@ export default class StaffCopiesController extends BasePageController {
    *
    * @description Publishes progress through `setRun`, guards the page against unloading while
    *   running (leaving mid-run leaves the remaining links pending) and, once done, purges the
-   *   cached copy lists and refreshes the source list.
+   *   cached copy lists and refreshes the source list and the pending links list.
    * @param {object[]} rows - The selected source rows.
    * @returns {Promise<void>} Resolves once every row is processed and the list refreshed.
    */
@@ -136,7 +142,7 @@ export default class StaffCopiesController extends BasePageController {
     this.#guardUnload(false);
     RequestStore.purge({ resource: RESOURCE });
 
-    return this.fetchList();
+    return Promise.all([this.fetchList(), this.links.fetch(to)]).then(() => undefined);
   }
 
   #onBeforeUnload = (event) => {
@@ -170,6 +176,7 @@ export default class StaffCopiesController extends BasePageController {
     this.safeSet(this.setTypes, types);
     this.safeSet(this.setGames, games);
     this.safeSet(this.setSelection, this.selection);
+    if (this.selection.to) this.links.fetch(this.selection.to);
 
     if (!this.#validate()) {
       this.safeSet(this.setLoading, false);

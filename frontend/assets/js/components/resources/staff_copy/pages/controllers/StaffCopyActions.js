@@ -52,6 +52,31 @@ export default class StaffCopyActions {
   }
 
   /**
+   * Renew the upload token of a pending / failed link.
+   *
+   * @param {number} uploadId - Upload id of the link.
+   * @returns {Promise<{ok: boolean, status: (number|undefined), data: (object|null)}>} The
+   *   outcome; on success, `data` is `{upload_id, upload_type, token}`.
+   */
+  async renew(uploadId) {
+    try {
+      const response = await RequestStore.mutate({
+        componentName: COMPONENT_NAME,
+        resource: RESOURCE,
+        method: 'POST',
+        quantityType: 'renew',
+        params: { uploadId },
+        variantName: 'regular',
+      });
+      const data = response.ok ? await response.json() : null;
+
+      return { ok: response.ok, status: response.status, data };
+    } catch {
+      return { ...FAILED, data: null };
+    }
+  }
+
+  /**
    * Link one copied file to its source through the upload proxy.
    *
    * @param {{upload_id: number, upload_type: string, token: string}} link - The pending link.

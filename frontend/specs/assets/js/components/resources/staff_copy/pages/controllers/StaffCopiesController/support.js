@@ -16,6 +16,9 @@ export function buildSetters() {
     setError: jasmine.createSpy('setError'),
     setListError: jasmine.createSpy('setListError'),
     setRun: jasmine.createSpy('setRun'),
+    setLinks: jasmine.createSpy('setLinks'),
+    setRetrying: jasmine.createSpy('setRetrying'),
+    setLinkErrors: jasmine.createSpy('setLinkErrors'),
   };
 }
 

@@ -6,6 +6,7 @@ import StaffCopyGameSelect from '../elements/StaffCopyGameSelect.jsx';
 import StaffCopyTabs from '../elements/StaffCopyTabs.jsx';
 import StaffCopySourceList from '../elements/StaffCopySourceList.jsx';
 import StaffCopyProgress from '../elements/StaffCopyProgress.jsx';
+import StaffCopyLinks from '../elements/StaffCopyLinks.jsx';
 
 const PREFIX = 'staff_copies_page';
 
@@ -28,8 +29,12 @@ export default class StaffCopiesHelper {
    * @param {number[]} state.selectedIds - Selected row ids.
    * @param {boolean} [state.running] - Whether a copy run is in progress.
    * @param {object|null} [state.run] - Copy run snapshot (see `StaffCopyRunner`), or `null`.
+   * @param {object[]|null} [state.links] - Pending / failed links, or `null` until loaded.
+   * @param {number[]} [state.retrying] - Upload ids being retried.
+   * @param {object} [state.linkErrors] - Upload id to local link error i18n key.
    * @param {{onSelectGame: Function, onToggle: Function, onToggleAll: Function,
-   *   onCopy: Function}} handlers - Selector, selection and copy handlers.
+   *   onCopy: Function, onRetry: Function}} handlers - Selector, selection, copy and retry
+   *   handlers.
    * @returns {React.ReactElement} Staff copy page content.
    */
   static render(state, handlers) {
@@ -54,6 +59,13 @@ export default class StaffCopiesHelper {
         </div>
         <StaffCopyProgress run={state.run ?? null} />
         {StaffCopiesHelper.#renderContent(state, handlers)}
+        <StaffCopyLinks
+          target={selection.to}
+          links={state.links ?? null}
+          retrying={state.retrying ?? []}
+          linkErrors={state.linkErrors ?? {}}
+          onRetry={handlers.onRetry}
+        />
       </div>
     );
   }

@@ -32,6 +32,7 @@ export default function buildStaffCopiesHandlers({
       onSelectGame: (key, slug) => controller.changeSelection(key, slug),
       onToggle: selection.onToggle,
       onToggleAll: selection.onToggleAll,
+      onRetry: (link) => controller.links.retry(link),
       onCopy: () => {
         const rows = selection.selectedRows;
 

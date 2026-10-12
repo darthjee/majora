@@ -67,6 +67,9 @@ describe('StaffCopiesController', function() {
       expect(actions.copy).toHaveBeenCalledTimes(2);
       expect(purgeSpy).toHaveBeenCalledWith({ resource: 'staffCopy' });
       expect(ensureSpy).toHaveBeenCalledWith(jasmine.objectContaining({ quantityType: 'collection' }));
+      expect(ensureSpy).toHaveBeenCalledWith(jasmine.objectContaining({
+        quantityType: 'links', query: { to: 'target-game' },
+      }));
     });
 
     it('ignores run updates after unmount', async function() {
