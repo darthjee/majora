@@ -1,6 +1,7 @@
 """Serializers package for the staff app."""
 
 from .staff_copy_common_item import StaffCopyCommonItemSerializer
+from .staff_copy_document import StaffCopyDocumentSerializer
 from .staff_copy_faction import StaffCopyFactionSerializer
 from .staff_copy_game import StaffCopyGameSerializer
 from .staff_copy_item import StaffCopyItemSerializer
@@ -18,6 +19,7 @@ from .statistics_user_identity import StatisticsUserIdentitySerializer
 
 __all__ = [
     'StaffCopyCommonItemSerializer',
+    'StaffCopyDocumentSerializer',
     'StaffCopyFactionSerializer',
     'StaffCopyGameSerializer',
     'StaffCopyItemSerializer',

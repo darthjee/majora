@@ -15,6 +15,7 @@ from games.models import (
 from games.tests.factories import CharacterFactory, GameDocumentFactory, GameFactory
 from staff import copy_links
 from staff.tests.photo_builders import PhotoBuilder
+from uploads.models import Upload
 
 COVER_SLUGS = {
     GameItemPhoto: 'game_item',
@@ -135,12 +136,9 @@ class TestCopyLinkCachePaths:
         self.photo, _ = PhotoBuilder().build('game_item')
 
     def test_default_cache_paths_is_empty(self):
-        """Test that the entries without a registered hook return no paths."""
-        for entry in copy_links.COPY_LINKS:
-            if entry.model not in (
-                GameItemPhoto, GameCommonItemPhoto, GameFactionPhoto, GamePossessionPhoto,
-            ):
-                assert entry.cache_paths(self.photo, None) == []
+        """Test that an entry without a registered hook returns no paths."""
+        entry = copy_links.CoverCopyLink(GameItemPhoto, 'game_item')
+        assert entry.cache_paths(self.photo, None) == []
 
     def test_item_photo_hook_returns_item_copy_cache_paths(self):
         """Test that the `GameItemPhoto` entry clears its item's family and available lists."""
@@ -195,3 +193,72 @@ class TestCopyLinkCachePaths:
             cache_paths=lambda row, upload: [f'/items/{row.pk}.json', upload],
         )
         assert entry.cache_paths(self.photo, 'upload') == [f'/items/{self.photo.pk}.json', 'upload']
+
+
+@pytest.mark.django_db
+class TestDocumentCopyLinkCachePaths:
+    """Tests for the cache-path hooks of the three document entries."""
+
+    def setup_method(self):
+        """Create a target document with a photo, a file and a file photo."""
+        self.game = GameFactory(name='Target', game_slug='target')
+        self.document = GameDocumentFactory(game=self.game)
+        self.photo = GameDocumentPhoto.objects.create(
+            game_document=self.document, path='photos/a.png',
+        )
+        self.file_photo = GameDocumentFilePhoto.objects.create(path='photos/f/photo.png')
+        self.file = GameDocumentFile.objects.create(
+            game_document=self.document, path='files/a.pdf', photo=self.file_photo,
+        )
+
+    def _family(self):
+        """Return the expected documents family paths of the document."""
+        base, pk = '/games/target/documents', self.document.pk
+        return [
+            f'{base}.json', f'{base}/all.json', f'{base}/{pk}.json', f'{base}/{pk}/full.json',
+            f'{base}/{pk}/photos.json', f'{base}/{pk}/photos/all.json',
+            f'{base}/{pk}/files.json', f'{base}/{pk}/files/all.json',
+        ]
+
+    def _characters(self):
+        """Create one PC and one NPC in the target game and return their available paths."""
+        pc = CharacterFactory(game=self.game, npc=False)
+        npc = CharacterFactory(game=self.game, npc=True)
+        return [
+            f'/games/target/pcs/{pc.pk}/documents/available.json',
+            f'/games/target/npcs/{npc.pk}/documents/available.json',
+        ]
+
+    @staticmethod
+    def _paths(model, row, is_cover=False):
+        """Return the cache paths of `row` through its registry entry."""
+        return copy_links.find_for_model(model).cache_paths(row, Upload(is_cover=is_cover))
+
+    def test_cover_photo_clears_family_and_available_lists(self):
+        """Test that a cover photo clears the family plus every PC/NPC available list."""
+        available = self._characters()
+        assert self._paths(GameDocumentPhoto, self.photo, True) == self._family() + available
+
+    def test_cover_photo_without_characters_clears_family_only(self):
+        """Test that a cover photo of a game with no characters clears the family only."""
+        assert self._paths(GameDocumentPhoto, self.photo, True) == self._family()
+
+    def test_non_cover_photo_clears_family_only(self):
+        """Test that a non-cover photo clears the family only, even with characters."""
+        self._characters()
+        assert self._paths(GameDocumentPhoto, self.photo) == self._family()
+
+    def test_file_clears_family_only(self):
+        """Test that a file clears its document's family only."""
+        self._characters()
+        assert self._paths(GameDocumentFile, self.file) == self._family()
+
+    def test_file_photo_clears_family_of_its_file_document(self):
+        """Test that a file photo clears the family of the document of its file."""
+        self._characters()
+        assert self._paths(GameDocumentFilePhoto, self.file_photo) == self._family()
+
+    def test_orphan_file_photo_clears_nothing(self):
+        """Test that a file photo no file points at clears no path."""
+        orphan = GameDocumentFilePhoto.objects.create(path='photos/orphan.png')
+        assert self._paths(GameDocumentFilePhoto, orphan) == []

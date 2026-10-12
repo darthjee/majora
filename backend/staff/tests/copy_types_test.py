@@ -3,10 +3,11 @@
 import pytest
 from django.test import RequestFactory
 
-from games.models import GameCommonItem, GameFaction, GameItem, GamePossession
+from games.models import GameCommonItem, GameDocument, GameFaction, GameItem, GamePossession
 from games.tests.factories import (
     CharacterFactory,
     GameCommonItemFactory,
+    GameDocumentFactory,
     GameFactionFactory,
     GameFactory,
     GameItemFactory,
@@ -16,6 +17,7 @@ from games.tests.factories import (
 from staff import copy_types
 from staff.copy_types import RESERVED_SLUGS, CopyType, ModelCopyType
 from staff.copy_types_common_items import CommonItemsCopyType
+from staff.copy_types_documents import DocumentsCopyType
 from staff.copy_types_factions import FactionsCopyType
 from staff.copy_types_items import ItemsCopyType
 from staff.copy_types_possessions import PossessionsCopyType
@@ -51,9 +53,17 @@ class TestCopyTypesRegistry:
         """Test that `recipes` resolves to the `RecipesCopyType` entry."""
         assert isinstance(copy_types.find('recipes'), RecipesCopyType)
 
+    def test_documents_is_registered_right_after_recipes(self):
+        """Test that `documents` sits between `recipes` and `factions`."""
+        assert copy_types.slugs()[2:4] == ['recipes', 'documents']
+
+    def test_find_documents_returns_the_documents_copy_type(self):
+        """Test that `documents` resolves to the `DocumentsCopyType` entry."""
+        assert isinstance(copy_types.find('documents'), DocumentsCopyType)
+
     def test_factions_is_registered_right_before_possessions(self):
-        """Test that `factions` sits between `recipes` and `possessions`."""
-        assert copy_types.slugs()[2:] == ['recipes', 'factions', 'possessions']
+        """Test that `factions` sits between `documents` and `possessions`."""
+        assert copy_types.slugs()[3:] == ['documents', 'factions', 'possessions']
 
     def test_find_factions_returns_the_factions_copy_type(self):
         """Test that `factions` resolves to the `FactionsCopyType` entry."""
@@ -358,6 +368,37 @@ class TestPossessionsCopyType:
             f'{base}.json', f'{base}/all.json', f'{base}/{self.copy.pk}.json',
             f'{base}/{self.copy.pk}/full.json',
             f'/games/target/pcs/{pc.pk}/possessions/available.json',
+        ]
+
+
+@pytest.mark.django_db
+class TestDocumentsCopyType:
+    """Tests for the `DocumentsCopyType` hooks."""
+
+    def setup_method(self):
+        """Set up the copy type, a target game and a document living in it."""
+        self.copy_type = DocumentsCopyType()
+        self.target = GameFactory(name='Target', game_slug='target')
+        self.copy = GameDocumentFactory(game=self.target)
+
+    def test_slug_and_model(self):
+        """Test that the copy type is registered under `documents` over GameDocument."""
+        assert (self.copy_type.slug, self.copy_type.model) == ('documents', GameDocument)
+
+    def test_copied_fields(self):
+        """Test that name, description and hidden are copied."""
+        assert self.copy_type.copied_fields == ('name', 'description', 'hidden')
+
+    def test_cache_paths_are_family_page_lists_and_available_lists(self):
+        """Test that the cache paths are the family, the page lists and the available lists."""
+        npc = CharacterFactory(game=self.target, npc=True)
+        base, pk = '/games/target/documents', self.copy.pk
+        assert self.copy_type.cache_paths(self.copy) == [
+            f'{base}.json', f'{base}/all.json', f'{base}/{pk}.json', f'{base}/{pk}/full.json',
+            f'{base}/{pk}/photos.json', f'{base}/{pk}/photos/all.json',
+            f'{base}/{pk}/files.json', f'{base}/{pk}/files/all.json',
+            f'{base}/{pk}/pages.json', f'{base}/{pk}/pages/all.json',
+            f'/games/target/npcs/{npc.pk}/documents/available.json',
         ]
 
 

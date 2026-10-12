@@ -25,6 +25,8 @@ staff_copies_page:
   common_item_column: Item comum
   common_item_reused: Reaproveitado
   common_item_will_copy: Será copiado
+  counts_column: Conteúdo
+  document_counts: '{{pages}} páginas / {{photos}} fotos / {{files}} arquivos'
   hidden_badge: Oculto
   status_column: Status
   select_all: Selecionar todos desta página

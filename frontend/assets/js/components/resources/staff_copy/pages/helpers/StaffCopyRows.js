@@ -1,6 +1,7 @@
 import Translator from '../../../../../i18n/Translator.js';
 import StaffCopyFallbackRow from '../elements/StaffCopyFallbackRow.jsx';
 import StaffCopyCommonItemRow from '../elements/rows/StaffCopyCommonItemRow.jsx';
+import StaffCopyDocumentRow from '../elements/rows/StaffCopyDocumentRow.jsx';
 import StaffCopyFactionRow from '../elements/rows/StaffCopyFactionRow.jsx';
 import StaffCopyItemRow from '../elements/rows/StaffCopyItemRow.jsx';
 import StaffCopyPossessionRow from '../elements/rows/StaffCopyPossessionRow.jsx';
@@ -33,6 +34,15 @@ const ROWS = {
   recipes: {
     component: StaffCopyRecipeRow,
     columns: [NAME_COLUMN_KEY, 'staff_copies_page.common_item_column', 'staff_copies_page.hidden_column'],
+  },
+  documents: {
+    component: StaffCopyDocumentRow,
+    columns: [
+      'staff_copies_page.photo_column',
+      NAME_COLUMN_KEY,
+      'staff_copies_page.counts_column',
+      'staff_copies_page.hidden_column',
+    ],
   },
   possessions: {
     component: StaffCopyPossessionRow,

@@ -1,9 +1,9 @@
 """Builders of the hard-link uploads created when a game-content copy carries photos.
 
 `CoverPhotoLinkBuilder` handles a copy's cover photo: the single `photo<ext>` photo (no uuid)
-of items, common items, possessions and factions. Gallery and file variants are left to their
-tabs. Paths are always built server-side from the target game and the copy, never from request
-data.
+of items, common items, possessions and factions. Document gallery photos, files and file
+photos are built by `staff.copy_document_links`. Paths are always built server-side from the
+target game and the copy, never from request data.
 """
 
 import os
