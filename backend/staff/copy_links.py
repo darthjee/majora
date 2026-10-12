@@ -21,7 +21,7 @@ from games.models import (
     GamePossessionPhoto,
 )
 from staff import photo_types
-from staff.copy_cache_paths import items_copy_cache_paths
+from staff.copy_cache_paths import common_items_copy_cache_paths, items_copy_cache_paths
 
 
 class CopyLink:
@@ -120,9 +120,16 @@ def _item_photo_cache_paths(row, upload):
     return items_copy_cache_paths(row.game_item)
 
 
+def _common_item_photo_cache_paths(row, upload):
+    """Return the copy cache paths of the common item owning a linked `GameCommonItemPhoto`."""
+    return common_items_copy_cache_paths(row.game_common_item)
+
+
 COPY_LINKS = (
     CoverCopyLink(GameItemPhoto, 'game_item', cache_paths=_item_photo_cache_paths),
-    CoverCopyLink(GameCommonItemPhoto, 'game_common_item'),
+    CoverCopyLink(
+        GameCommonItemPhoto, 'game_common_item', cache_paths=_common_item_photo_cache_paths,
+    ),
     CoverCopyLink(GameFactionPhoto, 'faction'),
     CoverCopyLink(GamePossessionPhoto, 'game_possession'),
     CoverCopyLink(GameDocumentPhoto, 'game_document'),
