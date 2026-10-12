@@ -1,6 +1,7 @@
 import StaffCopyRows from '../../../../../../../../assets/js/components/resources/staff_copy/pages/helpers/StaffCopyRows.js';
 import StaffCopyFallbackRow from '../../../../../../../../assets/js/components/resources/staff_copy/pages/elements/StaffCopyFallbackRow.jsx';
 import StaffCopyCommonItemRow from '../../../../../../../../assets/js/components/resources/staff_copy/pages/elements/rows/StaffCopyCommonItemRow.jsx';
+import StaffCopyFactionRow from '../../../../../../../../assets/js/components/resources/staff_copy/pages/elements/rows/StaffCopyFactionRow.jsx';
 import StaffCopyItemRow from '../../../../../../../../assets/js/components/resources/staff_copy/pages/elements/rows/StaffCopyItemRow.jsx';
 import StaffCopyPossessionRow from '../../../../../../../../assets/js/components/resources/staff_copy/pages/elements/rows/StaffCopyPossessionRow.jsx';
 import StaffCopyRecipeRow from '../../../../../../../../assets/js/components/resources/staff_copy/pages/elements/rows/StaffCopyRecipeRow.jsx';
@@ -34,6 +35,10 @@ describe('StaffCopyRows', function() {
 
     it('returns the possessions row for the possessions copy type', function() {
       expect(StaffCopyRows.rowFor('possessions')).toBe(StaffCopyPossessionRow);
+    });
+
+    it('returns the factions row for the factions copy type', function() {
+      expect(StaffCopyRows.rowFor('factions')).toBe(StaffCopyFactionRow);
     });
 
     it('falls back to the generic row for an unregistered slug', function() {
@@ -90,6 +95,13 @@ describe('StaffCopyRows', function() {
         Translator.t('staff_copies_page.photo_column'),
         Translator.t('staff_copies_page.name_column'),
         Translator.t('staff_copies_page.hidden_column'),
+      ]);
+    });
+
+    it('returns the photo and name column headers for factions', function() {
+      expect(StaffCopyRows.columnsFor('factions')).toEqual([
+        Translator.t('staff_copies_page.photo_column'),
+        Translator.t('staff_copies_page.name_column'),
       ]);
     });
 
