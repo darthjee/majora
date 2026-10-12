@@ -22,6 +22,9 @@ staff_copies_page:
   hidden_column: Visibilidade
   category_column: Categoria
   price_column: Preço
+  common_item_column: Item comum
+  common_item_reused: Reaproveitado
+  common_item_will_copy: Será copiado
   hidden_badge: Oculto
   status_column: Status
   select_all: Selecionar todos desta página
