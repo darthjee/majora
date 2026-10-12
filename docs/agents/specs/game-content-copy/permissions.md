@@ -74,8 +74,8 @@ or source rows. The implementation issue adds it to that list and to the role ta
   (the cache key is the raw Host, so that would miss aliases/ports and couple the backend to
   proxy hashing); since `game_slug` is globally unique, clearing a game path everywhere is
   correct, and over-clearing only costs a cache miss.
-- Side note: staff photo delete/finalize already has the same single-domain gap today; the
-  cross-domain mode may cover it too, or it can be tracked as its own issue.
+- Staff photo delete/finalize (`DeleteHandler`/`UploadHandler`) now clears across every domain
+  too: both handlers use the same cross-domain mode, given the cache root (issue #1580).
 
 ## Security notes
 

@@ -27,8 +27,10 @@ use Tent\Models\Response;
  *      SecurePhotoStorage (a missing file counts as already deleted).
  *   3. Calls the backend DELETE <base>.json to remove the database record,
  *      and forwards its response through — after clearing any cache paths
- *      its X-Cache-Clear header lists (2xx only, via ResponseCacheClearer)
- *      and stripping that header from what the client receives.
+ *      its X-Cache-Clear header lists (2xx only, via a cross-domain
+ *      ResponseCacheClearer: the cache root and every domain cache folder
+ *      under it, issue #1580) and stripping that header from what the
+ *      client receives.
  *
  * Authorization is enforced by the backend on both calls.
  */
@@ -81,8 +83,8 @@ class DeleteHandler extends RequestHandler
      * Builds a DeleteHandler from configuration parameters.
      *
      * @param array $params Must contain 'host' (string) and 'photos_path' (string);
-     *                      may contain 'cache_path' (string) to enable
-     *                      X-Cache-Clear handling.
+     *                      may contain 'cache_path' (string, the cache root) to
+     *                      enable cross-domain X-Cache-Clear handling.
      * @return self
      */
     public static function build(array $params): self
