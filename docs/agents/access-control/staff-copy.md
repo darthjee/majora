@@ -1,8 +1,7 @@
 # Staff Copy (game content copy)
 
-> **Planned.** These endpoints do not exist yet: this page records the access rules designed in
-> the [Game Content Copy spec](../specs/game-content-copy.md). The implementation issues turn it
-> into a description of current behavior.
+Feature overview (page, copy flow, hard links, per-tab rules):
+[Game Content Copy](../game-content-copy.md).
 
 **[Staff resource](principles.md#resource-categories).** Staff-only endpoints copy game-scoped
 content (items, common items, recipes, documents, factions, possessions) from one game to another,
@@ -48,14 +47,15 @@ Renew resolves `<upload_id>` only after `require_staff`: a non-copy upload is `4
 - `GET /staff/copies/games.json` exposes `slug`, `name` and `domain_groups` (group names only — no
   hosts or other domain configuration) of **every** game, including games outside the caller's
   domain and games without a domain group — staff-only.
-- Source list rows expose the source entity's fields (per tab, see the spec's tab pages) plus
-  `copied_to_target`. Hidden source entities are listed (staff see everything).
+- Source list rows expose the source entity's fields (per tab, see the
+  [tab pages](../game-content-copy.md#tabs)) plus `copied_to_target`. Hidden source entities
+  are listed (staff see everything).
 - Factions list rows also expose `name_taken_in_target`, a boolean derived from the target
   game's faction names (staff-only, like the rest of the list). It reveals only whether the name
-  exists in the target, never the target faction's id or data. See the spec's
-  [factions page](../specs/game-content-copy/factions.md#names).
-- Copy and renew responses expose only `{id}` / `{upload_id, upload_type, token}`: never
-  `file_path` or `source_path`. The `token` goes only to the staff member who created or renewed
+  exists in the target, never the target faction's id or data. See the
+  [factions page](../game-content-copy/factions.md#names).
+- Copy and renew responses expose only `{id, links: [{upload_id, upload_type, token}]}` /
+  `{upload_id, upload_type, token}`: never `file_path` or `source_path`. The `token` goes only to the staff member who created or renewed
   the upload.
 - `GET /staff/copies/links.json` exposes, per link: the copied entity, `upload_id`,
   `upload_type`, `status` and `error` — no paths, no token.
@@ -64,15 +64,15 @@ Renew resolves `<upload_id>` only after `require_staff`: a non-copy upload is `4
 
 ### Exceptions to [Upload](upload.md#fields)
 
-`upload.md` states that `token` is only returned by the init response and that `status`,
-`origin` and `file_path` are never returned. For copy-origin uploads:
+For regular uploads, `token` is only returned by the init response and `status`, `origin` and
+`file_path` are never returned. For copy-origin uploads:
 
 - renew returns a fresh `token` to the renewing staff member;
 - `links.json` exposes `status` and `error`;
 - `PATCH ... status=uploading` returns `source_path` next to `file_path`.
 
-The implementation issue updates `upload.md` (Fields, Read row, plus a "Copy-origin uploads"
-section).
+`upload.md` lists these in its Read row and its
+[Copy-origin uploads](upload.md#copy-origin-uploads) section.
 
 ## Copy-origin `Upload` rules
 
@@ -92,6 +92,4 @@ See also [Upload](upload.md).
 ## Cache
 
 Every response sets `X-Skip-Cache: true`. Copy and copy-link finalize clear the target game's
-cached paths on **every** domain (see the spec's
-[permissions page](../specs/game-content-copy/permissions.md#cache)); until that proxy mode
-exists, target-game pages on other domains may serve stale lists — not a data exposure.
+cached paths on **every** domain (see [Game Content Copy](../game-content-copy.md#cache)).

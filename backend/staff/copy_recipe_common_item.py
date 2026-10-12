@@ -1,6 +1,6 @@
 """Resolution of a copied recipe's required common item in the target game.
 
-See the "Common item" section of `docs/agents/specs/game-content-copy/recipes.md`: the newest
+See the "Common item" section of `docs/agents/game-content-copy/recipes.md`: the newest
 direct copy of the source common item in the target is reused, else the common item is copied
 (inside the caller's transaction) with every common-items rule.
 """

@@ -4,11 +4,10 @@ Every copyable game-content type has one ordered `CopyType` entry here, declarin
 and the model the dispatch uses to look up a copy source. The registry order is the `types`
 order of `GET /staff/copies.json` (the tab order of the copy page).
 
-Each tab issue inserts its entry at the position the spec's tab table gives (`items`,
-`common_items`, `recipes`, `documents`, `factions`, `possessions`), whatever order the tabs are
-merged in. `games` and `links` are reserved: they are fixed URLs under `staff/copies/`, so no
-copy type may use those slugs. The shared list/copy behavior lives in `staff.copy_type_base`.
-This module is free of view/HTTP concerns.
+Entries follow the tab table in `docs/agents/game-content-copy.md` (`items`, `common_items`,
+`recipes`, `documents`, `factions`, `possessions`). `games` and `links` are reserved: they are
+fixed URLs under `staff/copies/`, so no copy type may use those slugs. The shared list/copy
+behavior lives in `staff.copy_type_base`. This module is free of view/HTTP concerns.
 """
 
 from .copy_type_base import CopyType, ModelCopyType

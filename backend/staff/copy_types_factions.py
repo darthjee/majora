@@ -15,7 +15,7 @@ _NAME_TAKEN = {'errors': {'name': ['unique']}}
 
 
 class FactionsCopyType(ModelCopyType):
-    """Copy type of game factions; see `docs/agents/specs/game-content-copy/factions.md`."""
+    """Copy type of game factions; see `docs/agents/game-content-copy/factions.md`."""
 
     copied_fields = ('name',)
 

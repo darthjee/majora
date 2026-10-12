@@ -11,7 +11,7 @@ from .serializers import StaffCopyRecipeSerializer
 
 
 class RecipesCopyType(ModelCopyType):
-    """Copy type of game recipes; see `docs/agents/specs/game-content-copy/recipes.md`."""
+    """Copy type of game recipes; see `docs/agents/game-content-copy/recipes.md`."""
 
     copied_fields = (
         'name', 'description', 'yield_quantity', 'crafting_time', 'crafting_cost',

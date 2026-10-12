@@ -20,6 +20,7 @@ open. For a short abstract of each doc's content, see [summary.md](summary.md) i
 - [Product Definitions](product.md)
 - [Crawler Agent](crawler.md)
 - [Access Statistics](statistics.md)
+- [Game Content Copy](game-content-copy.md)
 
 ## Access & Security
 
