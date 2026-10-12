@@ -1,5 +1,6 @@
 import Translator from '../../../../../i18n/Translator.js';
 import StaffCopyFallbackRow from '../elements/StaffCopyFallbackRow.jsx';
+import StaffCopyCommonItemRow from '../elements/rows/StaffCopyCommonItemRow.jsx';
 import StaffCopyItemRow from '../elements/rows/StaffCopyItemRow.jsx';
 
 const NAME_COLUMN_KEY = 'staff_copies_page.name_column';
@@ -15,6 +16,16 @@ const ROWS = {
   items: {
     component: StaffCopyItemRow,
     columns: ['staff_copies_page.photo_column', NAME_COLUMN_KEY, 'staff_copies_page.hidden_column'],
+  },
+  common_items: {
+    component: StaffCopyCommonItemRow,
+    columns: [
+      'staff_copies_page.photo_column',
+      NAME_COLUMN_KEY,
+      'staff_copies_page.category_column',
+      'staff_copies_page.price_column',
+      'staff_copies_page.hidden_column',
+    ],
   },
 };
 

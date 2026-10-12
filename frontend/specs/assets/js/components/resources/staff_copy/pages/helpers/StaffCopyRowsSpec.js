@@ -1,5 +1,6 @@
 import StaffCopyRows from '../../../../../../../../assets/js/components/resources/staff_copy/pages/helpers/StaffCopyRows.js';
 import StaffCopyFallbackRow from '../../../../../../../../assets/js/components/resources/staff_copy/pages/elements/StaffCopyFallbackRow.jsx';
+import StaffCopyCommonItemRow from '../../../../../../../../assets/js/components/resources/staff_copy/pages/elements/rows/StaffCopyCommonItemRow.jsx';
 import StaffCopyItemRow from '../../../../../../../../assets/js/components/resources/staff_copy/pages/elements/rows/StaffCopyItemRow.jsx';
 import Translator from '../../../../../../../../assets/js/i18n/Translator.js';
 
@@ -19,6 +20,10 @@ describe('StaffCopyRows', function() {
   describe('.rowFor', function() {
     it('returns the items row for the items copy type', function() {
       expect(StaffCopyRows.rowFor('items')).toBe(StaffCopyItemRow);
+    });
+
+    it('returns the common items row for the common_items copy type', function() {
+      expect(StaffCopyRows.rowFor('common_items')).toBe(StaffCopyCommonItemRow);
     });
 
     it('falls back to the generic row for an unregistered slug', function() {
@@ -48,6 +53,16 @@ describe('StaffCopyRows', function() {
       expect(StaffCopyRows.columnsFor('items')).toEqual([
         Translator.t('staff_copies_page.photo_column'),
         Translator.t('staff_copies_page.name_column'),
+        Translator.t('staff_copies_page.hidden_column'),
+      ]);
+    });
+
+    it('returns the photo, name, category, price and hidden column headers for common_items', function() {
+      expect(StaffCopyRows.columnsFor('common_items')).toEqual([
+        Translator.t('staff_copies_page.photo_column'),
+        Translator.t('staff_copies_page.name_column'),
+        Translator.t('staff_copies_page.category_column'),
+        Translator.t('staff_copies_page.price_column'),
         Translator.t('staff_copies_page.hidden_column'),
       ]);
     });
