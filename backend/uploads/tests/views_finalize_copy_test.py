@@ -7,11 +7,17 @@ import pytest
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
 
-from games.models import GameCommonItemPhoto, GameDocumentFile, GameItemPhoto
+from games.models import (
+    GameCommonItemPhoto,
+    GameDocumentFile,
+    GameFactionPhoto,
+    GameItemPhoto,
+)
 from games.tests.factories import (
     CharacterFactory,
     GameCommonItemFactory,
     GameDocumentFactory,
+    GameFactionFactory,
     GameFactory,
     GameItemFactory,
     PlayerFactory,
@@ -121,12 +127,28 @@ class TestCopyFinalizeLinkFlow(CopyFinalizeSupport):
 
     def test_uploaded_has_no_cache_clear_by_default(self, client):
         """Test that an entry without a hook sends no `X-Cache-Clear`."""
+        faction = GameFactionFactory(game=self.game)
+        photo = GameFactionPhoto.objects.create(
+            faction=faction, path='photos/games/target/copy.png', ready=False
+        )
+        response = self.finalize(client, self.copy_upload(photo))
+        assert not response.has_header('X-Cache-Clear')
+
+    def test_uploaded_common_item_cover_sets_photo_and_sends_family_cache_clear(self, client):
+        """Test that a common item cover finalize sets its photo and clears its family only."""
+        CharacterFactory(game=self.game, npc=True)
         common_item = GameCommonItemFactory(game=self.game)
         photo = GameCommonItemPhoto.objects.create(
             game_common_item=common_item, path='photos/games/target/copy.png', ready=False
         )
-        response = self.finalize(client, self.copy_upload(photo))
-        assert not response.has_header('X-Cache-Clear')
+        response = self.finalize(client, self.copy_upload(photo, is_cover=True))
+        common_item.refresh_from_db()
+        assert common_item.photo_id == photo.pk
+        slug, pk = self.game.game_slug, common_item.pk
+        assert response['X-Cache-Clear'] == ', '.join([
+            f'/games/{slug}/common_items.json', f'/games/{slug}/common_items/all.json',
+            f'/games/{slug}/common_items/{pk}.json', f'/games/{slug}/common_items/{pk}/full.json',
+        ])
 
     def test_uploaded_item_cover_sends_item_copy_cache_clear(self, client):
         """Test that an item cover finalize clears the item family and available lists."""
