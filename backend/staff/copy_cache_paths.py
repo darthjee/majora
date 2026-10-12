@@ -13,6 +13,7 @@ from .photo_cache_paths import (
 )
 
 _AVAILABLE_ITEMS = GameCharactersAvailableCachePaths('items')
+_AVAILABLE_POSSESSIONS = GameCharactersAvailableCachePaths('possessions')
 _RECIPES = GameResourceCachePaths('recipes', **FULL_FAMILY)
 
 
@@ -36,3 +37,9 @@ def common_item_recipes_cache_paths(common_item):
 def recipes_copy_cache_paths(recipe):
     """Return the recipe family of `recipe` plus its common item's nested recipe lists."""
     return _RECIPES.paths(recipe) + common_item_recipes_cache_paths(recipe.game_common_item)
+
+
+def possessions_copy_cache_paths(possession):
+    """Return the possession family of `possession` plus every character's available list."""
+    family = photo_types.find('game_possession').cache_paths(possession)
+    return family + _AVAILABLE_POSSESSIONS.paths(possession.game)
