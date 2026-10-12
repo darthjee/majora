@@ -11,7 +11,7 @@ from .serializers import StaffCopyDocumentSerializer
 
 
 class DocumentsCopyType(ModelCopyType):
-    """Copy type of game documents; see `docs/agents/specs/game-content-copy/documents.md`."""
+    """Copy type of game documents; see `docs/agents/game-content-copy/documents.md`."""
 
     copied_fields = ('name', 'description', 'hidden')
 

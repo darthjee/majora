@@ -1,8 +1,8 @@
 """Proxy cache paths of a target game made stale by a game-content copy.
 
 Shared by the copy types (the copy `201`) and the copy-link registry (the link finalize), so
-both send the same `X-Cache-Clear` paths, following the "Cache" section of each tab spec under
-`docs/agents/specs/game-content-copy/`.
+both send the same `X-Cache-Clear` paths, following the "Cache" section of each tab page under
+`docs/agents/game-content-copy/`.
 """
 
 from . import photo_types

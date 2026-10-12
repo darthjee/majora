@@ -9,7 +9,7 @@ from .serializers import StaffCopyItemSerializer
 
 
 class ItemsCopyType(ModelCopyType):
-    """Copy type of game items; see `docs/agents/specs/game-content-copy/items.md`."""
+    """Copy type of game items; see `docs/agents/game-content-copy/items.md`."""
 
     copied_fields = ('name', 'description', 'hidden')
 

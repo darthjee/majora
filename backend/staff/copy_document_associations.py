@@ -3,7 +3,7 @@
 Used by the `documents` copy type inside its copy transaction. Only rows are written (no file
 I/O): pages are recreated at `version=1` with no page history, and every ready photo, file and
 file photo becomes a not-ready row of the copy with one pending copy-origin `Upload`. See
-`docs/agents/specs/game-content-copy/documents.md`.
+`docs/agents/game-content-copy/documents.md`.
 """
 
 from games.models import GameDocumentPage

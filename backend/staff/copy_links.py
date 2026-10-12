@@ -6,7 +6,7 @@ becomes its owner's cover, and which proxy cache paths its finalize clears. This
 free of view/HTTP concerns.
 
 `cache_paths(row, upload)` is a **per-type hook** following the "Cache" section of each tab
-spec under `docs/agents/specs/game-content-copy/` (`items.md`, `common-items.md`, `documents.md`,
+page under `docs/agents/game-content-copy/` (`items.md`, `common-items.md`, `documents.md`,
 `factions.md`, `possessions.md`). Every entry below plugs its builder in by passing
 `cache_paths=<callable(row, upload)>`; an entry without a hook returns `[]`.
 """
