@@ -12,6 +12,7 @@ from games.models import (
     GameDocumentFile,
     GameFactionPhoto,
     GameItemPhoto,
+    GamePossessionPhoto,
 )
 from games.tests.factories import (
     CharacterFactory,
@@ -20,6 +21,7 @@ from games.tests.factories import (
     GameFactionFactory,
     GameFactory,
     GameItemFactory,
+    GamePossessionFactory,
     PlayerFactory,
     SuperUserFactory,
     UserFactory,
@@ -149,6 +151,35 @@ class TestCopyFinalizeLinkFlow(CopyFinalizeSupport):
             f'/games/{slug}/common_items.json', f'/games/{slug}/common_items/all.json',
             f'/games/{slug}/common_items/{pk}.json', f'/games/{slug}/common_items/{pk}/full.json',
         ])
+
+    def test_uploaded_possession_cover_sets_photo_and_sends_copy_cache_clear(self, client):
+        """Test that a possession cover finalize sets its photo and clears family and lists."""
+        pc = CharacterFactory(game=self.game, npc=False)
+        possession, photo = self._possession_photo()
+        response = self.finalize(client, self.copy_upload(photo, is_cover=True))
+        possession.refresh_from_db()
+        assert possession.photo_id == photo.pk
+        slug, pk = self.game.game_slug, possession.pk
+        assert response['X-Cache-Clear'] == ', '.join([
+            f'/games/{slug}/possessions.json', f'/games/{slug}/possessions/all.json',
+            f'/games/{slug}/possessions/{pk}.json', f'/games/{slug}/possessions/{pk}/full.json',
+            f'/games/{slug}/pcs/{pc.pk}/possessions/available.json',
+        ])
+
+    def test_uploaded_possession_non_cover_skips_set_possession_photo(self, client):
+        """Test that a non-cover possession copy does not run `_set_possession_photo`."""
+        possession, photo = self._possession_photo()
+        self.finalize(client, self.copy_upload(photo))
+        possession.refresh_from_db()
+        assert possession.photo_id is None
+
+    def _possession_photo(self):
+        """Create a target possession and a not-ready copied photo of it."""
+        possession = GamePossessionFactory(game=self.game)
+        photo = GamePossessionPhoto.objects.create(
+            game_possession=possession, path='photos/games/target/copy.png', ready=False
+        )
+        return possession, photo
 
     def test_uploaded_item_cover_sends_item_copy_cache_clear(self, client):
         """Test that an item cover finalize clears the item family and available lists."""
