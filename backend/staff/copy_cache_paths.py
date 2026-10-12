@@ -6,9 +6,14 @@ both send the same `X-Cache-Clear` paths, following the "Cache" section of each 
 """
 
 from . import photo_types
-from .photo_cache_paths import GameCharactersAvailableCachePaths
+from .photo_cache_paths import (
+    FULL_FAMILY,
+    GameCharactersAvailableCachePaths,
+    GameResourceCachePaths,
+)
 
 _AVAILABLE_ITEMS = GameCharactersAvailableCachePaths('items')
+_RECIPES = GameResourceCachePaths('recipes', **FULL_FAMILY)
 
 
 def items_copy_cache_paths(item):
@@ -20,3 +25,14 @@ def items_copy_cache_paths(item):
 def common_items_copy_cache_paths(common_item):
     """Return the common item family of `common_item` (no `available.json`, no recipes)."""
     return photo_types.find('game_common_item').cache_paths(common_item)
+
+
+def common_item_recipes_cache_paths(common_item):
+    """Return the nested recipe lists of `common_item`: `recipes.json` and `recipes/all.json`."""
+    base = f'/games/{common_item.game.game_slug}/common_items/{common_item.pk}/recipes'
+    return [f'{base}.json', f'{base}/all.json']
+
+
+def recipes_copy_cache_paths(recipe):
+    """Return the recipe family of `recipe` plus its common item's nested recipe lists."""
+    return _RECIPES.paths(recipe) + common_item_recipes_cache_paths(recipe.game_common_item)

@@ -7,6 +7,7 @@ direct copy of the source common item in the target is reused, else the common i
 
 from games.models import GameCommonItem
 
+from .copy_cache_paths import common_items_copy_cache_paths
 from .copy_types_common_items import CommonItemsCopyType
 
 _COMMON_ITEMS = CommonItemsCopyType()
@@ -23,7 +24,9 @@ class ResolvedCommonItem:
 
     def cache_paths(self):
         """Return the stale paths of the common item itself: its family when it was copied."""
-        return []
+        if not self.copied:
+            return []
+        return common_items_copy_cache_paths(self.common_item)
 
 
 class RecipeCommonItemResolver:

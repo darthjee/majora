@@ -4,6 +4,7 @@ from django.db.models import Exists, OuterRef
 
 from games.models import GameCommonItem, GameRecipe
 
+from .copy_cache_paths import recipes_copy_cache_paths
 from .copy_recipe_common_item import RecipeCommonItemResolver
 from .copy_type_base import ModelCopyType
 from .serializers import StaffCopyRecipeSerializer
@@ -50,6 +51,10 @@ class RecipesCopyType(ModelCopyType):
         """Copy `source` into `target_game` and return `(copy, uploads)`."""
         copy, uploads, _ = self.copy_result(request, source, target_game)
         return copy, uploads
+
+    def cache_paths(self, copy):
+        """Return the target's recipe family and the common item's nested recipe lists."""
+        return recipes_copy_cache_paths(copy)
 
     def _create_recipe(self, source, target_game, common_item):
         """Create the recipe copy in `target_game`, pointing to `common_item`."""
