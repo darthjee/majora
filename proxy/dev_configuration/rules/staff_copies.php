@@ -5,7 +5,7 @@
  *
  * Copying content into a game makes that game's cached data stale on every
  * domain it is served from, not just the domain the staff member used (see
- * docs/agents/specs/game-content-copy/permissions.md#cache). This rule
+ * docs/agents/game-content-copy.md#cache). This rule
  * proxies to the backend like rules/backend.php (same cache folder and
  * X-Skip-Cache), but its ResponseCacheClearMiddleware runs in cross-domain
  * mode: the X-Cache-Clear paths are cleared in the cache root and in every
