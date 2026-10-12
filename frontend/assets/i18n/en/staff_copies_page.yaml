@@ -18,6 +18,9 @@ staff_copies_page:
     possessions: Possessions
   select_column: Select
   name_column: Name
+  photo_column: Photo
+  hidden_column: Visibility
+  hidden_badge: Hidden
   status_column: Status
   select_all: Select all on this page
   copied_to_target: Already copied
