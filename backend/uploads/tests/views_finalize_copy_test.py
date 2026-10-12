@@ -10,6 +10,7 @@ from rest_framework.authtoken.models import Token
 from games.models import (
     GameCommonItemPhoto,
     GameDocumentFile,
+    GameDocumentPhoto,
     GameFactionPhoto,
     GameItemPhoto,
     GamePossessionPhoto,
@@ -129,12 +130,42 @@ class TestCopyFinalizeLinkFlow(CopyFinalizeSupport):
 
     def test_uploaded_has_no_cache_clear_by_default(self, client):
         """Test that an entry without a hook sends no `X-Cache-Clear`."""
+        document = GameDocumentFactory(game=self.game)
+        photo = GameDocumentPhoto.objects.create(
+            game_document=document, path='photos/games/target/copy.png', ready=False
+        )
+        response = self.finalize(client, self.copy_upload(photo))
+        assert not response.has_header('X-Cache-Clear')
+
+    def test_uploaded_faction_cover_sets_photo_and_sends_copy_cache_clear(self, client):
+        """Test that a faction cover finalize sets its photo and clears family and lists."""
+        pc = CharacterFactory(game=self.game, npc=False)
+        npc = CharacterFactory(game=self.game, npc=True)
+        faction, photo = self._faction_photo()
+        response = self.finalize(client, self.copy_upload(photo, is_cover=True))
+        faction.refresh_from_db()
+        assert faction.photo_id == photo.pk
+        slug, pk = self.game.game_slug, faction.pk
+        assert response['X-Cache-Clear'] == ', '.join([
+            f'/games/{slug}/factions.json', f'/games/{slug}/factions/{pk}.json',
+            f'/games/{slug}/pcs/{pc.pk}/factions/available.json',
+            f'/games/{slug}/npcs/{npc.pk}/factions/available.json',
+        ])
+
+    def test_uploaded_faction_non_cover_skips_set_faction_photo(self, client):
+        """Test that a non-cover faction copy leaves the faction's `photo` unchanged."""
+        faction, photo = self._faction_photo()
+        self.finalize(client, self.copy_upload(photo))
+        faction.refresh_from_db()
+        assert faction.photo_id is None
+
+    def _faction_photo(self):
+        """Create a target faction and a not-ready copied photo of it."""
         faction = GameFactionFactory(game=self.game)
         photo = GameFactionPhoto.objects.create(
             faction=faction, path='photos/games/target/copy.png', ready=False
         )
-        response = self.finalize(client, self.copy_upload(photo))
-        assert not response.has_header('X-Cache-Clear')
+        return faction, photo
 
     def test_uploaded_common_item_cover_sets_photo_and_sends_family_cache_clear(self, client):
         """Test that a common item cover finalize sets its photo and clears its family only."""
