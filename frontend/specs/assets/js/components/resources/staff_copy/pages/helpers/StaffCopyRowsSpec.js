@@ -2,6 +2,7 @@ import StaffCopyRows from '../../../../../../../../assets/js/components/resource
 import StaffCopyFallbackRow from '../../../../../../../../assets/js/components/resources/staff_copy/pages/elements/StaffCopyFallbackRow.jsx';
 import StaffCopyCommonItemRow from '../../../../../../../../assets/js/components/resources/staff_copy/pages/elements/rows/StaffCopyCommonItemRow.jsx';
 import StaffCopyItemRow from '../../../../../../../../assets/js/components/resources/staff_copy/pages/elements/rows/StaffCopyItemRow.jsx';
+import StaffCopyPossessionRow from '../../../../../../../../assets/js/components/resources/staff_copy/pages/elements/rows/StaffCopyPossessionRow.jsx';
 import StaffCopyRecipeRow from '../../../../../../../../assets/js/components/resources/staff_copy/pages/elements/rows/StaffCopyRecipeRow.jsx';
 import Translator from '../../../../../../../../assets/js/i18n/Translator.js';
 
@@ -29,6 +30,10 @@ describe('StaffCopyRows', function() {
 
     it('returns the recipes row for the recipes copy type', function() {
       expect(StaffCopyRows.rowFor('recipes')).toBe(StaffCopyRecipeRow);
+    });
+
+    it('returns the possessions row for the possessions copy type', function() {
+      expect(StaffCopyRows.rowFor('possessions')).toBe(StaffCopyPossessionRow);
     });
 
     it('falls back to the generic row for an unregistered slug', function() {
@@ -76,6 +81,14 @@ describe('StaffCopyRows', function() {
       expect(StaffCopyRows.columnsFor('recipes')).toEqual([
         Translator.t('staff_copies_page.name_column'),
         Translator.t('staff_copies_page.common_item_column'),
+        Translator.t('staff_copies_page.hidden_column'),
+      ]);
+    });
+
+    it('returns the photo, name and hidden column headers for possessions', function() {
+      expect(StaffCopyRows.columnsFor('possessions')).toEqual([
+        Translator.t('staff_copies_page.photo_column'),
+        Translator.t('staff_copies_page.name_column'),
         Translator.t('staff_copies_page.hidden_column'),
       ]);
     });
