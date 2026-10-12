@@ -40,12 +40,15 @@ class CopyType:
 class ModelCopyType(CopyType):
     """Copy type over a model with `game` and `copied_from` FKs, listing and copying its rows.
 
-    Subclasses set `serializer_class` (the list row serializer, reading the `copied_to_target`
-    annotation) and `copied_fields` (the source fields copied verbatim).
+    Subclasses implement `serializer_class` (returning the list row serializer, reading the
+    `copied_to_target` annotation) and set `copied_fields` (the source fields copied verbatim).
     """
 
-    serializer_class = None
     copied_fields = ()
+
+    def serializer_class(self):
+        """Return the list row serializer class, reading the `copied_to_target` annotation."""
+        raise NotImplementedError
 
     def source_queryset(self, from_game):
         """Return the rows of `from_game` to list, ordered by id."""
@@ -59,7 +62,7 @@ class ModelCopyType(CopyType):
     def list(self, request, from_game, to_game):
         """Return the paginated, serialized rows with the paginator headers."""
         page, headers = Paginator(request, self.list_queryset(from_game, to_game)).paginate()
-        serializer = self.serializer_class(page, many=True)
+        serializer = self.serializer_class()(page, many=True)
         return Response(serializer.data, headers=headers)
 
     def copy(self, request, source, target_game):

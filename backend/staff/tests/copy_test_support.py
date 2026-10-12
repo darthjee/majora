@@ -133,7 +133,6 @@ class ScaffoldRowSerializer(serializers.ModelSerializer):
 class ScaffoldCopyType(ModelCopyType):
     """`ModelCopyType` over `GameItem` with configurable association uploads and cache paths."""
 
-    serializer_class = ScaffoldRowSerializer
     copied_fields = ('name', 'description', 'hidden')
 
     def __init__(self, uploads=(), paths=()):
@@ -142,6 +141,10 @@ class ScaffoldCopyType(ModelCopyType):
         self._uploads = list(uploads)
         self._paths = list(paths)
         self.association_calls = []
+
+    def serializer_class(self):
+        """Return the scaffold list row serializer."""
+        return ScaffoldRowSerializer
 
     def copy_associations(self, request, source, copy):
         """Record the call and return the configured uploads."""

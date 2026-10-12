@@ -6,7 +6,7 @@ from django.test import RequestFactory
 from games.models import GameItem
 from games.tests.factories import GameFactory, GameItemFactory, UserFactory
 from staff import copy_types
-from staff.copy_types import RESERVED_SLUGS, CopyType
+from staff.copy_types import RESERVED_SLUGS, CopyType, ModelCopyType
 from staff.copy_types_items import ItemsCopyType
 from staff.tests.copy_test_support import FakeCopyType, ScaffoldCopyType, register_copy_types
 from uploads.models import Upload
@@ -103,6 +103,11 @@ class TestModelCopyTypeList:
         """Test that every row of the source game is listed, ordered by id."""
         ids = [row['id'] for row in self._list().data]
         assert ids == [self.first.id, self.second.id]
+
+    def test_base_serializer_class_raises_not_implemented(self):
+        """Test that the base `serializer_class` hook is not implemented."""
+        with pytest.raises(NotImplementedError):
+            ModelCopyType('items', GameItem).serializer_class()
 
     def test_rows_use_the_serializer_class(self):
         """Test that the rows are serialized with the copy type's serializer."""

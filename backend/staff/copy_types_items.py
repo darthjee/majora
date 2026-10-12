@@ -11,12 +11,15 @@ from .serializers import StaffCopyItemSerializer
 class ItemsCopyType(ModelCopyType):
     """Copy type of game items; see `docs/agents/specs/game-content-copy/items.md`."""
 
-    serializer_class = StaffCopyItemSerializer
     copied_fields = ('name', 'description', 'hidden')
 
     def __init__(self):
         """Configure the `items` slug over `GameItem`."""
         super().__init__('items', GameItem)
+
+    def serializer_class(self):
+        """Return the items list row serializer."""
+        return StaffCopyItemSerializer
 
     def source_queryset(self, from_game):
         """Return the game's items, ordered by id, with their cover preloaded."""
