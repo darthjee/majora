@@ -3,10 +3,17 @@
 import pytest
 from django.test import RequestFactory
 
-from games.models import GameItem
-from games.tests.factories import GameFactory, GameItemFactory, UserFactory
+from games.models import GameCommonItem, GameItem
+from games.tests.factories import (
+    CharacterFactory,
+    GameCommonItemFactory,
+    GameFactory,
+    GameItemFactory,
+    UserFactory,
+)
 from staff import copy_types
 from staff.copy_types import RESERVED_SLUGS, CopyType, ModelCopyType
+from staff.copy_types_common_items import CommonItemsCopyType
 from staff.copy_types_items import ItemsCopyType
 from staff.tests.copy_test_support import FakeCopyType, ScaffoldCopyType, register_copy_types
 from uploads.models import Upload
@@ -22,6 +29,14 @@ class TestCopyTypesRegistry:
     def test_find_items_returns_the_items_copy_type(self):
         """Test that `items` resolves to the `ItemsCopyType` entry."""
         assert isinstance(copy_types.find('items'), ItemsCopyType)
+
+    def test_common_items_is_registered_right_after_items(self):
+        """Test that `common_items` is the second registered copy type."""
+        assert copy_types.slugs()[:2] == ['items', 'common_items']
+
+    def test_find_common_items_returns_the_common_items_copy_type(self):
+        """Test that `common_items` resolves to the `CommonItemsCopyType` entry."""
+        assert isinstance(copy_types.find('common_items'), CommonItemsCopyType)
 
     def test_find_unknown_slug_returns_none(self):
         """Test that an unregistered slug resolves to None."""
@@ -223,6 +238,64 @@ class TestModelCopyTypeCopy:
         with pytest.raises(RuntimeError):
             self._copy(copy_type)
         assert not self.item.copies.exists()
+
+
+@pytest.mark.django_db
+class TestModelCopyTypeCopyInstance:
+    """Tests for the public, transaction-agnostic `ModelCopyType.copy_instance`."""
+
+    def setup_method(self):
+        """Set up a source item, a target game and a copy-origin upload."""
+        self.source_game = GameFactory(name='Source', game_slug='source')
+        self.target = GameFactory(name='Target', game_slug='target')
+        self.item = GameItemFactory(game=self.source_game, name='Sword')
+        self.upload = Upload.objects.create(
+            user=UserFactory(), file_path='photos/x.png', origin=Upload.ORIGIN_COPY,
+        )
+        self.request = RequestFactory().post('/staff/copies/items/1.json')
+
+    def test_returns_the_copy_and_its_uploads(self):
+        """Test that `copy_instance` returns `(copy, uploads)` rather than a Response."""
+        copy_type = ScaffoldCopyType(uploads=[self.upload])
+        copy, uploads = copy_type.copy_instance(self.request, self.item, self.target)
+        assert (copy.game, copy.copied_from, copy.name) == (self.target, self.item, 'Sword')
+        assert uploads == [self.upload]
+
+    def test_calls_copy_associations(self):
+        """Test that `copy_instance` runs the association hook with the source and copy."""
+        copy_type = ScaffoldCopyType()
+        copy, _ = copy_type.copy_instance(self.request, self.item, self.target)
+        assert copy_type.association_calls == [(self.item, copy)]
+
+
+@pytest.mark.django_db
+class TestCommonItemsCopyType:
+    """Tests for the `CommonItemsCopyType` hooks."""
+
+    def setup_method(self):
+        """Set up the copy type, a target game and a common item living in it."""
+        self.copy_type = CommonItemsCopyType()
+        self.target = GameFactory(name='Target', game_slug='target')
+        self.copy = GameCommonItemFactory(game=self.target)
+
+    def test_slug_and_model(self):
+        """Test that the copy type is registered under `common_items` over GameCommonItem."""
+        assert (self.copy_type.slug, self.copy_type.model) == ('common_items', GameCommonItem)
+
+    def test_copied_fields(self):
+        """Test that name, price, description, category and hidden are copied."""
+        assert self.copy_type.copied_fields == (
+            'name', 'price', 'description', 'category', 'hidden',
+        )
+
+    def test_cache_paths_are_the_common_item_family(self):
+        """Test that the cache paths are the common item family, without available lists."""
+        CharacterFactory(game=self.target)
+        base = '/games/target/common_items'
+        assert self.copy_type.cache_paths(self.copy) == [
+            f'{base}.json', f'{base}/all.json', f'{base}/{self.copy.pk}.json',
+            f'{base}/{self.copy.pk}/full.json',
+        ]
 
 
 def _raise_runtime_error(*_args):
