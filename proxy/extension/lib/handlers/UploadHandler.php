@@ -61,7 +61,7 @@ class UploadHandler extends RequestHandler
     /** @var string Base path where 'file' uploads are written */
     private string $filesBasePath;
 
-    /** @var ResponseCacheClearer Clears cache paths listed in X-Cache-Clear. */
+    /** @var ResponseCacheClearer Cross-domain clearer for X-Cache-Clear paths. */
     private ResponseCacheClearer $cacheClearer;
 
     /**
@@ -69,20 +69,20 @@ class UploadHandler extends RequestHandler
      * @param HttpClientInterface|null $httpClient     HTTP client (defaults to CurlHttpClient).
      * @param string                   $photosBasePath Base directory for 'image' upload storage.
      * @param string                   $filesBasePath  Base directory for 'file' upload storage.
-     * @param string                   $cachePath      Cache folder X-Cache-Clear paths are cleared
-     *                                                 from ('' disables clearing).
+     * @param string                   $cacheRoot      Cache root cleared across every domain
+     *                                                 folder ('' disables clearing).
      */
     public function __construct(
         string $host,
         ?HttpClientInterface $httpClient=null,
         string $photosBasePath='',
         string $filesBasePath='',
-        string $cachePath=''
+        string $cacheRoot=''
     ) {
         $this->client = new BackendClient($host, $httpClient);
         $this->photosBasePath = $photosBasePath;
         $this->filesBasePath = $filesBasePath;
-        $this->cacheClearer = ResponseCacheClearer::forPath($cachePath);
+        $this->cacheClearer = ResponseCacheClearer::forRoot($cacheRoot);
     }
 
     /**

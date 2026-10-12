@@ -1196,7 +1196,8 @@ class UploadHandlerTest extends TestCase
     }
 
     /**
-     * build() wires 'cache_path' into the handler's ResponseCacheClearer.
+     * build() wires 'cache_path' into the handler's ResponseCacheClearer as
+     * the cross-domain cache root.
      */
     public function testBuildPassesCachePathToClearer(): void
     {
@@ -1213,9 +1214,114 @@ class UploadHandlerTest extends TestCase
         $prop->setAccessible(true);
         $clearer = $prop->getValue($handler);
 
-        $location = (new \ReflectionClass($clearer))->getProperty('location');
-        $location->setAccessible(true);
+        $root = (new \ReflectionClass($clearer))->getProperty('root');
+        $root->setAccessible(true);
 
-        $this->assertSame('/tmp/some_cache', $location->getValue($clearer)->basePath());
+        $this->assertSame('/tmp/some_cache', $root->getValue($clearer));
+    }
+
+    // -------------------------------------------------------------------------
+    // Cross-domain clearing (issue #1580)
+    // -------------------------------------------------------------------------
+
+    /**
+     * Runs a successful image upload for photo 42 against $cacheDir as the
+     * cache root, with $finalizeHeaders on the 'uploaded' response.
+     */
+    private function runUploadWithCacheRoot(string $cacheDir, array $finalizeHeaders): Response
+    {
+        $tmpFile    = $this->makeTmpFile();
+        $httpClient = $this->createMock(HttpClientInterface::class);
+        $handler    = new UploadHandler('http://backend:8080', $httpClient, $this->photosDir, $this->filesDir, $cacheDir);
+
+        $request = $this->makeRequest(
+            $this->submitPath('image', '42'),
+            ['tmp_name' => $tmpFile, 'type' => 'image/jpeg', 'name' => 'photo.jpg', 'size' => 10, 'error' => 0]
+        );
+
+        $httpClient->expects($this->exactly(2))
+            ->method('request')
+            ->willReturnOnConsecutiveCalls(
+                ['httpCode' => 200, 'body' => '{"file_path":"42/photo.jpg"}', 'headers' => []],
+                ['httpCode' => 200, 'body' => '{}', 'headers' => $finalizeHeaders]
+            );
+
+        try {
+            return $handler->handleRequest($request);
+        } finally {
+            unlink($tmpFile);
+        }
+    }
+
+    /**
+     * Cache folders used by the cross-domain tests: the root itself and two
+     * domain_<sha256> folders under it.
+     *
+     * @return string[]
+     */
+    private function crossDomainFolders(string $cacheDir): array
+    {
+        return [
+            $cacheDir,
+            $cacheDir . '/domain_' . hash('sha256', 'a.example'),
+            $cacheDir . '/domain_' . hash('sha256', 'b.example'),
+        ];
+    }
+
+    /**
+     * A successful staff finalize clears the X-Cache-Clear paths from the
+     * cache root and from every domain_<sha256> folder under it, leaving
+     * unlisted paths untouched.
+     */
+    public function testFinalizeClearsCacheAcrossDomains(): void
+    {
+        $cacheDir  = $this->photosDir . '_cache';
+        $listed    = [];
+        $untouched = [];
+        foreach ($this->crossDomainFolders($cacheDir) as $folder) {
+            $listed[]    = $this->makeCacheEntry($folder, '/games/foo/npcs.json');
+            $untouched[] = $this->makeCacheEntry($folder, '/games/foo/pcs.json');
+        }
+
+        try {
+            $response = $this->runUploadWithCacheRoot($cacheDir, ['X-Cache-Clear: /games/foo/npcs.json']);
+
+            $this->assertSame(200, $response->httpCode());
+            foreach ($response->headers() as $line) {
+                $this->assertStringNotContainsStringIgnoringCase('x-cache-clear', (string) $line);
+            }
+            foreach ($listed as $dir) {
+                $this->assertDirectoryDoesNotExist($dir);
+            }
+            foreach ($untouched as $dir) {
+                $this->assertDirectoryExists($dir);
+            }
+        } finally {
+            $this->removeDir($cacheDir);
+        }
+    }
+
+    /**
+     * A successful finalize without X-Cache-Clear (the regular upload) clears
+     * nothing, in the root or in any domain folder.
+     */
+    public function testFinalizeWithoutXCacheClearClearsNothingInAnyDomain(): void
+    {
+        $cacheDir = $this->photosDir . '_cache';
+        $entries  = [];
+        foreach ($this->crossDomainFolders($cacheDir) as $folder) {
+            $entries[] = $this->makeCacheEntry($folder, '/games/foo/npcs.json');
+        }
+
+        try {
+            $response = $this->runUploadWithCacheRoot($cacheDir, []);
+
+            $this->assertSame(200, $response->httpCode());
+            foreach ($entries as $dir) {
+                $this->assertDirectoryExists($dir);
+            }
+        } finally {
+            $this->removeDir($cacheDir);
+        }
     }
 }

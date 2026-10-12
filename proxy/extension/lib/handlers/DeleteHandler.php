@@ -55,26 +55,26 @@ class DeleteHandler extends RequestHandler
     /** @var SecurePhotoStorage Guards file deletion against path traversal. */
     private SecurePhotoStorage $photoStorage;
 
-    /** @var ResponseCacheClearer Clears cache paths listed in X-Cache-Clear. */
+    /** @var ResponseCacheClearer Cross-domain clearer for X-Cache-Clear paths. */
     private ResponseCacheClearer $cacheClearer;
 
     /**
      * @param string                   $host           Backend host URL.
      * @param HttpClientInterface|null $httpClient     HTTP client (defaults to CurlHttpClient).
      * @param string                   $photosBasePath Base directory photos are stored under.
-     * @param string                   $cachePath      Cache folder X-Cache-Clear paths are cleared
-     *                                                 from ('' disables clearing).
+     * @param string                   $cacheRoot      Cache root cleared across every domain
+     *                                                 folder ('' disables clearing).
      */
     public function __construct(
         string $host,
         ?HttpClientInterface $httpClient=null,
         string $photosBasePath='',
-        string $cachePath=''
+        string $cacheRoot=''
     ) {
         $this->client = new BackendClient($host, $httpClient);
         $this->photosBasePath = $photosBasePath;
         $this->photoStorage = new SecurePhotoStorage($photosBasePath);
-        $this->cacheClearer = ResponseCacheClearer::forPath($cachePath);
+        $this->cacheClearer = ResponseCacheClearer::forRoot($cacheRoot);
     }
 
     /**
