@@ -28,11 +28,11 @@ class TestStaffCopiesIndexView(StaffCopyGateBehavior):
         """Issue a POST on the index."""
         return self.post_json(client, URL, {}, token)
 
-    def test_staff_gets_empty_types(self, client):
-        """Test that a staff user gets an empty type list while nothing is registered."""
+    def test_staff_gets_registered_types_items_first(self, client):
+        """Test that a staff user gets the registered types, `items` first."""
         response = self.send(client, self.staff_token)
         assert response.status_code == 200
-        assert response.json() == {'types': []}
+        assert response.json()['types'][0] == 'items'
         assert response['X-Skip-Cache'] == 'true'
 
     def test_superuser_returns_200(self, client):

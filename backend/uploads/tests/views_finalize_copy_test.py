@@ -7,8 +7,10 @@ import pytest
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
 
-from games.models import GameDocumentFile, GameItemPhoto
+from games.models import GameCommonItemPhoto, GameDocumentFile, GameItemPhoto
 from games.tests.factories import (
+    CharacterFactory,
+    GameCommonItemFactory,
     GameDocumentFactory,
     GameFactory,
     GameItemFactory,
@@ -118,10 +120,25 @@ class TestCopyFinalizeLinkFlow(CopyFinalizeSupport):
         assert self.item.photo_id is None
 
     def test_uploaded_has_no_cache_clear_by_default(self, client):
-        """Test that the default hook sends no `X-Cache-Clear`."""
-        upload = self.copy_upload(self.photo)
-        response = self.finalize(client, upload)
+        """Test that an entry without a hook sends no `X-Cache-Clear`."""
+        common_item = GameCommonItemFactory(game=self.game)
+        photo = GameCommonItemPhoto.objects.create(
+            game_common_item=common_item, path='photos/games/target/copy.png', ready=False
+        )
+        response = self.finalize(client, self.copy_upload(photo))
         assert not response.has_header('X-Cache-Clear')
+
+    def test_uploaded_item_cover_sends_item_copy_cache_clear(self, client):
+        """Test that an item cover finalize clears the item family and available lists."""
+        npc = CharacterFactory(game=self.game, npc=True)
+        upload = self.copy_upload(self.photo, is_cover=True)
+        response = self.finalize(client, upload)
+        slug, item_id = self.game.game_slug, self.item.pk
+        assert response['X-Cache-Clear'] == ', '.join([
+            f'/games/{slug}/items.json', f'/games/{slug}/items/all.json',
+            f'/games/{slug}/items/{item_id}.json', f'/games/{slug}/items/{item_id}/full.json',
+            f'/games/{slug}/npcs/{npc.pk}/items/available.json',
+        ])
 
     def test_uploaded_sends_cache_clear_from_hook(self, client, monkeypatch):
         """Test that `X-Cache-Clear` lists the paths returned by the registered hook."""

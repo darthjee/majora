@@ -7,6 +7,7 @@ from games.models import GameItem
 from games.tests.factories import GameFactory, GameItemFactory, UserFactory
 from staff import copy_types
 from staff.copy_types import RESERVED_SLUGS, CopyType
+from staff.copy_types_items import ItemsCopyType
 from staff.tests.copy_test_support import FakeCopyType, ScaffoldCopyType, register_copy_types
 from uploads.models import Upload
 
@@ -14,13 +15,17 @@ from uploads.models import Upload
 class TestCopyTypesRegistry:
     """Tests for the real, shipped copy-type registry."""
 
-    def test_registry_is_empty(self):
-        """Test that no copy type is registered yet."""
-        assert copy_types.slugs() == []
+    def test_items_is_registered_first(self):
+        """Test that `items` is the first registered copy type."""
+        assert copy_types.slugs()[0] == 'items'
+
+    def test_find_items_returns_the_items_copy_type(self):
+        """Test that `items` resolves to the `ItemsCopyType` entry."""
+        assert isinstance(copy_types.find('items'), ItemsCopyType)
 
     def test_find_unknown_slug_returns_none(self):
         """Test that an unregistered slug resolves to None."""
-        assert copy_types.find('items') is None
+        assert copy_types.find('unknown') is None
 
     def test_no_registered_slug_is_reserved(self):
         """Test that no registered copy type uses a reserved slug."""

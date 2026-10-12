@@ -7,12 +7,13 @@ from games.tests.factories import GameFactory
 from staff.tests.copy_test_support import FakeCopyTypeRegistryMixin, StaffCopyGateBehavior
 
 URL = '/staff/copies/items.json'
+UNKNOWN_URL = '/staff/copies/unknown.json'
 QUERY = '?from=source&to=target'
 
 
 @pytest.mark.django_db
 class TestStaffCopiesListUnknownType(StaffCopyGateBehavior):
-    """Tests for the list dispatch with the real, empty registry."""
+    """Tests for the list dispatch with the real registry and an unregistered type."""
 
     def setup_method(self):
         """Set up the actors and two games."""
@@ -22,11 +23,11 @@ class TestStaffCopiesListUnknownType(StaffCopyGateBehavior):
 
     def send(self, client, token=None):
         """Issue a GET on the list of an unregistered type."""
-        return self.get_json(client, URL + QUERY, token)
+        return self.get_json(client, UNKNOWN_URL + QUERY, token)
 
     def send_wrong_method(self, client, token=None):
         """Issue a POST on the list of an unregistered type."""
-        return self.post_json(client, URL + QUERY, {}, token)
+        return self.post_json(client, UNKNOWN_URL + QUERY, {}, token)
 
     def test_unknown_type_returns_404_with_skip_cache(self, client):
         """Test that an unregistered type returns 404 with X-Skip-Cache."""
@@ -36,7 +37,7 @@ class TestStaffCopiesListUnknownType(StaffCopyGateBehavior):
 
     def test_unknown_type_returns_404_before_parameter_validation(self, client):
         """Test that an unregistered type returns 404 even without from/to."""
-        assert self.get_json(client, URL, self.staff_token).status_code == 404
+        assert self.get_json(client, UNKNOWN_URL, self.staff_token).status_code == 404
 
 
 @pytest.mark.django_db
