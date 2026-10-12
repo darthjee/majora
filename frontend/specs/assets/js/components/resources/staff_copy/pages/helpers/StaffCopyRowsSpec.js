@@ -1,6 +1,7 @@
 import StaffCopyRows from '../../../../../../../../assets/js/components/resources/staff_copy/pages/helpers/StaffCopyRows.js';
 import StaffCopyFallbackRow from '../../../../../../../../assets/js/components/resources/staff_copy/pages/elements/StaffCopyFallbackRow.jsx';
 import StaffCopyCommonItemRow from '../../../../../../../../assets/js/components/resources/staff_copy/pages/elements/rows/StaffCopyCommonItemRow.jsx';
+import StaffCopyDocumentRow from '../../../../../../../../assets/js/components/resources/staff_copy/pages/elements/rows/StaffCopyDocumentRow.jsx';
 import StaffCopyFactionRow from '../../../../../../../../assets/js/components/resources/staff_copy/pages/elements/rows/StaffCopyFactionRow.jsx';
 import StaffCopyItemRow from '../../../../../../../../assets/js/components/resources/staff_copy/pages/elements/rows/StaffCopyItemRow.jsx';
 import StaffCopyPossessionRow from '../../../../../../../../assets/js/components/resources/staff_copy/pages/elements/rows/StaffCopyPossessionRow.jsx';
@@ -31,6 +32,10 @@ describe('StaffCopyRows', function() {
 
     it('returns the recipes row for the recipes copy type', function() {
       expect(StaffCopyRows.rowFor('recipes')).toBe(StaffCopyRecipeRow);
+    });
+
+    it('returns the documents row for the documents copy type', function() {
+      expect(StaffCopyRows.rowFor('documents')).toBe(StaffCopyDocumentRow);
     });
 
     it('returns the possessions row for the possessions copy type', function() {
@@ -86,6 +91,15 @@ describe('StaffCopyRows', function() {
       expect(StaffCopyRows.columnsFor('recipes')).toEqual([
         Translator.t('staff_copies_page.name_column'),
         Translator.t('staff_copies_page.common_item_column'),
+        Translator.t('staff_copies_page.hidden_column'),
+      ]);
+    });
+
+    it('returns the photo, name, counts and hidden column headers for documents', function() {
+      expect(StaffCopyRows.columnsFor('documents')).toEqual([
+        Translator.t('staff_copies_page.photo_column'),
+        Translator.t('staff_copies_page.name_column'),
+        Translator.t('staff_copies_page.counts_column'),
         Translator.t('staff_copies_page.hidden_column'),
       ]);
     });
