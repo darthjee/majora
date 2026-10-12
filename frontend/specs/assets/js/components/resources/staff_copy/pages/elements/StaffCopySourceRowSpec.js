@@ -34,7 +34,7 @@ describe('StaffCopySourceRow', function() {
 
   beforeEach(function() {
     props = {
-      slug: 'items',
+      slug: 'stub_type',
       row: { id: 4, name: 'Sword', copied_to_target: true },
       selected: true,
       disabled: false,
@@ -43,7 +43,7 @@ describe('StaffCopySourceRow', function() {
   });
 
   afterEach(function() {
-    StaffCopyRows.unregister('items');
+    StaffCopyRows.unregister('stub_type');
   });
 
   it('renders the checkbox, the fallback name cell and the status cell', function() {
@@ -56,7 +56,7 @@ describe('StaffCopySourceRow', function() {
   });
 
   it('renders the registered row cells instead of the fallback', function() {
-    StaffCopyRows.register('items', StubRow);
+    StaffCopyRows.register('stub_type', StubRow);
 
     const html = render();
 

@@ -1,5 +1,6 @@
 import StaffCopyRows from '../../../../../../../../assets/js/components/resources/staff_copy/pages/helpers/StaffCopyRows.js';
 import StaffCopyFallbackRow from '../../../../../../../../assets/js/components/resources/staff_copy/pages/elements/StaffCopyFallbackRow.jsx';
+import StaffCopyItemRow from '../../../../../../../../assets/js/components/resources/staff_copy/pages/elements/rows/StaffCopyItemRow.jsx';
 import Translator from '../../../../../../../../assets/js/i18n/Translator.js';
 
 /**
@@ -16,10 +17,12 @@ describe('StaffCopyRows', function() {
   });
 
   describe('.rowFor', function() {
-    it('ships empty: falls back to the generic row for every real copy type', function() {
-      ['items', 'common_items', 'recipes', 'documents', 'factions', 'possessions'].forEach((slug) => {
-        expect(StaffCopyRows.rowFor(slug)).toBe(StaffCopyFallbackRow);
-      });
+    it('returns the items row for the items copy type', function() {
+      expect(StaffCopyRows.rowFor('items')).toBe(StaffCopyItemRow);
+    });
+
+    it('falls back to the generic row for an unregistered slug', function() {
+      expect(StaffCopyRows.rowFor('unregistered_type')).toBe(StaffCopyFallbackRow);
     });
 
     it('returns the registered component', function() {
@@ -38,7 +41,15 @@ describe('StaffCopyRows', function() {
 
   describe('.columnsFor', function() {
     it('returns the name column for an unregistered slug', function() {
-      expect(StaffCopyRows.columnsFor('items')).toEqual([Translator.t('staff_copies_page.name_column')]);
+      expect(StaffCopyRows.columnsFor('unregistered_type')).toEqual([Translator.t('staff_copies_page.name_column')]);
+    });
+
+    it('returns the photo, name and hidden column headers for items', function() {
+      expect(StaffCopyRows.columnsFor('items')).toEqual([
+        Translator.t('staff_copies_page.photo_column'),
+        Translator.t('staff_copies_page.name_column'),
+        Translator.t('staff_copies_page.hidden_column'),
+      ]);
     });
 
     it('returns the translated registered column headers', function() {

@@ -124,6 +124,28 @@ class CharacterItemCachePaths(ResourceCachePaths):
         return f'/games/{character.game.game_slug}/{kind}/{character.pk}/items'
 
 
+class GameCharactersAvailableCachePaths:
+    """The `<family>/available.json` list of every character of a game, hidden NPCs included."""
+
+    def __init__(self, family):
+        """Store the family segment (e.g. `items`)."""
+        self._family = family
+
+    def paths(self, game):
+        """Return one `/games/<slug>/<kind>/<id>/<family>/available.json` per character."""
+        base = f'/games/{game.game_slug}'
+        return [self._path(base, character) for character in self._characters(game)]
+
+    def _path(self, base, character):
+        """Return the `available.json` path of one character under the game `base`."""
+        return f'{base}/{character_kind(character)}/{character.pk}/{self._family}/available.json'
+
+    @staticmethod
+    def _characters(game):
+        """Return the game's characters, ordered by id, with only `id`/`npc`/`game` loaded."""
+        return game.characters.order_by('id').only('id', 'npc', 'game')
+
+
 class GameDocumentFileCachePaths:
     """The documents family of the document owning a file."""
 

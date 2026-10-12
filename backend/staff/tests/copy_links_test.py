@@ -12,7 +12,7 @@ from games.models import (
     GamePhoto,
     GamePossessionPhoto,
 )
-from games.tests.factories import GameDocumentFactory, GameFactory
+from games.tests.factories import CharacterFactory, GameDocumentFactory, GameFactory
 from staff import copy_links
 from staff.tests.photo_builders import PhotoBuilder
 
@@ -135,9 +135,22 @@ class TestCopyLinkCachePaths:
         self.photo, _ = PhotoBuilder().build('game_item')
 
     def test_default_cache_paths_is_empty(self):
-        """Test that the default hook returns no paths."""
+        """Test that the entries without a registered hook return no paths."""
         for entry in copy_links.COPY_LINKS:
-            assert entry.cache_paths(self.photo, None) == []
+            if entry.model is not GameItemPhoto:
+                assert entry.cache_paths(self.photo, None) == []
+
+    def test_item_photo_hook_returns_item_copy_cache_paths(self):
+        """Test that the `GameItemPhoto` entry clears its item's family and available lists."""
+        item = self.photo.game_item
+        pc = CharacterFactory(game=item.game, npc=False)
+        slug = item.game.game_slug
+        entry = copy_links.find_for_model(GameItemPhoto)
+        assert entry.cache_paths(self.photo, None) == [
+            f'/games/{slug}/items.json', f'/games/{slug}/items/all.json',
+            f'/games/{slug}/items/{item.pk}.json', f'/games/{slug}/items/{item.pk}/full.json',
+            f'/games/{slug}/pcs/{pc.pk}/items/available.json',
+        ]
 
     def test_registered_hook_is_called(self):
         """Test that a registered hook receives the row and upload and returns its paths."""

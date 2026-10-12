@@ -3,12 +3,14 @@
 import json
 
 import pytest
+from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 
+from games.models import GameItem
 from games.tests.factories import SuperUserFactory, UserFactory
 from staff import copy_types
-from staff.copy_types import CopyType
+from staff.copy_types import CopyType, ModelCopyType
 
 
 class StaffCopyActorsMixin:
@@ -114,3 +116,41 @@ class FakeCopyTypeRegistryMixin:
         patch = getattr(self, '_registry_patch', None)
         if patch is not None:
             patch.undo()
+
+
+class ScaffoldRowSerializer(serializers.ModelSerializer):
+    """Minimal list row serializer for `GameItem`, used to exercise `ModelCopyType`."""
+
+    copied_to_target = serializers.BooleanField(read_only=True)
+
+    class Meta:
+        """Metadata for the ScaffoldRowSerializer."""
+
+        model = GameItem
+        fields = ['id', 'name', 'copied_to_target']
+
+
+class ScaffoldCopyType(ModelCopyType):
+    """`ModelCopyType` over `GameItem` with configurable association uploads and cache paths."""
+
+    copied_fields = ('name', 'description', 'hidden')
+
+    def __init__(self, uploads=(), paths=()):
+        """Store the uploads `copy_associations` returns and the paths `cache_paths` builds."""
+        super().__init__('items', GameItem)
+        self._uploads = list(uploads)
+        self._paths = list(paths)
+        self.association_calls = []
+
+    def serializer_class(self):
+        """Return the scaffold list row serializer."""
+        return ScaffoldRowSerializer
+
+    def copy_associations(self, request, source, copy):
+        """Record the call and return the configured uploads."""
+        self.association_calls.append((source, copy))
+        return self._uploads
+
+    def cache_paths(self, copy):
+        """Return the configured paths, formatted with the copy id."""
+        return [path.format(id=copy.pk) for path in self._paths]

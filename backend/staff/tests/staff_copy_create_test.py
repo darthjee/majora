@@ -12,9 +12,14 @@ def _url(source_id):
     return f'/staff/copies/items/{source_id}.json'
 
 
+def _unknown_url(source_id):
+    """Return the copy URL of the entity `source_id` of an unregistered type."""
+    return f'/staff/copies/unknown/{source_id}.json'
+
+
 @pytest.mark.django_db
 class TestStaffCopyCreateUnknownType(StaffCopyGateBehavior):
-    """Tests for the copy dispatch with the real, empty registry."""
+    """Tests for the copy dispatch with the real registry and an unregistered type."""
 
     def setup_method(self):
         """Set up the actors, two games and a source item."""
@@ -24,11 +29,11 @@ class TestStaffCopyCreateUnknownType(StaffCopyGateBehavior):
 
     def send(self, client, token=None):
         """Issue a POST on the copy of an unregistered type."""
-        return self.post_json(client, _url(self.item.id), {'target': 'target'}, token)
+        return self.post_json(client, _unknown_url(self.item.id), {'target': 'target'}, token)
 
     def send_wrong_method(self, client, token=None):
         """Issue a GET on the copy URL."""
-        return self.get_json(client, _url(self.item.id), token)
+        return self.get_json(client, _unknown_url(self.item.id), token)
 
     def test_unknown_type_returns_404_with_skip_cache(self, client):
         """Test that an unregistered type returns 404 with X-Skip-Cache."""
@@ -38,7 +43,7 @@ class TestStaffCopyCreateUnknownType(StaffCopyGateBehavior):
 
     def test_unknown_type_returns_404_before_body_validation(self, client):
         """Test that an unregistered type returns 404 even with an invalid body."""
-        response = self.post_json(client, _url(self.item.id), {}, self.staff_token)
+        response = self.post_json(client, _unknown_url(self.item.id), {}, self.staff_token)
         assert response.status_code == 404
 
 

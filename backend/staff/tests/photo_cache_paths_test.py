@@ -10,6 +10,7 @@ from games.tests.factories import (
     TreasureFactory,
 )
 from staff import photo_types
+from staff.photo_cache_paths import GameCharactersAvailableCachePaths
 from staff.tests.photo_builders import PhotoBuilder
 
 
@@ -150,3 +151,45 @@ class TestPhotoTypeCachePaths:
         assert photo_types.find('treasure').cache_paths(treasure) == [
             '/treasures.json', f'/treasures/{treasure.pk}.json',
         ]
+
+
+@pytest.mark.django_db
+class TestGameCharactersAvailableCachePaths:
+    """Tests for the per-character `available.json` cache paths of a game."""
+
+    def setup_method(self):
+        """Set up a game, the builder over the items family and another game."""
+        self.game = GameFactory(name='Foo', game_slug='foo')
+        self.other = GameFactory(name='Bar', game_slug='bar')
+        self.builder = GameCharactersAvailableCachePaths('items')
+
+    def test_no_characters_yields_no_paths(self):
+        """Test that a game with no characters yields no paths."""
+        assert self.builder.paths(self.game) == []
+
+    def test_maps_pcs_and_npcs_ordered_by_id(self):
+        """Test that PCs and NPCs (hidden included) map to their segment, ordered by id."""
+        npc = CharacterFactory(game=self.game, npc=True, hidden=True)
+        pc = CharacterFactory(game=self.game, npc=False)
+        assert self.builder.paths(self.game) == [
+            f'/games/foo/npcs/{npc.pk}/items/available.json',
+            f'/games/foo/pcs/{pc.pk}/items/available.json',
+        ]
+
+    def test_excludes_characters_of_other_games(self):
+        """Test that characters of another game are not included."""
+        CharacterFactory(game=self.other)
+        assert self.builder.paths(self.game) == []
+
+    def test_uses_the_family_segment(self):
+        """Test that the family given to the builder is used in the path."""
+        pc = CharacterFactory(game=self.game, npc=False)
+        paths = GameCharactersAvailableCachePaths('recipes').paths(self.game)
+        assert paths == [f'/games/foo/pcs/{pc.pk}/recipes/available.json']
+
+    def test_runs_a_single_query(self, django_assert_num_queries):
+        """Test that the paths of every character are built in one query."""
+        CharacterFactory.create_batch(3, game=self.game)
+        CharacterFactory.create_batch(2, game=self.game, npc=False)
+        with django_assert_num_queries(1):
+            assert len(self.builder.paths(self.game)) == 5
