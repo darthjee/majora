@@ -81,13 +81,21 @@ class ModelCopyType(CopyType):
         """Return the target game's proxy cache paths made stale by `copy`."""
         return []
 
+    def copy_instance(self, request, source, target_game):
+        """Copy `source` into `target_game` and return `(copy, uploads)`.
+
+        Opens no transaction and builds no Response, so a caller (e.g. another copy type) can
+        copy inside its own transaction and merge the uploads and cache paths.
+        """
+        copy = self._create_copy(source, target_game)
+        return copy, self.copy_associations(request, source, copy)
+
     def _copy_current(self, request, source_id, target_game):
         """Re-read the source and copy it, returning `(copy, uploads)`, or None if it is gone."""
         source = self.model.objects.filter(pk=source_id).first()
         if source is None:
             return None
-        copy = self._create_copy(source, target_game)
-        return copy, self.copy_associations(request, source, copy)
+        return self.copy_instance(request, source, target_game)
 
     def _create_copy(self, source, target_game):
         """Create the copy row from the copied fields, in `target_game`, tracing `source`."""

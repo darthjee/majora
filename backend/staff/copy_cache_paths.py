@@ -15,3 +15,8 @@ def items_copy_cache_paths(item):
     """Return the item family of `item` plus every character's `items/available.json`."""
     family = photo_types.find('game_item').cache_paths(item)
     return family + _AVAILABLE_ITEMS.paths(item.game)
+
+
+def common_items_copy_cache_paths(common_item):
+    """Return the common item family of `common_item` (no `available.json`, no recipes)."""
+    return photo_types.find('game_common_item').cache_paths(common_item)

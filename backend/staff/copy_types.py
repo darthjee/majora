@@ -12,12 +12,14 @@ This module is free of view/HTTP concerns.
 """
 
 from .copy_type_base import CopyType, ModelCopyType
+from .copy_types_common_items import CommonItemsCopyType
 from .copy_types_items import ItemsCopyType
 
 __all__ = ['COPY_TYPES', 'RESERVED_SLUGS', 'CopyType', 'ModelCopyType', 'find', 'slugs']
 
 COPY_TYPES = (
     ItemsCopyType(),
+    CommonItemsCopyType(),
 )
 
 RESERVED_SLUGS = frozenset({'games', 'links'})
