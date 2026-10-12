@@ -5,6 +5,7 @@ import Translator from '../../../../../i18n/Translator.js';
 import StaffCopyGameSelect from '../elements/StaffCopyGameSelect.jsx';
 import StaffCopyTabs from '../elements/StaffCopyTabs.jsx';
 import StaffCopySourceList from '../elements/StaffCopySourceList.jsx';
+import StaffCopyProgress from '../elements/StaffCopyProgress.jsx';
 
 const PREFIX = 'staff_copies_page';
 
@@ -13,8 +14,9 @@ const PREFIX = 'staff_copies_page';
  */
 export default class StaffCopiesHelper {
   /**
-   * Render the staff copy page: title, source/target selectors, then either the empty-types
-   * message or the type tabs plus the list body (hint, validation/list error or source list).
+   * Render the staff copy page: title, source/target selectors, the copy run progress, then
+   * either the empty-types message or the type tabs plus the list body (hint, validation/list
+   * error or source list).
    *
    * @param {object} state - Page state.
    * @param {string[]} state.types - Available copy type slugs.
@@ -25,6 +27,7 @@ export default class StaffCopiesHelper {
    * @param {string|null} state.listError - i18n key of the list / validation error.
    * @param {number[]} state.selectedIds - Selected row ids.
    * @param {boolean} [state.running] - Whether a copy run is in progress.
+   * @param {object|null} [state.run] - Copy run snapshot (see `StaffCopyRunner`), or `null`.
    * @param {{onSelectGame: Function, onToggle: Function, onToggleAll: Function,
    *   onCopy: Function}} handlers - Selector, selection and copy handlers.
    * @returns {React.ReactElement} Staff copy page content.
@@ -49,6 +52,7 @@ export default class StaffCopiesHelper {
             />
           ))}
         </div>
+        <StaffCopyProgress run={state.run ?? null} />
         {StaffCopiesHelper.#renderContent(state, handlers)}
       </div>
     );

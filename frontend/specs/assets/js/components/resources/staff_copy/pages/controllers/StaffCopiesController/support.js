@@ -15,6 +15,7 @@ export function buildSetters() {
     setLoading: jasmine.createSpy('setLoading'),
     setError: jasmine.createSpy('setError'),
     setListError: jasmine.createSpy('setListError'),
+    setRun: jasmine.createSpy('setRun'),
   };
 }
 
@@ -26,7 +27,7 @@ export function buildSetters() {
  * @returns {StaffCopiesController} the controller.
  */
 export function buildMountedController(setters, selection = SELECTION, deps = {}) {
-  const controller = new StaffCopiesController(setters, deps);
+  const controller = new StaffCopiesController(setters, { win: null, ...deps });
 
   controller.mounted = true;
   controller.selection = { ...selection };

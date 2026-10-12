@@ -3,6 +3,8 @@ import RequestStore from '../../../../../utils/requests/RequestStore.js';
 import HashRouteResolver from '../../../../../utils/routing/HashRouteResolver.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 import StaffCopyUrl from '../helpers/StaffCopyUrl.js';
+import StaffCopyActions from './StaffCopyActions.js';
+import StaffCopyRunner from './StaffCopyRunner.js';
 
 const COMPONENT_NAME = 'StaffCopiesController';
 const RESOURCE = 'staffCopy';
@@ -14,8 +16,9 @@ const SAME_GAME_ERROR_KEY = 'staff_copies_page.same_game_error';
  *
  * @description Gates the page to staff/superusers, loads the copy types and the games in
  *   parallel, resolves the `type`/`from`/`to` selection from the hash query (a stale type falls
- *   back to the first one, unknown games are dropped) and lists the copyable rows of the active
- *   type once both games are selected and differ. Every state update goes through a safe setter
+ *   back to the first one, unknown games are dropped), lists the copyable rows of the active
+ *   type once both games are selected and differ, and runs the sequential copy of the selected
+ *   rows (guarding the page against unloading meanwhile). Every state update goes through a safe setter
  *   so updates landing after unmount are ignored. Error state holds i18n keys, translated at
  *   render time.
  */
@@ -32,10 +35,16 @@ export default class StaffCopiesController extends BasePageController {
    * @param {Function} setters.setLoading - Loading flag setter.
    * @param {Function} setters.setError - Load error (i18n key) setter.
    * @param {Function} setters.setListError - List load / validation error (i18n key) setter.
+   * @param {Function} setters.setRun - Copy run snapshot setter (see `StaffCopyRunner`).
+   * @param {object} [deps] - Injectable dependencies.
+   * @param {StaffCopyActions} [deps.actions] - Outcome-returning copy / link actions.
+   * @param {object} [deps.win] - `beforeunload` listener target (defaults to `window`).
    */
-  constructor(setters) {
+  constructor(setters, { actions = new StaffCopyActions(), win = globalThis.window } = {}) {
     super();
     Object.assign(this, setters);
+    this.actions = actions;
+    this.win = win;
     this.selection = { type: '', from: '', to: '' };
     this.mounted = false;
     this.safeSet = this.buildSafeSetter(() => this.mounted);
@@ -65,6 +74,7 @@ export default class StaffCopiesController extends BasePageController {
 
       return () => {
         this.mounted = false;
+        this.#guardUnload(false);
       };
     };
   }
@@ -106,6 +116,38 @@ export default class StaffCopiesController extends BasePageController {
    */
   changeSelection(key, value) {
     this.redirectTo(StaffCopyUrl.build({ ...this.selection, [key]: value }));
+  }
+
+  /**
+   * Copy the given rows into the target game, one at a time.
+   *
+   * @description Publishes progress through `setRun`, guards the page against unloading while
+   *   running (leaving mid-run leaves the remaining links pending) and, once done, purges the
+   *   cached copy lists and refreshes the source list.
+   * @param {object[]} rows - The selected source rows.
+   * @returns {Promise<void>} Resolves once every row is processed and the list refreshed.
+   */
+  async runCopy(rows) {
+    const { type, to } = this.selection;
+    const runner = new StaffCopyRunner(this.actions, (run) => this.safeSet(this.setRun, run));
+
+    this.#guardUnload(true);
+    await runner.run(type, to, rows);
+    this.#guardUnload(false);
+    RequestStore.purge({ resource: RESOURCE });
+
+    return this.fetchList();
+  }
+
+  #onBeforeUnload = (event) => {
+    event.preventDefault();
+    event.returnValue = '';
+  };
+
+  #guardUnload(active) {
+    const method = active ? 'addEventListener' : 'removeEventListener';
+
+    this.win?.[method]?.('beforeunload', this.#onBeforeUnload);
   }
 
   #load() {

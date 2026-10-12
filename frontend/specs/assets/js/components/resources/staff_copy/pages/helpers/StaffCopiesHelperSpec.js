@@ -67,6 +67,16 @@ describe('StaffCopiesHelper', function() {
       expect(html).not.toContain('<table');
     });
 
+    it('renders the copy run progress when there is a run', function() {
+      const html = render({
+        run: {
+          running: true, total: 1, done: 0, entities: [{ id: 1, name: 'Sword', status: 'copying', reason: null, links: [] }],
+        },
+      });
+
+      expect(html).toContain(Translator.t('staff_copies_page.entity_status.copying'));
+    });
+
     it('forwards selector changes with their key', function() {
       const onSelectGame = jasmine.createSpy('onSelectGame');
       const tree = StaffCopiesHelper.render(buildState(), { ...HANDLERS, onSelectGame });
