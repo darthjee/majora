@@ -3,10 +3,11 @@
 import pytest
 from django.test import RequestFactory
 
-from games.models import GameCommonItem, GameItem, GamePossession
+from games.models import GameCommonItem, GameFaction, GameItem, GamePossession
 from games.tests.factories import (
     CharacterFactory,
     GameCommonItemFactory,
+    GameFactionFactory,
     GameFactory,
     GameItemFactory,
     GamePossessionFactory,
@@ -15,6 +16,7 @@ from games.tests.factories import (
 from staff import copy_types
 from staff.copy_types import RESERVED_SLUGS, CopyType, ModelCopyType
 from staff.copy_types_common_items import CommonItemsCopyType
+from staff.copy_types_factions import FactionsCopyType
 from staff.copy_types_items import ItemsCopyType
 from staff.copy_types_possessions import PossessionsCopyType
 from staff.copy_types_recipes import RecipesCopyType
@@ -48,6 +50,14 @@ class TestCopyTypesRegistry:
     def test_find_recipes_returns_the_recipes_copy_type(self):
         """Test that `recipes` resolves to the `RecipesCopyType` entry."""
         assert isinstance(copy_types.find('recipes'), RecipesCopyType)
+
+    def test_factions_is_registered_right_before_possessions(self):
+        """Test that `factions` sits between `recipes` and `possessions`."""
+        assert copy_types.slugs()[2:] == ['recipes', 'factions', 'possessions']
+
+    def test_find_factions_returns_the_factions_copy_type(self):
+        """Test that `factions` resolves to the `FactionsCopyType` entry."""
+        assert isinstance(copy_types.find('factions'), FactionsCopyType)
 
     def test_possessions_is_registered_last(self):
         """Test that `possessions` is the last registered copy type."""
@@ -348,6 +358,39 @@ class TestPossessionsCopyType:
             f'{base}.json', f'{base}/all.json', f'{base}/{self.copy.pk}.json',
             f'{base}/{self.copy.pk}/full.json',
             f'/games/target/pcs/{pc.pk}/possessions/available.json',
+        ]
+
+
+@pytest.mark.django_db
+class TestFactionsCopyType:
+    """Tests for the `FactionsCopyType` hooks."""
+
+    def setup_method(self):
+        """Set up the copy type, a target game and a faction living in it."""
+        self.copy_type = FactionsCopyType()
+        self.target = GameFactory(name='Target', game_slug='target')
+        self.copy = GameFactionFactory(game=self.target)
+
+    def test_slug_and_model(self):
+        """Test that the copy type is registered under `factions` over GameFaction."""
+        assert (self.copy_type.slug, self.copy_type.model) == ('factions', GameFaction)
+
+    def test_copied_fields(self):
+        """Test that only the name is copied."""
+        assert self.copy_type.copied_fields == ('name',)
+
+    def test_photo_segments(self):
+        """Test that the cover segments are `games/<target>/factions/<copy-id>`."""
+        segments = FactionsCopyType._photo_segments(self.copy)
+        assert segments == ['games', 'target', 'factions', self.copy.pk]
+
+    def test_cache_paths_are_the_family_and_available_lists(self):
+        """Test that the cache paths are the family plus each character's available list."""
+        npc = CharacterFactory(game=self.target, npc=True)
+        base = '/games/target/factions'
+        assert self.copy_type.cache_paths(self.copy) == [
+            f'{base}.json', f'{base}/{self.copy.pk}.json',
+            f'/games/target/npcs/{npc.pk}/factions/available.json',
         ]
 
 

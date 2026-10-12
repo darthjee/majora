@@ -76,4 +76,19 @@ describe('StaffCopySourceRow', function() {
   it('disables the checkbox while running', function() {
     expect(render({ disabled: true })).toContain('disabled=""');
   });
+
+  describe('with a faction row whose name is taken in the target', function() {
+    it('renders the faction cells, the name-taken badge and an enabled checkbox', function() {
+      const html = render({
+        slug: 'factions',
+        selected: false,
+        row: { id: 9, name: 'Thieves Guild', photo: null, copied_to_target: false, name_taken_in_target: true },
+      });
+
+      expect(html).toContain('<td>Thieves Guild</td>');
+      expect(html).toContain(Translator.t('staff_copies_page.entity_error.name_taken'));
+      expect(html).toContain('type="checkbox"');
+      expect(html).not.toContain('disabled=""');
+    });
+  });
 });

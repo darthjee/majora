@@ -13,6 +13,7 @@ This module is free of view/HTTP concerns.
 
 from .copy_type_base import CopyType, ModelCopyType
 from .copy_types_common_items import CommonItemsCopyType
+from .copy_types_factions import FactionsCopyType
 from .copy_types_items import ItemsCopyType
 from .copy_types_possessions import PossessionsCopyType
 from .copy_types_recipes import RecipesCopyType
@@ -23,6 +24,7 @@ COPY_TYPES = (
     ItemsCopyType(),
     CommonItemsCopyType(),
     RecipesCopyType(),
+    FactionsCopyType(),
     PossessionsCopyType(),
 )
 

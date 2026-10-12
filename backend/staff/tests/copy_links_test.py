@@ -137,7 +137,9 @@ class TestCopyLinkCachePaths:
     def test_default_cache_paths_is_empty(self):
         """Test that the entries without a registered hook return no paths."""
         for entry in copy_links.COPY_LINKS:
-            if entry.model not in (GameItemPhoto, GameCommonItemPhoto, GamePossessionPhoto):
+            if entry.model not in (
+                GameItemPhoto, GameCommonItemPhoto, GameFactionPhoto, GamePossessionPhoto,
+            ):
                 assert entry.cache_paths(self.photo, None) == []
 
     def test_item_photo_hook_returns_item_copy_cache_paths(self):
@@ -161,6 +163,17 @@ class TestCopyLinkCachePaths:
         assert entry.cache_paths(photo, None) == [
             f'/games/{slug}/common_items.json', f'/games/{slug}/common_items/all.json',
             f'/games/{slug}/common_items/{pk}.json', f'/games/{slug}/common_items/{pk}/full.json',
+        ]
+
+    def test_faction_photo_hook_returns_faction_copy_cache_paths(self):
+        """Test that the `GameFactionPhoto` entry returns `factions_copy_cache_paths`."""
+        photo, faction = PhotoBuilder().build('game_faction')
+        pc = CharacterFactory(game=faction.game, npc=False)
+        slug, pk = faction.game.game_slug, faction.pk
+        entry = copy_links.find_for_model(GameFactionPhoto)
+        assert entry.cache_paths(photo, None) == [
+            f'/games/{slug}/factions.json', f'/games/{slug}/factions/{pk}.json',
+            f'/games/{slug}/pcs/{pc.pk}/factions/available.json',
         ]
 
     def test_possession_photo_hook_returns_possession_copy_cache_paths(self):

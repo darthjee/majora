@@ -23,6 +23,7 @@ from games.models import (
 from staff import photo_types
 from staff.copy_cache_paths import (
     common_items_copy_cache_paths,
+    factions_copy_cache_paths,
     items_copy_cache_paths,
     possessions_copy_cache_paths,
 )
@@ -129,6 +130,11 @@ def _common_item_photo_cache_paths(row, upload):
     return common_items_copy_cache_paths(row.game_common_item)
 
 
+def _faction_photo_cache_paths(row, upload):
+    """Return the copy cache paths of the faction owning a linked `GameFactionPhoto`."""
+    return factions_copy_cache_paths(row.faction)
+
+
 def _possession_photo_cache_paths(row, upload):
     """Return the copy cache paths of the possession owning a linked `GamePossessionPhoto`."""
     return possessions_copy_cache_paths(row.game_possession)
@@ -139,7 +145,7 @@ COPY_LINKS = (
     CoverCopyLink(
         GameCommonItemPhoto, 'game_common_item', cache_paths=_common_item_photo_cache_paths,
     ),
-    CoverCopyLink(GameFactionPhoto, 'faction'),
+    CoverCopyLink(GameFactionPhoto, 'faction', cache_paths=_faction_photo_cache_paths),
     CoverCopyLink(
         GamePossessionPhoto, 'game_possession', cache_paths=_possession_photo_cache_paths,
     ),
