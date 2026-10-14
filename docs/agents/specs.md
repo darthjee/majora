@@ -12,3 +12,4 @@ registers here only, never directly in `AGENTS.md`.
 
 - [Loot Crawling](specs/loot-crawling.md)
 - [Crawler Test Harness](specs/crawler-test-harness.md)
+- [Client](specs/client.md)
