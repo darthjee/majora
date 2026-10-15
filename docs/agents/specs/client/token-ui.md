@@ -49,7 +49,7 @@ Settled by #1597:
 
 - The routes of the owner page and of the staff section.
 - The navigation entry points (account menu, profile page, staff user page).
-- How scopes are grouped in the picker (by resource family, with read/write/delete columns, or a
+- How scopes are grouped in the picker (by resource family, with read/write columns, or a
   flat list), and whether there are shortcuts such as "all read".
 - How the games picker loads the reachable games.
 - The components to add or reuse, and the frontend client calls.
