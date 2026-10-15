@@ -42,8 +42,9 @@ The new top-level `client/` folder is **unrelated** to the existing
 
 - [Tokens](client/tokens.md): the `ApiToken` model, hashing, the `Bearer mjr_` format, the
   lifecycle and auto-revoke.
-- [Scopes](client/scopes.md): the scope catalogue, intersection with the owner's roles, the
-  per-game restriction, the exclusions and the enforcement mechanism (fail closed).
+- [Scopes](client/scopes.md): the scope catalogue (`read`/`write` per resource family),
+  intersection with the owner's roles, the per-game restriction, the exclusions and the
+  enforcement mechanism (the per-view `@token_scopes` declaration, failing closed).
 - [Token API](client/token-api.md): owner and staff token endpoints, access control,
   `X-Skip-Cache`, and how the proxy and the cache treat Bearer requests.
 - [Token UI](client/token-ui.md): the frontend token management page and the staff view.
@@ -83,14 +84,15 @@ already settled), **Open questions** (each naming the improvement issue that set
 | 20 | #1612 | Update the permanent docs before removing the specs | all | architect |
 | 21 | #1613 | Remove the client spec files | all | architect |
 
-Sub-issue 12 also gets `security` and `data-access` reviews. Improvement issues 2 to 8 are one
+Sub-issues 11 and 12 also get `security` and `data-access` reviews. Improvement issues 2 to 8 are one
 per aspect page; any that turns out to need no work is closed.
 
 ### Order
 
 1. The spec: #1593, then the improvements #1594–#1600, then the agent #1601.
-2. The backend track: #1602, then #1603, then #1604. The frontend issues #1605 and #1606 need
-   #1604.
+2. The backend track: #1602, then #1603, then #1604. #1616 (plain routes never serve hidden
+   content) must land before #1603 (see [Read scopes](client/scopes.md#read-scopes)). The
+   frontend issues #1605 and #1606 need #1604.
 3. The client track: #1607, then #1608, then #1609 and #1610 in parallel. #1611 comes after
    #1608. This track can run alongside the backend track.
 4. Last: the permanent docs (#1612), then the spec removal (#1613).

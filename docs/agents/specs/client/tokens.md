@@ -97,7 +97,7 @@ There is no `revoked_at` field: revoking deletes the row (see [Lifecycle](#lifec
   authenticated. Every failure gives the same error (see [Error reporting](#error-reporting)), so
   the order leaks nothing.
 - **On success** the class returns `(owner, api_token)`, so the `ApiToken` is `request.auth` (see
-  [Scopes](scopes.md) for how scope checks read it).
+  [Scopes](scopes.md) for the scope checks the class runs next).
 - **Side effect:** every 401 across the API now carries `WWW-Authenticate: Bearer realm="api"`
   instead of `Token`, because DRF takes the header from the first authentication class. Nothing in
   the backend, frontend or proxy reads this header, browsers only prompt on `Basic`, and the
@@ -224,5 +224,6 @@ None. Every open question was settled by #1594 and recorded under [Decisions](#d
 - [`access-control/user.md`](../../access-control/user.md): the deny flow and the
   recovery-token precedent.
 - [Token API](token-api.md): the session-only checks on the token management endpoints.
-- [Scopes](scopes.md): the 403 on a missing scope, read from `request.auth`.
+- [Scopes](scopes.md): the 403 on a missing scope, checked by the Bearer class after it
+  authenticates the token.
 - `crawler/` and the legacy DRF `Token`: unchanged, context only.
