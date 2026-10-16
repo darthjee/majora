@@ -485,6 +485,7 @@ impersonation.
 ### Testing strategy for #1604
 
 **Auth and session-only**
+
 - On all 6 method + URL pairs, a scoped token with every scope gets 403 `token_not_allowed`.
 - Forcing `request.auth` to an `ApiToken` proves `require_session` alone rejects the request.
 - A session cookie and a legacy `Token` succeed. Bearer plus session is refused.
@@ -494,6 +495,7 @@ impersonation.
 - Revoked and expired tokens get 401 at once.
 
 **Create**
+
 - 201 returns the token item plus `token`, exactly once. Later lists never show the secret or
   hash.
 - Each error code:
@@ -511,6 +513,7 @@ impersonation.
 - A prefix collision is retried, and exhausting the retries gives 500 (mocked).
 
 **Rename and revoke**
+
 - PATCH changes `name` only and returns 200 with the item. `scopes`, `games`, `expires_at`,
   `owner` or `prefix` in the body give 400 `not_editable`, and the row is unchanged.
 - DELETE returns 204 and removes the row. A second DELETE gives 404.
@@ -518,11 +521,13 @@ impersonation.
 - An expired token can be renamed and revoked.
 
 **Lists**
+
 - The owner list holds only the caller's tokens, newest first, as a plain array.
 - `scopes` is sorted. `games` is `{slug, name}`. `expires_at` is `null` for never. `status` is
   `active` or `expired`.
 
 **Staff**
+
 - Staff and superusers can list and revoke any user's tokens, including a superuser's.
 - A non-staff user gets 403 `not_allowed`. An anonymous caller gets 401.
 - A token id under the wrong `user_id` gives 404. An unknown `user_id` gives 404.
@@ -530,11 +535,13 @@ impersonation.
 - The deny view deletes the user's tokens, and re-approving does not restore them.
 
 **Edge cases**
+
 - An owner who leaves a listed game gets a failure on that game, and the token is not revoked.
 - `games: []` covers a game the owner joins later.
 - No history row stores the hash.
 
 **Cache headers (backend)**
+
 - Every token endpoint returns `X-Skip-Cache: true`.
 - Responses to Bearer requests (200, 401, 403, 404, 500) carry `X-Skip-Cache: true` and
   `Cache-Control: no-store`.
@@ -542,6 +549,7 @@ impersonation.
 - A forged `X-Bearer-Request` has no backend effect.
 
 **Proxy (PHPUnit, prod and dev configurations)**
+
 - The marker is set for every Bearer variant and for a joined `Token x, Bearer y`. It is not set
   for `Token`, a missing header or other schemes.
 - On `backend.php` and `private_game_data_cache.php`, a Bearer GET is never served from or
