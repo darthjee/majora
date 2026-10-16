@@ -1,8 +1,8 @@
 # Tokens
 
 The scoped API token itself: the `ApiToken` model, how the secret is sent and stored, and the
-token lifecycle. Part of the [client spec](../client.md) (epic #1592). Refined by #1594 and
-implemented by #1602.
+token lifecycle. Part of the [client spec](../client.md) (epic #1592). Refined by #1594, amended
+by #1596 (Bearer detection, inactive owners) and implemented by #1602.
 
 ## Overview
 
@@ -43,8 +43,14 @@ There is no `revoked_at` field: revoking deletes the row (see [Lifecycle](#lifec
 - **Exact format:** `mjr_`, an 8-character base62 prefix, `_`, and a 43-character base62
   secret: 56 characters in total. The authentication class parses it with an exact match of
   `^mjr_([A-Za-z0-9]{8})_([A-Za-z0-9]{43})$`.
-- Every `Bearer` header is treated as a Majora token. A value that does not match the pattern is
-  simply malformed (see [Error reporting](#error-reporting)).
+- **Bearer detection:** a request is a Bearer request when its whole `Authorization` value, with
+  several headers joined by commas, matches the case-insensitive pattern
+  `(^|,)\s*bearer(\s|$)`. This covers `bearer`, `BEARER`, a tab separator, leading spaces and a
+  joined `Token x, Bearer mjr_…`. The proxy uses the same rule to keep Bearer requests out of its
+  cache (see [Token API](token-api.md#bearer-detection)).
+- Every Bearer request is treated as a Majora token. A value that does not split into exactly
+  two parts (scheme and token), or whose token does not match the pattern above, is malformed
+  (see [Error reporting](#error-reporting)).
 
 ### Token format
 
@@ -92,9 +98,10 @@ There is no `revoked_at` field: revoking deletes the row (see [Lifecycle](#lifec
   silently skip the token's scopes, and a dead token would even appear to work.
 - **Token management stays session-only.** A request carrying both a token and a session
   authenticates as the token, so the session-only checks in [Token API](token-api.md) refuse it.
-- **Checks, in order:** format, prefix lookup, hash comparison, expiry, owner's profile status is
-  `approved`. Like `CookieTokenAuthentication`, the Bearer class treats an unapproved owner as not
-  authenticated. Every failure gives the same error (see [Error reporting](#error-reporting)), so
+- **Checks, in order:** format, prefix lookup, hash comparison, expiry, owner is active
+  (`user.is_active`) and their profile status is `approved`. Like `CookieTokenAuthentication`, the
+  Bearer class treats an unapproved owner as not authenticated, and an owner deactivated in the
+  Django admin likewise. Every failure gives the same error (see [Error reporting](#error-reporting)), so
   the order leaks nothing.
 - **On success** the class returns `(owner, api_token)`, so the `ApiToken` is `request.auth` (see
   [Scopes](scopes.md) for the scope checks the class runs next).
@@ -109,15 +116,16 @@ There is no `revoked_at` field: revoking deletes the row (see [Lifecycle](#lifec
 
 ### Error reporting
 
-- **No `Authorization: Bearer` header:** the Bearer class returns `None` ("not mine") and DRF
+- **No Bearer request** (see [Bearer detection](#transport)): the Bearer class returns `None` ("not mine") and DRF
   tries the next authentication class as usual.
-- **Any `Bearer` header that does not authenticate:** the class raises `AuthenticationFailed`,
+- **Any Bearer request that does not authenticate:** the class raises `AuthenticationFailed`,
   which gives **401**. It never falls back to anonymous or to the session. An automation with a
   dead token must fail loudly rather than quietly read public data as anonymous. This
   deliberately differs from `CookieTokenAuthentication`, which swallows stale `Token` headers for
   the SPA's sake.
-- **One generic error for every failure:** malformed header, unknown prefix (never existed or
-  revoked), wrong secret, expired token and owner not approved all return the same 401 with code
+- **One generic error for every failure:** malformed header (including a value that is not
+  exactly two parts, or a joined multi-header value), unknown prefix (never existed or revoked),
+  wrong secret, expired token, inactive owner and owner not approved all return the same 401 with code
   `token_invalid` and DRF's default body (`{"detail": ...}`). Nothing tells the caller which check
   failed.
 - **`WWW-Authenticate`:** Bearer 401s carry `Bearer realm="api", error="invalid_token"`
@@ -197,9 +205,10 @@ There is no `revoked_at` field: revoking deletes the row (see [Lifecycle](#lifec
 - **Generation:** the token matches `^mjr_[A-Za-z0-9]{8}_[A-Za-z0-9]{43}$`; a prefix clash
   (`IntegrityError`) is retried; only the SHA-256 hash is stored; the plain token appears only in
   the creation response.
-- **Authentication:** no `Bearer` header returns `None` (the next class runs). A malformed
-  header, unknown prefix, wrong secret, expired token or unapproved owner each gives 401 with code
-  `token_invalid`. A valid token authenticates as its owner, with the `ApiToken` as
+- **Authentication:** no Bearer request returns `None` (the next class runs). Bearer variants
+  (`bearer`, `BEARER`, a tab, leading spaces) are detected like `Bearer`. A malformed header (not
+  exactly two parts, or a joined multi-header value), unknown prefix, wrong secret, expired
+  token, inactive owner or unapproved owner each gives 401 with code `token_invalid`. A valid token authenticates as its owner, with the `ApiToken` as
   `request.auth`.
 - **Last-used:** updated on a successful authentication, never on a failed one.
 - **Class order:** with both a Bearer header and a session, a bad token gives 401 and is never
