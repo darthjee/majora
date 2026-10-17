@@ -7,7 +7,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from accounts.models import UserProfile
+from accounts.models import ApiToken, UserProfile
 from games.decorators import restricted
 from games.views.common import require_staff
 
@@ -30,13 +30,19 @@ def staff_user_deny(request):
         return error_response
 
     user = get_object_or_404(User, pk=user_id)
+    _deny(user)
+
+    return Response(StaffUserListSerializer(user).data)
+
+
+def _deny(user):
+    """Mark `user` as denied and revoke every token they hold (DRF and scoped)."""
     profile, _ = UserProfile.objects.get_or_create(user=user)
 
     profile.status = UserProfile.STATUS_DENIED
     profile.save(update_fields=['status'])
     Token.objects.filter(user=user).delete()
-
-    return Response(StaffUserListSerializer(user).data)
+    ApiToken.objects.filter(owner=user).delete()
 
 
 def _parse_user_id(request):
