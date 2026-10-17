@@ -2,7 +2,8 @@
 
 The backend endpoints that manage scoped tokens, and how the proxy and the cache treat requests
 that carry one. Part of the [client spec](../client.md) (epic #1592). Refined by #1596 and
-implemented by #1604.
+implemented by #1604. Amended by #1597 (the [reachable game](#reachable-game) definition and the
+`options.json` endpoint the [Token UI](token-ui.md) needs).
 
 ## Overview
 
@@ -32,6 +33,7 @@ They live in a new `backend/accounts/urls/api_tokens.py` and use snake_case, lik
 | Method | URL | Action |
 |---|---|---|
 | GET | `account/api_tokens.json` | List the caller's tokens (metadata only). |
+| GET | `account/api_tokens/options.json` | Scope catalogue and reachable games for the create form. |
 | POST | `account/api_tokens.json` | Create a token. The response carries the full token, once. |
 | PATCH | `account/api_tokens/<int:token_id>.json` | Rename (name only). |
 | DELETE | `account/api_tokens/<int:token_id>.json` | Revoke (deletes the row). |
@@ -134,6 +136,29 @@ One shared serializer is used by the owner list, the staff list and the rename r
 - `DELETE account/api_tokens/<id>.json` and
   `DELETE staff/users/<user_id>/api-tokens/<token_id>.json` return **204** with no body.
 
+#### Options: `GET account/api_tokens/options.json`
+
+```json
+{
+  "scopes": ["common_items:read", "common_items:write", "conversations:read", "…"],
+  "games": [{"slug": "curse-of-strahd", "name": "Curse of Strahd"}],
+  "all_games": false
+}
+```
+
+- `scopes` is the catalogue constant from [Scopes](scopes.md), sorted. It is how the catalogue
+  reaches the UI, so the frontend keeps no copy of it.
+- `games` is the [reachable game](#reachable-game) helper's output, as `{slug, name}`, sorted by
+  name.
+- `all_games` is `true` when the reachable set is every game (superusers). The token UI uses it
+  for its superuser warning.
+- It follows the same rules as the other owner endpoints: session-only (401 without a session,
+  403 `token_not_allowed` for a scoped token), a single private variant, `X-Skip-Cache: true`,
+  and no Navi entry.
+- Rejected: **`my-games.json`** (membership only, so superusers miss games, and its definition
+  could drift from validation), **`games.json`** (public and domain-scoped) and **a JS copy of
+  the catalogue** (drifts from the backend constant).
+
 #### Lists
 
 - `GET account/api_tokens.json` and `GET staff/users/<user_id>/api-tokens.json` return a plain
@@ -198,8 +223,8 @@ For example: `{"errors": {"scopes": ["not_editable"]}}`.
   2. **An explicit guard in the views.** A new helper `require_session(request)`, next to
      `require_staff` in `backend/games/views/common.py`, returns
      `Response({'errors': {'detail': ['token_not_allowed']}}, status=403)` when
-     `isinstance(request.auth, ApiToken)`, and `None` otherwise. All four token views call it
-     first, **before** `require_staff`, so a scoped token always gets `token_not_allowed`.
+     `isinstance(request.auth, ApiToken)`, and `None` otherwise. All five token views (including
+     `options.json`) call it first, **before** `require_staff`, so a scoped token always gets `token_not_allowed`.
      `@restricted` is the outermost decorator on every token view. This guard holds even if a
      `@token_scopes` declaration is later added by mistake, or the authentication check is
      refactored.
@@ -213,9 +238,14 @@ For example: `{"errors": {"scopes": ["not_editable"]}}`.
 
 ### Reachable game
 
-- "Reachable" is defined once: **any game the owner's roles let them read**.
-- The same helper or queryset validates `games` at creation and resolves `games: []` at request
-  time.
+- "Reachable" is defined once: **the games where the owner is DM, a player or a PC owner, plus
+  every game for superusers**. Staff who are not superusers count as members only: staff power
+  is about `staff/*`, not game content.
+- This replaces the earlier "any game the owner's roles let them read". Game list and detail
+  are `AllowAny`, so that wording would literally mean every game.
+- The same helper or queryset validates `games` at creation, resolves `games: []` at request
+  time, and builds the `games` list of [`options.json`](#options-get-accountapi_tokensoptionsjson),
+  so the UI and the backend cannot disagree.
 - Without this, a superuser could not limit a token to a game they are not a member of, and
   would be pushed towards the wider `[]`.
 
@@ -345,7 +375,8 @@ and a joined `Token x, Bearer mjr_…`. The backend treats every such value as a
   - A token never grants anything beyond its owner's roles, but a superuser's roles reach every
     game, so a superuser token with `games: []` and `npcs:write` can write NPCs in every game. No
     staff scopes exist, and `staff/*` is never reachable with a token. The token UI (#1605) warns
-    staff and superusers who leave the games list empty.
+    superusers who leave the games list empty, driven by `all_games` in `options.json`. Plain
+    staff reach member games only, so they get no special warning.
 - **Expiry.**
   - `expires_at` must be strictly after the server's current time. A naive datetime is read in
     the server timezone, as DRF does under `USE_TZ`; the UI always sends UTC with an offset.
@@ -388,10 +419,11 @@ These doc changes **ship with #1604**, following [`access-control.md`](../../acc
 - [`access-control/principles.md`](../../access-control/principles.md): add `account/api_tokens`
   to the `account/*` routes, and the owner `DELETE account/api_tokens/<id>.json` to the non-staff
   `DELETE` exceptions.
-- [`access-control/endpoints.md`](../../access-control/endpoints.md): add the 6 method + URL rows.
+- [`access-control/endpoints.md`](../../access-control/endpoints.md): add the 7 method + URL rows.
 - [`no-private-cache-routes.md`](../../no-private-cache-routes.md): add `GET
-  /account/api_tokens.json` and `GET /staff/users/<id>/api-tokens.json`. They are credential
-  metadata, never private-cache candidates.
+  /account/api_tokens.json`, `GET /account/api_tokens/options.json` and `GET
+  /staff/users/<id>/api-tokens.json`. They are credential
+  metadata (or, for `options.json`, per-user data), never private-cache candidates.
 - [`permissions.yaml`](../../permissions.yaml): no change. `own_account` and `staff` already
   describe these rules.
 
@@ -406,7 +438,7 @@ These doc changes **ship with #1604**, following [`access-control.md`](../../acc
 #1604 must cover the following, and gets `security` and `data-access` reviews.
 
 - **Auth and session-only:**
-  - On all 6 method + URL pairs, a scoped token with every scope gets 403 `token_not_allowed`.
+  - On all 7 method + URL pairs, a scoped token with every scope gets 403 `token_not_allowed`.
   - Forcing `request.auth` to an `ApiToken` proves `require_session` alone rejects the request.
   - A session cookie and a legacy `Token` succeed. Bearer plus session is refused.
   - Anonymous, pending and denied users get 401. An inactive user's Bearer token gets 401.
@@ -425,7 +457,9 @@ These doc changes **ship with #1604**, following [`access-control.md`](../../acc
   - A missing `expires_at` and an explicit `null` both mean never.
   - `owner`, `prefix`, `id` or `last_used_at` in the body give 400 `not_editable`; the token
     always belongs to `request.user`.
-  - Superuser and staff reachability follows the [reachable game](#reachable-game) rule.
+  - Superuser and staff reachability follows the [reachable game](#reachable-game) rule: a
+    superuser may pick any game, and a plain staff user who is not a member gets
+    `game_not_reachable`.
   - A form-encoded body gives 415.
   - A prefix collision is retried, and exhausting the retries gives 500 (mocked).
 - **Rename and revoke:**
@@ -434,6 +468,14 @@ These doc changes **ship with #1604**, following [`access-control.md`](../../acc
   - DELETE returns 204 and removes the row. A second DELETE gives 404.
   - Another user's token id gives 404 on PATCH and DELETE, and the row is unchanged.
   - An expired token can be renamed and revoked.
+- **Options:**
+  - `scopes` is the full catalogue, sorted.
+  - A member gets the games where they are DM, a player or a PC owner, sorted by name, with
+    `all_games: false`.
+  - A superuser gets every game with `all_games: true`.
+  - A plain staff user gets their member games only, with `all_games: false`.
+  - Anonymous, pending and denied users get 401; a scoped token gets 403 `token_not_allowed`.
+  - The response carries `X-Skip-Cache: true`.
 - **Lists:**
   - The owner list holds only the caller's tokens, newest first, as a plain array.
   - `scopes` is sorted, `games` is `{slug, name}`, `expires_at` is `null` for never, `status`
@@ -472,8 +514,8 @@ None. Every open question was settled by #1596 and recorded under [Decisions](#d
 
 ## Affected code
 
-- `backend/accounts/`: the owner views and serializers, and the new
-  `backend/accounts/urls/api_tokens.py`.
+- `backend/accounts/`: the owner views (including `options.json`) and serializers, the
+  reachable-games helper, and the new `backend/accounts/urls/api_tokens.py`.
 - `backend/staff/urls.py` and the staff views: the staff list and revoke endpoints, next to the
   recovery-token ones.
 - `backend/games/views/common.py`: the new `require_session` helper, next to `require_staff`,
