@@ -9,6 +9,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils import timezone
 
+from common.model_fields import EnumCharField
 from games.settings import Settings
 
 
@@ -87,7 +88,7 @@ class Upload(models.Model):
         User, on_delete=models.CASCADE, related_name='uploads'
     )
     token = models.CharField(max_length=64, unique=True)
-    status = models.CharField(
+    status = EnumCharField(
         max_length=16, choices=STATUS_CHOICES, default=STATUS_PENDING
     )
     upload_type = models.CharField(
