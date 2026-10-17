@@ -51,8 +51,9 @@ The new top-level `client/` folder is **unrelated** to the existing
   reachable-game definition and `options.json`.
 - [Token UI](client/token-ui.md): the frontend token management page and the "API tokens"
   panel on the staff user page, both reading token data through `RequestStore`.
-- [Library](client/library.md): the client core (configuration, HTTP, auth, pagination, errors)
-  and the first resource wrappers.
+- [Library](client/library.md): the client core (configuration, HTTP, auth, pagination, errors,
+  retries and timeouts), the module layout and the first resource wrappers. #1598 settled the
+  library's API surface and split the wrapper work into #1609, #1621, #1622 and #1623.
 - [CLI](client/cli.md): the thin CLI on top of the library.
 - [Packaging](client/packaging.md): the docker-compose service, CI, the npm release and the
   package name.
@@ -81,11 +82,14 @@ already settled), **Open questions** (each naming the improvement issue that set
 | 14 | #1606 | Staff token list and revoke on the staff user page | [Token UI](client/token-ui.md) | frontend, translator |
 | 15 | #1607 | `client/` scaffold, docker-compose service, CI lint and test | [Packaging](client/packaging.md) | infra, client |
 | 16 | #1608 | Client core library | [Library](client/library.md) | client |
-| 17 | #1609 | First resource wrappers | [Library](client/library.md) | client |
+| 17 | #1609 | First resource wrappers (plain resources) | [Library](client/library.md) | client |
 | 18 | #1610 | CLI | [CLI](client/cli.md) | client |
 | 19 | #1611 | npm release job | [Packaging](client/packaging.md) | infra |
 | 20 | #1612 | Update the permanent docs before removing the specs | all | architect |
 | 21 | #1613 | Remove the client spec files | all | architect |
+| 22 | #1621 | Document page wrappers | [Library](client/library.md) | client |
+| 23 | #1622 | Link route wrappers | [Library](client/library.md) | client |
+| 24 | #1623 | Photo upload wrappers | [Library](client/library.md) | client |
 
 Sub-issues 11 and 12 also get `security` and `data-access` reviews. Improvement issues 2 to 8 are one
 per aspect page; any that turns out to need no work is closed.
@@ -97,8 +101,9 @@ per aspect page; any that turns out to need no work is closed.
    content) must land before #1603 (see [Read scopes](client/scopes.md#read-scopes)). The
    frontend issue #1605 needs #1604, and #1606 needs both #1604 and #1605 (it reuses the shared
    `ApiTokenRevokeConfirmModal` and token row cells).
-3. The client track: #1607, then #1608, then #1609 and #1610 in parallel. #1611 comes after
-   #1608. This track can run alongside the backend track.
+3. The client track: #1607, then #1608, then #1609 and #1610 in parallel. #1621 and #1622 come
+   after #1609; #1623 comes after #1608 and #1609. #1611 comes after #1608. This track can run
+   alongside the backend track.
 4. Last: the permanent docs (#1612), then the spec removal (#1613).
 
 ## Lifecycle of this spec
