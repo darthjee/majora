@@ -4,6 +4,8 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
+from common.model_fields import EnumCharField
+
 
 class Poll(models.Model):
     """Model representing a poll players can vote on within a game."""
@@ -38,7 +40,7 @@ class Poll(models.Model):
     title = models.CharField(max_length=200, blank=True, default='')
     description = models.TextField(blank=True, default='', max_length=5000)
     type = models.CharField(max_length=16, choices=TYPE_CHOICES, default=TYPE_SINGLE)
-    status = models.CharField(max_length=16, choices=STATUS_CHOICES, default=STATUS_INACTIVE)
+    status = EnumCharField(max_length=16, choices=STATUS_CHOICES, default=STATUS_INACTIVE)
     option_type = models.CharField(
         max_length=16, choices=OPTION_TYPE_CHOICES, default=OPTION_TYPE_TEXT,
     )

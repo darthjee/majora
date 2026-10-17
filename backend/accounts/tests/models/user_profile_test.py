@@ -3,10 +3,11 @@
 import hashlib
 
 import pytest
-from django.db import IntegrityError, transaction
+from django.db import DataError, IntegrityError, connection, transaction
 from django.test import TestCase
 
 from accounts.models import UserProfile
+from common.tests.raw_status import update_status_raw
 from games.tests.factories import UserFactory
 
 
@@ -113,3 +114,34 @@ class TestUserProfileEmailHash(TestCase):
 
         expected = hashlib.sha256(b'dave-new@example.com').hexdigest()
         assert profile.email_hash == expected
+
+
+class TestUserProfileStatusColumn(TestCase):
+    """Tests that the database itself enforces UserProfile.status (issue #1626)."""
+
+    @classmethod
+    def setUpTestData(cls):
+        """Set up a user whose profile is hand-edited."""
+        cls.user = UserFactory(username='alice', password='secret-password')
+
+    def test_database_rejects_an_unknown_status(self):
+        """Test that a raw UPDATE to an unknown status is rejected by the database."""
+        with pytest.raises(DataError):
+            update_status_raw(self.user.profile, 'bogus')
+
+    def test_database_accepts_a_known_status(self):
+        """Test that a raw UPDATE to a declared status is stored."""
+        profile = self.user.profile
+        update_status_raw(profile, UserProfile.STATUS_APPROVED)
+        profile.refresh_from_db()
+        assert profile.status == UserProfile.STATUS_APPROVED
+
+    def test_insert_without_status_gets_pending_from_the_database(self):
+        """Test that a raw INSERT omitting status gets the DB default `pending`."""
+        self.user.profile.delete()
+        with connection.cursor() as cursor:
+            cursor.execute(
+                'INSERT INTO games_userprofile (user_id, favorite_language) VALUES (%s, %s)',
+                [self.user.pk, 'en'],
+            )
+        assert UserProfile.objects.get(user=self.user).status == UserProfile.STATUS_PENDING

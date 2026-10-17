@@ -1,7 +1,10 @@
 """Tests for the Poll model."""
 
+import pytest
+from django.db import DataError
 from django.test import TestCase
 
+from common.tests.raw_status import update_status_raw
 from games.models import GameSession, Poll
 from games.tests.factories import GameFactory, PollFactory
 
@@ -97,3 +100,23 @@ class TestPoll(TestCase):
         poll = PollFactory(game=self.game, content_object=session)
         assert poll.content_object == session
         assert poll.object_id == session.id
+
+
+class TestPollStatusColumn(TestCase):
+    """Tests that the database itself enforces Poll.status values (issue #1626)."""
+
+    @classmethod
+    def setUpTestData(cls):
+        """Set up a poll to hand-edit."""
+        cls.poll = PollFactory(game=GameFactory(), status=Poll.STATUS_OPEN)
+
+    def test_database_rejects_an_unknown_status(self):
+        """Test that a raw UPDATE to an unknown status is rejected by the database."""
+        with pytest.raises(DataError):
+            update_status_raw(self.poll, 'bogus')
+
+    def test_database_accepts_a_known_status(self):
+        """Test that a raw UPDATE to a declared status is stored."""
+        update_status_raw(self.poll, Poll.STATUS_CLOSED)
+        self.poll.refresh_from_db()
+        assert self.poll.status == Poll.STATUS_CLOSED
