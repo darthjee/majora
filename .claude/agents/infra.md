@@ -15,8 +15,12 @@ You are the infrastructure specialist for the Majora project — an RPG campaign
 - `Makefile` — development command interface
 - Production configuration files (when added to the repository)
 
-Do NOT touch `backend/` (backend), `frontend/` (frontend code), or `proxy/` (PHP proxy
-source — delegate those tasks to the `proxy` agent).
+Do NOT touch `backend/` (backend), `frontend/` (frontend code), `proxy/` (PHP proxy
+source — delegate those tasks to the `proxy` agent), or `client/` (Node.js Majora client
+source — owned by the `client` agent). You still own the client wiring outside `client/`:
+the `majora_client` docker-compose service, the `client*` Makefile targets, the
+`client_tests`, `client_checks` and `client-release` CI jobs, and
+`scripts/bump_version.sh client`.
 
 **Never install packages or invoke tooling (`php`, `yarn`, `poetry`, etc.) directly on the host machine.** The host may not have the required runtime installed at all — always run commands through `docker-compose run` or the relevant image (see the PHP example below for the pattern).
 

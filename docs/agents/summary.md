@@ -44,6 +44,10 @@ open the full file before loading it. For a bare link-only table of contents ins
   scaffold exist: a future STL-site crawler that authenticates via API token and creates
   `Source`/`StlModel` links through the miniatures API documented at
   `docs/guides/majora/miniatures.md`.
+- **[Client Agent](client.md)** — Why the `client` specialist agent and its `client/`
+  folder exist: the Node.js library, CLI and `majora-client` npm package (epic #1592) that
+  call the Majora API with scoped `Bearer mjr_` tokens; documents the boundaries with `infra`
+  and with the unrelated `frontend/assets/js/client/`.
 - **[Access Statistics](statistics.md)** — The staff access statistics page: `Session` as
   visitor and `Visit` as activity (30-minute inactivity window), the visitor key, metric
   definitions and counting caveats per tab, the shared filters and `staff/statistics/*.json`

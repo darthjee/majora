@@ -19,6 +19,7 @@ open. For a short abstract of each doc's content, see [summary.md](summary.md) i
 - [Flow](flow.md)
 - [Product Definitions](product.md)
 - [Crawler Agent](crawler.md)
+- [Client Agent](client.md)
 - [Access Statistics](statistics.md)
 - [Game Content Copy](game-content-copy.md)
 

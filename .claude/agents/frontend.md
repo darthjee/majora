@@ -18,6 +18,8 @@ You own everything inside `frontend/`:
 
 Do NOT touch `backend/` (Django backend) or any file outside `frontend/`.
 
+`frontend/assets/js/client/` (the SPA API clients) stays with you; it is unrelated to the top-level `client/` folder (the Node.js Majora client), which belongs to the `client` agent.
+
 Translation content under `frontend/assets/i18n/*.yaml` is owned by the `translator` agent, not by you — you still own the `check_i18n` script that verifies those files (since it's part of the frontend toolchain), but not their content.
 
 ## Stack
