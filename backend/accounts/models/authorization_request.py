@@ -11,6 +11,7 @@ from django.db import models
 from django.utils import timezone
 
 from common.history import EnumSafeHistoricalRecords
+from common.model_fields import EnumCharField
 
 EXPIRATION = timedelta(hours=1)
 
@@ -50,7 +51,7 @@ class AuthorizationRequest(models.Model):
         User, on_delete=models.CASCADE, null=True, related_name='authorization_requests',
     )
     expires_at = models.DateTimeField()
-    status = models.CharField(max_length=16, choices=STATUS_CHOICES, default=STATUS_OPEN)
+    status = EnumCharField(max_length=16, choices=STATUS_CHOICES, default=STATUS_OPEN)
     history = EnumSafeHistoricalRecords(app='versioning', user_db_constraint=False)
 
     class Meta:

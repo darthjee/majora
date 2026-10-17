@@ -5,6 +5,8 @@ import hashlib
 from django.contrib.auth.models import User
 from django.db import models
 
+from common.model_fields import EnumCharField
+
 
 class UserProfile(models.Model):
     """Model representing a user's account-level preferences."""
@@ -27,7 +29,7 @@ class UserProfile(models.Model):
     # row through a historical, frozen migration-era model (see `games/tests/migration_state.py`)
     # that predates this field and so never sets it explicitly — without a real database-level
     # default, MySQL rejects that INSERT outright.
-    status = models.CharField(
+    status = EnumCharField(
         max_length=16, choices=STATUS_CHOICES, default=STATUS_PENDING, db_default=STATUS_PENDING,
     )
 
