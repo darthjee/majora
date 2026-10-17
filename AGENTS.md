@@ -90,6 +90,7 @@ All project documentation lives under [`docs/agents/`](docs/agents/):
 | [Flow](docs/agents/flow.md) | Main runtime flow of the application. |
 | [Product Definitions](docs/agents/product.md) | Authoritative product-level concepts: entity definitions, ownership chain, GameMaster role, and editing rules. Consult before planning any issue that introduces new entities or changes access logic. |
 | [Crawler Agent](docs/agents/crawler.md) | Why the `crawler` specialist agent and its `crawler/` scaffold exist, and their relationship to the miniatures API. |
+| [Client Agent](docs/agents/client.md) | Why the `client` specialist agent and its `client/` folder (Node.js library, CLI and `majora-client` npm package using scoped tokens) exist, and where `client/` stops and `infra`/`frontend` begin. |
 | [Access Control](docs/agents/access-control.md) | Per-role access rules for every model and endpoint; updated alongside any new model or endpoint. |
 | [Security Guidelines](docs/agents/security-guidelines.md) | Project-specific vulnerability patterns (auth gaps, injection, insecure headers, exposed secrets, CSRF, insecure proxy rules, input validation); used by the `security` agent. |
 | [Cache Warmer](docs/agents/cache-warmer.md) | Navi setup for warming the proxy cache after release (CI and local); used by the `cache` agent. |

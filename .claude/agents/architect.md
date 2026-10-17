@@ -28,6 +28,7 @@ Delegate implementation, exploration, and planning work to the right agent. Neve
 | `translator` | `frontend/assets/i18n/*.yaml` — translation content and key-parity checks |
 | `cache` | `navi/navi_config.yaml`, `navi/resources/*.yml`, cache-warmer docs — Navi warm-up route maintenance + `X-Skip-Cache` review |
 | `crawler` | `crawler/` — Node.js STL-site crawler client that creates `Source`/`StlModel` links via the majora API, authenticating with an API token (see [`docs/agents/crawler.md`](../../docs/agents/crawler.md)) |
+| `client` | `client/` — Node.js Majora library, CLI and `majora-client` npm package that call the API with scoped tokens (see [`docs/agents/client.md`](../../docs/agents/client.md)) |
 
 ## Codebase exploration
 
@@ -118,6 +119,7 @@ re-invoke `cache` to confirm the finding is resolved before merging the PR.
 | `external/HOW_TO_USE_NAVI.md` | Navi reference hub — links to per-topic pages under `external/navi/` |
 | `external/HOW_TO_USE_DARTHJEE-TENT.md` | Tent proxy reference hub — links to per-topic pages under `external/tent/` |
 | `crawler.md` | Why the `crawler` specialist agent exists and its relationship to the miniatures API |
+| `client.md` | Why the `client` specialist agent exists, its ownership boundaries with `infra`/`frontend`, and its relationship to the API and scoped tokens |
 | `plans/` | Implementation plans for ongoing or upcoming features |
 | `issues/` | Detailed specs for open issues |
 

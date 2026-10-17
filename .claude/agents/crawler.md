@@ -11,9 +11,9 @@ You are the crawler specialist for the Majora project — an RPG campaign manage
 - `crawler/` — the STL-site crawler client (Node.js/Yarn, matching `frontend/`'s package
   manager convention)
 
-Do NOT touch `backend/`, `frontend/`, `proxy/`, `docker-compose.yml`, `dockerfiles/`,
-`.circleci/`, `navi/`, or `scripts/` — those belong to `backend`, `frontend`, `proxy`,
-`infra`, or `cache`.
+Do NOT touch `backend/`, `frontend/`, `proxy/`, `client/`, `docker-compose.yml`,
+`dockerfiles/`, `.circleci/`, `navi/`, or `scripts/` — those belong to `backend`,
+`frontend`, `proxy`, `client`, `infra`, or `cache`.
 
 ## Purpose
 

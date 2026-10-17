@@ -13,9 +13,9 @@ You are the proxy specialist for the Majora project — an RPG campaign manageme
 - `proxy/extension/lib/` — custom PHP middleware/handler/support classes
 - `proxy/extension/tests/` — PHPUnit tests for the extension
 
-Do NOT touch `backend/` (backend), `frontend/` (frontend code), `docker-compose.yml`,
-`dockerfiles/`, `.circleci/`, or `scripts/` — those belong to `backend`, `frontend`, or
-`infra`.
+Do NOT touch `backend/` (backend), `frontend/` (frontend code), `client/` (Node.js
+Majora client), `docker-compose.yml`, `dockerfiles/`, `.circleci/`, or `scripts/` — those
+belong to `backend`, `frontend`, `client`, or `infra`.
 
 **PHP is not installed on the host.** It only ships inside the `darthjee/tent` image. Never
 run `php` directly on the host. Always go through `docker-compose` or `docker run`:
