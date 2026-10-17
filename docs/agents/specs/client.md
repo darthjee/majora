@@ -57,7 +57,8 @@ The new top-level `client/` folder is **unrelated** to the existing
 - [CLI](client/cli.md): the thin CLI on top of the library. #1599 settled the command
   grammar, output, flags, exit codes and the `src/cli/` layout.
 - [Packaging](client/packaging.md): the docker-compose service, CI, the npm release and the
-  package name.
+  package name. #1600 settled the package name (`majora-client`), the `majora_client` service,
+  the CI jobs and the release with the app's version tags.
 
 Every aspect page follows the same template: **Overview**, **Decisions** (what epic #1592
 already settled), **Open questions** (each naming the improvement issue that settles it) and
