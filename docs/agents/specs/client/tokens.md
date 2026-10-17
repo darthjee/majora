@@ -105,6 +105,11 @@ There is no `revoked_at` field: revoking deletes the row (see [Lifecycle](#lifec
   the order leaks nothing.
 - **On success** the class returns `(owner, api_token)`, so the `ApiToken` is `request.auth` (see
   [Scopes](scopes.md) for the scope checks the class runs next).
+- **Interim fail-closed (#1602, until #1603):** until the scope check lands, every Bearer
+  request that authenticates is refused with **403** `token_not_allowed`, so no deploy lets a
+  token through with its owner's full access. `last_used_at` is still updated, since
+  authentication succeeded. #1603 replaces this blanket refusal with the per-view scope check, at
+  the same point in the class.
 - **Side effect:** every 401 across the API now carries `WWW-Authenticate: Bearer realm="api"`
   instead of `Token`, because DRF takes the header from the first authentication class. Nothing in
   the backend, frontend or proxy reads this header, browsers only prompt on `Basic`, and the
@@ -215,6 +220,8 @@ There is no `revoked_at` field: revoking deletes the row (see [Lifecycle](#lifec
   rescued by the session; a valid token authenticates as the token, not the session.
 - **Auto-revoke:** the staff deny view deletes the user's scoped tokens as well as their DRF
   tokens.
+- **Interim fail-closed:** a valid token gets 403 `token_not_allowed` and still updates
+  `last_used_at`.
 
 ## Open questions
 
