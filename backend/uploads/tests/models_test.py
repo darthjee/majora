@@ -3,9 +3,11 @@
 from datetime import timedelta
 
 import pytest
+from django.db import DataError
 from django.test import TestCase
 from django.utils import timezone
 
+from common.tests.raw_status import update_status_raw
 from games.models import GamePhoto
 from games.tests.factories import GameFactory, UserFactory
 from uploads.models import Upload
@@ -330,3 +332,25 @@ class TestUploadActiveQuerySet(TestCase):
             GamePhoto, [self.photo.pk, self.other_photo.pk]
         ).values_list('object_id', flat=True)
         assert sorted(ids) == sorted([self.photo.pk, self.other_photo.pk])
+
+
+class TestUploadStatusColumn(TestCase):
+    """Tests that the database itself enforces Upload.status values (issue #1626)."""
+
+    @classmethod
+    def setUpTestData(cls):
+        """Set up an upload to hand-edit."""
+        cls.upload = Upload.objects.create(
+            user=UserFactory(), file_path='photos/games/my-game/file_enum.jpg',
+        )
+
+    def test_database_rejects_an_unknown_status(self):
+        """Test that a raw UPDATE to an unknown status is rejected by the database."""
+        with pytest.raises(DataError):
+            update_status_raw(self.upload, 'bogus')
+
+    def test_database_accepts_a_known_status(self):
+        """Test that a raw UPDATE to a declared status is stored."""
+        update_status_raw(self.upload, Upload.STATUS_FAILED)
+        self.upload.refresh_from_db()
+        assert self.upload.status == Upload.STATUS_FAILED
