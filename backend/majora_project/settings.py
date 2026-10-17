@@ -184,6 +184,7 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.JSONRenderer',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
+        'accounts.authentication.ApiTokenAuthentication',
         'accounts.authentication.CookieTokenAuthentication',
     ],
     # Scoped rates for the two pre-login `AllowAny` authorization-request endpoints only

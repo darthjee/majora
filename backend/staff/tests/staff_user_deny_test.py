@@ -6,7 +6,7 @@ from django.test import TestCase
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
 
-from accounts.models import UserProfile
+from accounts.models import ApiToken, UserProfile
 from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import SuperUserFactory, UserFactory, UserProfileFactory
 
@@ -82,6 +82,23 @@ class TestStaffUserDenyView(TokenAuthRequestMixin, TestCase):
         self._post(self.client, self.target_user.id, token=self.superuser_token)
 
         assert not Token.objects.filter(user=self.target_user).exists()
+
+    def test_deny_destroys_the_user_api_tokens(self):
+        """Test that denying a user deletes all of their scoped API tokens."""
+        ApiToken.objects.create_token(self.target_user, 'first', [])
+        ApiToken.objects.create_token(self.target_user, 'second', [])
+
+        self._post(self.client, self.target_user.id, token=self.superuser_token)
+
+        assert not ApiToken.objects.filter(owner=self.target_user).exists()
+
+    def test_deny_keeps_other_users_api_tokens(self):
+        """Test that denying a user leaves other users' scoped API tokens alone."""
+        other_token, _ = ApiToken.objects.create_token(self.regular_user, 'other', [])
+
+        self._post(self.client, self.target_user.id, token=self.superuser_token)
+
+        assert ApiToken.objects.filter(pk=other_token.pk).exists()
 
     def test_deny_returns_updated_user_row(self):
         """Test that the response body matches a /staff/users.json row shape."""

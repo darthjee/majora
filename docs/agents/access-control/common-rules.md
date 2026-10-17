@@ -43,8 +43,9 @@ path id gets `404`, and a validation failure gets `400`
 when it deviates (e.g. a 404 masking an authorization failure to avoid leaking existence).
 
 **`UserProfile.status` gate:** every rule above assumes `UserProfile.status == approved`.
-`CookieTokenAuthentication` — the project-wide default authentication class — resolves a
-`pending`/`denied` user as fully unauthenticated, so any rule depending on "Authenticated" never
+`CookieTokenAuthentication` — the project-wide default authentication class for sessions and
+legacy `Token <key>` headers — resolves a `pending`/`denied` user as fully unauthenticated (a
+scoped [`ApiToken`](endpoints.md#apitoken-model) of a non-approved owner gets `401` instead), so any rule depending on "Authenticated" never
 applies to them; they look anonymous everywhere except the handful of endpoints that resolve
 status directly (login, status, recover, authorization-requests poll) — see [Standalone
 endpoints](endpoints.md#userprofilestatus-authentication-gate).
