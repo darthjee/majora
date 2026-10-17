@@ -121,3 +121,23 @@ read/write access of its own and needs no per-field role table.
 - **Superuser access**: none — not registered in Django admin (matches `PasswordResetToken`'s
   precedent of staying unregistered), and superusers have no special read path for other users'
   cache tokens beyond the general admin-pages carve-out at the top of this document set.
+
+## `ApiToken` model
+
+A scoped API token (`accounts.ApiToken`, many per user) sent as
+`Authorization: Bearer mjr_<prefix>_<secret>` and read by `ApiTokenAuthentication`, which runs
+**before** `CookieTokenAuthentication` in `DEFAULT_AUTHENTICATION_CLASSES`. Full design:
+[`specs/client/tokens.md`](../specs/client/tokens.md).
+
+- **Stored**: only the SHA-256 hash of the secret part and the non-secret, unique `prefix`; the
+  plain token is returned once, at creation.
+- **Bearer only**: a request without a Bearer header is left to `CookieTokenAuthentication`
+  unchanged. A Bearer request that does not authenticate (malformed, unknown prefix, wrong secret,
+  expired, inactive or non-approved owner) always gets `401` `token_invalid` — never a fallback to
+  the session or to anonymous.
+- **Interim fail-closed**: until the per-view scope check (#1603) lands, every token that
+  authenticates is refused with `403` `token_not_allowed`, so no token ever carries its owner's
+  full access.
+- **Invalidated**: all of a user's tokens are deleted when staff deny the user
+  ([User (Staff Management)](user.md)). Revoking deletes the row; there is no soft revoke.
+- **Superuser access**: none — no endpoints yet and not registered in Django admin.
