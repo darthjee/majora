@@ -9,7 +9,8 @@ from datetime import timedelta
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
-from simple_history.models import HistoricalRecords
+
+from common.history import EnumSafeHistoricalRecords
 
 EXPIRATION = timedelta(hours=1)
 
@@ -50,7 +51,7 @@ class AuthorizationRequest(models.Model):
     )
     expires_at = models.DateTimeField()
     status = models.CharField(max_length=16, choices=STATUS_CHOICES, default=STATUS_OPEN)
-    history = HistoricalRecords(app='versioning', user_db_constraint=False)
+    history = EnumSafeHistoricalRecords(app='versioning', user_db_constraint=False)
 
     class Meta:
         """Metadata for the AuthorizationRequest model."""

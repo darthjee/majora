@@ -4,10 +4,12 @@ import threading
 from datetime import timedelta
 
 import pytest
+from django.db import models
 from django.test import TestCase
 from django.utils import timezone
 
 from accounts.models import AuthorizationRequest
+from common.model_fields import EnumCharField
 from games.tests.factories import UserFactory
 
 
@@ -179,3 +181,20 @@ class TestAuthorizationRequestConcurrentTransition:
             thread.join()
 
         assert sorted(results) == [False, True]
+
+
+class TestAuthorizationRequestHistoryStatusField:
+    """Tests for the historical model's status field (issue #1626)."""
+
+    def setup_method(self):
+        """Set up the historical status field."""
+        self.field = AuthorizationRequest.history.model._meta.get_field('status')
+
+    def test_history_status_is_a_plain_char_field(self):
+        """Test that the history status is a CharField and not an EnumCharField."""
+        assert isinstance(self.field, models.CharField)
+        assert not isinstance(self.field, EnumCharField)
+
+    def test_history_status_keeps_choices(self):
+        """Test that the history status keeps the model's choices."""
+        assert self.field.choices == AuthorizationRequest.STATUS_CHOICES
