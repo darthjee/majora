@@ -54,7 +54,8 @@ The new top-level `client/` folder is **unrelated** to the existing
 - [Library](client/library.md): the client core (configuration, HTTP, auth, pagination, errors,
   retries and timeouts), the module layout and the first resource wrappers. #1598 settled the
   library's API surface and split the wrapper work into #1609, #1621, #1622 and #1623.
-- [CLI](client/cli.md): the thin CLI on top of the library.
+- [CLI](client/cli.md): the thin CLI on top of the library. #1599 settled the command
+  grammar, output, flags, exit codes and the `src/cli/` layout.
 - [Packaging](client/packaging.md): the docker-compose service, CI, the npm release and the
   package name.
 

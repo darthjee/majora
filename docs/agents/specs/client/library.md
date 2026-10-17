@@ -57,7 +57,7 @@ client/
       Resource.js         # base wrapper built on HttpClient
       GameResource.js     # base for game-scoped families (games/<slug>/<family>)
       Npcs.js, Pcs.js, …  # one file per scope family
-    cli/                  # internal layout settled by #1599
+    cli/                  # see cli.md, Internal layout
   specs/
     support/              # fetch stub, fixtures
     core/, resources/, cli/   # mirrors src/
@@ -72,7 +72,7 @@ client/
 - **`core/` vs `resources/` mirrors the split between #1608 and #1609**: #1608 touches `core/`,
   `MajoraClient.js` and `index.js`; #1609 (and #1621–#1623) add files under `resources/`.
 - **The CLI lives in `src/cli/`** with a thin `bin/majora.js` shim, so it is testable like the
-  rest. Its internal layout belongs to #1599.
+  rest. Its internal layout is in [CLI](cli.md#internal-layout-srccli).
 - **Rejected:** a flat `src/` (does not scale past a handful of wrappers and error classes);
   separate packages for core and CLI (contradicts the single package in
   [Packaging](packaging.md)).
@@ -309,8 +309,8 @@ parent resource; their exact methods are settled in those issues.
 
 None remain: #1598 settled them all.
 
-Hand-off to #1599: the [CLI](cli.md) page's `--game 3` example should use a game slug, and the
-CLI's resources follow the scope families above.
+The hand-off to #1599 is resolved: the [CLI](cli.md) page now uses a game slug in its examples,
+and its resources follow the scope families above.
 
 ## Affected code
 
