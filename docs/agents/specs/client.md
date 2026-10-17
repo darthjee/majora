@@ -45,9 +45,12 @@ The new top-level `client/` folder is **unrelated** to the existing
 - [Scopes](client/scopes.md): the scope catalogue (`read`/`write` per resource family),
   intersection with the owner's roles, the per-game restriction, the exclusions and the
   enforcement mechanism (the per-view `@token_scopes` declaration, failing closed).
-- [Token API](client/token-api.md): owner and staff token endpoints, access control,
-  `X-Skip-Cache`, and how the proxy and the cache treat Bearer requests.
-- [Token UI](client/token-ui.md): the frontend token management page and the staff view.
+- [Token API](client/token-api.md): owner and staff token endpoints (including `options.json`,
+  the scope catalogue and reachable games for the create form), access control, `X-Skip-Cache`,
+  and how the proxy and the cache treat Bearer requests. #1597 amended it with the
+  reachable-game definition and `options.json`.
+- [Token UI](client/token-ui.md): the frontend token management page and the "API tokens"
+  panel on the staff user page, both reading token data through `RequestStore`.
 - [Library](client/library.md): the client core (configuration, HTTP, auth, pagination, errors)
   and the first resource wrappers.
 - [CLI](client/cli.md): the thin CLI on top of the library.
@@ -92,7 +95,8 @@ per aspect page; any that turns out to need no work is closed.
 1. The spec: #1593, then the improvements #1594–#1600, then the agent #1601.
 2. The backend track: #1602, then #1603, then #1604. #1616 (plain routes never serve hidden
    content) must land before #1603 (see [Read scopes](client/scopes.md#read-scopes)). The
-   frontend issues #1605 and #1606 need #1604.
+   frontend issue #1605 needs #1604, and #1606 needs both #1604 and #1605 (it reuses the shared
+   `ApiTokenRevokeConfirmModal` and token row cells).
 3. The client track: #1607, then #1608, then #1609 and #1610 in parallel. #1611 comes after
    #1608. This track can run alongside the backend track.
 4. Last: the permanent docs (#1612), then the spec removal (#1613).

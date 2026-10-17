@@ -122,7 +122,8 @@ may group them visually.
   class reads the declaration from the resolved view (`request.resolver_match.func`) and raises
   `PermissionDenied` (403) when the scopes or the game do not match.
 - **The catalogue is a single constant in code,** shared by the decorator, token creation and the
-  token UI's list of options.
+  token UI's list of options (served by
+  [`options.json`](token-api.md#options-get-accountapi_tokensoptionsjson)).
 - **Rejected: a central URL map.** About 230 entries that would drift away from the views.
 - **Rejected: a `DEFAULT_PERMISSION_CLASSES` entry.** Every view sets `@permission_classes`,
   which overrides the default, so the check would never run.
