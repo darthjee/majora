@@ -73,6 +73,10 @@ session and both read through `RequestStore`:
   [Warnings and copy](#warnings-and-copy)).
 - **No reachable games:** the picker shows a "you're not in any game yet" note. Only the empty
   (all games) option remains, and game-scoped scopes do nothing until the user joins a game.
+- **Selection cap:** at most **100 selected games**, the backend cap (`GAMES_MAX_COUNT` in
+  #1604). Once 100 are selected, adding more is disabled and a hint
+  (`api_tokens_page.games_limit`) explains the limit. The backend still rejects a longer list
+  with `max_length` (see [Error mapping](#error-mapping)).
 
 #### Expiry
 
@@ -158,7 +162,7 @@ session and both read through `RequestStore`:
   |---|---|---|
   | Name (create and inline rename) | `required`, `blank`, `max_length` | Existing keys. The input also sets `maxLength=100` and trims the value. |
   | Scope picker | `required`, `empty` (existing); `invalid_scope`, `duplicate_scope` (new) | |
-  | Games picker | `game_not_reachable`, `duplicate_game` (new) | `game_not_reachable` says a selected game is no longer available, and to reload and pick again. |
+  | Games picker | `game_not_reachable`, `duplicate_game` (new); `max_length` (existing) | `game_not_reachable` says a selected game is no longer available, and to reload and pick again. `max_length` covers more than 100 games, which the picker cap normally prevents. |
   | Expiry | `invalid` (existing); `expires_in_past` (new) | `expires_in_past` mentions checking the device clock. |
   | Any field | `not_editable` (new) | Generic. |
 
@@ -262,7 +266,8 @@ Jasmine specs for:
 - each new controller and helper: load, empty, error, create → secret view → Done → refresh,
   rename, revoke, and the 404 refresh;
 - the scope picker: Write ticks Read, the shortcuts, the disabled Create button;
-- the games picker: the empty-list note and the superuser warning on `all_games`;
+- the games picker: the empty-list note, the superuser warning on `all_games`, and the
+  100-game cap (adding is disabled at 100 and the limit hint shows);
 - expiry conversion: the presets, and the end-of-day custom date in local time converted to UTC;
 - the clipboard success and failure paths;
 - the new `resourceConfig` entries.
@@ -296,6 +301,11 @@ None. Settled by #1597 and recorded under [Decisions](#decisions).
   `frontend/assets/js/utils/requests/resourceConfig.js` and
   `frontend/assets/js/utils/requests/RequestPermissionResolvers.js` (the doc comment listing
   resolver-less resources).
+- `frontend/assets/js/client/config/skipCacheEndpoints.js` and
+  `frontend/assets/js/client/config/skipCachePrefixes.js`: the token endpoints skip the client
+  cache.
+- `frontend/assets/js/components/AppHelper.jsx` (or wherever pages are registered): the new
+  page registration.
 - `frontend/assets/js/components/common/forms/FieldErrors.jsx`: reused, unchanged.
 - `frontend/assets/i18n/{en,pt}/common.yaml` (new `errors.*` codes), the new
   `frontend/assets/i18n/{en,pt}/api_tokens_page.yaml`, and the staff user page translation file.
