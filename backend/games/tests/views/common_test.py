@@ -3,9 +3,11 @@
 import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.test import TestCase
+from rest_framework.authtoken.models import Token
 from rest_framework.request import Request
 from rest_framework.test import APIRequestFactory
 
+from accounts.models import ApiToken
 from common.auth_checks import UNAUTHENTICATED_RESPONSE_DATA
 from games.models import Game
 from games.serializers import (
@@ -23,6 +25,7 @@ from games.views.common import (
     parse_role_booleans,
     permissions_response,
     require_authenticated,
+    require_session,
     validated_or_error,
 )
 from permissions import EndpointPermission
@@ -84,6 +87,34 @@ class TestRequireAuthenticated:
         user = UserFactory(username='bob', password='secret-password')
         request = _make_request(user=user)
         assert require_authenticated(request) is None
+
+
+@pytest.mark.django_db
+class TestRequireSession:
+    """Tests for require_session()."""
+
+    def setup_method(self):
+        """Set up a user and a request authenticated as that user."""
+        self.user = UserFactory()
+        self.request = _make_request(user=self.user)
+
+    def test_returns_403_for_scoped_api_token(self):
+        """Test that a request authenticated by an ApiToken gets 403 token_not_allowed."""
+        api_token, _ = ApiToken.objects.create_token(self.user, 'Bot', ['npcs:read'])
+        self.request.auth = api_token
+        response = require_session(self.request)
+        assert response.status_code == 403
+        assert response.data == {'errors': {'detail': ['token_not_allowed']}}
+
+    def test_returns_none_for_legacy_token(self):
+        """Test that a request authenticated by a legacy DRF Token passes."""
+        self.request.auth = Token.objects.create(user=self.user)
+        assert require_session(self.request) is None
+
+    def test_returns_none_without_auth(self):
+        """Test that a request with no auth object passes."""
+        self.request.auth = None
+        assert require_session(self.request) is None
 
 
 class TestValidatedOrError(TestCase):

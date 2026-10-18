@@ -3,6 +3,7 @@
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
+from accounts.models import ApiToken
 from common.auth_checks import unauthenticated_response
 from permissions import EndpointPermission
 
@@ -37,6 +38,17 @@ def check_game_edit(request, game):
 def require_authenticated(request):
     """Return a 401 Response if `request.user` is missing/unauthenticated, else None."""
     return unauthenticated_response(request)
+
+
+def require_session(request):
+    """Return a 403 `token_not_allowed` Response if `request` used a scoped token, else None.
+
+    Session-only endpoints (token management) call this first: only a request authenticated
+    by an `ApiToken` is refused; a cookie session or a legacy DRF `Token` passes.
+    """
+    if isinstance(getattr(request, 'auth', None), ApiToken):
+        return Response({'errors': {'detail': ['token_not_allowed']}}, status=403)
+    return None
 
 
 def require_staff(request):
