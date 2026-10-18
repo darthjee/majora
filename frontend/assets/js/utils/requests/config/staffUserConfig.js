@@ -34,6 +34,12 @@
  *   single `PasswordResetToken`, each keyed by both `id` (user) and `tokenId`; none returns any
  *   token data, so callers must re-fetch `GET.recoveryTokens` on success. `DELETE` is a brand-new
  *   top-level key on this resource.
+ *
+ *   `GET.apiTokens`/`DELETE.deleteApiToken` (issue #1606, `/staff/users/:id/api-tokens.json` and
+ *   `/staff/users/:id/api-tokens/:tokenId.json`) list a user's scoped API tokens (metadata only,
+ *   never the secret) and revoke a single one, keyed by both `id` (user) and `tokenId`, mirroring
+ *   `recoveryTokens`/`deleteRecoveryToken`; the revoke returns no token data, so callers must
+ *   re-fetch `GET.apiTokens` on success.
  */
 const collection = { path: () => '/staff/users.json', permission: null };
 const single = { path: ({ id }) => `/staff/users/${id}.json`, permission: null };
@@ -53,12 +59,18 @@ const deleteRecoveryToken = {
   path: ({ id, tokenId }) => `/staff/users/${id}/recovery-tokens/${tokenId}.json`,
   permission: null,
 };
+const apiTokens = { path: ({ id }) => `/staff/users/${id}/api-tokens.json`, permission: null };
+const deleteApiToken = {
+  path: ({ id, tokenId }) => `/staff/users/${id}/api-tokens/${tokenId}.json`,
+  permission: null,
+};
 
 export default {
   GET: {
     collection: { regular: collection, private: collection },
     single: { regular: single, private: single },
     recoveryTokens: { regular: recoveryTokens, private: recoveryTokens },
+    apiTokens: { regular: apiTokens, private: apiTokens },
   },
   PATCH: {
     single: { regular: single, private: single },
@@ -72,5 +84,6 @@ export default {
   },
   DELETE: {
     deleteRecoveryToken: { regular: deleteRecoveryToken, private: deleteRecoveryToken },
+    deleteApiToken: { regular: deleteApiToken, private: deleteApiToken },
   },
 };

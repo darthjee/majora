@@ -141,5 +141,21 @@ describe('resourceConfig mutations (issue #842)', function() {
       expect(recoveryLink.regular.path({ id: '9' })).toBe('/staff/users/9/recovery-link.json');
       expect(recoveryLink.regular.permission).toBeNull();
     });
+
+    it('resolves GET.apiTokens as a single un-branched variant (issue #1606)', function() {
+      const apiTokens = resourceConfig.get('GET', 'staffUser', 'apiTokens');
+
+      expect(apiTokens.regular).toBe(apiTokens.private);
+      expect(apiTokens.regular.path({ id: '9' })).toBe('/staff/users/9/api-tokens.json');
+      expect(apiTokens.regular.permission).toBeNull();
+    });
+
+    it('resolves DELETE.deleteApiToken as a single un-branched variant (issue #1606)', function() {
+      const deleteApiToken = resourceConfig.get('DELETE', 'staffUser', 'deleteApiToken');
+
+      expect(deleteApiToken.regular).toBe(deleteApiToken.private);
+      expect(deleteApiToken.regular.path({ id: '9', tokenId: '4' })).toBe('/staff/users/9/api-tokens/4.json');
+      expect(deleteApiToken.regular.permission).toBeNull();
+    });
   });
 });
