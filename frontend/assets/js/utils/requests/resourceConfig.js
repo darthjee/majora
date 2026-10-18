@@ -18,6 +18,7 @@ import gameDocumentFileConfig from './config/gameDocumentFileConfig.js';
 import gameDocumentPageConfig from './config/gameDocumentPageConfig.js';
 import characterDocumentFileConfig from './config/characterDocumentFileConfig.js';
 import characterDocumentPhotoConfig from './config/characterDocumentPhotoConfig.js';
+import characterPhotoConfig from './config/characterPhotoConfig.js';
 import stlModelConfig from './config/stlModelConfig.js';
 import sourceConfig from './config/sourceConfig.js';
 import collectionConfig from './config/collectionConfig.js';
@@ -46,6 +47,7 @@ const RESOURCES = {
   gameDocumentPage: gameDocumentPageConfig,
   characterDocumentFile: characterDocumentFileConfig,
   characterDocumentPhoto: characterDocumentPhotoConfig,
+  characterPhoto: characterPhotoConfig,
   stlModel: stlModelConfig,
   source: sourceConfig,
   collection: collectionConfig,
@@ -78,7 +80,7 @@ export default {
    * @param {string} resource - Resource name (`'game'`, `'npc'`, `'pc'`, `'item'`, `'possession'`,
    *   `'commonItem'`, `'treasure'`, `'session'`, `'document'`, `'poll'`, `'task'`, `'staffUser'`,
    *   `'staffPhoto'`, `'staffCopy'`, `'staffStatistics'`, `'gameDocumentPhoto'`, `'gameDocumentFile'`, `'gameDocumentPage'`, `'characterDocumentFile'`,
-   *   `'characterDocumentPhoto'`, `'stlModel'`, `'source'`, `'collection'`, `'faction'`,
+   *   `'characterDocumentPhoto'`, `'characterPhoto'`, `'stlModel'`, `'source'`, `'collection'`, `'faction'`,
    *   `'recipe'`, `'characterRecipe'`).
    * @param {string} quantityType - `'collection'`, `'single'`, or a resource-specific key.
    * @returns {{regular: object, private: object}|null} The config entry, or `null` when no

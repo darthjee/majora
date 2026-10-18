@@ -19,22 +19,18 @@
  *   both `path` and `permission` resolve to the exact same value as `regular`.
  *
  *   `single` params: `id` (treasure id) and, optionally, `gameSlug`. `GET /treasures/:id.json`
- *   (no `gameSlug`) is `AllowAny` with no separate restricted/full variant — a treasure's edit
- *   rights are resolved separately via `/permissions/treasure.json`
- *   (`AccessStore.ensureTreasurePermissions`), not embedded in this response. `GET
- *   /games/:game_slug/treasures/:id.json` (`gameSlug` given, used by the per-game treasure edit
- *   page) is likewise `AllowAny` for `GET` — edit rights for that route are enforced inline on
- *   `PATCH`, not via a separate restricted read variant — so for both shapes, `private` points at
- *   the exact same `path`/`permission` object as `regular`, mirroring `sessionConfig.js`'s
- *   `single` shape.
+ *   (no `gameSlug`) is `AllowAny` with no restricted variant — a treasure's edit rights are
+ *   resolved separately via `/permissions/treasure.json` — so its `private` variant resolves to
+ *   the same path with a `null` permission. `GET /games/:game_slug/treasures/:id.json` 404s on a
+ *   hidden `GameTreasure` for every caller (issue #1616), so a game editor (game-level
+ *   `can_edit`, `GameEditPermission`) reads `/games/:game_slug/treasures/:id/full.json` instead
+ *   (same payload plus `hidden`, `X-Skip-Cache`).
  *
  *   `ownedCollection` params: `gameSlug`, `kind` (`'pcs'`/`'npcs'`), and `id` (character id) —
- *   always the plain `.../treasures.json` path for both kinds, with `private` pointing at the
- *   exact same `path`/`permission` object as `regular` (never elevating to `all.json`), unlike
- *   `collection`'s own `kind: 'npcs'` branch above. Added by issue #811 so the treasure exchange
- *   modal's Sell tab (a character's *owned* treasures, not the game's catalog) can go through
- *   `RequestStore` too, without silently starting to include hidden treasures for a DM viewing an
- *   NPC's sell list the way `collection`'s elevation would.
+ *   the treasure exchange modal's Sell/Remove tabs (a character's *owned* treasures, issue #811).
+ *   The plain `.../treasures.json` 404s on a hidden NPC for every caller (issue #1616), so an NPC
+ *   editor (game-level `can_edit`) reads `npcs/:id/treasures/all.json` instead; PCs have no
+ *   restricted sibling and always stay on the plain path.
  *
  *   `POST.collection` (create) params: `gameSlug` (game-catalog create, when given) or none at
  *   all (standalone create) — branches on the *presence* of `gameSlug`, not a `kind` param (there
@@ -65,8 +61,7 @@
  *   (character id). `acquire`/`buy` each have a DM/admin-only `private` endpoint that also accepts
  *   a hidden `Treasure`, so a DM acting on a PC's or NPC's behalf doesn't 404; `remove`/`sell` have
  *   no such counterpart today (confirmed in `CharacterClient.js`), so their `regular`/`private`
- *   point at the exact same object, mirroring `single`/`ownedCollection`'s own un-branched
- *   treatment above. Callers pass `variantName` explicitly (from an already-loaded
+ *   point at the exact same object. Callers pass `variantName` explicitly (from an already-loaded
  *   `canEdit`/`gameCanEdit`) rather than relying on live permission resolution, so `permission`
  *   here is documentation-only.
  *
@@ -128,7 +123,17 @@ const singlePath = ({ gameSlug, id }) => (
 );
 
 const single = { path: singlePath, permission: null };
+const singlePrivate = {
+  path: (params) => (params.gameSlug ? `/games/${params.gameSlug}/treasures/${params.id}/full.json` : singlePath(params)),
+  permission: (params) => (params.gameSlug ? 'can_edit' : null),
+  skipCache: true,
+};
 const ownedCollection = { path: characterPath, permission: null };
+const ownedCollectionPrivate = {
+  path: (params) => (params.kind === 'npcs' ? `/games/${params.gameSlug}/npcs/${params.id}/treasures/all.json` : characterPath(params)),
+  permission: (params) => (params.kind === 'npcs' ? 'can_edit' : null),
+  skipCache: true,
+};
 
 /**
  * Build the game-catalog or standalone treasure-creation path, depending on whether `gameSlug` is
@@ -243,8 +248,8 @@ export default {
         permission: (params) => (params.kind === 'game' || params.kind === 'npcs' ? 'can_edit' : null),
       },
     },
-    single: { regular: single, private: single },
-    ownedCollection: { regular: ownedCollection, private: ownedCollection },
+    single: { regular: single, private: singlePrivate },
+    ownedCollection: { regular: ownedCollection, private: ownedCollectionPrivate },
     summary: {
       regular: { path: summaryPath, permission: null, skipCache: true },
       private: { path: summaryAllPath, permission: 'can_edit', skipCache: true },

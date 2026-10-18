@@ -77,6 +77,29 @@ const RESOLVERS = {
     collection: ({ gameSlug, kind }) => (
       kind === 'game' || kind === 'npcs' ? AccessStore.ensureGamePermissions(gameSlug) : NO_PERMISSIONS()
     ),
+    // issue #1616: plain NPC/game-treasure GETs 404 hidden content for everyone, so editors must
+    // resolve to the restricted siblings — `ownedCollection` (NPC `treasures/all.json`) and
+    // `single` (game-scoped `treasures/:id/full.json`) are game-level-gated, `summary` mirrors
+    // `item.summary` (character-level, so a PC's owner also qualifies).
+    ownedCollection: ({ gameSlug, kind }) => (
+      kind === 'npcs' ? AccessStore.ensureGamePermissions(gameSlug) : NO_PERMISSIONS()
+    ),
+    single: ({ gameSlug }) => (gameSlug ? AccessStore.ensureGamePermissions(gameSlug) : NO_PERMISSIONS()),
+    summary: ({ gameSlug, kind, id }) => AccessStore.ensureCharacterPermissions(kind, gameSlug, id),
+  },
+  // issue #1616: a PC's/NPC's own photo gallery and a `CharacterDocument`'s files/photos resolve
+  // at the character level (`CharacterEditPermission`), so an NPC editor reads the restricted
+  // `all.json` siblings, which keep serving a hidden NPC.
+  characterPhoto: {
+    collection: ({ gameSlug, kind, id }) => (
+      kind === 'npcs' ? AccessStore.ensureCharacterPermissions(kind, gameSlug, id) : NO_PERMISSIONS()
+    ),
+  },
+  characterDocumentPhoto: {
+    collection: ({ gameSlug, kind, characterId }) => AccessStore.ensureCharacterPermissions(kind, gameSlug, characterId),
+  },
+  characterDocumentFile: {
+    collection: ({ gameSlug, kind, characterId }) => AccessStore.ensureCharacterPermissions(kind, gameSlug, characterId),
   },
   document: {
     collection: ({ gameSlug, kind, id }) => AccessStore.ensureCharacterPermissions(kind, gameSlug, id),
@@ -187,7 +210,8 @@ export default class RequestPermissionResolvers {
    *
    * @param {string} resource - Resource name (`'game'`, `'npc'`, `'pc'`, `'item'`, `'possession'`,
    *   `'commonItem'`, `'treasure'`, `'session'`, `'document'`, `'poll'`, `'task'`, `'staffUser'`,
-   *   `'recipe'`, `'characterRecipe'`).
+   *   `'recipe'`, `'characterRecipe'`, `'characterPhoto'`, `'characterDocumentPhoto'`,
+   *   `'characterDocumentFile'`).
    * @param {string} quantityType - `'collection'` or `'single'`.
    * @param {object} params - Concrete params (`gameSlug`, `kind`, `id`, etc.).
    * @returns {Promise<object>} Resolves to the permissions object (e.g. `{ can_edit: boolean }`),
