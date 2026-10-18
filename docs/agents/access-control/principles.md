@@ -78,7 +78,8 @@ to name its category plus its deviations, not re-derive the shape from scratch.
   profile/settings), except no user, regardless of role, may write `is_superuser`/`is_staff` on
   themselves (a standing privilege-escalation guard — no endpoint exposes either field as
   self-writable today). Endpoints are unified under `/account/...` (`/account/account.json`,
-  `/account/language.json`, plus the `authorization_requests` list/deny/authorize routes).
+  `/account/language.json`, plus the `authorization_requests` list/deny/authorize routes and the
+  `api_tokens` routes — see [ApiToken](api-token.md)).
   The adopted `accounts`-app URL-prefix convention: `users/*` is for auth/session-lifecycle
   actions (pre-login routes, plus `logout` as a session action rather than account data);
   `account/*` is for endpoints that read/write the caller's own account data while
@@ -113,6 +114,9 @@ to name its category plus its deviations, not re-derive the shape from scratch.
     reach `DELETE`-style actions" — it is only an exception to the "no `DELETE` API endpoint"
     statement. Removed wholesale with the rest of the harness once #1262's real import endpoint is
     trusted end-to-end.
+  - **Exception:** [ApiToken](api-token.md)'s owner revoke `DELETE
+    /account/api_tokens/<id>.json` is reachable by any approved user, for their own tokens only
+    (session only). Revoking a credential is a normal account action, not an admin-only purge.
 
 ## `X-Skip-Cache` rule
 

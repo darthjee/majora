@@ -254,6 +254,10 @@ For example: `{"errors": {"scopes": ["not_editable"]}}`.
 **A Bearer request never reads from or writes to the proxy cache, on any rule. Its writes still
 clear stale entries.**
 
+This Bearer cache work (the proxy middleware, the rule changes and the backend safety net) is
+implemented by #1643, not #1604. #1604 ships only the token endpoints'
+[own cache rules](#token-endpoints-and-navi).
+
 Why: `rules/backend.php` caches every `.json` GET whoever the caller is, and
 `rules/private_game_data_cache.php` ignores `X-Skip-Cache` and keys its entries on
 `X-Cache-Token`. A Bearer request without that header would share the "empty token" entry with
@@ -522,10 +526,10 @@ None. Every open question was settled by #1596 and recorded under [Decisions](#d
   `validated_or_error` and `_error_codes`.
 - The new backend Bearer safety-net middleware, and its position after
   `games.middleware.CacheControlMiddleware` in `MIDDLEWARE`
-  (`backend/majora_project/settings.py`).
-- `proxy/extension/lib/middlewares/`: the new `BearerSkipCacheMiddleware`.
+  (`backend/majora_project/settings.py`) (#1643).
+- `proxy/extension/lib/middlewares/`: the new `BearerSkipCacheMiddleware` (#1643).
 - `rules/backend.php` and `rules/private_game_data_cache.php`, in both
-  `proxy/prod_configuration/rules/` and `proxy/dev_configuration/rules/`.
+  `proxy/prod_configuration/rules/` and `proxy/dev_configuration/rules/` (#1643).
 - [`access-control.md`](../../access-control.md), the new `access-control/api-token.md`,
   [`access-control/user.md`](../../access-control/user.md),
   [`access-control/principles.md`](../../access-control/principles.md),
