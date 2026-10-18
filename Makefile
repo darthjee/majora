@@ -1,4 +1,4 @@
-.PHONY: build-base push-base build push build-fe-base push-fe-base build-fe push-fe build-circleci-base push-circleci-base build-production-base push-production-base dev dev-up setup tests
+.PHONY: build-base push-base build push build-fe-base push-fe-base build-fe push-fe build-circleci-base push-circleci-base build-production-base push-production-base dev dev-up setup tests client client-install client-tests client-lint client-coverage
 
 PROJECT?=majora
 IMAGE?=$(PROJECT)
@@ -53,6 +53,23 @@ push-fe:
 	make build-fe
 	docker push $(FE_IMAGE)
 	docker push $(FE_IMAGE):$(BASE_VERSION)
+
+# ── Client ───────────────────────────────────────────────────────────────────
+
+client:
+	docker-compose run --rm majora_client /bin/bash
+
+client-install:
+	docker-compose run --rm majora_client yarn install
+
+client-tests:
+	docker-compose run --rm majora_client yarn test
+
+client-lint:
+	docker-compose run --rm majora_client yarn lint
+
+client-coverage:
+	docker-compose run --rm majora_client yarn coverage
 
 # ── Development ───────────────────────────────────────────────────────────────
 
