@@ -196,8 +196,8 @@ const RESOLVERS = {
  *   variant's own DM-only `GameEditPermission` on the backend — see each resolver's own inline
  *   comment below.
  *
- *   `poll`, `task`, `staffUser` (issue #842) and `staffCopy` (issue #1571) intentionally have no
- *   entry here at all: every
+ *   `poll`, `task`, `staffUser` (issue #842), `staffCopy` (issue #1571) and `apiToken` (issue
+ *   #1605) intentionally have no entry here at all: every
  *   variant in their `resourceConfig` files has `permission: null` and an identical
  *   `regular`/`private` object (no restricted/full split to resolve), so the default
  *   `NO_PERMISSIONS()` fallback below is already correct for them — the page controllers'

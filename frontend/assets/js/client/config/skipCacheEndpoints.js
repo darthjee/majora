@@ -15,4 +15,6 @@ export default new Set([
   '/account/authorization_requests.json',
   '/account/language.json',
   '/account/account.json',
+  '/account/api_tokens.json',
+  '/account/api_tokens/options.json',
 ]);

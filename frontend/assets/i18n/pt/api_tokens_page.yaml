@@ -1,0 +1,105 @@
+api_tokens_page:
+  title: Tokens de API
+  intro: "Tokens de API permitem que automações e scripts, como o pacote client/ do Majora, usem o Majora em seu nome. Um token nunca faz mais do que você mesmo pode fazer, não pode gerenciar tokens nem a sua conta, e é revogado automaticamente se a sua conta for suspensa."
+  loading: Carregando tokens de API...
+  new_token: Novo token
+  empty: Você ainda não tem tokens de API.
+  load_error: Falha ao carregar seus tokens de API.
+  retry: Tentar novamente
+  token_gone: Este token não existe mais. A lista foi atualizada.
+  action_error: Algo deu errado. Tente novamente.
+  col_name: Nome
+  col_prefix: Prefixo
+  col_scopes: Escopos
+  col_games: Jogos
+  col_expires: Expira em
+  col_last_used: Último uso
+  col_created: Criado em
+  col_status: Status
+  col_actions: Ações
+  all_games: Todos os jogos
+  all_games_tooltip: Este token pode ser usado em todos os jogos que você pode acessar, incluindo jogos em que você entrar depois.
+  never: Nunca
+  never_used: Nunca usado
+  status_active: Ativo
+  status_expired: Expirado
+  rename: Renomear
+  save: Salvar
+  cancel: Cancelar
+  revoke: Revogar
+  revoke_title: Revogar token de API
+  revoke_body: 'Revogar o token "{{name}}"? Qualquer automação que o use deixará de funcionar imediatamente. Esta ação não pode ser desfeita.'
+  revoke_body_staff: 'Revogar o token "{{name}}" de {{owner}}? Qualquer automação que o use deixará de funcionar imediatamente. Esta ação não pode ser desfeita.'
+  revoke_confirm: Revogar token
+  create_title: Novo token de API
+  name_label: Nome
+  scopes_label: Escopos
+  scopes_note: Algumas leituras restritas combinam dados de várias famílias e precisam do escopo de leitura de cada uma delas.
+  select_all_read: Selecionar toda leitura
+  select_all_write: Selecionar toda escrita
+  clear: Limpar
+  read: Leitura
+  write: Escrita
+  group_game: Jogo
+  group_characters: Personagens
+  group_documents: Documentos
+  group_inventory: Inventário
+  group_miniatures: Miniaturas
+  family_games: Jogos
+  family_games_help: Jogos, seus detalhes e o seu acesso a eles.
+  family_players: Jogadores
+  family_players_help: Os jogadores de um jogo.
+  family_sessions: Sessões
+  family_sessions_help: Sessões de jogo, incluindo suas mensagens.
+  family_polls: Enquetes
+  family_polls_help: Enquetes, incluindo enquetes de sessão e votos.
+  family_tasks: Tarefas
+  family_tasks_help: As tarefas de um jogo.
+  family_conversations: Conversas
+  family_conversations_help: As conversas compartilhadas de um jogo.
+  family_pcs: PJs
+  family_pcs_help: Personagens dos jogadores e tudo o que está dentro deles, incluindo fotos.
+  family_npcs: NPCs
+  family_npcs_help: Personagens não jogadores e tudo o que está dentro deles, incluindo fotos.
+  family_factions: Facções
+  family_factions_help: As facções de um jogo.
+  family_documents: Documentos
+  family_documents_help: Documentos, incluindo suas páginas e arquivos.
+  family_items: Itens
+  family_items_help: Os itens de um jogo.
+  family_common_items: Itens comuns
+  family_common_items_help: Os itens comuns de um jogo.
+  family_possessions: Posses
+  family_possessions_help: As posses de um jogo.
+  family_recipes: Receitas
+  family_recipes_help: As receitas de um jogo.
+  family_treasures: Tesouros
+  family_treasures_help: Tesouros, tanto as cópias de um jogo quanto o catálogo compartilhado de tesouros.
+  family_miniatures: Miniaturas
+  family_miniatures_help: Fontes de miniaturas, modelos STL e coleções, incluindo importações.
+  games_label: Jogos
+  games_search: Buscar jogos...
+  games_remove: Remover
+  games_none_reachable: Você ainda não participa de nenhum jogo. Permissões de jogo só terão efeito quando você entrar em um jogo.
+  games_empty_note: 'Nenhum jogo selecionado: este token pode ser usado em todos os {{count}} jogos que você pode acessar hoje, e em qualquer jogo em que você entrar depois.'
+  games_superuser_warning: Sem jogos selecionados, este token pode agir em todos os jogos do Majora, agora e no futuro. Considere selecionar jogos específicos.
+  games_limit: 'No máximo {{max}} jogos podem ser selecionados.'
+  expiry_label: Expiração
+  expiry_30: 30 dias
+  expiry_90: 90 dias
+  expiry_custom: Data personalizada
+  expiry_never: Nunca
+  expiry_never_hint: Tokens que nunca expiram são mais arriscados. Prefira uma data de expiração sempre que possível.
+  create: Criar token
+  options_error: Falha ao carregar as opções do token.
+  generic_error: Algo deu errado. Tente novamente.
+  created_title: Token criado
+  secret_warning: Copie este token agora. Ele não será exibido novamente.
+  copy: Copiar
+  copied: Copiado
+  copy_failed: Falha ao copiar. Selecione o token e copie-o manualmente.
+  usage_hint: 'Use-o como "Authorization: Bearer <token>" ou defina MAJORA_TOKEN=<token>.'
+  done: Concluir
+  scope_read: leitura
+  scope_write: escrita
+  scope_read_write: leitura/escrita

@@ -118,6 +118,7 @@ const ROUTES = [
   ['/recover-password', 'recoverPassword'],
   ['/users/register', 'register'],
   ['/account/authorization_requests', 'accountAuthorizationRequests'],
+  ['/account/api_tokens', 'accountApiTokens'],
   ['/my_account', 'myAccount'],
   ['/my-games', 'myGames'],
   ['/', 'home'],

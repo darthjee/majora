@@ -25,6 +25,7 @@ header:
   register: Register
   my_account_alt: My account
   nav_authorization_requests: Authorizations
+  nav_api_tokens: API tokens
   view_as_alt: View as
   resilience_idle_alt: Idle
   resilience_requesting_alt: Requesting
@@ -426,3 +427,10 @@ errors:
   user_not_pending: This user is not pending approval.
   poll_vote_user_not_in_game: You must be a player or game master in this game to vote.
   invalid_poll_option_date: The winning option's date is invalid.
+  invalid_scope: This scope is not valid. Please reload the page and try again.
+  duplicate_scope: A scope was sent more than once. Please reload the page and try again.
+  game_not_reachable: A selected game is no longer available. Please reload the page and pick the games again.
+  duplicate_game: A game was sent more than once. Please reload the page and try again.
+  expires_in_past: The expiry date is in the past. Please check your device's clock.
+  not_editable: This field cannot be changed. Please reload the page and try again.
+  token_not_allowed: This action cannot be performed with an API token.

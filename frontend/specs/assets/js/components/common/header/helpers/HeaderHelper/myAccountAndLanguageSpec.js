@@ -78,6 +78,25 @@ describe('HeaderHelper', function() {
       expect(html).toContain('>Authorizations</a>');
     });
 
+    it('does not render the api-tokens link when logged out', function() {
+      const html = render();
+
+      expect(html).not.toContain('data-testid="api-tokens-link"');
+    });
+
+    it('renders the api-tokens link when logged in', function() {
+      const html = render({ loggedIn: true });
+
+      expect(html).toContain('data-testid="api-tokens-link"');
+      expect(html).toContain('href="#/account/api_tokens"');
+    });
+
+    it('renders the "API tokens" text inside the dropdown item', function() {
+      const html = render({ loggedIn: true });
+
+      expect(html).toContain('>API tokens</a>');
+    });
+
     it('renders the language selector', function() {
       const html = render();
 
