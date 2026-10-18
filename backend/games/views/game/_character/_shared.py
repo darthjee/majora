@@ -64,7 +64,7 @@ def _character_possession_resource(character):
 def _hidden_gate_response(character, request, public=False):
     """Return a 404 Response with X-Skip-Cache set if a hidden character must not be served.
 
-    `public=True` marks a plain (AllowAny) view: on `GET` a hidden character is then a 404 for
+    `public=True` marks a plain (AllowAny) view: on `GET`/`HEAD` a hidden character is a 404 for
     everyone, editors included (see `hidden_gate_response`).
     """
     return hidden_gate_response(character, character, request, public=public)

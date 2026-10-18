@@ -10,6 +10,9 @@ from ..caches import AdminOrStaffCache
 from ..paginator import Paginator
 from ..serializers import HiddenFieldSerializer
 
+# Read methods on which a `public=True` hidden gate is strict (HEAD is routed to GET handlers).
+STRICT_HIDDEN_METHODS = ('GET', 'HEAD')
+
 
 def _error_codes(errors):
     """Recursively replace ErrorDetail messages with their `.code`, preserving structure."""
@@ -152,8 +155,8 @@ def hidden_gate_response(entity, owner, request, public=False):
     Shared by any path-scoped entity that must 404 (rather than reveal via a permission-denied
     response) when hidden — e.g. a `Character` gating on itself, or a `GameTreasure` gating on
     its `Game`. By default the gate is editor-aware: it 404s only when the requester cannot edit
-    `owner`. With `public=True` on a `GET` (a plain AllowAny read), the gate is strict: a hidden
-    entity is a 404 for everyone, editors included, who must use the restricted
+    `owner`. With `public=True` on a `GET`/`HEAD` (a plain AllowAny read), the gate is strict: a
+    hidden entity is a 404 for everyone, editors included, who must use the restricted
     `full.json`/`all.json` sibling instead (issue #1616). Writes keep the editor-aware gate.
     """
     is_hidden = entity is not None and entity.hidden
@@ -166,7 +169,7 @@ def hidden_gate_response(entity, owner, request, public=False):
 
 def _may_see_hidden(owner, request, public):
     """Return whether `request` may be served a hidden entity owned by `owner`."""
-    if public and request.method == 'GET':
+    if public and request.method in STRICT_HIDDEN_METHODS:
         return False
     return owner.can_be_edited_by(request.user)
 

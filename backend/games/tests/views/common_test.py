@@ -40,6 +40,8 @@ def _make_request(method='GET', user=None, data=None):
     factory = APIRequestFactory()
     if method == 'PATCH':
         request = factory.patch('/fake/', data or {}, format='json')
+    elif method == 'HEAD':
+        request = factory.head('/fake/')
     else:
         request = factory.get('/fake/')
     request.user = user if user is not None else AnonymousUser()
@@ -372,6 +374,12 @@ class TestHiddenGateResponse:
     def test_public_get_is_404_for_editor(self):
         """Test that the strict gate 404s a hidden NPC on GET even for the DM."""
         response = self._gate(user=self.dm_user, public=True)
+        assert response.status_code == 404
+        assert response['X-Skip-Cache'] == 'true'
+
+    def test_public_head_is_404_for_editor(self):
+        """Test that the strict gate 404s a hidden NPC on HEAD even for the DM."""
+        response = self._gate(method='HEAD', user=self.dm_user, public=True)
         assert response.status_code == 404
         assert response['X-Skip-Cache'] == 'true'
 

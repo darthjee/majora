@@ -42,7 +42,7 @@ def _check_npc_hidden_gate(request, game, character_id, npc, public=False):
     """Return a `404` Response for a hidden NPC the caller cannot view (E7), else None.
 
     A no-op on PCs. Always resolves the character first, so an unknown id is a `404` too.
-    `public=True` marks a plain view: on `GET` a hidden NPC is then a 404 for everyone,
+    `public=True` marks a plain view: on `GET`/`HEAD` a hidden NPC is a 404 for everyone,
     editors included (issue #1616).
     """
     character = _get_character_or_404(game, character_id, npc=npc)

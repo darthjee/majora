@@ -13,6 +13,7 @@ from games.tests.factories import (
     CharacterPossessionFactory,
     CharacterRecipeFactory,
     GameFactory,
+    GameTreasureFactory,
     PlayerFactory,
     SuperUserFactory,
     TreasureFactory,
@@ -49,6 +50,10 @@ PLAIN_NPC_GET_ROUTES = [
 ]
 
 ROLES = ['anonymous', 'player', 'dm', 'superuser']
+
+# `@api_view(['GET'])` answers HEAD with 405 today; should a view ever accept HEAD, the strict
+# hidden gate (`STRICT_HIDDEN_METHODS`) must turn it into a 404. Either way, never a 200.
+HEAD_NOT_SERVED_STATUSES = (404, 405)
 
 
 @pytest.mark.django_db
@@ -104,6 +109,10 @@ class TestHiddenNpcPlainRoutes(TokenAuthRequestMixin):
         """Issue a GET to `route` (formatted with the fixture ids) as `role`."""
         return self.get(client, route.format(**self.ids), token=self.tokens[role])
 
+    def _head_as_dm(self, client, url):
+        """Issue a HEAD to `url` authenticated as the DM."""
+        return client.head(url, **self.auth_kwargs(self.tokens['dm']))
+
     @pytest.mark.parametrize('role', ROLES)
     @pytest.mark.parametrize('route', PLAIN_NPC_GET_ROUTES)
     def test_hidden_npc_returns_404(self, client, route, role):
@@ -119,3 +128,16 @@ class TestHiddenNpcPlainRoutes(TokenAuthRequestMixin):
         self.npc.save()
         response = self._get(client, route, 'dm')
         assert response.status_code == 200
+
+    @pytest.mark.parametrize('route', PLAIN_NPC_GET_ROUTES)
+    def test_hidden_npc_head_is_not_served_to_dm(self, client, route):
+        """Test that a plain HEAD on a hidden NPC is never served to the DM (404 or 405)."""
+        response = self._head_as_dm(client, route.format(**self.ids))
+        assert response.status_code in HEAD_NOT_SERVED_STATUSES
+
+    def test_hidden_game_treasure_head_is_not_served_to_dm(self, client):
+        """Test that a plain HEAD on a hidden game treasure is never served to the DM."""
+        treasure = TreasureFactory(name='Hidden Hoard', value=99, game=self.game)
+        GameTreasureFactory(game=self.game, treasure=treasure, value=99, hidden=True)
+        response = self._head_as_dm(client, f'/games/test-game/treasures/{treasure.id}.json')
+        assert response.status_code in HEAD_NOT_SERVED_STATUSES
