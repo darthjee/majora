@@ -39,5 +39,24 @@ KINDS.forEach(({ label, Controller, kind }) => {
 
       cleanup();
     });
+
+    it('reads the restricted photo and character routes for an editor (issue #1616)', async function() {
+      spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({ can_edit: true }));
+      const client = jasmine.createSpyObj('client', ['currentHash', 'fetchIndex']);
+
+      client.currentHash.and.returnValue(`#/games/demo/${kind}/7/photos`);
+      client.fetchIndex.and.returnValue(Promise.resolve({ data: [], pagination: { page: 1, pages: 1, perPage: 20 } }));
+
+      const setter = jasmine.createSpy('setter');
+      const cleanup = new Controller(setter, setter, setter, setter, setter, client, characterClient).buildEffect()();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      const photosPath = kind === 'npcs' ? '/games/demo/npcs/7/photos/all.json' : '/games/demo/pcs/7/photos.json';
+
+      expect(client.fetchIndex).toHaveBeenCalledWith(photosPath);
+      expect(characterClient.fetchCharacterAt).toHaveBeenCalledWith(kind, `/games/demo/${kind}/7/full.json`, null);
+
+      cleanup();
+    });
   });
 });
