@@ -24,3 +24,9 @@ staff_user_page:
   recovery_token_action_delete: Excluir
   recovery_token_generate_button: Gerar link de recuperação
   recovery_token_action_error: Essa ação não pôde ser concluída — a lista foi atualizada.
+  api_tokens_title: Tokens de API
+  api_tokens_loading: Carregando tokens de API...
+  api_tokens_error: Não foi possível carregar os tokens de API deste usuário.
+  api_tokens_empty: Este usuário não possui tokens de API.
+  api_tokens_action_error: Não foi possível revogar o token de API. Tente novamente.
+  api_tokens_actions_column: Ações
