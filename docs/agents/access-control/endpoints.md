@@ -135,9 +135,23 @@ A scoped API token (`accounts.ApiToken`, many per user) sent as
   unchanged. A Bearer request that does not authenticate (malformed, unknown prefix, wrong secret,
   expired, inactive or non-approved owner) always gets `401` `token_invalid` — never a fallback to
   the session or to anonymous.
-- **Interim fail-closed**: until the per-view scope check (#1603) lands, every token that
-  authenticates is refused with `403` `token_not_allowed`, so no token ever carries its owner's
-  full access.
+- **Never widens access**: the normal role/permission checks still run as the owner; on top of
+  that the token must carry every scope the view declares via `@token_scopes` for the request
+  method (`HEAD` follows `GET`; an empty list means a public read needing no scope). Missing scope
+  → `403` `scope_missing`.
+- **Catalogue**: `accounts/scopes.py`, `<family>:read|write`. Stored scopes no longer in the
+  catalogue grant nothing.
+- **Fail closed**: a view with no `@token_scopes` declaration, or no entry for the method
+  (including `OPTIONS`), is refused with `403` `token_not_allowed`. Views not yet declared are
+  listed in the coverage test's pending list (sub-issues #1630–#1639).
+- **Excluded routes**: everything under `account/`, `users/`, `staff/` and `admin/` always refuses
+  tokens with `403` `token_not_allowed`, checked before any declaration.
+- **Game restriction**: when the token has a game list, a `game_slug` URL kwarg not in it gets
+  `403` `game_not_allowed`. Only the `game_slug` kwarg is read; routes game-scoped by other means
+  must enforce the list in-view before being declared. An empty list at creation means all games;
+  deleting a token's last allowed game revokes the token rather than widening it.
+- **Error body**: `scope_missing`, `game_not_allowed` and `token_not_allowed` use the standard
+  `{"errors": {"detail": ["<code>"]}}` body; no 404 masking.
 - **Invalidated**: all of a user's tokens are deleted when staff deny the user
   ([User (Staff Management)](user.md)). Revoking deletes the row; there is no soft revoke.
 - **Superuser access**: none — no endpoints yet and not registered in Django admin.

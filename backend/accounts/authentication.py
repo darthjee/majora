@@ -10,11 +10,22 @@ from rest_framework.exceptions import AuthenticationFailed, PermissionDenied
 
 from accounts.models import ApiToken, UserProfile
 from accounts.models.api_token import hash_secret
+from accounts.scopes import effective_scopes
+from games.decorators import get_token_scopes
 
 BEARER_PATTERN = re.compile(r'(^|,)\s*bearer(\s|$)', re.IGNORECASE)
 API_TOKEN_PATTERN = re.compile(r'^mjr_([A-Za-z0-9]{8})_([A-Za-z0-9]{43})$')
 BEARER_REALM = 'Bearer realm="api"'
 INVALID_TOKEN_HEADER = f'{BEARER_REALM}, error="invalid_token"'
+
+# Route prefixes a scoped token may never reach, whatever it declares: token management
+# and account data (`account/`), `users/`, `staff/` and Django `admin/`.
+EXCLUDED_ROUTE_PREFIXES = ('account/', 'users/', 'staff/', 'admin/')
+
+
+def is_excluded_route(route):
+    """Return whether the URL `route` belongs to a family scoped tokens may never reach."""
+    return (route or '').lstrip('^').startswith(EXCLUDED_ROUTE_PREFIXES)
 
 
 def is_approved(user):
@@ -29,10 +40,76 @@ class InvalidApiToken(AuthenticationFailed):
     default_code = 'token_invalid'
 
 
-class ApiTokenNotAllowed(PermissionDenied):
-    """403 raised when an authenticated API token may not perform the request."""
+class ApiTokenForbidden(PermissionDenied):
+    """Base 403 for scoped-token refusals, rendered as `{"errors": {"detail": [code]}}`."""
 
     default_code = 'token_not_allowed'
+
+
+class ApiTokenNotAllowed(ApiTokenForbidden):
+    """403 raised when the endpoint is excluded or declares no scopes for the method."""
+
+    default_code = 'token_not_allowed'
+
+
+class ScopeMissing(ApiTokenForbidden):
+    """403 raised when the token lacks a scope the endpoint requires."""
+
+    default_code = 'scope_missing'
+
+
+class GameNotAllowed(ApiTokenForbidden):
+    """403 raised when the request's `game_slug` is not on the token's game list."""
+
+    default_code = 'game_not_allowed'
+
+
+class TokenScopeCheck:
+    """Decide whether a scoped API token may perform the resolved request.
+
+    Excluded routes (`EXCLUDED_ROUTE_PREFIXES`) and unresolved requests always fail with
+    `token_not_allowed`, even if a view there declares scopes. Otherwise the declaration
+    comes from `@token_scopes` on `request.resolver_match.func`. `HEAD`
+    follows the `GET` entry; every other method, `OPTIONS` included, needs its own entry
+    or the request fails closed with `token_not_allowed`. The game comes only from the
+    `game_slug` URL kwarg: no object lookups are done.
+    """
+
+    def __init__(self, request, api_token):
+        """Keep the request, its resolver match and the authenticated token."""
+        self.request = request
+        self.api_token = api_token
+        self.match = getattr(request, 'resolver_match', None)
+
+    def run(self):
+        """Raise the matching `ApiTokenForbidden` subclass unless the token may proceed."""
+        if not self._required_scopes() <= effective_scopes(self.api_token):
+            raise ScopeMissing()
+        if not self._game_allowed():
+            raise GameNotAllowed()
+
+    def _required_scopes(self):
+        """Return the scopes the view declares for the method, or raise `token_not_allowed`."""
+        if self.match is None or is_excluded_route(self.match.route):
+            raise ApiTokenNotAllowed()
+        declaration = get_token_scopes(self.match.func)
+        method = self._declared_method()
+        if declaration is None or method not in declaration:
+            raise ApiTokenNotAllowed()
+        return frozenset(declaration[method])
+
+    def _declared_method(self):
+        """Return the method whose declaration applies (`HEAD` follows `GET`)."""
+        method = self.request.method
+        return 'GET' if method == 'HEAD' else method
+
+    def _game_allowed(self):
+        """Return whether the URL's `game_slug`, if any, is allowed by the token's games."""
+        slug = self.match.kwargs.get('game_slug')
+        if slug is None:
+            return True
+        slugs = set(self.api_token.games.values_list('game_slug', flat=True))
+        return not slugs or slug in slugs
 
 
 class ApiTokenAuthentication(BaseAuthentication):
@@ -106,12 +183,8 @@ class ApiTokenAuthentication(BaseAuthentication):
         api_token.last_used_at = now
 
     def _check_scopes(self, request, api_token):
-        """Refuse the request unless `api_token` may perform it.
-
-        Interim fail-closed until #1603 adds the per-view scope check: every authenticated
-        token is refused with 403 `token_not_allowed`. #1603 replaces this body.
-        """
-        raise ApiTokenNotAllowed()
+        """Refuse the request (403) unless `api_token` carries the scopes and game it needs."""
+        TokenScopeCheck(request, api_token).run()
 
 
 class CookieTokenAuthentication(TokenAuthentication):
