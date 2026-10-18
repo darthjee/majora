@@ -20,6 +20,13 @@ const buildNoopHandlers = () => ({
   onGenerateRecoveryLink: Noop.noop,
 });
 
+const buildApiTokensPanel = () => ({
+  state: {
+    tokens: [], loading: false, error: false, notice: null,
+  },
+  handlers: { onRevokePrompt: Noop.noop },
+});
+
 /** Stub controller that synchronously loads a user during construction. */
 class LoadedController {
   constructor(setUser, setLoading) {
@@ -49,6 +56,7 @@ describe('StaffUser', function() {
         { id: 1, name: 'Jane', email: 'jane@example.com' },
         { tokens: [], tokensLoading: false, tokensError: false },
         buildNoopHandlers(),
+        buildApiTokensPanel(),
       )
     );
 
@@ -61,6 +69,7 @@ describe('StaffUser', function() {
         { id: 1, name: 'Jane', email: 'jane@example.com', status: 'approved' },
         { tokens: [], tokensLoading: false, tokensError: true },
         buildNoopHandlers(),
+        buildApiTokensPanel(),
       )
     );
 

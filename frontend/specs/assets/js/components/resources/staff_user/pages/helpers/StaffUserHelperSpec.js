@@ -16,8 +16,15 @@ describe('StaffUserHelper', function() {
     onGenerateRecoveryLink: jasmine.createSpy('onGenerateRecoveryLink'),
   });
 
-  const render = (tokensState) => renderToStaticMarkup(
-    StaffUserHelper.render(user, tokensState, buildHandlers()),
+  const buildApiTokensPanel = (state = {}) => ({
+    state: {
+      tokens: [], loading: false, error: false, notice: null, ...state,
+    },
+    handlers: { onRevokePrompt: jasmine.createSpy('onRevokePrompt') },
+  });
+
+  const render = (tokensState, apiTokensPanel = buildApiTokensPanel()) => renderToStaticMarkup(
+    StaffUserHelper.render(user, tokensState, buildHandlers(), apiTokensPanel),
   );
 
   describe('.render', function() {
@@ -55,6 +62,27 @@ describe('StaffUserHelper', function() {
 
       expect(html).toContain('Jane');
       expect(html).toContain('jane@example.com');
+    });
+  });
+
+  describe('API-token panel (issue #1606)', function() {
+    it('renders the API-token panel below the recovery-token panel and above the edit action', function() {
+      const html = render(emptyTokensState);
+      const recovery = html.indexOf('This user has no recovery tokens.');
+      const apiTokens = html.indexOf('data-testid="staff-user-api-tokens"');
+      const edit = html.indexOf('href="#/staff/users/1/edit"');
+
+      expect(recovery).toBeGreaterThan(-1);
+      expect(apiTokens).toBeGreaterThan(recovery);
+      expect(edit).toBeGreaterThan(apiTokens);
+    });
+
+    it('renders the API-token panel state independently of the recovery-token panel', function() {
+      const html = render(emptyTokensState, buildApiTokensPanel({ error: true }));
+
+      expect(html).toContain('Could not load this user&#x27;s API tokens.');
+      expect(html).toContain('This user has no recovery tokens.');
+      expect(html).toContain('Jane');
     });
   });
 

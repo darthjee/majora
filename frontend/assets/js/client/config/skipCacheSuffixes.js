@@ -31,4 +31,8 @@ export default new Set([
   // to another client. Covers both the `GET` (fetch votes) and `PUT` (cast
   // votes) verbs, since both endpoints end in this same literal suffix.
   '/votes.json',
+  // A user's scoped API token metadata (`/staff/users/<id>/api-tokens.json`,
+  // issue #1606) is private, staff-only data, so a cached response must never
+  // be served to another client.
+  '/api-tokens.json',
 ]);
