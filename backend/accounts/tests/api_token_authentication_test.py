@@ -20,6 +20,7 @@ from games.tests.factories import GameFactory, UserFactory
 
 ACCOUNT_URL = '/account/account.json'
 INVALID_HEADER = 'Bearer realm="api", error="invalid_token"'
+TEST_ROUTE = 'games/<slug:game_slug>/test.json'
 
 
 class ApiTokenTestMixin:
@@ -291,7 +292,7 @@ class TestApiTokenScopeCheck(ApiTokenTestMixin):
     def _call(self, view, method='get', **kwargs):
         """Call `view` with the Bearer token and a resolver match carrying `kwargs`."""
         request = getattr(self.factory, method)('/', HTTP_AUTHORIZATION=f'Bearer {self.plain}')
-        request.resolver_match = ResolverMatch(view, (), kwargs)
+        request.resolver_match = ResolverMatch(view, (), kwargs, route=TEST_ROUTE)
         return view(request, **kwargs)
 
     def _assert_refused(self, response, code):
@@ -310,7 +311,7 @@ class TestApiTokenScopeCheck(ApiTokenTestMixin):
         """Test that HEAD uses the GET declaration."""
         self._set_scopes([])
         request = self.factory.head('/', HTTP_AUTHORIZATION=f'Bearer {self.plain}')
-        request.resolver_match = ResolverMatch(scoped_view, (), {})
+        request.resolver_match = ResolverMatch(scoped_view, (), {}, route=TEST_ROUTE)
         user, _ = self.auth.authenticate(request)
         assert user == self.user
 

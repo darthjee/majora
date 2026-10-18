@@ -18,6 +18,15 @@ API_TOKEN_PATTERN = re.compile(r'^mjr_([A-Za-z0-9]{8})_([A-Za-z0-9]{43})$')
 BEARER_REALM = 'Bearer realm="api"'
 INVALID_TOKEN_HEADER = f'{BEARER_REALM}, error="invalid_token"'
 
+# Route prefixes a scoped token may never reach, whatever it declares: token management
+# and account data (`account/`), `users/`, `staff/` and Django `admin/`.
+EXCLUDED_ROUTE_PREFIXES = ('account/', 'users/', 'staff/', 'admin/')
+
+
+def is_excluded_route(route):
+    """Return whether the URL `route` belongs to a family scoped tokens may never reach."""
+    return (route or '').lstrip('^').startswith(EXCLUDED_ROUTE_PREFIXES)
+
 
 def is_approved(user):
     """Return whether `user`'s profile status is `approved`."""
@@ -58,7 +67,9 @@ class GameNotAllowed(ApiTokenForbidden):
 class TokenScopeCheck:
     """Decide whether a scoped API token may perform the resolved request.
 
-    The declaration comes from `@token_scopes` on `request.resolver_match.func`. `HEAD`
+    Excluded routes (`EXCLUDED_ROUTE_PREFIXES`) and unresolved requests always fail with
+    `token_not_allowed`, even if a view there declares scopes. Otherwise the declaration
+    comes from `@token_scopes` on `request.resolver_match.func`. `HEAD`
     follows the `GET` entry; every other method, `OPTIONS` included, needs its own entry
     or the request fails closed with `token_not_allowed`. The game comes only from the
     `game_slug` URL kwarg: no object lookups are done.
@@ -79,7 +90,9 @@ class TokenScopeCheck:
 
     def _required_scopes(self):
         """Return the scopes the view declares for the method, or raise `token_not_allowed`."""
-        declaration = get_token_scopes(self.match.func if self.match else None)
+        if self.match is None or is_excluded_route(self.match.route):
+            raise ApiTokenNotAllowed()
+        declaration = get_token_scopes(self.match.func)
         method = self._declared_method()
         if declaration is None or method not in declaration:
             raise ApiTokenNotAllowed()
