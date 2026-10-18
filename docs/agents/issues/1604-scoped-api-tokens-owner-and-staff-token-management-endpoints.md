@@ -1,6 +1,7 @@
 # Issue: Scoped API tokens: owner and staff token management endpoints
 
 ## Description
+
 Part of epic #1592 (Majora client for automations, with fine-grained API tokens). #1602 added the `ApiToken` model and `ApiTokenAuthentication`; #1603 added scope enforcement, which already refuses scoped tokens on every `account/*` and `staff/*` route (`EXCLUDED_ROUTE_PREFIXES`).
 
 This issue adds the backend endpoints that create, list, rename and revoke tokens, as specified in [`docs/agents/specs/client/token-api.md`](../specs/client/token-api.md). That spec is the source of truth for URLs, payloads, error codes and tests. The frontend pages that use these endpoints are #1605 (owner) and #1606 (staff).
@@ -8,9 +9,11 @@ This issue adds the backend endpoints that create, list, rename and revoke token
 **Out of scope:** keeping Bearer requests out of the proxy cache. The spec's *Caching, proxy and Navi* section covers the proxy `BearerSkipCacheMiddleware`, the rule changes and the backend Bearer safety-net middleware. That work moved to #1643. This issue only makes its own endpoints set `X-Skip-Cache: true`.
 
 ## Problem
+
 Approved users have no way to create a scoped token, so the client (#1607 onward) and the token UI (#1605, #1606) have nothing to work with. Staff cannot see or revoke a user's tokens the way they can with recovery tokens. Token management is the most sensitive surface in the epic: if a scoped token could reach it, a narrow token could mint a wider one.
 
 ## Expected Behavior
+
 - **Owner endpoints** (`backend/accounts/urls/api_tokens.py`, snake_case), for any approved user with a session:
   - `GET account/api_tokens.json`: the caller's tokens, newest first, as a plain array of token items.
   - `GET account/api_tokens/options.json`: the sorted scope catalogue, the caller's reachable games (`{slug, name}`, sorted by name) and `all_games`.
@@ -26,6 +29,7 @@ Approved users have no way to create a scoped token, so the client (#1607 onward
 - Every endpoint sets `X-Skip-Cache: true`, has a single private variant, accepts JSON only (415 otherwise), and stays out of Navi.
 
 ## Solution
+
 - **`require_session(request)`** in `backend/games/views/common.py`, next to `require_staff`. It returns 403 `token_not_allowed` when `request.auth` is an `ApiToken`. Every token view calls it first, before `require_staff`, as a second layer on top of the #1603 exclusion.
 - **Reachable-games helper** in `backend/accounts/`, used both for create validation and for `options.json`, so the UI and the backend cannot disagree.
 - **One shared token-item serializer** for the owner list, the staff list and the rename response (sorted `scopes`, `games` as `{slug, name}`, `status` `active`/`expired`), plus a create serializer that rejects unknown fields with `not_editable`.
@@ -36,4 +40,5 @@ Approved users have no way to create a scoped token, so the client (#1607 onward
 - **Reviews:** `security` and `data-access`.
 
 ## Benefits
+
 Users can create least-privilege tokens for automations, staff keep control over every user's credentials, and the two-layer session-only guard keeps token management out of reach of the tokens themselves.

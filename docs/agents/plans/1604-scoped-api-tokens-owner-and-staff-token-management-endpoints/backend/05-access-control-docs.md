@@ -18,5 +18,6 @@ Ship the doc changes listed in the spec's *Access-control documentation* section
 - `permissions.yaml`: no change.
 
 ## Files to Change
+
 - `docs/agents/access-control/api-token.md` — new.
 - `docs/agents/access-control.md`, `docs/agents/access-control/user.md`, `docs/agents/access-control/principles.md`, `docs/agents/access-control/endpoints.md`, `docs/agents/no-private-cache-routes.md`, `docs/agents/specs/client/token-api.md` — updated.

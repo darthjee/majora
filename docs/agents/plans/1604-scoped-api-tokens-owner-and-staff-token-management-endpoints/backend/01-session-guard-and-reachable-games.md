@@ -6,10 +6,12 @@ Two small building blocks used by every later step.
 - **`reachable_games(user)`** in a new `backend/accounts/api_tokens.py`. It returns a `Game` queryset: every game for `user.is_superuser`, otherwise `Game.objects.filter(players__user=user).distinct()`. Add a sibling `reaches_all_games(user)` (true for superusers), used by `options.json`'s `all_games`.
 
 Tests:
+
 - `require_session` with `request.auth` forced to an `ApiToken` gives 403 `token_not_allowed`. A `Token` or `None` gives `None`.
 - `reachable_games`: DM, plain player and PC owner see their game. A non-member does not. A superuser sees every game. A plain staff non-member does not.
 
 ## Files to Change
+
 - `backend/games/views/common.py` — add `require_session`.
 - `backend/accounts/api_tokens.py` — new: `reachable_games`, `reaches_all_games`.
 - `backend/games/tests/views/common_test.py` (or the existing common-helpers test module) — `require_session` tests.

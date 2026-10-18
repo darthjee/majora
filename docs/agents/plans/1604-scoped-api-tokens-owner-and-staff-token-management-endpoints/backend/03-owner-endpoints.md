@@ -19,6 +19,7 @@ Each view stacks `@restricted` (outermost), `@api_view([...])`, `@parser_classes
 - **DELETE revoke:** the same scoped lookup, `delete()`, then 204.
 
 Tests (per the spec's testing strategy):
+
 - On all 5 method + URL pairs: a scoped token with every scope gets 403 `token_not_allowed`, anonymous, pending and denied users get 401, and a cookie session and a legacy `Token` both succeed.
 - Bearer plus session is refused.
 - A form-encoded body gives 415.
@@ -34,6 +35,7 @@ Tests (per the spec's testing strategy):
 - Every response carries `X-Skip-Cache: true`.
 
 ## Files to Change
+
 - `backend/accounts/views/api_tokens/__init__.py`, `list_create.py`, `detail.py`, `options.py` — new.
 - `backend/accounts/views/__init__.py` — export the views.
 - `backend/accounts/urls/api_tokens.py` — new.
