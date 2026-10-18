@@ -151,7 +151,7 @@ The `client-release` job, in the app's tag workflow:
 
 ### Implementation split
 
-- **#1607**: the `client/` scaffold (`package.json`, ESLint and Jasmine config, `yarn.lock`), the
+- **#1607** (implemented): the `client/` scaffold (`package.json`, ESLint and Jasmine config, `yarn.lock`), the
   `majora_client` service, the `.gitignore` entry, the Makefile targets, `client_tests` /
   `client_checks` and their gating.
 - **#1611**: the `client-release` job and the `scripts/bump_version.sh client <X.Y.Z>` form.

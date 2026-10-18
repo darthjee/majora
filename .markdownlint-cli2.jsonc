@@ -11,5 +11,5 @@
     "MD032": true
   },
   "globs": ["**/*.md"],
-  "ignores": ["node_modules/**", "frontend/node_modules/**", "docker_volumes/**"]
+  "ignores": ["node_modules/**", "frontend/node_modules/**", "client/node_modules/**", "docker_volumes/**"]
 }

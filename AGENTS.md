@@ -64,6 +64,12 @@ Lootstudios crawler's interactive Enqueue UI, bound to `127.0.0.1:3110` — see
 [`crawler/RUNNING.md`](crawler/RUNNING.md). Its extension code is covered by
 the `crawler_extension_tests` CI job.
 
+The `majora_client` service runs the Node.js Majora client (`client/`) with no
+Node.js on the host and without booting the stack: `make client-install`,
+`make client-tests`, `make client-lint` and `make client-coverage` lint, test
+and measure it, and `make client` opens a shell in its container. It is covered
+by the `client_tests` and `client_checks` CI jobs.
+
 ## Conventions
 
 - All documentation and code comments must be written in **English**, except for literal non-English user-facing strings (e.g. translation values under `frontend/assets/i18n/`), which are quoted as-is.
