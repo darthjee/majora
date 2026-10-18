@@ -1,0 +1,104 @@
+api_tokens_page:
+  title: API tokens
+  intro: "API tokens let automations and scripts, such as the Majora client/ package, use Majora on your behalf. A token never does more than you can do yourself, it cannot manage tokens or your account, and it is revoked automatically if your account is suspended."
+  new_token: New token
+  empty: You have no API tokens yet.
+  load_error: Failed to load your API tokens.
+  retry: Retry
+  token_gone: This token no longer exists. The list has been refreshed.
+  action_error: Something went wrong. Please try again.
+  col_name: Name
+  col_prefix: Prefix
+  col_scopes: Scopes
+  col_games: Games
+  col_expires: Expires
+  col_last_used: Last used
+  col_created: Created
+  col_status: Status
+  col_actions: Actions
+  all_games: All games
+  all_games_tooltip: This token can be used on every game you can reach, including games you join later.
+  never: Never
+  never_used: Never used
+  status_active: Active
+  status_expired: Expired
+  rename: Rename
+  save: Save
+  cancel: Cancel
+  revoke: Revoke
+  revoke_title: Revoke API token
+  revoke_body: 'Revoke the token "{{name}}"? Any automation using it will stop working immediately. This cannot be undone.'
+  revoke_body_staff: 'Revoke the token "{{name}}" owned by {{owner}}? Any automation using it will stop working immediately. This cannot be undone.'
+  revoke_confirm: Revoke token
+  create_title: New API token
+  name_label: Name
+  scopes_label: Scopes
+  scopes_note: Some restricted reads combine data from several families and need the read scope of each of them.
+  select_all_read: Select all read
+  select_all_write: Select all write
+  clear: Clear
+  read: Read
+  write: Write
+  group_game: Game
+  group_characters: Characters
+  group_documents: Documents
+  group_inventory: Inventory
+  group_miniatures: Miniatures
+  family_games: Games
+  family_games_help: Games, their details and your access to them.
+  family_players: Players
+  family_players_help: The players of a game.
+  family_sessions: Sessions
+  family_sessions_help: Game sessions, including their messages.
+  family_polls: Polls
+  family_polls_help: Polls, including session polls and votes.
+  family_tasks: Tasks
+  family_tasks_help: A game's tasks.
+  family_conversations: Conversations
+  family_conversations_help: A game's shared conversations.
+  family_pcs: PCs
+  family_pcs_help: Player characters and everything nested under them, photos included.
+  family_npcs: NPCs
+  family_npcs_help: Non-player characters and everything nested under them, photos included.
+  family_factions: Factions
+  family_factions_help: A game's factions.
+  family_documents: Documents
+  family_documents_help: Documents, including their pages and files.
+  family_items: Items
+  family_items_help: A game's items.
+  family_common_items: Common items
+  family_common_items_help: A game's common items.
+  family_possessions: Possessions
+  family_possessions_help: A game's possessions.
+  family_recipes: Recipes
+  family_recipes_help: A game's recipes.
+  family_treasures: Treasures
+  family_treasures_help: Treasures, both a game's copies and the shared treasure catalogue.
+  family_miniatures: Miniatures
+  family_miniatures_help: Miniature sources, STL models and collections, including imports.
+  games_label: Games
+  games_search: Search games...
+  games_remove: Remove
+  games_none_reachable: "You're not in any game yet. Game-scoped permissions will only take effect once you join a game."
+  games_empty_note: 'No games selected: this token can be used on all {{count}} games you can reach today, and on any game you join later.'
+  games_superuser_warning: Without selected games, this token can act on every game in Majora, now and in the future. Consider selecting specific games.
+  games_limit: 'At most {{max}} games can be selected.'
+  expiry_label: Expiry
+  expiry_30: 30 days
+  expiry_90: 90 days
+  expiry_custom: Custom date
+  expiry_never: Never
+  expiry_never_hint: Tokens that never expire are riskier. Prefer an expiry date when you can.
+  create: Create token
+  options_error: Failed to load the token options.
+  generic_error: Something went wrong. Please try again.
+  created_title: Token created
+  secret_warning: Copy this token now. It will not be shown again.
+  copy: Copy
+  copied: Copied
+  copy_failed: Copy failed. Please select the token and copy it manually.
+  usage_hint: 'Use it as "Authorization: Bearer <token>" or set MAJORA_TOKEN=<token>.'
+  done: Done
+  scope_read: read
+  scope_write: write
+  scope_read_write: read/write

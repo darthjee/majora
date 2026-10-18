@@ -25,6 +25,7 @@ header:
   register: Registrar
   my_account_alt: Minha conta
   nav_authorization_requests: Autorizações
+  nav_api_tokens: Tokens de API
   view_as_alt: Ver como
   resilience_idle_alt: Inativo
   resilience_requesting_alt: Solicitando
@@ -426,3 +427,10 @@ errors:
   user_not_pending: Este usuário não está pendente de aprovação.
   poll_vote_user_not_in_game: Você precisa ser um jogador ou mestre neste jogo para votar.
   invalid_poll_option_date: A data da opção vencedora é inválida.
+  invalid_scope: Este escopo não é válido. Recarregue a página e tente novamente.
+  duplicate_scope: Um escopo foi enviado mais de uma vez. Recarregue a página e tente novamente.
+  game_not_reachable: Um jogo selecionado não está mais disponível. Recarregue a página e escolha os jogos novamente.
+  duplicate_game: Um jogo foi enviado mais de uma vez. Recarregue a página e tente novamente.
+  expires_in_past: A data de expiração está no passado. Verifique o relógio do seu dispositivo.
+  not_editable: Este campo não pode ser alterado. Recarregue a página e tente novamente.
+  token_not_allowed: Esta ação não pode ser realizada com um token de API.
