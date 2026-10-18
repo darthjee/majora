@@ -22,11 +22,13 @@ describe('ApiTokensController#buildEffect', function() {
   describe('when logged out', function() {
     it('redirects home without fetching', function() {
       spyOn(RequestStore, 'ensure');
+      spyOn(RequestStore, 'purge');
 
       const cleanup = buildController(setters).buildEffect()();
 
       expect(globalThis.window.location.hash).toBe('/');
       expect(RequestStore.ensure).not.toHaveBeenCalled();
+      expect(RequestStore.purge).not.toHaveBeenCalled();
       expect(() => cleanup()).not.toThrow();
     });
   });
@@ -52,6 +54,18 @@ describe('ApiTokensController#buildEffect', function() {
       expect(setters.setOptions).toHaveBeenCalledWith(OPTIONS);
       expect(setters.setLoading).toHaveBeenCalledWith(false);
       expect(setters.setError).not.toHaveBeenCalledWith(true);
+      cleanup();
+    });
+
+    it('purges apiToken before the first fetch, dropping a previous session cache', async function() {
+      stubEnsure(RequestStore);
+      spyOn(RequestStore, 'purge');
+
+      const cleanup = buildController(setters).buildEffect()();
+      await flush();
+
+      expect(RequestStore.purge).toHaveBeenCalledOnceWith({ resource: 'apiToken' });
+      expect(RequestStore.purge).toHaveBeenCalledBefore(RequestStore.ensure);
       cleanup();
     });
 

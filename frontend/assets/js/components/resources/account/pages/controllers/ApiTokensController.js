@@ -31,8 +31,9 @@ export default class ApiTokensController extends BasePageController {
    * Build page loading effect.
    *
    * @description Redirects to the home page when logged out (mirroring
-   *   `AuthorizationRequestsController`); otherwise loads the list and the options
-   *   independently.
+   *   `AuthorizationRequestsController`); otherwise purges any cached `apiToken` data (so a
+   *   previous session's tokens/options in this tab are never shown) and loads the list and
+   *   the options independently.
    * @returns {Function} Effect callback.
    */
   buildEffect() {
@@ -45,6 +46,7 @@ export default class ApiTokensController extends BasePageController {
       let mounted = true;
       const safeSet = this.buildSafeSetter(() => mounted);
 
+      RequestStore.purge({ resource: RESOURCE });
       this.#load(safeSet);
 
       return () => {
