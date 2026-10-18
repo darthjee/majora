@@ -14,4 +14,8 @@ export default new Set([
   // bearer-token-gated data, so a cached response must never be served to
   // another client.
   '/users/authorization_requests/',
+  // The owner's scoped API tokens (`/account/api_tokens/<id>.json`, issue
+  // #1605) are private, per-user data; the create response even carries
+  // the plain token secret, so nothing under this path may be cached.
+  '/account/api_tokens/',
 ]);
