@@ -358,6 +358,23 @@ class TestApiTokenScopeCheck(ApiTokenTestMixin):
         response = self._call(scoped_view, 'post', game_slug='other-game')
         assert response.status_code == 200
 
+    def test_deleting_only_game_revokes_token(self):
+        """Test that deleting a token's only allowed game leaves it unable to authenticate."""
+        self.api_token.games.set([self.game])
+        self.game.delete()
+        response = self._call(scoped_view, 'post', game_slug='other-game')
+        assert response.status_code == 401
+        assert response.data['detail'].code == 'token_invalid'
+
+    def test_deleting_one_of_two_games_keeps_restriction(self):
+        """Test that deleting one of two allowed games keeps the token on the other one."""
+        GameFactory(game_slug='third-game')
+        self.api_token.games.set([self.game, self.other_game])
+        self.other_game.delete()
+        response = self._call(scoped_view, 'post', game_slug='third-game')
+        self._assert_refused(response, 'game_not_allowed')
+        assert self._call(scoped_view, 'post', game_slug='allowed-game').status_code == 200
+
     def test_view_without_game_slug_uses_scopes_only(self):
         """Test that a request without `game_slug` ignores the token's games."""
         self.api_token.games.set([self.game])
