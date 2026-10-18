@@ -1,6 +1,7 @@
 api_tokens_page:
   title: Tokens de API
   intro: "Tokens de API permitem que automações e scripts, como o pacote client/ do Majora, usem o Majora em seu nome. Um token nunca faz mais do que você mesmo pode fazer, não pode gerenciar tokens nem a sua conta, e é revogado automaticamente se a sua conta for suspensa."
+  loading: Carregando tokens de API...
   new_token: Novo token
   empty: Você ainda não tem tokens de API.
   load_error: Falha ao carregar seus tokens de API.

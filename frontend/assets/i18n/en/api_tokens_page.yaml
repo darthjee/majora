@@ -1,6 +1,7 @@
 api_tokens_page:
   title: API tokens
   intro: "API tokens let automations and scripts, such as the Majora client/ package, use Majora on your behalf. A token never does more than you can do yourself, it cannot manage tokens or your account, and it is revoked automatically if your account is suspended."
+  loading: Loading API tokens...
   new_token: New token
   empty: You have no API tokens yet.
   load_error: Failed to load your API tokens.
