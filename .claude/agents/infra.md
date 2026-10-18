@@ -36,6 +36,7 @@ the `majora_client` docker-compose service, the `client*` Makefile targets, the
 | `majora_navi` | `darthjee/navi-hey:latest` | 3100 | Cache warmer (local) |
 | `majora_phpmyadmin` | `phpmyadmin/phpmyadmin` | 3050 | DB admin UI |
 | `crawler_navi_web` | built from `dockerfiles/navi_hey_loot_enqueue/` | 127.0.0.1:3110 | Lootstudios crawler interactive Enqueue UI (maintainer-run only, never deployed) |
+| `majora_client` | `darthjee/node:0.2.1` | — | Majora client (`client/`) lint/tests and manual CLI runs |
 
 ### Shared volumes
 

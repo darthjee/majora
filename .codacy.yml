@@ -2,10 +2,12 @@ engines:
   duplication:
     exclude_paths:
       - "frontend/specs/**"
+      - "client/specs/**"
       - "backend/**/tests/**"
   pmd:
     exclude_paths:
       - "frontend/specs/**"
+      - "client/specs/**"
   bandit:
     exclude_paths:
       - "backend/**/tests/**"

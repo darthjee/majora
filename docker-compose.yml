@@ -153,6 +153,18 @@ services:
       - ./docker_volumes/markdownlint_node_modules:/home/node/app/node_modules
     command: sh -c "yarn install && yarn lint_md"
 
+  majora_client:
+    image: darthjee/node:0.2.1
+    container_name: majora_client
+    working_dir: /home/node/app
+    volumes:
+      - ./client:/home/node/app
+      - ./docker_volumes/client_node_modules:/home/node/app/node_modules
+    environment:
+      - MAJORA_URL=${MAJORA_URL:-http://majora_proxy}
+      - MAJORA_TOKEN=$MAJORA_TOKEN
+      - MAJORA_GAME=$MAJORA_GAME
+
   majora_phpmyadmin:
     image: phpmyadmin/phpmyadmin
     container_name: majora_phpmyadmin

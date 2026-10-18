@@ -18,8 +18,6 @@ Everything under `client/` — the Node.js Majora client for automations (epic #
 - `client/yarn.lock`
 - `client/README.md`
 
-`client/` does not exist yet; it is scaffolded by #1607.
-
 Do NOT touch `backend/`, `frontend/`, `proxy/`, `crawler/`, `navi/`, `docker-compose.yml`,
 `dockerfiles/`, `.circleci/`, `scripts/`, or `Makefile` — those belong to `backend`,
 `frontend`, `proxy`, `crawler`, `cache`, or `infra`. In particular, the client wiring outside
@@ -45,8 +43,6 @@ make client-lint       # run ESLint
 make client-coverage   # run the specs with coverage
 make client            # open a shell in the majora_client container
 ```
-
-These targets only exist once #1607 lands.
 
 ## Rules
 

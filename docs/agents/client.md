@@ -5,7 +5,7 @@
 Epic #1592 adds a Node.js Majora client so automations can use the Majora API with
 fine-grained API tokens. The `client` specialist agent (`.claude/agents/client.md`) owns the
 top-level `client/` folder, which holds that client: the library, its CLI and the public npm
-package `majora-client`. `client/` is scaffolded by #1607.
+package `majora-client`. `client/` was scaffolded by #1607.
 
 ## Relationship to the API and tokens
 
