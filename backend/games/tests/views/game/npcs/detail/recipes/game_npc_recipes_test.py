@@ -42,11 +42,11 @@ class TestGameNpcRecipesView(CharacterRecipeViewFixtures):
         self._hide_npc()
         assert self.get(client, self._url(), token=self.other_token).status_code == 404
 
-    def test_hidden_npc_served_to_dm_skips_cache(self, client):
-        """Test that a DM served a hidden NPC gets 200 with X-Skip-Cache."""
+    def test_hidden_npc_is_404_for_dm_with_skip_cache(self, client):
+        """Test that a DM gets 404 with X-Skip-Cache for a hidden NPC on the plain route."""
         self._hide_npc()
         response = self.get(client, self._url(), token=self.dm_token)
-        assert response.status_code == 200
+        assert response.status_code == 404
         assert response['X-Skip-Cache'] == 'true'
 
     def test_visible_npc_sets_no_skip_cache_header(self, client):

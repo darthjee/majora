@@ -15,11 +15,10 @@ export const PER_PAGE = 10;
  * Manages browsing and submitting sell requests for the treasure exchange modal's Sell tab.
  *
  * @description `fetchPage` goes through `RequestStore` (`treasure.ownedCollection`, `kind:
- *   'pcs'|'npcs'`) — a resource-config variant added by issue #811 whose `private` path never
- *   elevates to `.../treasures/all.json`, unlike `treasure.collection`'s own `kind: 'npcs'`
- *   branch (which Buy relies on for its "already owned" cross-reference). Routing Sell through
- *   that `collection` entry instead would silently start including hidden treasures for a DM
- *   viewing an NPC's sell list — a real behavior change this class deliberately avoids.
+ *   'pcs'|'npcs'`) — a resource-config variant added by issue #811 for a character's *owned*
+ *   treasures. The plain NPC `.../treasures.json` 404s on a hidden NPC for every caller
+ *   (issue #1616), so an NPC editor's `private` path reads `npcs/:id/treasures/all.json`; PCs
+ *   always stay on the plain path.
  */
 export default class SellTreasureTabController {
   /**

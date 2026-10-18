@@ -35,7 +35,9 @@ def build_documents_view(npc):
     def view(request, game_slug, character_id):
         """Return a paginated list of non-hidden documents held by a PC/NPC."""
         game = get_object_or_404(Game, game_slug=game_slug)
-        return character_documents(request, game, character_id, npc=npc, check_hidden=npc)
+        return character_documents(
+            request, game, character_id, npc=npc, check_hidden=npc, public_view=True,
+        )
 
     return view
 
@@ -73,7 +75,7 @@ def build_document_detail_view(npc, serializer_class=CharacterDocumentSerializer
         game = get_object_or_404(Game, game_slug=game_slug)
         return character_document_detail(
             request, game, character_id, document_id, npc=npc, check_hidden=npc,
-            serializer_class=serializer_class,
+            public_view=True, serializer_class=serializer_class,
         )
 
     return view
@@ -117,6 +119,7 @@ def build_document_files_view(npc):
         game = get_object_or_404(Game, game_slug=game_slug)
         return character_document_files(
             request, game, character_id, document_id, npc=npc, check_hidden=npc,
+            public_view=True,
         )
 
     return view
@@ -158,6 +161,7 @@ def build_document_photos_view(npc):
         game = get_object_or_404(Game, game_slug=game_slug)
         return character_document_photos(
             request, game, character_id, document_id, npc=npc, check_hidden=npc,
+            public_view=True,
         )
 
     return view
@@ -195,7 +199,7 @@ def build_documents_available_view(npc):
         game = get_object_or_404(Game, game_slug=game_slug)
         return character_documents_available(
             request, game, character_id, npc=npc, check_hidden=npc,
-            serializer_class=GameDocumentListSerializer,
+            public_view=True, serializer_class=GameDocumentListSerializer,
         )
 
     return view

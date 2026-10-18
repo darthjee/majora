@@ -17,6 +17,6 @@ def game_npc_document_summary(request, game_slug, document_id, character_id):
     """Return whether a specific NPC owns a Document, as {'owned': <bool>}."""
     game = get_object_or_404(Game, game_slug=game_slug)
     return character_document_summary(
-        request, game, character_id, document_id, npc=True, check_hidden=True,
+        request, game, character_id, document_id, npc=True, check_hidden=True, public_view=True,
         allow_hidden=False,
     )

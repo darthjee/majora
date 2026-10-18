@@ -61,9 +61,13 @@ def _character_possession_resource(character):
     return 'game_pc_possession' if character.is_pc else 'game_npc_possession'
 
 
-def _hidden_gate_response(character, request):
-    """Return a 404 Response with X-Skip-Cache set if character is hidden and not editable."""
-    return hidden_gate_response(character, character, request)
+def _hidden_gate_response(character, request, public=False):
+    """Return a 404 Response with X-Skip-Cache set if a hidden character must not be served.
+
+    `public=True` marks a plain (AllowAny) view: on `GET`/`HEAD` a hidden character is a 404 for
+    everyone, editors included (see `hidden_gate_response`).
+    """
+    return hidden_gate_response(character, character, request, public=public)
 
 
 def _filter_by_slain(request, queryset, slain_field):

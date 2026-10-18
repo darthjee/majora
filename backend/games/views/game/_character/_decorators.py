@@ -18,14 +18,20 @@ def check_hidden(view_func):
     it. `character_id`/`npc` are consumed here and never reach `view_func`, which instead
     receives the resolved `character`. `check_hidden` itself IS still forwarded (as a keyword)
     since callers keep their own check_hidden-guarded cache-header line unchanged.
+
+    `public_view` (default False) is consumed here and never forwarded: plain AllowAny GET
+    views pass `public_view=True` so the gate is strict — a hidden character is a 404 for
+    everyone, editors included (issue #1616).
     """
 
     @wraps(view_func)
-    def wrapper(request, game, character_id, *args, npc, check_hidden, **kwargs):
+    def wrapper(
+        request, game, character_id, *args, npc, check_hidden, public_view=False, **kwargs,
+    ):
         """Resolve `character` and gate on hidden state before delegating to `view_func`."""
         character = _get_character_or_404(game, character_id, npc)
         if check_hidden:
-            error_response = _hidden_gate_response(character, request)
+            error_response = _hidden_gate_response(character, request, public=public_view)
             if error_response:
                 return error_response
         return view_func(request, game, character, *args, check_hidden=check_hidden, **kwargs)

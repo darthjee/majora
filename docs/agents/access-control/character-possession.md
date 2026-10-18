@@ -22,11 +22,11 @@ create-from-scratch endpoint and an available/acquire/remove flow, both borrowed
 |----------|--------|-------------|
 | `/games/<slug>/pcs/<id>/possessions.json` | GET | **AllowAny** — non-hidden |
 | `/games/<slug>/pcs/<id>/possessions/all.json` | GET | **CharacterEdit** — includes hidden, adds `hidden`. Always `X-Skip-Cache: true` |
-| `/games/<slug>/npcs/<id>/possessions.json` | GET | **AllowAny**, plus the [hidden-NPC gate](character-photo.md#hidden-npc-gate) |
+| `/games/<slug>/npcs/<id>/possessions.json` | GET | **AllowAny**; `404` when the NPC is hidden ([hidden-NPC gate](character-photo.md#hidden-npc-gate), for every caller, editors included) |
 | `/games/<slug>/npcs/<id>/possessions/all.json` | GET | **GameEdit** — includes hidden, adds `hidden`. Always `X-Skip-Cache: true` |
 | `/games/<slug>/pcs/<id>/possessions/<possession_id>.json` | GET | **AllowAny** — 404 if hidden or unknown |
 | `/games/<slug>/pcs/<id>/possessions/<possession_id>/full.json` | GET | **CharacterEdit** — includes hidden, adds `hidden`. Always `X-Skip-Cache: true` |
-| `/games/<slug>/npcs/<id>/possessions/<possession_id>.json` | GET | **AllowAny**, plus the hidden-NPC gate |
+| `/games/<slug>/npcs/<id>/possessions/<possession_id>.json` | GET | **AllowAny**; `404` when the NPC is hidden (for every caller) |
 | `/games/<slug>/npcs/<id>/possessions/<possession_id>/full.json` | GET | **GameEdit** (no owner concept for NPCs) |
 
 All order by `id`. Like `CharacterDocument`, `description` is exposed at every tier (no separate
@@ -63,7 +63,7 @@ A `can_create_possession` boolean (same role gating) is exposed on the PC's/NPC'
 
 | Endpoint | Method | Who can call |
 |----------|--------|-------------|
-| `/games/<slug>/pcs\|npcs/<id>/possessions/available.json` | GET | **AllowAny** — the game's `GamePossession` catalog minus hidden possessions and possessions the character already owns |
+| `/games/<slug>/pcs\|npcs/<id>/possessions/available.json` | GET | **AllowAny** — the game's `GamePossession` catalog minus hidden possessions and possessions the character already owns; on an NPC, `404` when the NPC is hidden (for every caller, editors included) |
 | `/games/<slug>/pcs\|npcs/<id>/possessions/available/all.json` | GET | **GameEdit** (dm/admin only — **no owner leniency**, unlike the possession-index `/all.json` endpoints) — includes hidden. Always `X-Skip-Cache: true` |
 
 Backs the possession-exchange modal's Acquire tab, mirroring

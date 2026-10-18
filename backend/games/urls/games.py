@@ -83,6 +83,7 @@ from ..views.games import (
     game_possessions,
     game_possessions_all,
     game_treasure_detail,
+    game_treasure_full,
     game_treasure_link,
     game_treasures,
     game_treasures_all,
@@ -118,6 +119,11 @@ urlpatterns = [
         'games/<slug:game_slug>/treasures/<int:treasure_id>.json',
         game_treasure_detail,
         name='game-treasure-detail',
+    ),
+    path(
+        'games/<slug:game_slug>/treasures/<int:treasure_id>/full.json',
+        game_treasure_full,
+        name='game-treasure-full',
     ),
     path(
         'games/<slug:game_slug>/treasures/<int:treasure_id>/pcs/<int:character_id>/summary.json',

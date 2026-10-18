@@ -135,22 +135,18 @@ class TestGameNpcPossessionsHidden(TokenAuthRequestMixin):
         response = self.get(client, self._url(), token=token)
         assert response.status_code == 404
 
-    def test_hidden_npc_possessions_returns_200_for_dm(self, client):
-        """Test that a DM can access a hidden NPC's possessions."""
+    def test_hidden_npc_possessions_returns_404_for_dm(self, client):
+        """Test that a DM gets 404 for a hidden NPC's possessions on the plain route."""
         token = Token.objects.create(user=self.dm_user)
         response = self.get(client, self._url(), token=token)
-        assert response.status_code == 200
-        data = json.loads(response.content)
-        assert len(data) == 1
+        assert response.status_code == 404
 
-    def test_hidden_npc_possessions_returns_200_for_superuser(self, client):
-        """Test that a superuser can access a hidden NPC's possessions."""
+    def test_hidden_npc_possessions_returns_404_for_superuser(self, client):
+        """Test that a superuser gets 404 for a hidden NPC's possessions on the plain route."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
         token = Token.objects.create(user=superuser)
         response = self.get(client, self._url(), token=token)
-        assert response.status_code == 200
-        data = json.loads(response.content)
-        assert len(data) == 1
+        assert response.status_code == 404
 
     def test_hidden_npc_possessions_response_includes_x_skip_cache_header_for_dm(self, client):
         """Test that a DM's response for a hidden NPC's possessions includes X-Skip-Cache: true."""

@@ -105,8 +105,8 @@ class TestGameNpcDocumentsAvailableHidden(TokenAuthRequestMixin):
         response = self.get(client, self._url(), token=token)
         assert response.status_code == 404
 
-    def test_hidden_npc_returns_200_for_dm(self, client):
-        """Test that a DM can access a hidden NPC's available documents."""
+    def test_hidden_npc_returns_404_for_dm(self, client):
+        """Test that a DM gets 404 for a hidden NPC's available documents on the plain route."""
         token = Token.objects.create(user=self.dm_user)
         response = self.get(client, self._url(), token=token)
-        assert response.status_code == 200
+        assert response.status_code == 404

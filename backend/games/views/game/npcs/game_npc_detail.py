@@ -16,4 +16,6 @@ def game_npc_detail(request, game_slug, character_id):
     game = get_object_or_404(Game, game_slug=game_slug)
     if request.method == 'PATCH':
         return npc_player_update(request, game, character_id)
-    return character_detail(request, game, character_id, npc=True, check_hidden=True)
+    return character_detail(
+        request, game, character_id, npc=True, check_hidden=True, public_view=True,
+    )

@@ -29,7 +29,9 @@ def build_factions_view(npc):
     def view(request, game_slug, character_id):
         """Return a paginated list of non-hidden factions a PC/NPC belongs to."""
         game = get_object_or_404(Game, game_slug=game_slug)
-        return character_factions(request, game, character_id, npc=npc, check_hidden=npc)
+        return character_factions(
+            request, game, character_id, npc=npc, check_hidden=npc, public_view=True,
+        )
 
     return view
 
@@ -67,7 +69,7 @@ def build_faction_detail_view(npc, serializer_class=CharacterFactionSerializer):
         game = get_object_or_404(Game, game_slug=game_slug)
         return character_faction_detail(
             request, game, character_id, faction_id, npc=npc, check_hidden=npc,
-            serializer_class=serializer_class,
+            public_view=True, serializer_class=serializer_class,
         )
 
     return view
@@ -106,7 +108,7 @@ def build_factions_available_view(npc):
         game = get_object_or_404(Game, game_slug=game_slug)
         return character_factions_available(
             request, game, character_id, npc=npc, check_hidden=npc,
-            serializer_class=GameFactionListSerializer,
+            public_view=True, serializer_class=GameFactionListSerializer,
         )
 
     return view

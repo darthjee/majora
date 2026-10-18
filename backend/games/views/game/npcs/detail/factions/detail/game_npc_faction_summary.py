@@ -17,6 +17,6 @@ def game_npc_faction_summary(request, game_slug, faction_id, character_id):
     """Return whether a specific NPC belongs to a GameFaction, as {'enlisted': <bool>}."""
     game = get_object_or_404(Game, game_slug=game_slug)
     return character_faction_summary(
-        request, game, character_id, faction_id, npc=True, check_hidden=True,
+        request, game, character_id, faction_id, npc=True, check_hidden=True, public_view=True,
         allow_hidden=False,
     )

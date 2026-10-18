@@ -92,7 +92,7 @@ class TestGameNpcFactionSummaryHiddenNpc(TokenAuthRequestMixin):
         response = self.get(client, self._url())
         assert response.status_code == 404
 
-    def test_dm_gets_200_for_a_hidden_npc(self, client):
-        """Test that the DM still gets 200 for a hidden NPC on the regular endpoint."""
+    def test_dm_gets_404_for_a_hidden_npc(self, client):
+        """Test that the DM gets 404 for a hidden NPC on the regular endpoint."""
         response = self.get(client, self._url(), token=self.dm_token)
-        assert response.status_code == 200
+        assert response.status_code == 404

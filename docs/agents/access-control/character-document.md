@@ -18,11 +18,11 @@ are deviations, covered below.
 |----------|--------|-------------|
 | `/games/<slug>/pcs/<id>/documents.json` | GET | **AllowAny** — non-hidden |
 | `/games/<slug>/pcs/<id>/documents/all.json` | GET | **CharacterEdit** — includes hidden, adds `hidden`. Always `X-Skip-Cache: true` |
-| `/games/<slug>/npcs/<id>/documents.json` | GET | **AllowAny**, plus the [hidden-NPC gate](character-photo.md#hidden-npc-gate) |
+| `/games/<slug>/npcs/<id>/documents.json` | GET | **AllowAny**; `404` when the NPC is hidden ([hidden-NPC gate](character-photo.md#hidden-npc-gate), for every caller, editors included) |
 | `/games/<slug>/npcs/<id>/documents/all.json` | GET | **GameEdit** — includes hidden, adds `hidden`. Always `X-Skip-Cache: true` |
 | `/games/<slug>/pcs/<id>/documents/<document_id>.json` | GET | **AllowAny** — 404 if hidden or unknown |
 | `/games/<slug>/pcs/<id>/documents/<document_id>/full.json` | GET | **CharacterEdit** — includes hidden, adds `hidden`. Always `X-Skip-Cache: true` |
-| `/games/<slug>/npcs/<id>/documents/<document_id>.json` | GET | **AllowAny**, plus the hidden-NPC gate (sets `X-Skip-Cache: true` when served to an authorized dm/superuser through that gate) |
+| `/games/<slug>/npcs/<id>/documents/<document_id>.json` | GET | **AllowAny**; `404` when the NPC is hidden, for every caller (editors use the `full.json` sibling) |
 | `/games/<slug>/npcs/<id>/documents/<document_id>/full.json` | GET | **GameEdit** (no owner concept for NPCs) |
 
 All order by `id`. Unlike `CharacterItem`, `description` is exposed at every tier (no separate
@@ -38,7 +38,7 @@ all sourced directly from the linked `GameDocument`. `hidden` is exposed on the 
 
 | Endpoint | Method | Who can call |
 |----------|--------|-------------|
-| `/games/<slug>/pcs\|npcs/<id>/documents/available.json` | GET | **AllowAny** — the game's `GameDocument` catalog minus hidden documents and documents the character already owns |
+| `/games/<slug>/pcs\|npcs/<id>/documents/available.json` | GET | **AllowAny** — the game's `GameDocument` catalog minus hidden documents and documents the character already owns; on an NPC, `404` when the NPC is hidden (for every caller, editors included) |
 | `/games/<slug>/pcs\|npcs/<id>/documents/available/all.json` | GET | **GameEdit** (dm/admin only — **no owner leniency**, unlike the document-index `/all.json` endpoints) — includes hidden. Always `X-Skip-Cache: true` |
 
 Backs the document-exchange modal's Acquire tab (issue #920), since `CharacterDocument` allows at
@@ -74,7 +74,7 @@ precedent, decided during issue #920's `/enhance-issue` pass.
 | Endpoint | Method | Who can call |
 |----------|--------|-------------|
 | `/games/<slug>/documents/<document_id>/pcs/<id>/summary.json` | GET | **AllowAny** — 404 if the document/PC is unknown. Always `X-Skip-Cache: true` (deviation: an `AllowAny` endpoint that still opts out of the shared proxy cache, since responses are per-character-per-document and not worth caching) |
-| `/games/<slug>/documents/<document_id>/npcs/<id>/summary.json` | GET | **AllowAny**, plus the [hidden-NPC gate](character-photo.md#hidden-npc-gate) — 404 if hidden or unknown. Always `X-Skip-Cache: true` |
+| `/games/<slug>/documents/<document_id>/npcs/<id>/summary.json` | GET | **AllowAny**; `404` when the NPC is hidden ([hidden-NPC gate](character-photo.md#hidden-npc-gate), for every caller, editors included) or unknown. Always `X-Skip-Cache: true` |
 | `/games/<slug>/documents/<document_id>/pcs/<id>/summary/all.json` | GET | roles per [`game_pc_document/endpoints.yml`](../../../backend/games/permissions/config/game_pc_document/endpoints.yml) (`restricted.create`: staff, or the PC's owning player). Always `X-Skip-Cache: true` |
 | `/games/<slug>/documents/<document_id>/npcs/<id>/summary/all.json` | GET | roles per [`game_npc_document/endpoints.yml`](../../../backend/games/permissions/config/game_npc_document/endpoints.yml) (`restricted.create`: staff only, no owner concept). The permission check runs **before** the NPC is resolved, so an unauthorized/unauthenticated caller gets the same `403`/`401` regardless of whether the target `id` is unknown, hidden, or visible — a hidden NPC's existence must never be distinguishable from a nonexistent one via this endpoint (same rule as [Character](character.md)'s own hidden-NPC gate). Always `X-Skip-Cache: true` |
 
@@ -97,7 +97,7 @@ can list that document's own `GameDocumentFile`/`GameDocumentPhoto` rows, looked
 |----------|--------|-------------|
 | `/games/<slug>/pcs/<id>/documents/<document_id>/files.json` | GET | **AllowAny**, see gating below |
 | `/games/<slug>/pcs/<id>/documents/<document_id>/files/all.json` | GET | **CharacterEdit** — ignores all hidden/incognito state |
-| `/games/<slug>/npcs/<id>/documents/<document_id>/files.json` | GET | **AllowAny**, see gating below (plus the hidden-NPC gate) |
+| `/games/<slug>/npcs/<id>/documents/<document_id>/files.json` | GET | **AllowAny**, see gating below (plus `404` when the NPC is hidden, for every caller) |
 | `/games/<slug>/npcs/<id>/documents/<document_id>/files/all.json` | GET | **GameEdit** — ignores all hidden/incognito state |
 | `/games/<slug>/pcs\|npcs/<id>/documents/<document_id>/photos.json` | GET | Same shape/gating as the files pair above |
 | `/games/<slug>/pcs\|npcs/<id>/documents/<document_id>/photos/all.json` | GET | Same shape/gating as the files pair above |

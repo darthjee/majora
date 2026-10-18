@@ -37,7 +37,7 @@ KINDS.forEach(({ label, Controller, kind }) => {
           params: { gameSlug: 'demo', id: '7', photoId: '9' },
           body: { roles: ['profile'] },
         });
-        expect(characterClient.fetchCharacter).toHaveBeenCalledWith(kind, 'demo', '7', null);
+        expect(characterClient.fetchCharacterAt).toHaveBeenCalledWith(kind, `/games/demo/${kind}/7.json`, null);
         expect(setCharacter).toHaveBeenCalledWith(
           jasmine.objectContaining({ name: 'Aragorn', can_edit: false }),
         );

@@ -33,7 +33,7 @@ KINDS.forEach(({ label, Controller, kind }) => {
 
         expect(photoDeleteSaga.run).toHaveBeenCalledWith(kind === 'pcs' ? 'pc' : 'npc', 'demo', '7', '9');
         expect(client.fetchIndex).toHaveBeenCalledWith(`/games/demo/${kind}/7/photos.json`);
-        expect(characterClient.fetchCharacter).toHaveBeenCalledWith(kind, 'demo', '7', null);
+        expect(characterClient.fetchCharacterAt).toHaveBeenCalledWith(kind, `/games/demo/${kind}/7.json`, null);
         expect(setCharacter).toHaveBeenCalledWith(
           jasmine.objectContaining({ name: 'Aragorn', can_edit: false }),
         );

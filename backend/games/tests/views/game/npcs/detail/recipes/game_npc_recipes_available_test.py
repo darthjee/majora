@@ -64,11 +64,11 @@ class TestGameNpcRecipesAvailableView(CharacterRecipeExchangeFixtures):
         assert response.status_code == 404
         assert response['X-Skip-Cache'] == 'true'
 
-    def test_dm_gets_hidden_npc(self, client):
-        """Test that the DM can list a hidden NPC's catalog."""
+    def test_dm_gets_404_for_hidden_npc(self, client):
+        """Test that the DM gets 404 listing a hidden NPC's catalog on the plain route."""
         self.hide_character()
         response = self.get(client, self.url('available.json'), token=self.dm_token)
-        assert response.status_code == 200
+        assert response.status_code == 404
 
     def test_sets_skip_cache_header(self, client):
         """Test that a successful response sets X-Skip-Cache: true."""

@@ -14,15 +14,15 @@ pattern](principles.md#default-hidden-gated-collection-pattern) doesn't apply to
 | Action | Who can |
 |--------|---------|
 | Read `available_units`/`max_units`/`value` | **AllowAny**, via the game-scoped [Treasure](treasure.md) read endpoints |
-| Read `hidden` | **GameEdit** only, via `GET /games/<slug>/treasures/all.json` and `GET /games/<slug>/npcs/<id>/treasures/all.json` |
+| Read `hidden` | **GameEdit** only, via `GET /games/<slug>/treasures/all.json`, `GET /games/<slug>/treasures/<id>/full.json` and `GET /games/<slug>/npcs/<id>/treasures/all.json` |
 | Write `max_units` | **GameEdit**, via `PATCH /games/<slug>/treasures/<id>.json` when M2M-linked |
 | Write `value` | Not directly editable per game — only indirectly via a DM `PATCH`-ing an exclusive treasure's own `value`, which the endpoint mirrors onto this row |
 | Write `hidden` | **GameEdit** (or superuser/staff on the global `PATCH /treasures/<id>.json`, for a treasure exclusive to their own game) — exclusive treasures only; the M2M-linked case has no write path (Django-admin-only) |
 | Write `acquired_units` | Never directly — only as a side effect of buy/sell |
 | Create/Delete the `(game, treasure)` link | Create: **GameEdit**, via `POST /games/<slug>/treasures/link.json`. Delete: superuser only, via Django admin |
 
-`hidden` is exposed only by the two DM/superuser-only `/all.json` endpoints above — every
-player-facing read endpoint omits it entirely.
+`hidden` is exposed only by the three DM/superuser-only `/all.json`/`/full.json` endpoints above —
+every player-facing read endpoint omits it entirely.
 
 ## `hidden`
 
@@ -33,7 +33,9 @@ matching `GameTreasure` row, so a missing row defaults `hidden` to `False` rathe
 `hidden` gates, per [Treasure](treasure.md) and [CharacterTreasure](character-treasure.md):
 
 - `GET /games/<slug>/treasures.json` — excludes hidden treasures.
-- `GET /games/<slug>/treasures/<id>.json` — `404`s for a non-editor.
+- `GET /games/<slug>/treasures/<id>.json` — `404`s (with `X-Skip-Cache: true`) for every caller,
+  editors included: a plain route never varies by role. `PATCH` on the same route keeps the
+  editor-aware gate (`404` only to a requester who cannot edit the game).
 - `POST /games/<slug>/pcs\|npcs/<id>/treasures/buy.json` — `404`s when hidden for this game.
 - `GET /games/<slug>/npcs/<id>/treasures.json` — excludes any held treasure hidden for this game.
   The PC equivalent is deliberately **not** filtered — a PC keeps seeing every treasure it owns
@@ -41,9 +43,12 @@ matching `GameTreasure` row, so a missing row defaults `hidden` to `False` rathe
 - `POST /games/<slug>/pcs\|npcs/<id>/treasures/sell.json` — unaffected; sell is scoped by
   ownership, not catalog visibility, so a hidden treasure already owned can always be sold.
 
-Three DM-only endpoints bypass the `hidden` gate above, all guarded by **GameEdit** (superuser,
+Four DM-only endpoints bypass the `hidden` gate above, all guarded by **GameEdit** (superuser,
 staff, or that game's GameMaster):
 
+- `GET /games/<slug>/treasures/<id>/full.json` — the plain detail payload plus `hidden`, served
+  even when the treasure is hidden. **GameEdit** is checked before the treasure is resolved, so a
+  `401`/`403` never reveals whether a hidden treasure exists. Always `X-Skip-Cache: true`.
 - `GET /games/<slug>/npcs/<id>/treasures/all.json` — same as the regular NPC list but does not
   filter hidden held treasures, and exposes `hidden` per item.
 - `POST /games/<slug>/pcs\|npcs/<id>/treasures/buy/all.json` — mirror the regular buy endpoints

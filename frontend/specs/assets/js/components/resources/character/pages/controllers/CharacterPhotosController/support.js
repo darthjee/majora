@@ -24,11 +24,11 @@ export const KINDS = [
 
 /**
  * @description Builds a fresh characterClient spy shared by every CharacterPhotosController spec file.
- * @returns {object} a characterClient spy with a default successful fetchCharacter.
+ * @returns {object} a characterClient spy with a default successful fetchCharacterAt.
  */
 export function buildCharacterClient() {
-  const characterClient = jasmine.createSpyObj('characterClient', ['fetchCharacter']);
-  characterClient.fetchCharacter.and.returnValue(Promise.resolve({
+  const characterClient = jasmine.createSpyObj('characterClient', ['fetchCharacterAt']);
+  characterClient.fetchCharacterAt.and.returnValue(Promise.resolve({
     ok: true,
     json: () => Promise.resolve({ name: 'Aragorn' }),
   }));
