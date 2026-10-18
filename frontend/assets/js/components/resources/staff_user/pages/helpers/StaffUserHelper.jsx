@@ -6,14 +6,15 @@ import LoadingMessage from '../../../../common/misc/LoadingMessage.jsx';
 import Translator from '../../../../../i18n/Translator.js';
 import StaffUserStatusBadges from '../../../../common/list_types/StaffUserStatusBadges.js';
 import RecoveryTokenStatusBadges from '../../../../common/list_types/RecoveryTokenStatusBadges.js';
+import StaffUserApiTokensHelper from './StaffUserApiTokensHelper.jsx';
 
 /**
  * Rendering helper for the staff user detail page.
  */
 export default class StaffUserHelper {
   /**
-   * Render the user detail view, composed of the details block, the recovery-token panel, and the
-   * edit action.
+   * Render the user detail view, composed of the details block, the recovery-token panel, the
+   * API-token panel (issue #1606), and the edit action.
    *
    * @param {object} user - User data object.
    * @param {number} user.id - User id.
@@ -30,15 +31,21 @@ export default class StaffUserHelper {
    * @param {{onUnexpire: Function, onForceExpirePrompt: Function, onDeletePrompt: Function,
    *   onGenerateRecoveryLink: Function}} handlers - Recovery-token panel action handlers (issue
    *   #1249).
+   * @param {object} apiTokensPanel - API-token panel (issue #1606), rendered below the
+   *   recovery-token panel through {@link StaffUserApiTokensHelper.render}.
+   * @param {{tokens: Array<object>, loading: boolean, error: boolean, notice: (string|null)}}
+   *   apiTokensPanel.state - API-token panel state, independent of `user`'s own loading/error state.
+   * @param {{onRevokePrompt: Function}} apiTokensPanel.handlers - API-token panel row handlers.
    * @returns {React.ReactElement} User detail element.
    */
-  static render(user, tokensState, handlers) {
+  static render(user, tokensState, handlers, apiTokensPanel) {
     return (
       <div className="container mt-4">
         <BackButton href="#/staff/users" />
         <h1>{Translator.t('staff_user_page.title')}</h1>
         {StaffUserHelper.#renderDetails(user)}
         {StaffUserHelper.#renderRecoveryTokenPanel(tokensState, handlers)}
+        {StaffUserApiTokensHelper.render(apiTokensPanel.state, apiTokensPanel.handlers)}
         {StaffUserHelper.#renderEditAction(user)}
       </div>
     );

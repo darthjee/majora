@@ -2,8 +2,10 @@ import { useEffect, useMemo, useState } from 'react';
 import RequestStore from '../../../../utils/requests/RequestStore.js';
 import StaffUserController from './controllers/StaffUserController.js';
 import StaffUserRecoveryTokensController from './controllers/StaffUserRecoveryTokensController.js';
+import StaffUserApiTokensController from './controllers/StaffUserApiTokensController.js';
 import StaffUserHelper from './helpers/StaffUserHelper.jsx';
 import RecoveryTokenActionConfirmModal from './elements/RecoveryTokenActionConfirmModal.jsx';
+import ApiTokenRevokeConfirmModal from '../../../common/api_tokens/ApiTokenRevokeConfirmModal.jsx';
 
 /**
  * Staff user detail page.
@@ -24,6 +26,12 @@ export default function StaffUser({ ControllerClass = StaffUserController }) {
   const [actionError, setActionError] = useState(false);
   const [pendingAction, setPendingAction] = useState(null);
 
+  const [apiTokens, setApiTokens] = useState([]);
+  const [apiTokensLoading, setApiTokensLoading] = useState(true);
+  const [apiTokensError, setApiTokensError] = useState(false);
+  const [apiTokensNotice, setApiTokensNotice] = useState(null);
+  const [pendingApiToken, setPendingApiToken] = useState(null);
+
   const controller = useMemo(
     () => new ControllerClass(setUser, setLoading, setError),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -35,12 +43,22 @@ export default function StaffUser({ ControllerClass = StaffUserController }) {
     [],
   );
 
+  const apiTokensController = useMemo(
+    () => new StaffUserApiTokensController(setApiTokens, setApiTokensLoading, setApiTokensError, setApiTokensNotice),
+    [],
+  );
+
   useEffect(() => controller.buildEffect()(), [controller]);
 
   useEffect(() => {
     if (loading || error || !user) return undefined;
     return tokensController.buildEffect(user.id)();
   }, [tokensController, loading, error, user]);
+
+  useEffect(() => {
+    if (loading || error || !user) return undefined;
+    return apiTokensController.buildEffect(user.id)();
+  }, [apiTokensController, loading, error, user]);
 
   if (loading) return StaffUserHelper.renderLoading();
   if (error) return StaffUserHelper.renderError();
@@ -67,6 +85,13 @@ export default function StaffUser({ ControllerClass = StaffUserController }) {
     }
   };
 
+  const handleApiTokenRevokeConfirm = async () => {
+    const token = pendingApiToken;
+    setPendingApiToken(null);
+
+    await apiTokensController.revoke(user.id, token?.id);
+  };
+
   return (
     <>
       {StaffUserHelper.render(
@@ -80,12 +105,25 @@ export default function StaffUser({ ControllerClass = StaffUserController }) {
           onDeletePrompt: (tokenId) => setPendingAction({ type: 'delete', tokenId }),
           onGenerateRecoveryLink: handleGenerateRecoveryLink,
         },
+        {
+          state: {
+            tokens: apiTokens, loading: apiTokensLoading, error: apiTokensError, notice: apiTokensNotice,
+          },
+          handlers: { onRevokePrompt: setPendingApiToken },
+        },
       )}
       <RecoveryTokenActionConfirmModal
         show={pendingAction !== null}
         action={pendingAction?.type}
         onConfirm={handleConfirm}
         onCancel={() => setPendingAction(null)}
+      />
+      <ApiTokenRevokeConfirmModal
+        show={pendingApiToken !== null}
+        tokenName={pendingApiToken?.name}
+        ownerName={user.name}
+        onConfirm={handleApiTokenRevokeConfirm}
+        onCancel={() => setPendingApiToken(null)}
       />
     </>
   );
