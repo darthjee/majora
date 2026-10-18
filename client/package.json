@@ -13,10 +13,10 @@
     "node": ">=20"
   },
   "scripts": {
-    "test": "jasmine",
+    "test": "jasmine --config=specs/support/jasmine.json",
     "lint": "eslint src specs",
     "lint_fix": "eslint src specs --fix",
-    "coverage": "c8 jasmine"
+    "coverage": "c8 jasmine --config=specs/support/jasmine.json"
   },
   "repository": {
     "type": "git",
