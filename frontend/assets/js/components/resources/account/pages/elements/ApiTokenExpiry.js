@@ -35,12 +35,24 @@ export default class ApiTokenExpiry {
   }
 
   /**
+   * Whether an expiry state is complete enough to be submitted.
+   *
+   * @param {{choice: string, customDate: string}} expiry - The expiry state.
+   * @returns {boolean} `false` only when `'custom'` is chosen without a date.
+   */
+  static isComplete({ choice, customDate }) {
+    return choice !== 'custom' || Boolean(customDate);
+  }
+
+  /**
    * Convert an expiry choice to the `expires_at` value sent to the API.
    *
    * @param {{choice: string, customDate: string}} expiry - The choice (`'30'`, `'90'`,
    *   `'custom'` or `'never'`) and, for `'custom'`, the `YYYY-MM-DD` date.
    * @param {Date} [now] - The current time.
-   * @returns {string|null} The UTC ISO string, or `null` for no expiry (or an empty custom date).
+   * @returns {string|null} The UTC ISO string, or `null` for no expiry ("Never" only).
+   * @throws {Error} When `'custom'` is chosen without a date, so an incomplete custom expiry is
+   *   never silently sent as "Never".
    */
   static toExpiresAt({ choice, customDate }, now = new Date()) {
     if (choice === 'never') return null;
@@ -65,10 +77,11 @@ export default class ApiTokenExpiry {
    * The end (23:59:59.999) of a `YYYY-MM-DD` day in local time, as a UTC ISO string.
    *
    * @param {string} date - The `YYYY-MM-DD` date.
-   * @returns {string|null} The ISO string, or `null` when no date is given.
+   * @returns {string} The ISO string.
+   * @throws {Error} When no date is given.
    */
   static #endOfDay(date) {
-    if (!date) return null;
+    if (!date) throw new Error('A custom expiry requires a date');
 
     const [year, month, day] = date.split('-').map(Number);
 

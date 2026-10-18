@@ -88,4 +88,13 @@ describe('CreateApiTokenModalController#submit', function() {
 
     expect(setters.setStatus.calls.mostRecent().args).toEqual(['error']);
   });
+
+  it('never sends a custom expiry without a date', async function() {
+    spyOn(RequestStore, 'mutate');
+
+    await controller.submit(undefined, { ...form, expiry: { choice: 'custom', customDate: '' } });
+
+    expect(RequestStore.mutate).not.toHaveBeenCalled();
+    expect(setters.setStatus.calls.mostRecent().args).toEqual(['error']);
+  });
 });

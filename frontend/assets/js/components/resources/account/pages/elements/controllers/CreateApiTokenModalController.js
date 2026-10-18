@@ -35,14 +35,18 @@ export default class CreateApiTokenModalController {
   /**
    * Whether the Create button is enabled.
    *
-   * @param {{scopes: Array<string>}} form - Current form values.
+   * @param {{scopes: Array<string>, expiry: {choice: string, customDate: string}}} form -
+   *   Current form values.
    * @param {string} status - Current status (`'idle'`, `'submitting'` or `'error'`).
    * @param {object|null} options - The loaded `options.json` payload, or `null`.
-   * @returns {boolean} `true` when at least one scope is ticked, nothing is in flight and the
-   *   options loaded.
+   * @returns {boolean} `true` when at least one scope is ticked, the expiry is complete (a
+   *   custom expiry has a date), nothing is in flight and the options loaded.
    */
   static canSubmit(form, status, options) {
-    return form.scopes.length > 0 && status !== 'submitting' && Boolean(options);
+    return form.scopes.length > 0
+      && ApiTokenExpiry.isComplete(form.expiry)
+      && status !== 'submitting'
+      && Boolean(options);
   }
 
   /**

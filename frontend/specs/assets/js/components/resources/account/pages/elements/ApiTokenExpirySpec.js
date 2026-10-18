@@ -23,8 +23,9 @@ describe('ApiTokenExpiry', function() {
       expect(ApiTokenExpiry.toExpiresAt({ choice: 'custom', customDate: '2026-04-15' }, now)).toBe(expected);
     });
 
-    it('returns null for an empty custom date', function() {
-      expect(ApiTokenExpiry.toExpiresAt({ choice: 'custom', customDate: '' }, now)).toBeNull();
+    it('throws for an empty custom date instead of mapping it to never', function() {
+      expect(() => ApiTokenExpiry.toExpiresAt({ choice: 'custom', customDate: '' }, now))
+        .toThrowError('A custom expiry requires a date');
     });
 
     it('returns null for never', function() {
@@ -36,6 +37,22 @@ describe('ApiTokenExpiry', function() {
       const result = Date.parse(ApiTokenExpiry.toExpiresAt({ choice: '30' }));
 
       expect(result).toBeGreaterThanOrEqual(before + 30 * 24 * 60 * 60 * 1000);
+    });
+  });
+
+  describe('.isComplete', function() {
+    it('is true for the presets and never', function() {
+      expect(ApiTokenExpiry.isComplete({ choice: '30', customDate: '' })).toBeTrue();
+      expect(ApiTokenExpiry.isComplete({ choice: '90', customDate: '' })).toBeTrue();
+      expect(ApiTokenExpiry.isComplete({ choice: 'never', customDate: '' })).toBeTrue();
+    });
+
+    it('is true for a custom choice with a date', function() {
+      expect(ApiTokenExpiry.isComplete({ choice: 'custom', customDate: '2026-04-15' })).toBeTrue();
+    });
+
+    it('is false for a custom choice without a date', function() {
+      expect(ApiTokenExpiry.isComplete({ choice: 'custom', customDate: '' })).toBeFalse();
     });
   });
 

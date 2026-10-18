@@ -32,6 +32,12 @@ describe('CreateApiTokenModalController.buildBody', function() {
     expect(body.expires_at).toBe(new Date(2026, 3, 15, 23, 59, 59, 999).toISOString());
   });
 
+  it('refuses to build a body for a custom expiry without a date', function() {
+    expect(() => CreateApiTokenModalController.buildBody(
+      { ...form, expiry: { choice: 'custom', customDate: '' } }, now,
+    )).toThrowError('A custom expiry requires a date');
+  });
+
   it('defaults now to the current time', function() {
     expect(CreateApiTokenModalController.buildBody(form).expires_at).toEqual(jasmine.any(String));
   });
