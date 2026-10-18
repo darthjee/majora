@@ -9,8 +9,12 @@ from accounts.models import ApiToken
 from accounts.scopes import SCOPES
 from accounts.serializers.api_token.item import ApiTokenItemSerializer
 from accounts.serializers.api_token.strict_fields import StrictFieldsMixin
+from games.models import Game
 
 NAME_MAX_LENGTH = 100
+SCOPE_MAX_LENGTH = 64
+GAMES_MAX_COUNT = 100
+GAME_SLUG_MAX_LENGTH = Game._meta.get_field('game_slug').max_length
 
 
 def error(code):
@@ -27,8 +31,17 @@ class ApiTokenCreateSerializer(StrictFieldsMixin, serializers.Serializer):
     """Validate a token creation request; `context['user']` is always the owner."""
 
     name = serializers.CharField(max_length=NAME_MAX_LENGTH, trim_whitespace=True)
-    scopes = serializers.ListField(child=serializers.CharField(), allow_empty=False)
-    games = serializers.ListField(child=serializers.CharField(), required=False, default=list)
+    scopes = serializers.ListField(
+        child=serializers.CharField(max_length=SCOPE_MAX_LENGTH),
+        allow_empty=False,
+        max_length=len(SCOPES),
+    )
+    games = serializers.ListField(
+        child=serializers.CharField(max_length=GAME_SLUG_MAX_LENGTH),
+        required=False,
+        default=list,
+        max_length=GAMES_MAX_COUNT,
+    )
     expires_at = serializers.DateTimeField(required=False, allow_null=True, default=None)
 
     def validate_scopes(self, value):

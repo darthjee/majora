@@ -8,8 +8,13 @@ from django.utils import timezone
 
 from accounts.models import ApiToken
 from accounts.models.api_token import hash_secret
+from accounts.scopes import SCOPES
 from accounts.serializers import ApiTokenCreateSerializer
+from games.models import Game
 from games.tests.factories import GameFactory, PlayerFactory, SuperUserFactory, UserFactory
+from games.views.common import _error_codes
+
+GAME_SLUG_MAX_LENGTH = Game._meta.get_field('game_slug').max_length
 
 
 @pytest.mark.django_db
@@ -36,6 +41,11 @@ class TestApiTokenCreateSerializer:
             field: [detail.code for detail in details]
             for field, details in serializer.errors.items()
         }
+
+    def _codes(self, serializer):
+        """Validate `serializer` and return its errors as the views report them."""
+        assert not serializer.is_valid()
+        return _error_codes(serializer.errors)
 
     def test_valid_payload(self):
         """Test that a minimal payload is valid with defaults for games and expiry."""
@@ -87,6 +97,63 @@ class TestApiTokenCreateSerializer:
         """Test that a repeated scope gives duplicate_scope."""
         errors = self._errors(self._serializer(scopes=['npcs:read', 'npcs:read']))
         assert errors == {'scopes': ['duplicate_scope']}
+
+    def test_scopes_over_catalogue_size(self):
+        """Test that more scopes than the catalogue holds give max_length."""
+        scopes = [*SCOPES, 'npcs:read']
+        assert self._codes(self._serializer(scopes=scopes)) == {'scopes': ['max_length']}
+
+    def test_scopes_at_catalogue_size(self):
+        """Test that the whole catalogue is accepted as a scope list."""
+        assert self._serializer(scopes=list(SCOPES)).is_valid()
+
+    def test_scope_entry_max_length(self):
+        """Test that a scope entry over 64 characters gives max_length keyed by index."""
+        errors = self._codes(self._serializer(scopes=['npcs:read', 'a' * 65]))
+        assert errors == {'scopes': {1: ['max_length']}}
+
+    def test_scope_entry_at_max_length(self):
+        """Test that a 64-character scope entry passes the length cap."""
+        errors = self._codes(self._serializer(scopes=['a' * 64]))
+        assert errors == {'scopes': ['invalid_scope']}
+
+    def test_games_over_max_count(self):
+        """Test that more than 100 game slugs give max_length."""
+        games = [f'game-{index}' for index in range(101)]
+        assert self._codes(self._serializer(games=games)) == {'games': ['max_length']}
+
+    def test_games_at_max_count(self):
+        """Test that 100 game slugs pass the count cap."""
+        games = [f'game-{index}' for index in range(100)]
+        assert self._codes(self._serializer(games=games)) == {'games': ['game_not_reachable']}
+
+    def test_game_entry_max_length(self):
+        """Test that a slug longer than Game.game_slug gives max_length keyed by index."""
+        games = ['alpha', 'a' * (GAME_SLUG_MAX_LENGTH + 1)]
+        assert self._codes(self._serializer(games=games)) == {'games': {1: ['max_length']}}
+
+    def test_game_entry_at_max_length(self):
+        """Test that a slug as long as Game.game_slug passes the length cap."""
+        games = ['a' * GAME_SLUG_MAX_LENGTH]
+        assert self._codes(self._serializer(games=games)) == {'games': ['game_not_reachable']}
+
+    def test_length_caps_reported_together(self):
+        """Test that list and entry caps are reported with the other field errors."""
+        serializer = ApiTokenCreateSerializer(
+            data={
+                'name': '',
+                'scopes': ['a' * 65],
+                'games': [f'game-{index}' for index in range(101)],
+                'owner': 1,
+            },
+            context={'user': self.user},
+        )
+        assert self._codes(serializer) == {
+            'name': ['blank'],
+            'scopes': {0: ['max_length']},
+            'games': ['max_length'],
+            'owner': ['not_editable'],
+        }
 
     def test_games_reachable(self):
         """Test that a reachable slug resolves to its game."""
