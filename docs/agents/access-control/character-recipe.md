@@ -23,11 +23,11 @@ frontend through the `can_exchange_recipe` flag.
 |----------|--------|-------------|
 | `/games/<slug>/pcs/<id>/recipes.json` | GET | **AllowAny** — non-hidden rows, output masked |
 | `/games/<slug>/pcs/<id>/recipes/all.json` | GET | **CharacterEdit** — includes hidden, adds `hidden`. Always `X-Skip-Cache: true` |
-| `/games/<slug>/npcs/<id>/recipes.json` | GET | **AllowAny**, plus the [hidden-NPC gate](character-photo.md#hidden-npc-gate) |
+| `/games/<slug>/npcs/<id>/recipes.json` | GET | **AllowAny**; `404` when the NPC is hidden ([hidden-NPC gate](character-photo.md#hidden-npc-gate), for every caller, editors included) |
 | `/games/<slug>/npcs/<id>/recipes/all.json` | GET | **GameEdit** — includes hidden, adds `hidden`. Always `X-Skip-Cache: true` |
 | `/games/<slug>/pcs/<id>/recipes/<character_recipe_id>.json` | GET | **AllowAny** — 404 if the row is hidden, unknown or belongs to another character |
 | `/games/<slug>/pcs/<id>/recipes/<character_recipe_id>/full.json` | GET | **CharacterEdit** — returns even if hidden, adds `hidden`. Always `X-Skip-Cache: true` |
-| `/games/<slug>/npcs/<id>/recipes/<character_recipe_id>.json` | GET | **AllowAny**, plus the hidden-NPC gate, same 404s |
+| `/games/<slug>/npcs/<id>/recipes/<character_recipe_id>.json` | GET | **AllowAny**; `404` when the NPC is hidden (for every caller), same 404s |
 | `/games/<slug>/npcs/<id>/recipes/<character_recipe_id>/full.json` | GET | **GameEdit** (no owner concept for NPCs) |
 | `/games/<slug>/pcs/<id>/recipes/<character_recipe_id>.json` | PATCH | **CharacterEdit** — `hidden` only. Always `X-Skip-Cache: true` |
 | `/games/<slug>/npcs/<id>/recipes/<character_recipe_id>.json` | PATCH | **GameEdit** — `hidden` only. Always `X-Skip-Cache: true` |
@@ -38,8 +38,10 @@ frontend through the `can_exchange_recipe` flag.
   (case-insensitive substring on `GameRecipe.name`).
 - On NPCs the hidden-NPC gate runs **before** the permission check on every endpoint, including
   `/all.json`, `/full.json` and `PATCH`: a hidden NPC the caller cannot view is always `404`,
-  never `401`/`403`. Plain NPC endpoints served to an authorized dm/superuser through the gate
-  set `X-Skip-Cache: true`. Plain PC endpoints set no `X-Skip-Cache`.
+  never `401`/`403`. On the plain NPC `GET`s (`recipes.json`, `recipes/<id>.json`,
+  `recipes/available.json`) the gate is strict: a hidden NPC is `404` (with `X-Skip-Cache: true`)
+  for every caller, editors included, who use the `/all.json`/`/full.json` siblings instead.
+  Plain PC endpoints set no `X-Skip-Cache`.
 - NPC `incognito` has no effect on these endpoints.
 
 ## Fields
@@ -92,7 +94,7 @@ validation error, permission denial, `404`) sets `X-Skip-Cache: true`.
 
 | Endpoint | Method | PC | NPC | Behavior |
 |----------|--------|----|-----|----------|
-| `.../recipes/available.json` | GET | `regular.create` (staff, player) | `regular.create` (staff, player) | The game's recipes minus hidden `GameRecipe`s and recipes the character already knows. Game recipe index shape, output masked |
+| `.../recipes/available.json` | GET | `regular.create` (staff, player) | `regular.create` (staff, player) | The game's recipes minus hidden `GameRecipe`s and recipes the character already knows. Game recipe index shape, output masked; on an NPC, `404` when the NPC is hidden (for every caller) |
 | `.../recipes/available/all.json` | GET | **GameEdit** (no owner leniency) | **GameEdit** | Includes hidden `GameRecipe`s, still minus known ones. Adds `hidden` (= `GameRecipe.hidden`) and returns the real output |
 | `.../recipes/acquire.json` | POST | `regular.create` | `regular.create` | Creates a `CharacterRecipe`; `hidden` copied from `GameRecipe.hidden`. `201` with the plain detail shape (no `hidden`, output masked) |
 | `.../recipes/acquire/all.json` | POST | **GameEdit** | **GameEdit** | Same, but does not `404` on a hidden `GameRecipe`. `201` with the `/full.json` shape (real output) |

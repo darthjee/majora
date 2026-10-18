@@ -127,13 +127,15 @@ shortlist endpoints. When a character is both `hidden` and `incognito`, `hidden`
 first and `incognito` has no additional observable effect. Writable only via the same routes as
 `hidden`.
 
-### Hidden-detail cache deviation
+### Hidden NPC on the plain detail
 
-A non-hidden character's detail response is cacheable like Game/Treasure detail; a **hidden**
-character's detail response still sets `X-Skip-Cache: true` regardless of viewer — a deviation
-from the [`X-Skip-Cache` rule](principles.md#x-skip-cache-rule) (this is an `AllowAny` route),
-needed so Tent's cache can't replay an editor's view of a hidden character to a later unauthorized
-caller.
+`GET /games/<slug>/npcs/<id>.json` on a **hidden** NPC returns `404` for every caller, editors
+included — a plain (AllowAny) route never varies by role. Editors read a hidden NPC through
+`npcs/<id>/full.json`. The `404` carries `X-Skip-Cache: true`, uniformly for every viewer: it is
+staleness protection (so a cached `404` can't outlive un-hiding), not a per-viewer exception. A
+successful plain detail response never carries a hidden character and is cacheable like
+Game/Treasure detail. The narrow `PATCH` on the same route keeps the editor-aware gate (`404` only
+to a requester who cannot edit the NPC).
 
 ## Edit access status / permission
 
