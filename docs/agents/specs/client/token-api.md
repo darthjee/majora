@@ -181,13 +181,16 @@ All field errors are reported together in one response.
 | `scopes` | missing / empty list | `required` / `empty` |
 | `scopes` | entry not in the catalogue | `invalid_scope` |
 | `scopes` | the same entry twice | `duplicate_scope` |
+| `scopes` | more entries than the catalogue holds / an entry over 64 characters | `max_length` (the entry error is keyed by its position) |
 | `games` | unknown slug, or a game the owner cannot reach | `game_not_reachable` (one code for both, so slugs cannot be probed) |
 | `games` | the same slug twice | `duplicate_game` |
+| `games` | more than 100 slugs / a slug longer than `Game.game_slug` allows | `max_length` (the entry error is keyed by its position) |
 | `expires_at` | not a datetime / not in the future | `invalid` / `expires_in_past` |
 | any field other than `name`, on PATCH | `scopes`, `games`, `expires_at`, … | `not_editable`, keyed by the field |
 | any field outside `name`, `scopes`, `games`, `expires_at`, on create | `owner`, `prefix`, `id`, … | `not_editable`, keyed by the field |
 
-For example: `{"errors": {"scopes": ["not_editable"]}}`.
+For example: `{"errors": {"scopes": ["not_editable"]}}`. An entry error is keyed by
+its position in the list, for example `{"errors": {"scopes": {"1": ["max_length"]}}}`.
 
 #### Access
 
@@ -253,6 +256,10 @@ For example: `{"errors": {"scopes": ["not_editable"]}}`.
 
 **A Bearer request never reads from or writes to the proxy cache, on any rule. Its writes still
 clear stale entries.**
+
+This Bearer cache work (the proxy middleware, the rule changes and the backend safety net) is
+implemented by #1643, not #1604. #1604 ships only the token endpoints'
+[own cache rules](#token-endpoints-and-navi).
 
 Why: `rules/backend.php` caches every `.json` GET whoever the caller is, and
 `rules/private_game_data_cache.php` ignores `X-Skip-Cache` and keys its entries on
@@ -450,8 +457,8 @@ These doc changes **ship with #1604**, following [`access-control.md`](../../acc
   - 201 returns the token item plus `token`, exactly once. Later lists never show the secret or
     hash.
   - Each error code: `name` (`required`, `blank`, `max_length`, and trimming); `scopes`
-    (`required`, `empty`, `invalid_scope`, `duplicate_scope`); `games` (`game_not_reachable`
-    for both unknown and unreachable, `duplicate_game`); `expires_at` (`invalid` and
+    (`required`, `empty`, `invalid_scope`, `duplicate_scope`, `max_length`); `games`
+    (`game_not_reachable` for both unknown and unreachable, `duplicate_game`, `max_length`); `expires_at` (`invalid` and
     `expires_in_past`, with a "now" boundary test).
   - Several bad fields are reported together in one 400.
   - A missing `expires_at` and an explicit `null` both mean never.
@@ -522,10 +529,10 @@ None. Every open question was settled by #1596 and recorded under [Decisions](#d
   `validated_or_error` and `_error_codes`.
 - The new backend Bearer safety-net middleware, and its position after
   `games.middleware.CacheControlMiddleware` in `MIDDLEWARE`
-  (`backend/majora_project/settings.py`).
-- `proxy/extension/lib/middlewares/`: the new `BearerSkipCacheMiddleware`.
+  (`backend/majora_project/settings.py`) (#1643).
+- `proxy/extension/lib/middlewares/`: the new `BearerSkipCacheMiddleware` (#1643).
 - `rules/backend.php` and `rules/private_game_data_cache.php`, in both
-  `proxy/prod_configuration/rules/` and `proxy/dev_configuration/rules/`.
+  `proxy/prod_configuration/rules/` and `proxy/dev_configuration/rules/` (#1643).
 - [`access-control.md`](../../access-control.md), the new `access-control/api-token.md`,
   [`access-control/user.md`](../../access-control/user.md),
   [`access-control/principles.md`](../../access-control/principles.md),

@@ -71,6 +71,22 @@ the authorization-requests poll endpoint below, each of which resolves the user'
 directly to implement the behavior described above. New registrations start `pending`;
 staff/superuser accounts approve or deny pending users via [User (Staff Management)](user.md).
 
+## Scoped API token endpoints
+
+Index of the token management endpoints; see [ApiToken](api-token.md) for the full behaviour.
+Every one is **session only** (a scoped token gets `403` `token_not_allowed`), accepts JSON
+bodies only (`415` otherwise) and sets `X-Skip-Cache: true`.
+
+| Endpoint | Method | Who can call |
+|----------|--------|-------------|
+| `/account/api_tokens.json` | GET | Authenticated; the caller's own tokens, newest first |
+| `/account/api_tokens.json` | POST | Authenticated; the owner is always the caller. `201` with the full token, once |
+| `/account/api_tokens/options.json` | GET | Authenticated; scope catalogue, reachable games and `all_games` |
+| `/account/api_tokens/<id>.json` | PATCH | Authenticated, owner-only (`404` otherwise); `name` only |
+| `/account/api_tokens/<id>.json` | DELETE | Authenticated, owner-only (`404` otherwise); `204` |
+| `/staff/users/<user_id>/api-tokens.json` | GET | **Staff-or-superuser**; `404` for an unknown user |
+| `/staff/users/<user_id>/api-tokens/<token_id>.json` | DELETE | **Staff-or-superuser**; `404` unless the token belongs to `user_id`; logged |
+
 ## Staff photo endpoints
 
 Index of the staff-only photo management endpoints; see [Staff Photos](staff-photo.md) for the
@@ -154,4 +170,7 @@ A scoped API token (`accounts.ApiToken`, many per user) sent as
   `{"errors": {"detail": ["<code>"]}}` body; no 404 masking.
 - **Invalidated**: all of a user's tokens are deleted when staff deny the user
   ([User (Staff Management)](user.md)). Revoking deletes the row; there is no soft revoke.
-- **Superuser access**: none — no endpoints yet and not registered in Django admin.
+- **Management**: owners list, create, rename and revoke their own tokens, and staff list and
+  revoke any user's tokens, through the session-only endpoints above
+  ([ApiToken](api-token.md)). Superusers get no extra path; the model is not registered in
+  Django admin.

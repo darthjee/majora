@@ -17,3 +17,6 @@ each time the endpoint comes up again.
 |----------|------------|---------------|
 | `GET /account/account.json` | `accounts` (`accounts.views.auth.account`) | Returns PII (name, email) — too sensitive to be a private-cache candidate. |
 | `GET /account/authorization_requests.json` | `accounts` (`accounts.views.authorization_requests.list`) | Per-user sensitive data (pending authorization requests) — reserved from private caching. |
+| `GET /account/api_tokens.json` | `accounts` (`accounts.views.api_tokens.list_create`) | Credential metadata (scoped API tokens) — never a private-cache candidate. |
+| `GET /account/api_tokens/options.json` | `accounts` (`accounts.views.api_tokens.options`) | Per-user data (reachable games) for the token create form — never a private-cache candidate. |
+| `GET /staff/users/<id>/api-tokens.json` | `staff` (`staff.views.staff_user_api_tokens`) | Credential metadata (another user's scoped API tokens) — never a private-cache candidate. |

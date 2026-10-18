@@ -38,6 +38,8 @@ regardless of any other rule listed below.
   narrow player-facing PATCH/create field sets.
 - [Player](access-control/player.md) — includes the DM/GameMaster role (`Player.is_dm`)
 - [User (Staff Management)](access-control/user.md)
+- [ApiToken (Scoped API Tokens)](access-control/api-token.md) — the session-only owner and staff
+  token management endpoints
 - [Staff Cache](access-control/staff-cache.md) — the staff-only memory-cache management endpoints
 - [Staff Crawler](access-control/staff-crawler.md) — the staff-only crawler debug-harness endpoints
 - [Staff Photos](access-control/staff-photo.md) — the staff-only cross-type photo list / replace /

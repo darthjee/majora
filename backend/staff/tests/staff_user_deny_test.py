@@ -92,6 +92,15 @@ class TestStaffUserDenyView(TokenAuthRequestMixin, TestCase):
 
         assert not ApiToken.objects.filter(owner=self.target_user).exists()
 
+    def test_reapproving_does_not_restore_api_tokens(self):
+        """Test that approving a denied user again does not bring their scoped tokens back."""
+        ApiToken.objects.create_token(self.target_user, 'first', [])
+
+        self._post(self.client, self.target_user.id, token=self.superuser_token)
+        UserProfileFactory(user=self.target_user, status=UserProfile.STATUS_APPROVED)
+
+        assert not ApiToken.objects.filter(owner=self.target_user).exists()
+
     def test_deny_keeps_other_users_api_tokens(self):
         """Test that denying a user leaves other users' scoped API tokens alone."""
         other_token, _ = ApiToken.objects.create_token(self.regular_user, 'other', [])

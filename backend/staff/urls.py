@@ -34,6 +34,16 @@ urlpatterns = [
         views.staff_user_recovery_token_delete,
         name='staff-user-recovery-token-delete',
     ),
+    path(
+        'staff/users/<int:user_id>/api-tokens.json',
+        views.staff_user_api_tokens,
+        name='staff-user-api-tokens',
+    ),
+    path(
+        'staff/users/<int:user_id>/api-tokens/<int:token_id>.json',
+        views.staff_user_api_token_delete,
+        name='staff-user-api-token-delete',
+    ),
     path('staff/cache.json', views.staff_cache_clear, name='staff-cache-clear'),
     path('staff/cache/summary.json', views.staff_cache_summary, name='staff-cache-summary'),
     path('staff/crawler.json', views.staff_crawler, name='staff-crawler'),

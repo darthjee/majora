@@ -15,6 +15,8 @@ authentication and enforce **Staff-or-superuser** inline. Always sets `X-Skip-Ca
 | Unexpire a recovery token (`POST /staff/users/<id>/recovery-tokens/<token_id>/unexpire.json`) | **Staff-or-superuser** |
 | Force-expire a recovery token (`POST /staff/users/<id>/recovery-tokens/<token_id>/force-expire.json`) | **Staff-or-superuser** |
 | Delete a recovery token (`DELETE /staff/users/<id>/recovery-tokens/<token_id>.json`) | **Staff-or-superuser** |
+| List scoped API tokens (`GET /staff/users/<id>/api-tokens.json`) | **Staff-or-superuser**, session only — see [ApiToken](api-token.md) |
+| Revoke a scoped API token (`DELETE /staff/users/<id>/api-tokens/<token_id>.json`) | **Staff-or-superuser**, session only — see [ApiToken](api-token.md) |
 | Approve a pending user (`POST /staff/users/approve.json`) | **Staff-or-superuser** |
 | Deny/ban a user (`POST /staff/users/deny.json`) | **Staff-or-superuser** |
 
@@ -33,7 +35,9 @@ those fields as writable.
 **Approve/deny**: identified by `{"user_id": <int>}` in the body (no dynamic path segment).
 `approve` 404s if the user doesn't exist, 422s if not currently `pending`. `deny` 404s if the user
 doesn't exist, works from any status (including re-denying an already-approved user to ban them),
-and destroys every one of the user's tokens, immediately invalidating existing sessions. Neither
+and destroys every one of the user's tokens, immediately invalidating existing sessions. This
+includes the user's scoped API tokens ([ApiToken](api-token.md)), which re-approving does not
+restore. Neither
 sends a notification to the affected user.
 
 **Update rules**: only `name` and `email` may be changed, both validated for uniqueness. No

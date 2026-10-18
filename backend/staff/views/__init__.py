@@ -24,6 +24,8 @@ from .staff_statistics_users import staff_statistics_users
 from .staff_statistics_visit_list import staff_statistics_visit_list
 from .staff_statistics_visitors import staff_statistics_visitors
 from .staff_statistics_visits import staff_statistics_visits
+from .staff_user_api_token_delete import staff_user_api_token_delete
+from .staff_user_api_tokens import staff_user_api_tokens
 from .staff_user_approve import staff_user_approve
 from .staff_user_deny import staff_user_deny
 from .staff_user_detail import staff_user_detail
@@ -44,6 +46,8 @@ __all__ = [
     'staff_user_recovery_token_unexpire',
     'staff_user_recovery_token_force_expire',
     'staff_user_recovery_token_delete',
+    'staff_user_api_tokens',
+    'staff_user_api_token_delete',
     'staff_cache_clear',
     'staff_cache_summary',
     'staff_crawler',
