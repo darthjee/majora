@@ -156,18 +156,18 @@ class TestGameNpcDetailHidden(TokenAuthRequestMixin):
         response = self.get(client, self._url(), token=token)
         assert response.status_code == 404
 
-    def test_hidden_npc_returns_200_for_dm(self, client):
-        """Test that a DM can access a hidden NPC detail."""
+    def test_hidden_npc_returns_404_for_dm(self, client):
+        """Test that a DM gets 404 for a hidden NPC detail on the plain route."""
         token = Token.objects.create(user=self.dm_user)
         response = self.get(client, self._url(), token=token)
-        assert_json_response(response, 200, name='Secret NPC')
+        assert response.status_code == 404
 
-    def test_hidden_npc_returns_200_for_superuser(self, client):
-        """Test that a superuser can access a hidden NPC detail."""
+    def test_hidden_npc_returns_404_for_superuser(self, client):
+        """Test that a superuser gets 404 for a hidden NPC detail on the plain route."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
         token = Token.objects.create(user=superuser)
         response = self.get(client, self._url(), token=token)
-        assert_json_response(response, 200, name='Secret NPC')
+        assert response.status_code == 404
 
     def test_visible_npc_returns_200_for_anonymous(self, client):
         """Test that a visible NPC is still accessible to anonymous users."""

@@ -248,8 +248,8 @@ class TestGameTreasureUpdateView(TokenAuthRequestMixin, TestCase):
 class TestGameTreasureDetailHidden(TokenAuthRequestMixin, TestCase):
     """Tests for the hidden-treasure visibility gate in game_treasure_detail.
 
-    A hidden treasure's existence must not be exposed to callers who cannot edit
-    the game, mirroring the hidden-NPC gate documented for character endpoints.
+    On GET the gate is strict: a hidden treasure is a 404 for everyone, editors included, who
+    read it through `full.json` instead (issue #1616). PATCH keeps the editor-aware gate.
     """
 
     @classmethod
@@ -281,18 +281,18 @@ class TestGameTreasureDetailHidden(TokenAuthRequestMixin, TestCase):
         response = self.get(self.client, self._url(), token=token)
         assert response.status_code == 404
 
-    def test_hidden_treasure_returns_200_for_dm(self):
-        """Test that a DM can access a hidden treasure detail."""
+    def test_hidden_treasure_returns_404_for_dm(self):
+        """Test that a DM also gets 404 from the plain detail of a hidden treasure."""
         token = Token.objects.create(user=self.dm_user)
         response = self.get(self.client, self._url(), token=token)
-        assert_json_response(response, 200, name='Secret Idol', value=999)
+        assert response.status_code == 404
 
-    def test_hidden_treasure_returns_200_for_superuser(self):
-        """Test that a superuser can access a hidden treasure detail."""
+    def test_hidden_treasure_returns_404_for_superuser(self):
+        """Test that a superuser also gets 404 from the plain detail of a hidden treasure."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
         token = Token.objects.create(user=superuser)
         response = self.get(self.client, self._url(), token=token)
-        assert_json_response(response, 200, name='Secret Idol', value=999)
+        assert response.status_code == 404
 
     def test_visible_treasure_returns_200_for_anonymous(self):
         """Test that a non-hidden treasure is still accessible to anonymous users."""
@@ -300,8 +300,8 @@ class TestGameTreasureDetailHidden(TokenAuthRequestMixin, TestCase):
         response = self.get(self.client, self._url(treasure=visible_treasure))
         assert response.status_code == 200
 
-    def test_hidden_treasure_response_includes_x_skip_cache_header_for_dm(self):
-        """Test that a DM's response for a hidden treasure includes X-Skip-Cache: true."""
+    def test_hidden_treasure_404_response_includes_x_skip_cache_header_for_dm(self):
+        """Test that a DM's 404 response for a hidden treasure includes X-Skip-Cache: true."""
         token = Token.objects.create(user=self.dm_user)
         response = self.get(self.client, self._url(), token=token)
         assert response['X-Skip-Cache'] == 'true'
@@ -309,6 +309,13 @@ class TestGameTreasureDetailHidden(TokenAuthRequestMixin, TestCase):
     def test_hidden_treasure_404_response_includes_x_skip_cache_header_for_anonymous(self):
         """Test that an anonymous 404 response for a hidden treasure includes X-Skip-Cache."""
         response = self.get(self.client, self._url())
+        assert response['X-Skip-Cache'] == 'true'
+
+    def test_patch_on_hidden_treasure_by_dm_still_succeeds(self):
+        """Test that a DM can still PATCH a hidden treasure through the plain detail route."""
+        token = Token.objects.create(user=self.dm_user)
+        response = self.patch(self.client, self._url(), {'name': 'Renamed'}, token=token)
+        assert_json_response(response, 200, name='Renamed')
         assert response['X-Skip-Cache'] == 'true'
 
     def test_patch_on_hidden_treasure_by_non_dm_returns_404(self):
