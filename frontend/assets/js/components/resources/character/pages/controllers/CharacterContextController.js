@@ -5,6 +5,7 @@ import AccessStore from '../../../../../utils/access/store/AccessStore.js';
 import AuthStorage from '../../../../../utils/auth/AuthStorage.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 import CharacterGameTypeResolver from './CharacterGameTypeResolver.js';
+import CharacterRequestPaths from './CharacterRequestPaths.js';
 
 /**
  * Controller resolving a PC or NPC's character context (base fields, own-game currency type,
@@ -95,7 +96,8 @@ export default class CharacterContextController extends BasePageController {
   #fetchCharacterData(gameSlug, characterId, safeSet) {
     const token = AuthStorage.getToken();
 
-    this.characterClient.fetchCharacter(this.characterKind, gameSlug, characterId, token)
+    CharacterRequestPaths.character(this.characterKind, gameSlug, characterId)
+      .then((path) => this.characterClient.fetchCharacterAt(this.characterKind, path, token))
       .then((response) => (response.ok ? response.json() : null))
       .then((character) => this.#mergeGameType(character, gameSlug, token))
       .then((character) => this.#mergeAccess(character, gameSlug, characterId, safeSet))

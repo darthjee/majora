@@ -4,10 +4,13 @@ import threading
 from datetime import timedelta
 
 import pytest
+from django.db import DataError, models
 from django.test import TestCase
 from django.utils import timezone
 
 from accounts.models import AuthorizationRequest
+from common.model_fields import EnumCharField
+from common.tests.raw_status import update_status_raw
 from games.tests.factories import UserFactory
 
 
@@ -179,3 +182,42 @@ class TestAuthorizationRequestConcurrentTransition:
             thread.join()
 
         assert sorted(results) == [False, True]
+
+
+class TestAuthorizationRequestHistoryStatusField:
+    """Tests for the historical model's status field (issue #1626)."""
+
+    def setup_method(self):
+        """Set up the historical status field."""
+        self.field = AuthorizationRequest.history.model._meta.get_field('status')
+
+    def test_history_status_is_a_plain_char_field(self):
+        """Test that the history status is a CharField and not an EnumCharField."""
+        assert isinstance(self.field, models.CharField)
+        assert not isinstance(self.field, EnumCharField)
+
+    def test_history_status_keeps_choices(self):
+        """Test that the history status keeps the model's choices."""
+        assert self.field.choices == AuthorizationRequest.STATUS_CHOICES
+
+
+class TestAuthorizationRequestStatusColumn(TestCase):
+    """Tests that the database itself enforces AuthorizationRequest.status (issue #1626)."""
+
+    @classmethod
+    def setUpTestData(cls):
+        """Set up a request to hand-edit."""
+        cls.instance, _ = AuthorizationRequest.create_with_token(
+            user=UserFactory(), ip='1.2.3.4', browser='test-agent',
+        )
+
+    def test_database_rejects_an_unknown_status(self):
+        """Test that a raw UPDATE to an unknown status is rejected by the database."""
+        with pytest.raises(DataError):
+            update_status_raw(self.instance, 'bogus')
+
+    def test_database_accepts_a_known_status(self):
+        """Test that a raw UPDATE to a declared status is stored (the hand-approve case)."""
+        update_status_raw(self.instance, AuthorizationRequest.STATUS_APPROVED)
+        self.instance.refresh_from_db()
+        assert self.instance.status == AuthorizationRequest.STATUS_APPROVED

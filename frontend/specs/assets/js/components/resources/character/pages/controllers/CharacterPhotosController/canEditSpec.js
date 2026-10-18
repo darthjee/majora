@@ -83,7 +83,7 @@ KINDS.forEach(({ label, Controller, kind }) => {
       client.fetchIndex.and.returnValue(Promise.resolve({
         data: [], pagination: { page: 1, pages: 1, perPage: 20 },
       }));
-      characterClient.fetchCharacter.and.returnValue(Promise.reject(new Error('network error')));
+      characterClient.fetchCharacterAt.and.returnValue(Promise.reject(new Error('network error')));
 
       const cleanup = new Controller(
         setPhotos, setPagination, setCharacter, setLoading, setError, client, characterClient,
@@ -107,7 +107,7 @@ KINDS.forEach(({ label, Controller, kind }) => {
       client.fetchIndex.and.returnValue(Promise.resolve({
         data: [], pagination: { page: 1, pages: 1, perPage: 20 },
       }));
-      characterClient.fetchCharacter.and.returnValue(Promise.resolve({ ok: false }));
+      characterClient.fetchCharacterAt.and.returnValue(Promise.resolve({ ok: false }));
 
       const cleanup = new Controller(
         setPhotos, setPagination, setCharacter, setLoading, setError, client, characterClient,

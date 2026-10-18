@@ -8,9 +8,9 @@ const KINDS = [
 ];
 
 function buildCharacterClient(overrides = {}) {
-  const characterClient = jasmine.createSpyObj('characterClient', ['fetchCharacter']);
+  const characterClient = jasmine.createSpyObj('characterClient', ['fetchCharacterAt']);
 
-  characterClient.fetchCharacter.and.returnValue(Promise.resolve({ ok: false }));
+  characterClient.fetchCharacterAt.and.returnValue(Promise.resolve({ ok: false }));
 
   return Object.assign(characterClient, overrides);
 }
@@ -41,7 +41,7 @@ KINDS.forEach(({ label, kind, isPc, money }) => {
       it('merges can_edit/game_can_edit/game_type onto the fetched character', async function() {
         const setCharacter = jasmine.createSpy('setCharacter');
         const characterClient = buildCharacterClient({
-          fetchCharacter: jasmine.createSpy('fetchCharacter').and.returnValue(Promise.resolve({
+          fetchCharacterAt: jasmine.createSpy('fetchCharacterAt').and.returnValue(Promise.resolve({
             ok: true,
             json: () => Promise.resolve({ id: 2, game_slug: 'demo', is_pc: isPc, money }),
           })),
@@ -54,7 +54,7 @@ KINDS.forEach(({ label, kind, isPc, money }) => {
         ).buildEffect()();
         await new Promise((resolve) => setTimeout(resolve, 0));
 
-        expect(characterClient.fetchCharacter).toHaveBeenCalledWith(kind, 'demo', '2', null);
+        expect(characterClient.fetchCharacterAt).toHaveBeenCalledWith(kind, `/games/demo/${kind}/2/full.json`, null);
         expect(setCharacter).toHaveBeenCalledWith({
           id: 2, game_slug: 'demo', is_pc: isPc, money, game_type: 'dnd', can_edit: true, game_can_edit: true,
           can_exchange_document: false,
@@ -66,7 +66,7 @@ KINDS.forEach(({ label, kind, isPc, money }) => {
       it('keeps game_can_edit false for a character-editing owner who is not a DM/superuser', async function() {
         const setCharacter = jasmine.createSpy('setCharacter');
         const characterClient = buildCharacterClient({
-          fetchCharacter: jasmine.createSpy('fetchCharacter').and.returnValue(Promise.resolve({
+          fetchCharacterAt: jasmine.createSpy('fetchCharacterAt').and.returnValue(Promise.resolve({
             ok: true,
             json: () => Promise.resolve({ id: 2, game_slug: 'demo', is_pc: isPc, money }),
           })),
@@ -113,7 +113,7 @@ KINDS.forEach(({ label, kind, isPc, money }) => {
         ).buildEffect()();
         await new Promise((resolve) => setTimeout(resolve, 0));
 
-        expect(characterClient.fetchCharacter).not.toHaveBeenCalled();
+        expect(characterClient.fetchCharacterAt).not.toHaveBeenCalled();
         expect(setCharacter).not.toHaveBeenCalled();
 
         cleanup();
@@ -122,7 +122,7 @@ KINDS.forEach(({ label, kind, isPc, money }) => {
       it('does not update state after unmount', async function() {
         const setCharacter = jasmine.createSpy('setCharacter');
         const characterClient = buildCharacterClient({
-          fetchCharacter: jasmine.createSpy('fetchCharacter').and.returnValue(Promise.resolve({
+          fetchCharacterAt: jasmine.createSpy('fetchCharacterAt').and.returnValue(Promise.resolve({
             ok: true,
             json: () => Promise.resolve({ id: 2, game_slug: 'demo', is_pc: isPc, money }),
           })),
@@ -143,7 +143,7 @@ KINDS.forEach(({ label, kind, isPc, money }) => {
       it('merges game_type from the character\'s own game', async function() {
         const setCharacter = jasmine.createSpy('setCharacter');
         const characterClient = buildCharacterClient({
-          fetchCharacter: jasmine.createSpy('fetchCharacter').and.returnValue(Promise.resolve({
+          fetchCharacterAt: jasmine.createSpy('fetchCharacterAt').and.returnValue(Promise.resolve({
             ok: true,
             json: () => Promise.resolve({ id: 2, game_slug: 'demo', is_pc: isPc, money }),
           })),
@@ -176,7 +176,7 @@ KINDS.forEach(({ label, kind, isPc, money }) => {
       it('re-fetches and sets the character independently of buildEffect', async function() {
         const setCharacter = jasmine.createSpy('setCharacter');
         const characterClient = buildCharacterClient({
-          fetchCharacter: jasmine.createSpy('fetchCharacter').and.returnValue(Promise.resolve({
+          fetchCharacterAt: jasmine.createSpy('fetchCharacterAt').and.returnValue(Promise.resolve({
             ok: true,
             json: () => Promise.resolve({ id: 2, game_slug: 'demo', is_pc: isPc, money }),
           })),
@@ -191,7 +191,7 @@ KINDS.forEach(({ label, kind, isPc, money }) => {
         controller.refreshCharacter();
         await new Promise((resolve) => setTimeout(resolve, 0));
 
-        expect(characterClient.fetchCharacter).toHaveBeenCalledWith(kind, 'demo', '2', null);
+        expect(characterClient.fetchCharacterAt).toHaveBeenCalledWith(kind, `/games/demo/${kind}/2/full.json`, null);
         expect(setCharacter).toHaveBeenCalledWith({
           id: 2, game_slug: 'demo', is_pc: isPc, money, game_type: 'dnd', can_edit: true, game_can_edit: true,
           can_exchange_document: false,
@@ -210,14 +210,14 @@ KINDS.forEach(({ label, kind, isPc, money }) => {
         controller.refreshCharacter();
         await new Promise((resolve) => setTimeout(resolve, 0));
 
-        expect(characterClient.fetchCharacter).not.toHaveBeenCalled();
+        expect(characterClient.fetchCharacterAt).not.toHaveBeenCalled();
         expect(setCharacter).not.toHaveBeenCalled();
       });
 
       it('does not update state once buildEffect has been cleaned up', async function() {
         const setCharacter = jasmine.createSpy('setCharacter');
         const characterClient = buildCharacterClient({
-          fetchCharacter: jasmine.createSpy('fetchCharacter').and.returnValue(Promise.resolve({
+          fetchCharacterAt: jasmine.createSpy('fetchCharacterAt').and.returnValue(Promise.resolve({
             ok: true,
             json: () => Promise.resolve({ id: 2, game_slug: 'demo', is_pc: isPc, money }),
           })),
@@ -232,7 +232,7 @@ KINDS.forEach(({ label, kind, isPc, money }) => {
         const cleanup = controller.buildEffect()();
         await new Promise((resolve) => setTimeout(resolve, 0));
         setCharacter.calls.reset();
-        characterClient.fetchCharacter.calls.reset();
+        characterClient.fetchCharacterAt.calls.reset();
         cleanup();
 
         controller.refreshCharacter();
@@ -250,7 +250,7 @@ KINDS.forEach(({ label, kind, isPc, money }) => {
       it('extracts params from a hash matching a custom pagePath (e.g. "items")', async function() {
         const setCharacter = jasmine.createSpy('setCharacter');
         const characterClient = buildCharacterClient({
-          fetchCharacter: jasmine.createSpy('fetchCharacter').and.returnValue(Promise.resolve({
+          fetchCharacterAt: jasmine.createSpy('fetchCharacterAt').and.returnValue(Promise.resolve({
             ok: true,
             json: () => Promise.resolve({ id: 2, game_slug: 'demo', is_pc: isPc, money }),
           })),
@@ -265,7 +265,7 @@ KINDS.forEach(({ label, kind, isPc, money }) => {
         ).buildEffect()();
         await new Promise((resolve) => setTimeout(resolve, 0));
 
-        expect(characterClient.fetchCharacter).toHaveBeenCalledWith(kind, 'demo', '2', null);
+        expect(characterClient.fetchCharacterAt).toHaveBeenCalledWith(kind, `/games/demo/${kind}/2/full.json`, null);
 
         cleanup();
       });
@@ -281,7 +281,7 @@ KINDS.forEach(({ label, kind, isPc, money }) => {
         ).buildEffect()();
         await new Promise((resolve) => setTimeout(resolve, 0));
 
-        expect(characterClient.fetchCharacter).not.toHaveBeenCalled();
+        expect(characterClient.fetchCharacterAt).not.toHaveBeenCalled();
         expect(setCharacter).not.toHaveBeenCalled();
 
         cleanup();

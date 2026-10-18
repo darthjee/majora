@@ -46,7 +46,9 @@ def build_items_view(npc):
                 if error_response:
                     return error_response
             return character_item_create(request, game, character)
-        return character_items(request, game, character_id, npc=npc, check_hidden=npc)
+        return character_items(
+            request, game, character_id, npc=npc, check_hidden=npc, public_view=True,
+        )
 
     return view
 
@@ -83,7 +85,7 @@ def build_item_detail_view(npc, serializer_class=CharacterItemDetailSerializer):
             return character_item_update(request, character, item_id, npc=npc)
         return character_item_detail(
             request, game, character_id, item_id, npc=npc, check_hidden=npc,
-            serializer_class=serializer_class,
+            public_view=True, serializer_class=serializer_class,
         )
 
     return view
@@ -132,7 +134,7 @@ def build_items_available_view(npc):
         game = get_object_or_404(Game, game_slug=game_slug)
         return character_items_available(
             request, game, character_id, npc=npc, check_hidden=npc,
-            serializer_class=GameItemListSerializer,
+            public_view=True, serializer_class=GameItemListSerializer,
         )
 
     return view

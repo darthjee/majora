@@ -30,7 +30,9 @@ def build_treasures_view(npc):
     def view(request, game_slug, character_id):
         """Return a paginated list of treasures held by a specific PC/NPC in a game."""
         game = get_object_or_404(Game, game_slug=game_slug)
-        return character_treasures(request, game, character_id, npc=npc, check_hidden=npc)
+        return character_treasures(
+            request, game, character_id, npc=npc, check_hidden=npc, public_view=True,
+        )
 
     return view
 

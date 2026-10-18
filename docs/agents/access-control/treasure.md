@@ -19,9 +19,10 @@ per-resource `<Resource>Edit` rule:
 | List all by game (`GET /games/<slug>/treasures/all.json`) | **GameEdit** — same union, no hidden exclusion, each item carries `hidden`. Always `X-Skip-Cache: true` |
 | List missing from a game (`GET /games/<slug>/treasures/missing.json`) | **GameEdit** — catalog treasures of matching `game_type` not yet linked to this game. Always `X-Skip-Cache: true` |
 | Link existing treasure to a game (`POST /games/<slug>/treasures/link.json`) | **GameEdit** — creates a `GameTreasure` row for an existing catalog treasure |
-| Detail by game (`GET /games/<slug>/treasures/<id>.json`) | **AllowAny**, unless hidden for this game and the requester cannot edit the game (404 either way — mismatched game, or hidden-and-unauthorized) |
+| Detail by game (`GET /games/<slug>/treasures/<id>.json`) | **AllowAny**; `404` (with `X-Skip-Cache: true`) when hidden for this game, for every caller, editors included, or for a mismatched game |
+| Full detail by game (`GET /games/<slug>/treasures/<id>/full.json`) | **GameEdit**, checked before the treasure is resolved — the detail payload plus `hidden`, served even when hidden. Always `X-Skip-Cache: true` |
 | Create by game (`POST /games/<slug>/treasures.json`) | **GameEdit** — creates a new exclusive treasure; `game` server-assigned |
-| Update by game (`PATCH /games/<slug>/treasures/<id>.json`) | **GameEdit** — same 404 rule as detail |
+| Update by game (`PATCH /games/<slug>/treasures/<id>.json`) | **GameEdit** — `404` on a mismatched game, or on a hidden treasure for a requester who cannot edit the game |
 | Delete | Superuser only, via Django admin — no API delete endpoint exists |
 
 `Treasure.can_be_edited_by` is used only for the global routes; the game-scoped routes always

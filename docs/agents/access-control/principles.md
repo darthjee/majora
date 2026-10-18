@@ -159,7 +159,7 @@ second, distinct shape — a plain, lean collection plus a restricted, fuller si
 
 | Action | Who can | Notes |
 |--------|---------|-------|
-| Plain `list.json`/`detail.json` | **AllowAny** | Excludes rows where `hidden=true`; response never includes a `hidden` field |
+| Plain `list.json`/`detail.json` | **AllowAny** | Excludes rows where `hidden=true`; response never includes a `hidden` field. Never varies by role: a hidden parent (e.g. a hidden NPC) is a `404` for every caller, editors included |
 | Restricted `all.json`/`full.json` | The resource's edit-level permission (e.g. `CharacterEdit`/`GameEdit`) | Includes hidden rows; response includes `hidden` |
 | Create/Update | The resource's own `*CreatePermission` | — |
 

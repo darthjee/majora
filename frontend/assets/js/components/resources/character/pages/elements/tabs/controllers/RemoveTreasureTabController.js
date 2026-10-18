@@ -15,9 +15,9 @@ export const PER_PAGE = 10;
  * Manages browsing and submitting remove requests for the treasure exchange modal's Remove tab.
  *
  * @description `fetchPage` goes through `RequestStore` (`treasure.ownedCollection`, `kind:
- *   'pcs'|'npcs'`), the same resource config used by the Sell tab — its `private` path never
- *   elevates to `.../treasures/all.json`, so a DM viewing an NPC's remove list never sees hidden
- *   treasures leak in.
+ *   'pcs'|'npcs'`), the same resource config used by the Sell tab. The plain NPC
+ *   `.../treasures.json` 404s on a hidden NPC for every caller (issue #1616), so an NPC editor's
+ *   `private` path reads `npcs/:id/treasures/all.json`; PCs always stay on the plain path.
  */
 export default class RemoveTreasureTabController {
   /**

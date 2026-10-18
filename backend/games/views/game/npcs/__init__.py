@@ -48,6 +48,7 @@ from .detail.photos.detail.game_npc_photo_deletable import game_npc_photo_deleta
 from .detail.photos.detail.game_npc_photo_detail import game_npc_photo_detail
 from .detail.photos.detail.game_npc_photo_set import game_npc_photo_set
 from .detail.photos.game_npc_photos import game_npc_photos
+from .detail.photos.game_npc_photos_all import game_npc_photos_all
 from .detail.possessions.detail.game_npc_possession_acquire import game_npc_possession_acquire
 from .detail.possessions.detail.game_npc_possession_acquire_all import (
     game_npc_possession_acquire_all,
@@ -105,6 +106,7 @@ __all__ = [
     'game_npc_photo_detail',
     'game_npc_photo_deletable',
     'game_npc_photos',
+    'game_npc_photos_all',
     'game_npc_documents',
     'game_npc_documents_all',
     'game_npc_document_detail',

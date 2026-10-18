@@ -29,7 +29,7 @@ KINDS.forEach(({ label, Controller, kind, getParamsFromHash }) => {
       ).buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(characterClient.fetchCharacterPhotos).toHaveBeenCalledWith(kind, 'demo', '2', 'tok-abc');
+      expect(characterClient.fetchCharacterPhotos).toHaveBeenCalledWith(`/games/demo/${kind}/2/photos.json`, 'tok-abc');
       expect(AccessStore.ensureCharacterAccess).toHaveBeenCalledWith(kind, 'demo', '2');
       expect(setCharacter).toHaveBeenCalledWith({
         id: 2,
@@ -69,7 +69,7 @@ KINDS.forEach(({ label, Controller, kind, getParamsFromHash }) => {
       ).buildEffect()();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(characterClient.fetchCharacterPhotos).toHaveBeenCalledWith(kind, 'demo', '2', null);
+      expect(characterClient.fetchCharacterPhotos).toHaveBeenCalledWith(`/games/demo/${kind}/2/photos.json`, null);
       expect(AccessStore.ensureCharacterAccess).toHaveBeenCalledWith(kind, 'demo', '2');
 
       cleanup();

@@ -230,31 +230,36 @@ describe('resourceConfig', function() {
       expect(collection.private.permission({ gameSlug: 'demo', kind: 'game' })).toBe('can_edit');
     });
 
-    it('has no separate private endpoint for single', function() {
+    it('keeps the standalone single path on the plain route for both variants', function() {
       const single = resourceConfig.get('GET', 'treasure', 'single');
 
-      expect(single.regular).toBe(single.private);
       expect(single.regular.path({ id: '42' })).toBe('/treasures/42.json');
+      expect(single.private.path({ id: '42' })).toBe('/treasures/42.json');
       expect(single.regular.permission).toBeNull();
+      expect(single.private.permission({ id: '42' })).toBeNull();
     });
 
-    it('resolves the game-scoped single path when gameSlug is given', function() {
+    it('resolves the game-scoped single path to full.json for editors (issue #1616)', function() {
       const single = resourceConfig.get('GET', 'treasure', 'single');
 
       expect(single.regular.path({ gameSlug: 'demo', id: '42' })).toBe('/games/demo/treasures/42.json');
-      expect(single.private.path({ gameSlug: 'demo', id: '42' })).toBe('/games/demo/treasures/42.json');
+      expect(single.private.path({ gameSlug: 'demo', id: '42' })).toBe('/games/demo/treasures/42/full.json');
+      expect(single.private.permission({ gameSlug: 'demo', id: '42' })).toBe('can_edit');
+      expect(single.private.skipCache).toBe(true);
     });
 
-    it('never elevates ownedCollection to the hidden-inclusive all.json path, for either kind', function() {
+    it('elevates ownedCollection to treasures/all.json for npcs only (issue #1616)', function() {
       const ownedCollection = resourceConfig.get('GET', 'treasure', 'ownedCollection');
+      const pc = { gameSlug: 'demo', kind: 'pcs', id: '3' };
+      const npc = { gameSlug: 'demo', kind: 'npcs', id: '3' };
 
-      expect(ownedCollection.regular).toBe(ownedCollection.private);
-      expect(ownedCollection.regular.path({ gameSlug: 'demo', kind: 'pcs', id: '3' }))
-        .toBe('/games/demo/pcs/3/treasures.json');
-      expect(ownedCollection.regular.path({ gameSlug: 'demo', kind: 'npcs', id: '3' }))
-        .toBe('/games/demo/npcs/3/treasures.json');
+      expect(ownedCollection.regular.path(pc)).toBe('/games/demo/pcs/3/treasures.json');
+      expect(ownedCollection.regular.path(npc)).toBe('/games/demo/npcs/3/treasures.json');
       expect(ownedCollection.regular.permission).toBeNull();
-      expect(ownedCollection.private.permission).toBeNull();
+      expect(ownedCollection.private.path(pc)).toBe('/games/demo/pcs/3/treasures.json');
+      expect(ownedCollection.private.permission(pc)).toBeNull();
+      expect(ownedCollection.private.path(npc)).toBe('/games/demo/npcs/3/treasures/all.json');
+      expect(ownedCollection.private.permission(npc)).toBe('can_edit');
     });
 
     it('resolves summary regular/private paths for an npc (issue #1001)', function() {

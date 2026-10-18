@@ -19,11 +19,11 @@ asymmetric `hidden` scope — is a deviation, documented below.
 |----------|--------|-------------|
 | `/games/<slug>/pcs/<id>/items.json` | GET | **AllowAny** — non-hidden |
 | `/games/<slug>/pcs/<id>/items/all.json` | GET | **CharacterEdit** — includes hidden, adds `hidden`. Always `X-Skip-Cache: true` |
-| `/games/<slug>/npcs/<id>/items.json` | GET | **AllowAny**, plus the [hidden-NPC gate](character-photo.md#hidden-npc-gate) — excludes the NPC's own hidden rows |
+| `/games/<slug>/npcs/<id>/items.json` | GET | **AllowAny**; `404` when the NPC is hidden ([hidden-NPC gate](character-photo.md#hidden-npc-gate), for every caller, editors included) — excludes the NPC's own hidden rows |
 | `/games/<slug>/npcs/<id>/items/all.json` | GET | **GameEdit** — includes hidden, adds `hidden`. Always `X-Skip-Cache: true` |
 | `/games/<slug>/pcs/<id>/items/<item_id>.json` | GET | **AllowAny** — 404 if hidden or unknown |
 | `/games/<slug>/pcs/<id>/items/<item_id>/full.json` | GET | **CharacterEdit** — returns even if hidden, adds `hidden`. Always `X-Skip-Cache: true` |
-| `/games/<slug>/npcs/<id>/items/<item_id>.json` | GET | **AllowAny**, plus the hidden-NPC gate |
+| `/games/<slug>/npcs/<id>/items/<item_id>.json` | GET | **AllowAny**; `404` when the NPC is hidden (for every caller) |
 | `/games/<slug>/npcs/<id>/items/<item_id>/full.json` | GET | **GameEdit** (no owner concept for NPCs) |
 
 All index endpoints order by `id` and omit `description` (detail endpoints add it back).
@@ -65,7 +65,7 @@ and the creation response add `hidden`.
 
 | Endpoint | Method | Who can call |
 |----------|--------|-------------|
-| `/games/<slug>/pcs\|npcs/<id>/items/available.json` | GET | **AllowAny** — the game's `GameItem` catalog minus hidden items and items the character already owns |
+| `/games/<slug>/pcs\|npcs/<id>/items/available.json` | GET | **AllowAny** — the game's `GameItem` catalog minus hidden items and items the character already owns; on an NPC, `404` when the NPC is hidden (for every caller, editors included) |
 | `/games/<slug>/pcs\|npcs/<id>/items/available/all.json` | GET | **GameEdit** (dm/admin only — **no owner leniency**, unlike the item-index `/all.json` endpoints) — includes hidden. Always `X-Skip-Cache: true` |
 
 Backs the item-exchange modal's Acquire tab, since `CharacterItem` has no `quantity` (the catalog
@@ -98,7 +98,7 @@ above), remove deletes (at most) one row outright.
 | Endpoint | Method | Who can call |
 |----------|--------|-------------|
 | `/games/<slug>/items/<item_id>/pcs/<id>/summary.json` | GET | **AllowAny** — 404 if the `GameItem`/PC is unknown. Always `X-Skip-Cache: true` (deviation: an `AllowAny` endpoint that still opts out of the shared proxy cache, since responses are per-character-per-item and not worth caching) |
-| `/games/<slug>/items/<item_id>/npcs/<id>/summary.json` | GET | **AllowAny**, plus the [hidden-NPC gate](character-photo.md#hidden-npc-gate) — 404 if hidden or unknown. Always `X-Skip-Cache: true` |
+| `/games/<slug>/items/<item_id>/npcs/<id>/summary.json` | GET | **AllowAny**; `404` when the NPC is hidden ([hidden-NPC gate](character-photo.md#hidden-npc-gate), for every caller, editors included) or unknown. Always `X-Skip-Cache: true` |
 | `/games/<slug>/items/<item_id>/pcs/<id>/summary/all.json` | GET | **CharacterItemCreatePermission** (dm, admin, or the PC's owning player) — roles per [`game_pc_item/endpoints.yml`](../../../backend/games/permissions/config/game_pc_item/endpoints.yml) (`restricted.create`). Always `X-Skip-Cache: true` |
 | `/games/<slug>/items/<item_id>/npcs/<id>/summary/all.json` | GET | **CharacterItemCreatePermission** (dm/admin only, no owner concept) — roles per [`game_npc_item/endpoints.yml`](../../../backend/games/permissions/config/game_npc_item/endpoints.yml) (`restricted.create`). The permission check runs **before** the NPC is resolved, so an unauthorized/unauthenticated caller gets the same `403`/`401` regardless of whether the target `id` is unknown, hidden, or visible — a hidden NPC's existence must never be distinguishable from a nonexistent one via this endpoint (same rule as [Character](character.md)'s own hidden-NPC gate). Always `X-Skip-Cache: true` |
 

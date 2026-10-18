@@ -70,20 +70,32 @@ export default class CharacterClient extends BaseClient {
   }
 
   /**
-   * Fetches a page of a character's photos, used to populate the photo
-   * preview grid on the character show/edit pages.
+   * Fetches a character through an already-resolved detail path (see
+   * `CharacterRequestPaths.character`), so an editor reading a hidden NPC goes through
+   * `.../full.json` instead of the plain route, which 404s hidden NPCs for everyone.
    *
-   * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`).
-   * @param {string} gameSlug - Game slug the character belongs to.
-   * @param {string|number} characterId - Character id.
+   * @param {string} characterKind - Character kind (`'pcs'` or `'npcs'`); NPC reads always send
+   *   `X-Skip-Cache: true`, matching {@link CharacterClient#fetchCharacter}.
+   * @param {string} path - Resolved character detail path.
+   * @param {string|null} token - Authentication token, if any.
+   * @returns {Promise<Response>} fetch response from the resolved character endpoint.
+   */
+  fetchCharacterAt(characterKind, path, token) {
+    return this.getJson(path, token, characterKind === 'npcs' ? { 'X-Skip-Cache': 'true' } : {});
+  }
+
+  /**
+   * Fetches a page of a character's photos through an already-resolved gallery path (see
+   * `CharacterRequestPaths.photos` — `npcs/:id/photos/all.json` for an NPC editor, the plain
+   * `photos.json` otherwise), used to populate the photo preview grid on the character show page.
+   *
+   * @param {string} path - Resolved photo gallery path, without query string.
    * @param {string|null} token - Authentication token, if any.
    * @param {number} [perPage] - Maximum number of photos to fetch.
    * @returns {Promise<Response>} fetch response from the character photos endpoint.
    */
-  fetchCharacterPhotos(characterKind, gameSlug, characterId, token, perPage = 11) {
-    const path = `/games/${gameSlug}/${characterKind}/${characterId}/photos.json?per_page=${perPage}`;
-
-    return this.getJson(path, token);
+  fetchCharacterPhotos(path, token, perPage = 11) {
+    return this.getJson(`${path}?per_page=${perPage}`, token);
   }
 
   /**

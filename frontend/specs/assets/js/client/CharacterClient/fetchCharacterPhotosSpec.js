@@ -9,54 +9,31 @@ describe('CharacterClient', function() {
   });
 
   describe('#fetchCharacterPhotos', function() {
-    describe('for a PC', function() {
+    describe('for the plain gallery path', function() {
       itSendsAuthHeader({
-        call: (token) => new CharacterClient().fetchCharacterPhotos('pcs', 'demo', '2', token),
+        call: (token) => new CharacterClient().fetchCharacterPhotos('/games/demo/pcs/2/photos.json', token),
         url: '/games/demo/pcs/2/photos.json?per_page=11',
       });
     });
 
-    describe('for an NPC', function() {
+    describe('for the restricted NPC gallery path', function() {
       itSendsAuthHeader({
-        call: (token) => new CharacterClient().fetchCharacterPhotos('npcs', 'demo', '2', token),
-        url: '/games/demo/npcs/2/photos.json?per_page=11',
+        call: (token) => new CharacterClient().fetchCharacterPhotos('/games/demo/npcs/2/photos/all.json', token),
+        url: '/games/demo/npcs/2/photos/all.json?per_page=11',
+        headers: { 'X-Skip-Cache': 'true' },
       });
     });
 
-    it('defaults per_page to 11 when not provided', async function() {
-      const client = new CharacterClient();
-
-      await client.fetchCharacterPhotos('pcs', 'demo', '2', 'abc123');
-
-      expect(fetchSpy).toHaveBeenCalledWith('/games/demo/pcs/2/photos.json?per_page=11', jasmine.objectContaining({
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-          Authorization: 'Token abc123',
-        },
-        body: undefined,
-      }));
-    });
-
     it('requests a custom per_page value when provided', async function() {
-      const client = new CharacterClient();
+      await new CharacterClient().fetchCharacterPhotos('/games/demo/npcs/2/photos.json', 'abc123', 10);
 
-      await client.fetchCharacterPhotos('npcs', 'demo', '2', 'abc123', 10);
-
-      expect(fetchSpy).toHaveBeenCalledWith('/games/demo/npcs/2/photos.json?per_page=10', jasmine.objectContaining({
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-          Authorization: 'Token abc123',
-        },
-        body: undefined,
-      }));
+      expect(fetchSpy).toHaveBeenCalledWith(
+        '/games/demo/npcs/2/photos.json?per_page=10', jasmine.objectContaining({ method: 'GET' }),
+      );
     });
 
     it('resolves to the fetch response', async function() {
-      const client = new CharacterClient();
-
-      const response = await client.fetchCharacterPhotos('pcs', 'demo', '2', 'abc123');
+      const response = await new CharacterClient().fetchCharacterPhotos('/games/demo/pcs/2/photos.json', 'abc123');
 
       expect(response.ok).toBeTrue();
     });

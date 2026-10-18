@@ -24,11 +24,11 @@ its own (unlike `CharacterDocument`).
 |----------|--------|-------------|
 | `/games/<slug>/pcs/<id>/factions.json` | GET | **AllowAny** — non-hidden |
 | `/games/<slug>/pcs/<id>/factions/all.json` | GET | **CharacterEdit** — includes hidden, adds `hidden`. Always `X-Skip-Cache: true` |
-| `/games/<slug>/npcs/<id>/factions.json` | GET | **AllowAny**, plus the [hidden-NPC gate](character-photo.md#hidden-npc-gate) |
+| `/games/<slug>/npcs/<id>/factions.json` | GET | **AllowAny**; `404` when the NPC is hidden ([hidden-NPC gate](character-photo.md#hidden-npc-gate), for every caller, editors included) |
 | `/games/<slug>/npcs/<id>/factions/all.json` | GET | **GameEdit** — includes hidden, adds `hidden`. Always `X-Skip-Cache: true` |
 | `/games/<slug>/pcs/<id>/factions/<faction_id>.json` | GET | **AllowAny** — 404 if hidden or unknown |
 | `/games/<slug>/pcs/<id>/factions/<faction_id>/full.json` | GET | **CharacterEdit** — includes hidden, adds `hidden`. Always `X-Skip-Cache: true` |
-| `/games/<slug>/npcs/<id>/factions/<faction_id>.json` | GET | **AllowAny**, plus the hidden-NPC gate |
+| `/games/<slug>/npcs/<id>/factions/<faction_id>.json` | GET | **AllowAny**; `404` when the NPC is hidden (for every caller) |
 | `/games/<slug>/npcs/<id>/factions/<faction_id>/full.json` | GET | **GameEdit** (no owner concept for NPCs). Always `X-Skip-Cache: true` |
 
 All order by `id`.
@@ -44,7 +44,7 @@ variants only (`CharacterFactionAllSerializer`; the regular, player-facing endpo
 
 | Endpoint | Method | Who can call |
 |----------|--------|-------------|
-| `/games/<slug>/pcs\|npcs/<id>/factions/available.json` | GET | **AllowAny** — the game's `GameFaction` catalog minus factions the character already belongs to |
+| `/games/<slug>/pcs\|npcs/<id>/factions/available.json` | GET | **AllowAny** — the game's `GameFaction` catalog minus factions the character already belongs to; on an NPC, `404` when the NPC is hidden (for every caller, editors included) |
 | `/games/<slug>/pcs\|npcs/<id>/factions/available/all.json` | GET | **GameEdit** (dm/admin only — **no owner leniency**, unlike the faction-index `/all.json` endpoints) — includes hidden. Always `X-Skip-Cache: true` |
 
 Backs the faction-exchange modal's Enlist tab, since `CharacterFaction` allows at most one
@@ -81,7 +81,7 @@ already-enlisted faction returns **`422`**.
 | Endpoint | Method | Who can call |
 |----------|--------|-------------|
 | `/games/<slug>/factions/<faction_id>/pcs/<id>/summary.json` | GET | **AllowAny** — 404 if the faction/PC is unknown. Always `X-Skip-Cache: true` (deviation: an `AllowAny` endpoint that still opts out of the shared proxy cache, since responses are per-character-per-faction and not worth caching) |
-| `/games/<slug>/factions/<faction_id>/npcs/<id>/summary.json` | GET | **AllowAny**, plus the [hidden-NPC gate](character-photo.md#hidden-npc-gate) — 404 if hidden or unknown. Always `X-Skip-Cache: true` |
+| `/games/<slug>/factions/<faction_id>/npcs/<id>/summary.json` | GET | **AllowAny**; `404` when the NPC is hidden ([hidden-NPC gate](character-photo.md#hidden-npc-gate), for every caller, editors included) or unknown. Always `X-Skip-Cache: true` |
 | `/games/<slug>/factions/<faction_id>/pcs/<id>/summary/all.json` | GET | `restricted.create` on [`game_pc_faction/endpoints.yml`](../../../backend/permissions/config/game_pc_faction/endpoints.yml) (staff, or the PC's owning player). Always `X-Skip-Cache: true` |
 | `/games/<slug>/factions/<faction_id>/npcs/<id>/summary/all.json` | GET | `restricted.create` on [`game_npc_faction/endpoints.yml`](../../../backend/permissions/config/game_npc_faction/endpoints.yml) (staff only, no owner concept). The permission check runs **before** the NPC is resolved, so an unauthorized/unauthenticated caller gets the same `403`/`401` regardless of whether the target `id` is unknown, hidden, or visible — a hidden NPC's existence must never be distinguishable from a nonexistent one via this endpoint (same rule as [Character](character.md)'s own hidden-NPC gate). Always `X-Skip-Cache: true` |
 

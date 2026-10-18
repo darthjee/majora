@@ -1,6 +1,7 @@
 import CharacterClient from '../../../../../client/CharacterClient.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 import CharacterListMerger from './CharacterListMerger.js';
+import CharacterRequestPaths from './CharacterRequestPaths.js';
 
 /**
  * Base controller for a character's photo preview list, split out of `CharacterController`
@@ -28,7 +29,9 @@ export default class CharacterListsController extends BasePageController {
   }
 
   /**
-   * Fetch a first page of the character's photos from the API.
+   * Fetch a first page of the character's photos from the API, through the permission-aware
+   * gallery path (`npcs/:id/photos/all.json` for an NPC editor, so a hidden NPC's photos still
+   * load — see {@link CharacterRequestPaths.photos}).
    *
    * @param {string} gameSlug - Game slug.
    * @param {string} characterId - Character id.
@@ -36,7 +39,8 @@ export default class CharacterListsController extends BasePageController {
    * @returns {Promise<Response>} Fetch response.
    */
   fetchCharacterPhotos(gameSlug, characterId, token) {
-    return this.characterClient.fetchCharacterPhotos(this.characterKind, gameSlug, characterId, token);
+    return CharacterRequestPaths.photos(this.characterKind, gameSlug, characterId)
+      .then((path) => this.characterClient.fetchCharacterPhotos(path, token));
   }
 
   /**

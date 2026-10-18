@@ -14,10 +14,11 @@ from games.serializers import (
     GamePermissionsSerializer,
     GameUpdateSerializer,
 )
-from games.tests.factories import GameFactory, PlayerFactory, UserFactory
+from games.tests.factories import CharacterFactory, GameFactory, PlayerFactory, UserFactory
 from games.views.common import (
     access_response,
     detail_or_update,
+    hidden_gate_response,
     paginated_list_response,
     parse_role_booleans,
     permissions_response,
@@ -39,6 +40,8 @@ def _make_request(method='GET', user=None, data=None):
     factory = APIRequestFactory()
     if method == 'PATCH':
         request = factory.patch('/fake/', data or {}, format='json')
+    elif method == 'HEAD':
+        request = factory.head('/fake/')
     else:
         request = factory.get('/fake/')
     request.user = user if user is not None else AnonymousUser()
@@ -340,3 +343,51 @@ class TestPermissionsResponse(TestCase):
             ContextCapturingSerializer, self.game, request, None, context_extra={'extra': 'value'}
         )
         assert captured_context == {'request': request, 'roles': None, 'extra': 'value'}
+
+
+@pytest.mark.django_db
+class TestHiddenGateResponse:
+    """Tests for hidden_gate_response()."""
+
+    def setup_method(self):
+        """Set up a game, its DM, and a hidden NPC."""
+        self.game = GameFactory(name='Test Game', game_slug='test-game')
+        self.dm_user = UserFactory(username='dm', password='secret-password')
+        PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
+        self.npc = CharacterFactory(name='Secret', game=self.game, npc=True, hidden=True)
+
+    def _gate(self, method='GET', user=None, public=False, entity=None):
+        """Run the gate on the hidden NPC (or `entity`) for a fake request."""
+        request = _make_request(method=method, user=user)
+        return hidden_gate_response(entity or self.npc, self.npc, request, public=public)
+
+    def test_editor_passes_default_gate(self):
+        """Test that the DM passes the editor-aware gate on a hidden NPC."""
+        assert self._gate(user=self.dm_user) is None
+
+    def test_non_editor_gets_404_with_skip_cache(self):
+        """Test that an anonymous caller gets a 404 carrying X-Skip-Cache."""
+        response = self._gate()
+        assert response.status_code == 404
+        assert response['X-Skip-Cache'] == 'true'
+
+    def test_public_get_is_404_for_editor(self):
+        """Test that the strict gate 404s a hidden NPC on GET even for the DM."""
+        response = self._gate(user=self.dm_user, public=True)
+        assert response.status_code == 404
+        assert response['X-Skip-Cache'] == 'true'
+
+    def test_public_head_is_404_for_editor(self):
+        """Test that the strict gate 404s a hidden NPC on HEAD even for the DM."""
+        response = self._gate(method='HEAD', user=self.dm_user, public=True)
+        assert response.status_code == 404
+        assert response['X-Skip-Cache'] == 'true'
+
+    def test_public_patch_keeps_editor_aware_gate(self):
+        """Test that the strict flag does not apply to a PATCH by the DM."""
+        assert self._gate(method='PATCH', user=self.dm_user, public=True) is None
+
+    def test_public_get_passes_visible_entity(self):
+        """Test that the strict gate lets a visible NPC through."""
+        visible = CharacterFactory(name='Visible', game=self.game, npc=True, hidden=False)
+        assert self._gate(public=True, entity=visible) is None

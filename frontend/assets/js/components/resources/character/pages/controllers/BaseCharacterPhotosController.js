@@ -5,6 +5,7 @@ import AccessStore from '../../../../../utils/access/store/AccessStore.js';
 import RequestStore from '../../../../../utils/requests/RequestStore.js';
 import BasePageController from '../../../../common/base/controllers/BasePageController.js';
 import PhotoDeleteSaga from '../../../../common/base/controllers/PhotoDeleteSaga.js';
+import CharacterRequestPaths from './CharacterRequestPaths.js';
 
 /**
  * Base controller for character photos index pages (PC and NPC).
@@ -12,7 +13,9 @@ import PhotoDeleteSaga from '../../../../common/base/controllers/PhotoDeleteSaga
  * @description Holds all shared logic for NPC and PC character photos pages.
  *   Subclasses supply the type-specific hash param extractor and `characterKind`
  *   (`'pcs'` or `'npcs'`), used both as the URL segment and to build the correct
- *   {@link CharacterClient} calls.
+ *   {@link CharacterClient} calls. Both the photo list and the character itself are read
+ *   through {@link CharacterRequestPaths}, so an NPC editor reads the restricted
+ *   `photos/all.json`/`full.json` siblings — the plain routes 404 a hidden NPC for everyone.
  */
 export default class BaseCharacterPhotosController extends BasePageController {
   /**
@@ -132,7 +135,8 @@ export default class BaseCharacterPhotosController extends BasePageController {
   }
 
   #fetchPhotos(gameSlug, characterId, safeSet) {
-    this.client.fetchIndex(`/games/${gameSlug}/${this.characterKind}/${characterId}/photos.json`)
+    CharacterRequestPaths.photos(this.characterKind, gameSlug, characterId)
+      .then((path) => this.client.fetchIndex(path))
       .then(({ data, pagination }) => {
         safeSet(this.setPhotos, Array.isArray(data) ? data : []);
         safeSet(this.setPagination, pagination);
@@ -144,7 +148,8 @@ export default class BaseCharacterPhotosController extends BasePageController {
   #fetchCharacter(gameSlug, characterId, safeSet) {
     const token = AuthStorage.getToken();
 
-    return this.characterClient.fetchCharacter(this.characterKind, gameSlug, characterId, token)
+    return CharacterRequestPaths.character(this.characterKind, gameSlug, characterId)
+      .then((path) => this.characterClient.fetchCharacterAt(this.characterKind, path, token))
       .then((response) => (response.ok ? response.json() : null))
       .then((character) => this.#mergeAccess(gameSlug, characterId, character, safeSet))
       .catch(() => safeSet(this.setCharacter, { can_edit: false }));

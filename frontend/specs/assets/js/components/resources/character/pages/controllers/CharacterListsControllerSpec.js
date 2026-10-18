@@ -1,5 +1,6 @@
 import CharacterListsController
   from '../../../../../../../../assets/js/components/resources/character/pages/controllers/CharacterListsController.js';
+import AccessStore from '../../../../../../../../assets/js/utils/access/store/AccessStore.js';
 
 const buildFakeCharacterClient = () => ({
   fetchCharacterPhotos: jasmine.createSpy('fetchCharacterPhotos').and.returnValue(Promise.resolve({ ok: true, json: () => Promise.resolve([]) })),
@@ -7,17 +8,48 @@ const buildFakeCharacterClient = () => ({
 
 describe('CharacterListsController', function() {
   describe('#fetchCharacterPhotos', function() {
-    it('delegates to the character client with the character kind', function() {
+    let permissionsSpy;
+
+    beforeEach(function() {
+      permissionsSpy = spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({}));
+    });
+
+    it('fetches the plain photos path for a PC, without resolving permissions', async function() {
       const characterClient = buildFakeCharacterClient();
       const controller = new CharacterListsController(characterClient, 'pcs');
 
-      controller.fetchCharacterPhotos('demo', '2', 'tok');
+      await controller.fetchCharacterPhotos('demo', '2', 'tok');
 
-      expect(characterClient.fetchCharacterPhotos).toHaveBeenCalledWith('pcs', 'demo', '2', 'tok');
+      expect(characterClient.fetchCharacterPhotos).toHaveBeenCalledWith('/games/demo/pcs/2/photos.json', 'tok');
+      expect(permissionsSpy).not.toHaveBeenCalled();
+    });
+
+    it('fetches the plain photos path for an NPC the requester cannot edit', async function() {
+      const characterClient = buildFakeCharacterClient();
+      const controller = new CharacterListsController(characterClient, 'npcs');
+
+      await controller.fetchCharacterPhotos('demo', '2', 'tok');
+
+      expect(permissionsSpy).toHaveBeenCalledWith('npcs', 'demo', '2');
+      expect(characterClient.fetchCharacterPhotos).toHaveBeenCalledWith('/games/demo/npcs/2/photos.json', 'tok');
+    });
+
+    it('fetches the restricted photos/all.json path for an NPC editor', async function() {
+      permissionsSpy.and.returnValue(Promise.resolve({ can_edit: true }));
+      const characterClient = buildFakeCharacterClient();
+      const controller = new CharacterListsController(characterClient, 'npcs');
+
+      await controller.fetchCharacterPhotos('demo', '2', 'tok');
+
+      expect(characterClient.fetchCharacterPhotos).toHaveBeenCalledWith('/games/demo/npcs/2/photos/all.json', 'tok');
     });
   });
 
   describe('#fetchAndMergePhotos', function() {
+    beforeEach(function() {
+      spyOn(AccessStore, 'ensureCharacterPermissions').and.returnValue(Promise.resolve({}));
+    });
+
     it('merges the resolved photos onto the character', async function() {
       const characterClient = buildFakeCharacterClient();
       characterClient.fetchCharacterPhotos.and.returnValue(Promise.resolve({

@@ -11,6 +11,9 @@ urlpatterns = [
     path('games/<slug:game_slug>/npcs/all.json', game_npcs_all, name='game-npcs-all'),
     path('games/<slug:game_slug>/npcs/full.json', game_npcs_full, name='game-npcs-full'),
     *build_character_urlpatterns(
-        'npc', game, extra_routes=[('/treasures/all.json', 'treasures_all')],
+        'npc', game, extra_routes=[
+            ('/photos/all.json', 'photos_all'),
+            ('/treasures/all.json', 'treasures_all'),
+        ],
     ),
 ]

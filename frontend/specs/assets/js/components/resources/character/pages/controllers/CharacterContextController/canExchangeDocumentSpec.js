@@ -8,9 +8,9 @@ const KINDS = [
 ];
 
 function buildCharacterClient(isPc) {
-  const characterClient = jasmine.createSpyObj('characterClient', ['fetchCharacter']);
+  const characterClient = jasmine.createSpyObj('characterClient', ['fetchCharacterAt']);
 
-  characterClient.fetchCharacter.and.returnValue(Promise.resolve({
+  characterClient.fetchCharacterAt.and.returnValue(Promise.resolve({
     ok: true,
     json: () => Promise.resolve({ id: 2, game_slug: 'demo', is_pc: isPc }),
   }));
