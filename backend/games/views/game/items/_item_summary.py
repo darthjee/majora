@@ -8,7 +8,9 @@ from permissions import EndpointPermission
 from .._character._shared import _get_character_or_404, _hidden_gate_response
 
 
-def character_item_summary(request, game, character_id, item_id, npc, check_hidden, count_hidden):
+def character_item_summary(
+    request, game, character_id, item_id, npc, check_hidden, count_hidden, public_view=False,
+):
     """Return {'quantity': <int>}, the count of `character`'s CharacterItem rows for `item_id`.
 
     `check_hidden` gates a hidden character behind a 404 (`_hidden_gate_response`), matching
@@ -19,7 +21,7 @@ def character_item_summary(request, game, character_id, item_id, npc, check_hidd
     character = _get_character_or_404(game, character_id, npc)
 
     if check_hidden:
-        error_response = _hidden_gate_response(character, request)
+        error_response = _hidden_gate_response(character, request, public=public_view)
         if error_response:
             return error_response
 

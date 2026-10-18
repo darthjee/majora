@@ -10,6 +10,7 @@ from ._faction_exchange import _find_game_faction
 
 def character_faction_summary(
     request, game, character_id, faction_id, npc, check_hidden, allow_hidden=False,
+    public_view=False,
 ):
     """Return {'enlisted': <bool>} — whether `character` already belongs to `faction_id`.
 
@@ -22,7 +23,7 @@ def character_faction_summary(
     character = _get_character_or_404(game, character_id, npc)
 
     if check_hidden:
-        error_response = _hidden_gate_response(character, request)
+        error_response = _hidden_gate_response(character, request, public=public_view)
         if error_response:
             return error_response
 

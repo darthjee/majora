@@ -38,13 +38,15 @@ from .._shared import (
 )
 
 
-def _check_npc_hidden_gate(request, game, character_id, npc):
+def _check_npc_hidden_gate(request, game, character_id, npc, public=False):
     """Return a `404` Response for a hidden NPC the caller cannot view (E7), else None.
 
     A no-op on PCs. Always resolves the character first, so an unknown id is a `404` too.
+    `public=True` marks a plain view: on `GET` a hidden NPC is then a 404 for everyone,
+    editors included (issue #1616).
     """
     character = _get_character_or_404(game, character_id, npc=npc)
-    return _hidden_gate_response(character, request) if npc else None
+    return _hidden_gate_response(character, request, public=public) if npc else None
 
 
 def _check_restricted_access(request, game, character_id, npc):
@@ -75,8 +77,9 @@ def _check_exchange_access(request, game, character_id, npc):
 
     Runs the hidden-NPC gate first on NPCs (E7), then `regular.create` on
     `game_pc_recipe` / `game_npc_recipe` (staff, player).
+    The gate is strict on the plain `available.json` GET (issue #1616).
     """
-    error_response = _check_npc_hidden_gate(request, game, character_id, npc)
+    error_response = _check_npc_hidden_gate(request, game, character_id, npc, public=True)
     if error_response:
         return error_response
     character = _get_character_or_404(game, character_id, npc=npc)
@@ -103,7 +106,9 @@ def build_recipes_view(npc):
     def view(request, game_slug, character_id):
         """Return a paginated list of non-hidden recipes known by a PC/NPC, output masked."""
         game = get_object_or_404(Game, game_slug=game_slug)
-        return character_recipes(request, game, character_id, npc=npc, check_hidden=npc)
+        return character_recipes(
+            request, game, character_id, npc=npc, check_hidden=npc, public_view=True,
+        )
 
     return view
 
@@ -155,7 +160,7 @@ def build_recipe_detail_view(npc):
             return _patch_recipe(request, game, character_id, character_recipe_id, npc)
         return character_recipe_detail(
             request, game, character_id, character_recipe_id, npc=npc, check_hidden=npc,
-            serializer_class=CharacterRecipeDetailSerializer,
+            public_view=True, serializer_class=CharacterRecipeDetailSerializer,
         )
 
     return view

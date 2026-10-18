@@ -146,19 +146,29 @@ def paginated_list_response(request, queryset, list_serializer_cls, context=None
     return Response(serializer.data, headers=headers)
 
 
-def hidden_gate_response(entity, owner, request):
-    """Return a 404 Response (with X-Skip-Cache) if `entity` is hidden and `owner` isn't editable.
+def hidden_gate_response(entity, owner, request, public=False):
+    """Return a 404 Response (with X-Skip-Cache) if hidden `entity` must not be served.
 
     Shared by any path-scoped entity that must 404 (rather than reveal via a permission-denied
-    response) when hidden to a requester who cannot edit `owner` — e.g. a `Character` gating on
-    itself, or a `GameTreasure` gating on its `Game`.
+    response) when hidden — e.g. a `Character` gating on itself, or a `GameTreasure` gating on
+    its `Game`. By default the gate is editor-aware: it 404s only when the requester cannot edit
+    `owner`. With `public=True` on a `GET` (a plain AllowAny read), the gate is strict: a hidden
+    entity is a 404 for everyone, editors included, who must use the restricted
+    `full.json`/`all.json` sibling instead (issue #1616). Writes keep the editor-aware gate.
     """
     is_hidden = entity is not None and entity.hidden
-    if is_hidden and not owner.can_be_edited_by(request.user):
+    if is_hidden and not _may_see_hidden(owner, request, public):
         response = Response(status=404)
         response['X-Skip-Cache'] = 'true'
         return response
     return None
+
+
+def _may_see_hidden(owner, request, public):
+    """Return whether `request` may be served a hidden entity owned by `owner`."""
+    if public and request.method == 'GET':
+        return False
+    return owner.can_be_edited_by(request.user)
 
 
 def access_response(serializer_cls, obj, request, context_extra=None):

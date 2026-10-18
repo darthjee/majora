@@ -30,15 +30,22 @@ def game_treasure_detail(request, game_slug, treasure_id):
     treasure = _get_game_treasure_or_404(game, treasure_id)
     game_treasure = GameTreasure.objects.filter(game=game, treasure=treasure).first()
 
-    error_response = hidden_gate_response(game_treasure, game, request)
+    error_response = hidden_gate_response(game_treasure, game, request, public=True)
     if error_response:
         return error_response
 
     if request.method == 'PATCH':
-        response = _update_game_treasure(request, game, treasure)
-    else:
-        response = Response(TreasureDetailSerializer(treasure, context={'game': game}).data)
+        return _patch_game_treasure(request, game, treasure, game_treasure)
+    return Response(TreasureDetailSerializer(treasure, context={'game': game}).data)
 
+
+def _patch_game_treasure(request, game, treasure, game_treasure):
+    """Run the PATCH update; a hidden treasure's response is never cached.
+
+    The GET branch 404s a hidden treasure for everyone (strict gate, issue #1616), so only a
+    PATCH by an editor can still succeed on a hidden treasure.
+    """
+    response = _update_game_treasure(request, game, treasure)
     if game_treasure is not None and game_treasure.hidden:
         response['X-Skip-Cache'] = 'true'
     return response

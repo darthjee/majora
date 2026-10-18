@@ -44,7 +44,9 @@ def build_possessions_view(npc):
                 if error_response:
                     return error_response
             return character_possession_create(request, game, character)
-        return character_possessions(request, game, character_id, npc=npc, check_hidden=npc)
+        return character_possessions(
+            request, game, character_id, npc=npc, check_hidden=npc, public_view=True,
+        )
 
     return view
 
@@ -82,7 +84,7 @@ def build_possession_detail_view(npc, serializer_class=CharacterPossessionSerial
         game = get_object_or_404(Game, game_slug=game_slug)
         return character_possession_detail(
             request, game, character_id, possession_id, npc=npc, check_hidden=npc,
-            serializer_class=serializer_class,
+            public_view=True, serializer_class=serializer_class,
         )
 
     return view
@@ -121,7 +123,7 @@ def build_possessions_available_view(npc):
         game = get_object_or_404(Game, game_slug=game_slug)
         return character_possessions_available(
             request, game, character_id, npc=npc, check_hidden=npc,
-            serializer_class=GamePossessionListSerializer,
+            public_view=True, serializer_class=GamePossessionListSerializer,
         )
 
     return view

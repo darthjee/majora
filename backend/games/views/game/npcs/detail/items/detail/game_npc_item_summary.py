@@ -17,5 +17,6 @@ def game_npc_item_summary(request, game_slug, item_id, character_id):
     """Return how many of a GameItem a specific NPC owns, as {'quantity': <int>}."""
     game = get_object_or_404(Game, game_slug=game_slug)
     return character_item_summary(
-        request, game, character_id, item_id, npc=True, check_hidden=True, count_hidden=False,
+        request, game, character_id, item_id, npc=True, check_hidden=True, public_view=True,
+        count_hidden=False,
     )
