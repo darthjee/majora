@@ -181,13 +181,16 @@ All field errors are reported together in one response.
 | `scopes` | missing / empty list | `required` / `empty` |
 | `scopes` | entry not in the catalogue | `invalid_scope` |
 | `scopes` | the same entry twice | `duplicate_scope` |
+| `scopes` | more entries than the catalogue holds / an entry over 64 characters | `max_length` (the entry error is keyed by its position) |
 | `games` | unknown slug, or a game the owner cannot reach | `game_not_reachable` (one code for both, so slugs cannot be probed) |
 | `games` | the same slug twice | `duplicate_game` |
+| `games` | more than 100 slugs / a slug longer than `Game.game_slug` allows | `max_length` (the entry error is keyed by its position) |
 | `expires_at` | not a datetime / not in the future | `invalid` / `expires_in_past` |
 | any field other than `name`, on PATCH | `scopes`, `games`, `expires_at`, … | `not_editable`, keyed by the field |
 | any field outside `name`, `scopes`, `games`, `expires_at`, on create | `owner`, `prefix`, `id`, … | `not_editable`, keyed by the field |
 
-For example: `{"errors": {"scopes": ["not_editable"]}}`.
+For example: `{"errors": {"scopes": ["not_editable"]}}`. An entry error is keyed by
+its position in the list, for example `{"errors": {"scopes": {"1": ["max_length"]}}}`.
 
 #### Access
 
@@ -454,8 +457,8 @@ These doc changes **ship with #1604**, following [`access-control.md`](../../acc
   - 201 returns the token item plus `token`, exactly once. Later lists never show the secret or
     hash.
   - Each error code: `name` (`required`, `blank`, `max_length`, and trimming); `scopes`
-    (`required`, `empty`, `invalid_scope`, `duplicate_scope`); `games` (`game_not_reachable`
-    for both unknown and unreachable, `duplicate_game`); `expires_at` (`invalid` and
+    (`required`, `empty`, `invalid_scope`, `duplicate_scope`, `max_length`); `games`
+    (`game_not_reachable` for both unknown and unreachable, `duplicate_game`, `max_length`); `expires_at` (`invalid` and
     `expires_in_past`, with a "now" boundary test).
   - Several bad fields are reported together in one 400.
   - A missing `expires_at` and an explicit `null` both mean never.
