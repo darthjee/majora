@@ -27,10 +27,14 @@ workflows:
           filters: *all_tags
       - crawler_extension_tests:
           filters: *all_tags
+      - client_tests:
+          filters: *all_tags
+      - client_checks:
+          filters: *all_tags
       - markdownlint:
           filters: *all_tags
       - coverage-final:
-          requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine]
+          requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine, client_tests]
           filters: *all_tags
       - release-image:
           name: release-majora-base
@@ -69,29 +73,29 @@ workflows:
           arch: arm64
           filters: *all_tags
       - build-and-release:
-          requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, markdownlint, release-production_majora-base, release-production_majora-base-arm64]
+          requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint, release-production_majora-base, release-production_majora-base-arm64]
           filters: &tags_only
             tags:
               only: /\d+\.\d+\.\d+/
             branches:
               ignore: /.*/
       - upload_proxy_files:
-          requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, markdownlint]
+          requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint]
           filters: *tags_only
       - upload_fe_files:
-          requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, markdownlint, release-vite_majora-base, release-vite_majora-base-arm64]
+          requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint, release-vite_majora-base, release-vite_majora-base-arm64]
           filters: *tags_only
       - link_photos:
-          requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, markdownlint]
+          requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint]
           filters: *tags_only
       - link_files:
-          requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, markdownlint]
+          requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint]
           filters: *tags_only
       - link_domain:
-          requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, markdownlint]
+          requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint]
           filters: *tags_only
       - upload_admin_assets:
-          requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, markdownlint, release-circleci_majora-base]
+          requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint, release-circleci_majora-base]
           filters: *tags_only
       - upload_extension:
           requires: [upload_proxy_files]
@@ -123,7 +127,7 @@ workflows:
           requires: [release]
           filters: *tags_only
       - wake-navi:
-          requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, markdownlint]
+          requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint]
           filters: *tags_only
 jobs:
   release-image:
@@ -348,6 +352,44 @@ jobs:
       - run:
           name: Tests
           command: docker compose run --rm extension_tests
+
+  client_tests:
+    docker:
+      - image: darthjee/circleci_node:0.2.1
+    working_directory: ~/project/client
+    steps:
+      - checkout:
+          path: ~/project
+      - run:
+          name: Yarn install
+          command: yarn install --frozen-lockfile
+      - run:
+          name: Tests
+          command: yarn coverage
+      - run:
+          name: Make coverage paths relative to the repository root
+          command: sed -i -E 's#^SF:(.*/client/)?src/#SF:client/src/#' coverage/lcov.info
+      - run:
+          name: Upload coverage to Codacy (partial)
+          working_directory: ~/project
+          command: bash <(curl -Ls https://coverage.codacy.com/get.sh) report --partial -r client/coverage/lcov.info
+
+  client_checks:
+    docker:
+      - image: darthjee/circleci_node:0.2.1
+    working_directory: ~/project/client
+    steps:
+      - checkout:
+          path: ~/project
+      - run:
+          name: Yarn install
+          command: yarn install --frozen-lockfile
+      - run:
+          name: Check JS Lint
+          command: yarn lint
+      - run:
+          name: Check packaging
+          command: npm pack --dry-run
 
   upload_proxy_files:
     docker:
