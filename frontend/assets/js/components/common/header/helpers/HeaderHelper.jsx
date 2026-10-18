@@ -124,6 +124,9 @@ export const AUTH_CONTROL_REGISTRY = [
         >
           {Translator.t('header.nav_authorization_requests')}
         </NavDropdown.Item>
+        <NavDropdown.Item href="#/account/api_tokens" data-testid="api-tokens-link">
+          {Translator.t('header.nav_api_tokens')}
+        </NavDropdown.Item>
       </NavDropdown>
     ),
   },

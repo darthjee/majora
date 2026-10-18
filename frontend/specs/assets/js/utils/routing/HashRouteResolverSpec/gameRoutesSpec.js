@@ -7,6 +7,7 @@ const CASES = [
   { hash: '#/recover-password?token=abc', expected: 'recoverPassword' },
   { hash: '#/users/register', expected: 'register' },
   { hash: '#/account/authorization_requests', expected: 'accountAuthorizationRequests' },
+  { hash: '#/account/api_tokens', expected: 'accountApiTokens' },
   { hash: '#/my_account', expected: 'myAccount' },
   { hash: '#/my-games', expected: 'myGames' },
   { hash: '#/games/new', expected: 'gameNew', description: 'resolves /games/new to gameNew, not game' },
