@@ -4,16 +4,19 @@ from datetime import timedelta
 from unittest.mock import patch
 
 import pytest
+from django.urls import ResolverMatch
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import AuthenticationFailed, PermissionDenied
+from rest_framework.permissions import AllowAny, BasePermission
 from rest_framework.response import Response
 from rest_framework.test import APIClient, APIRequestFactory
 
 from accounts.authentication import ApiTokenAuthentication
 from accounts.models import ApiToken, UserProfile
-from games.tests.factories import UserFactory
+from games.decorators import token_scopes
+from games.tests.factories import GameFactory, UserFactory
 
 ACCOUNT_URL = '/account/account.json'
 INVALID_HEADER = 'Bearer realm="api", error="invalid_token"'
@@ -145,8 +148,8 @@ class TestApiTokenAuthenticationFailures(ApiTokenTestMixin):
 class TestApiTokenAuthenticationSuccess(ApiTokenTestMixin):
     """Tests for a Bearer token that authenticates."""
 
-    def test_valid_token_is_refused_interim(self):
-        """Test that a valid token gets 403 `token_not_allowed` until scopes are checked."""
+    def test_unresolved_request_is_refused(self):
+        """Test that a request with no resolved view fails closed with `token_not_allowed`."""
         with pytest.raises(PermissionDenied) as error:
             self.auth.authenticate(self._request(f'Bearer {self.plain}'))
         assert error.value.get_codes() == 'token_not_allowed'
@@ -215,10 +218,16 @@ class TestApiTokenAuthenticationEndToEnd(ApiTokenTestMixin):
         assert response['WWW-Authenticate'] == INVALID_HEADER
 
     def test_valid_token_is_not_the_session_user(self):
-        """Test that a valid Bearer token decides over the session (interim 403)."""
+        """Test that a valid Bearer token decides over the session (undeclared view: 403)."""
         response = self.client.get(ACCOUNT_URL, HTTP_AUTHORIZATION=f'Bearer {self.plain}')
         assert response.status_code == 403
-        assert response.data['detail'].code == 'token_not_allowed'
+        assert response.data == {'errors': {'detail': ['token_not_allowed']}}
+
+    def test_invalid_token_body_unchanged(self):
+        """Test that the 401 `token_invalid` body keeps DRF's default shape."""
+        header = f'Bearer {self._wrong_secret_token()}'
+        response = self.client.get(ACCOUNT_URL, HTTP_AUTHORIZATION=header)
+        assert set(response.data) == {'detail'}
 
     def test_legacy_token_still_authenticates(self):
         """Test that a legacy `Token <key>` header still authenticates."""
@@ -231,3 +240,153 @@ class TestApiTokenAuthenticationEndToEnd(ApiTokenTestMixin):
         response = APIClient().get(ACCOUNT_URL)
         assert response.status_code == 401
         assert response['WWW-Authenticate'] == 'Bearer realm="api"'
+
+
+class DenyAll(BasePermission):
+    """Test permission standing in for an owner role that does not allow the request."""
+
+    def has_permission(self, request, view):
+        """Always refuse."""
+        return False
+
+
+@token_scopes(GET=[], POST=['npcs:write', 'documents:read'])
+@api_view(['GET', 'POST', 'PUT'])
+@permission_classes([AllowAny])
+def scoped_view(request, game_slug=None):
+    """Test view: public read, write needing two families, undeclared PUT."""
+    return Response({'user': request.user.username})
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def undeclared_view(request):
+    """Test view without a `@token_scopes` declaration."""
+    return Response({})
+
+
+@token_scopes(POST=['npcs:write'])
+@api_view(['POST'])
+@permission_classes([DenyAll])
+def role_denied_view(request, game_slug=None):
+    """Test view whose own permission check refuses everyone."""
+    return Response({})
+
+
+@pytest.mark.django_db
+class TestApiTokenScopeCheck(ApiTokenTestMixin):
+    """Tests for the per-view scope and game check, through test-only views."""
+
+    def setup_method(self):
+        """Set up two games and a token holding the scopes of `scoped_view`'s POST."""
+        super().setup_method()
+        self.game = GameFactory(game_slug='allowed-game')
+        self.other_game = GameFactory(game_slug='other-game')
+        self._set_scopes(['npcs:write', 'documents:read'])
+
+    def _set_scopes(self, scopes):
+        """Store `scopes` on the token."""
+        ApiToken.objects.filter(pk=self.api_token.pk).update(scopes=scopes)
+
+    def _call(self, view, method='get', **kwargs):
+        """Call `view` with the Bearer token and a resolver match carrying `kwargs`."""
+        request = getattr(self.factory, method)('/', HTTP_AUTHORIZATION=f'Bearer {self.plain}')
+        request.resolver_match = ResolverMatch(view, (), kwargs)
+        return view(request, **kwargs)
+
+    def _assert_refused(self, response, code):
+        """Assert a 403 with the project error body for `code`."""
+        assert response.status_code == 403
+        assert response.data == {'errors': {'detail': [code]}}
+
+    def test_public_read_needs_no_scope(self):
+        """Test that a declared public read is allowed for a token without scopes."""
+        self._set_scopes([])
+        response = self._call(scoped_view)
+        assert response.status_code == 200
+        assert response.data == {'user': 'alice'}
+
+    def test_head_follows_get(self):
+        """Test that HEAD uses the GET declaration."""
+        self._set_scopes([])
+        request = self.factory.head('/', HTTP_AUTHORIZATION=f'Bearer {self.plain}')
+        request.resolver_match = ResolverMatch(scoped_view, (), {})
+        user, _ = self.auth.authenticate(request)
+        assert user == self.user
+
+    def test_all_scopes_present_is_allowed(self):
+        """Test that a write is allowed when every required scope is present."""
+        assert self._call(scoped_view, 'post').status_code == 200
+
+    def test_missing_scope(self):
+        """Test that lacking one required scope gives `scope_missing`."""
+        self._set_scopes(['npcs:write'])
+        self._assert_refused(self._call(scoped_view, 'post'), 'scope_missing')
+
+    def test_unknown_stored_scope_grants_nothing(self):
+        """Test that a stored scope outside the catalogue does not count."""
+        self._set_scopes(['npcs:write', 'documents:read:legacy'])
+        self._assert_refused(self._call(scoped_view, 'post'), 'scope_missing')
+
+    def test_undeclared_view(self):
+        """Test that a view without a declaration gives `token_not_allowed`."""
+        self._assert_refused(self._call(undeclared_view), 'token_not_allowed')
+
+    def test_undeclared_method(self):
+        """Test that a method without an entry gives `token_not_allowed`."""
+        self._assert_refused(self._call(scoped_view, 'put'), 'token_not_allowed')
+
+    def test_options_fails_closed(self):
+        """Test that OPTIONS without its own entry gives `token_not_allowed`."""
+        self._assert_refused(self._call(scoped_view, 'options'), 'token_not_allowed')
+
+    def test_game_not_on_list(self):
+        """Test that a slug outside the token's games gives `game_not_allowed`."""
+        self.api_token.games.set([self.game])
+        response = self._call(scoped_view, 'post', game_slug='other-game')
+        self._assert_refused(response, 'game_not_allowed')
+
+    def test_game_on_list(self):
+        """Test that a slug on the token's games is allowed."""
+        self.api_token.games.set([self.game])
+        response = self._call(scoped_view, 'post', game_slug='allowed-game')
+        assert response.status_code == 200
+
+    def test_empty_game_list_allows_any_game(self):
+        """Test that a token without games may reach any game."""
+        response = self._call(scoped_view, 'post', game_slug='other-game')
+        assert response.status_code == 200
+
+    def test_view_without_game_slug_uses_scopes_only(self):
+        """Test that a request without `game_slug` ignores the token's games."""
+        self.api_token.games.set([self.game])
+        assert self._call(scoped_view, 'post').status_code == 200
+
+    def test_scope_checked_before_game(self):
+        """Test that a missing scope is reported even when the game is also wrong."""
+        self.api_token.games.set([self.game])
+        self._set_scopes([])
+        response = self._call(scoped_view, 'post', game_slug='other-game')
+        self._assert_refused(response, 'scope_missing')
+
+    def test_owner_role_still_applies(self):
+        """Test that holding the scope does not bypass the view's own permission check."""
+        self._set_scopes(['npcs:write'])
+        response = self._call(role_denied_view, 'post', game_slug='allowed-game')
+        assert response.status_code == 403
+        assert response.data['detail'].code == 'permission_denied'
+
+    def test_session_request_ignores_declaration(self):
+        """Test that a session request to an undeclared view is unaffected."""
+        request = self.factory.get('/')
+        request.session = {'auth_token': Token.objects.create(user=self.user).key}
+        request.resolver_match = ResolverMatch(undeclared_view, (), {})
+        response = undeclared_view(request)
+        assert response.status_code == 200
+
+    def test_legacy_token_ignores_declaration(self):
+        """Test that a legacy `Token` request to an undeclared view is unaffected."""
+        token = Token.objects.create(user=self.user)
+        request = self.factory.get('/', HTTP_AUTHORIZATION=f'Token {token.key}')
+        request.resolver_match = ResolverMatch(undeclared_view, (), {})
+        assert undeclared_view(request).status_code == 200

@@ -187,6 +187,9 @@ REST_FRAMEWORK = {
         'accounts.authentication.ApiTokenAuthentication',
         'accounts.authentication.CookieTokenAuthentication',
     ],
+    # Renders scoped-token 403s (`scope_missing`, `game_not_allowed`, `token_not_allowed`)
+    # with the project's `{"errors": {"detail": [code]}}` body.
+    'EXCEPTION_HANDLER': 'common.exception_handler.exception_handler',
     # Scoped rates for the two pre-login `AllowAny` authorization-request endpoints only
     # (no project-wide throttling story exists yet); see
     # `accounts/views/authorization_requests/{create,poll}.py`.
