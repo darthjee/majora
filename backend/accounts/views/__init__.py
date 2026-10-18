@@ -1,5 +1,6 @@
 """Views package for the accounts app."""
 
+from accounts.views.api_tokens import api_token, api_token_options, api_tokens
 from accounts.views.auth import (
     account,
     header_status,
@@ -21,6 +22,9 @@ from accounts.views.password_reset import recover, reset_password
 
 __all__ = [
     'account',
+    'api_token',
+    'api_token_options',
+    'api_tokens',
     'authorization_requests_list',
     'authorize',
     'create',
