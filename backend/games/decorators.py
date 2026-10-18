@@ -1,6 +1,11 @@
-"""View-level decorators declaring a /games/ endpoint's cache tier."""
+"""View-level decorators declaring a /games/ endpoint's cache tier and token scopes."""
 
 from functools import wraps
+from types import MappingProxyType
+
+from accounts.scopes import METHOD_ACTIONS, SCOPES
+
+TOKEN_SCOPES_ATTR = 'token_scopes'
 
 
 def _skip_cache_wrapper(view_func):
@@ -57,3 +62,76 @@ def regular(view_func):
     other, and as a hook for future regular-endpoint-specific behavior.
     """
     return view_func
+
+
+def token_scopes(**methods):
+    """Declare the scopes a scoped API token needs, per HTTP method, to call the view.
+
+    Usage: `@token_scopes(GET=[], POST=['documents:write'])`. Each value lists every scope
+    required (all of them); an empty list declares a public read that needs no scope. A
+    method with no entry rejects scoped tokens (fail closed).
+
+    Convention: `@token_scopes` must be applied to the `@api_view`-wrapped view, i.e. sit
+    above `@api_view`. It may be stacked in any order with `@restricted`, `@skip_cache` and
+    `@regular`; `get_token_scopes` follows the `__wrapped__` chain to find it. Applying it
+    below `@api_view` raises `ValueError`, because DRF would hide the declaration.
+
+    Raises `ValueError` at decoration (import) time for an unknown method, an unknown scope,
+    a method the view does not serve, or a non-DRF view.
+    """
+    declaration = _ScopeDeclaration(methods).build()
+
+    def decorator(view_func):
+        """Attach the validated declaration to `view_func` and return it."""
+        _ensure_serves(view_func, declaration)
+        setattr(view_func, TOKEN_SCOPES_ATTR, declaration)
+        return view_func
+
+    return decorator
+
+
+def get_token_scopes(func):
+    """Return the `@token_scopes` declaration of the view `func`, or None when undeclared."""
+    while func is not None:
+        declaration = getattr(func, TOKEN_SCOPES_ATTR, None)
+        if declaration is not None:
+            return declaration
+        func = getattr(func, '__wrapped__', None)
+    return None
+
+
+def _ensure_serves(view_func, declaration):
+    """Raise `ValueError` unless `view_func` is a DRF view serving every declared method."""
+    view_class = getattr(view_func, 'cls', None)
+    if view_class is None:
+        raise ValueError('@token_scopes must decorate an @api_view-wrapped view (place it above)')
+    missing = [method for method in declaration if not hasattr(view_class, method.lower())]
+    if missing:
+        raise ValueError(f'@token_scopes declares methods the view does not serve: {missing}')
+
+
+class _ScopeDeclaration:
+    """Validate and freeze the keyword arguments given to `@token_scopes`."""
+
+    def __init__(self, methods):
+        """Keep the raw `{method: scopes}` mapping."""
+        self.methods = methods
+
+    def build(self):
+        """Return a read-only `{method: tuple_of_scopes}` mapping, or raise `ValueError`."""
+        if not self.methods:
+            raise ValueError('@token_scopes needs at least one method')
+        return MappingProxyType(
+            {method: self._scopes_for(method, scopes) for method, scopes in self.methods.items()}
+        )
+
+    def _scopes_for(self, method, scopes):
+        """Return `scopes` as a tuple after checking the method and every scope."""
+        if method not in METHOD_ACTIONS:
+            raise ValueError(f'@token_scopes: unknown HTTP method {method!r}')
+        if isinstance(scopes, str):
+            raise ValueError(f'@token_scopes: {method} must list scopes, not a string')
+        unknown = [scope for scope in scopes if scope not in SCOPES]
+        if unknown:
+            raise ValueError(f'@token_scopes: unknown scopes {unknown} for {method}')
+        return tuple(scopes)
