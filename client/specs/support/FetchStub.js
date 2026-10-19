@@ -47,6 +47,12 @@ export class FetchStub {
    */
   hang() {
     return this.handleWith((_url, { signal }) => new Promise((_resolve, reject) => {
+      if (!signal) {
+        return;
+      }
+      if (signal.aborted) {
+        reject(signal.reason);
+      }
       signal.addEventListener('abort', () => reject(signal.reason));
     }));
   }
