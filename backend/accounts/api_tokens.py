@@ -1,4 +1,4 @@
-"""Helpers shared by the scoped API token endpoints (see `docs/agents/specs/client/token-api.md`).
+"""Helpers shared by the scoped API token endpoints (see `docs/agents/access-control/api-token.md`).
 
 "Reachable" is defined once here: the games where the user is DM, a player or a PC owner
 (a PC owner is always a `Player` of the PC's game), plus every game for superusers. Plain
