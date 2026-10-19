@@ -125,6 +125,21 @@ src/cli/
 - **`bin/majora.js` is a shim.** It only does
   `process.exitCode = await new Cli({ ...process io }).run(process.argv.slice(2))`.
 
+### Details settled by the implementation (#1610)
+
+- **`--game` on `games`** is ignored, not an error: `games` is not game-scoped.
+- **Integer flags.** `--page` and `--per-page` must be positive integers, `--timeout` and
+  `--retries` non-negative integers; anything else exits 2.
+- **`--query`** is split on its first `=`, so values may contain `=`; an entry without `=` or
+  with an empty key exits 2.
+- **`--data`** is required on `create` / `update` (exit 2 when missing). Error messages about
+  the body never echo it, nor the file contents.
+- **`--token-file`.** An unreadable or blank file exits 2; a blank file does not fall back to
+  `MAJORA_TOKEN`. `--token` gets a hint pointing at `MAJORA_TOKEN` / `--token-file`.
+- **`--help` and `--version`** print to stdout and exit 0; they skip the command checks.
+- **Redaction.** As a last line of defence, the known token (`MAJORA_TOKEN` or the
+  `--token-file` one) is replaced by `[REDACTED]` in anything written to stderr.
+
 ### Edge cases
 
 - **Empty lists.** An empty list prints `[]`. `--all` on an empty list prints nothing.

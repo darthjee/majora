@@ -5,6 +5,9 @@
   "type": "module",
   "main": "src/index.js",
   "exports": "./src/index.js",
+  "bin": {
+    "majora": "bin/majora.js"
+  },
   "files": [
     "src/",
     "bin/",
@@ -15,8 +18,8 @@
   },
   "scripts": {
     "test": "jasmine --config=specs/support/jasmine.json",
-    "lint": "eslint src specs",
-    "lint_fix": "eslint src specs --fix",
+    "lint": "eslint src specs bin",
+    "lint_fix": "eslint src specs bin --fix",
     "coverage": "c8 jasmine --config=specs/support/jasmine.json"
   },
   "repository": {

@@ -4,9 +4,9 @@ Node.js library and command-line client for the [Majora](https://github.com/dart
 RPG campaign manager API, meant for automations.
 
 > **Work in progress.** This package is being built as part of epic #1592. The core library
-> (configuration, HTTP, pagination, retries and errors) and the first resource wrappers
-> (`client.games`, `client.game(slug)`) are available; document pages, links, photo uploads
-> and the `majora` CLI come in later sub-issues.
+> (configuration, HTTP, pagination, retries and errors), the first resource wrappers
+> (`client.games`, `client.game(slug)`) and the [`majora` CLI](#cli) are available; document
+> pages, links and photo uploads come in later sub-issues.
 
 ## Overview
 
@@ -191,6 +191,120 @@ Errors never contain the token, any request header or the request body.
   `Retry-After`), 502, 503 and 504, with exponential backoff (about 0.5 s, then 1 s). Writes,
   500 and other 4xx are never retried. Override per call with `{ retries }`.
 - `iterate` retries each page fetch on its own.
+
+## CLI
+
+The package ships a thin `majora` command-line tool on top of the library, for quick
+scripting and debugging. It adds no logic of its own: every command maps onto one library
+call, and it prints JSON only.
+
+### Install
+
+```sh
+npx majora-client --help        # run without installing
+npm install -g majora-client    # or install the `majora` executable globally
+majora --help
+```
+
+### Configuration
+
+| Source | Meaning |
+|---|---|
+| `MAJORA_URL` | The API root, e.g. `https://majora.example.com`. Overridden by `--url <url>`. |
+| `MAJORA_TOKEN` | The scoped API token (`mjr_...`). Overridden by `--token-file <path>` (whitespace trimmed). |
+| `MAJORA_GAME` | The default game for game-scoped resources. Overridden by `--game <slug>`. |
+
+- There is **no `--token` flag**: a token on the command line ends up in shell history and in
+  `ps` output. Use `MAJORA_TOKEN` or `--token-file`.
+- HTTPS only, as in the library: plain `http://` needs `--allow-insecure-http` (except for
+  `localhost` / `127.0.0.1`).
+- The token is never printed: not on stdout, stderr, `--debug` or `--help`.
+
+### Commands
+
+`majora <resource> <action> [<id>] [flags]`:
+
+```sh
+majora games mine
+majora npcs list --game epic-quest
+majora npcs get 12 --game epic-quest --restricted
+majora games get epic-quest
+majora npcs create --game epic-quest --data '{"name": "Bob"}'
+majora npcs update 12 --game epic-quest --data @npc.json
+```
+
+| Resource | Actions | Game-scoped |
+|---|---|---|
+| `games` | `list`, `mine`, `get <slug>` | no (`--game` is ignored) |
+| `npcs` | `list`, `get <id>`, `create`, `update <id>` | yes |
+| `pcs` | `list`, `get <id>`, `update <id>` (no `create`) | yes |
+| `factions` | `list`, `get <id>`, `create`, `update <id>` | yes |
+| `items` | `list`, `get <id>`, `create`, `update <id>` | yes |
+| `documents` | `list`, `get <id>`, `create`, `update <id>` | yes |
+
+A game-scoped command needs `--game <slug>` or `MAJORA_GAME`. `majora --help`,
+`majora <resource> --help` and `majora --version` print the help and the package version.
+Document pages, links and photo uploads have no CLI command yet, and there is no raw request
+command.
+
+### Flags
+
+| Flag | Meaning |
+|---|---|
+| `--url <url>` | Overrides `MAJORA_URL`. |
+| `--token-file <path>` | Reads the token from a file (whitespace trimmed). Overrides `MAJORA_TOKEN`. |
+| `--allow-insecure-http` | Passes `allowInsecureHttp: true`. |
+| `--game <slug>` | The game for game-scoped resources (falls back to `MAJORA_GAME`). |
+| `--restricted` | Uses the restricted variant (`all.json` / `full.json`). |
+| `--page <n>`, `--per-page <n>` | One page of a `list` (positive integers). |
+| `--all` | Streams every page (NDJSON). Cannot be combined with `--page`. |
+| `--meta` | `list` prints the page metadata together with `data`. |
+| `--query <key>=<value>` | Repeatable. Builds the library's `query` filter object (split on the first `=`). |
+| `--data <json \| @file \| ->` | The body for `create` / `update`: inline JSON, a file, or stdin (curl convention). It must be a JSON object. |
+| `--timeout <ms>`, `--retries <n>` | Passed through to the library. |
+| `--debug` | Prints stack traces on error. Never prints request headers. |
+| `--help`, `--version` | Prints the help text or the package version. |
+
+### Output
+
+- stdout gets JSON only, pretty-printed with 2 spaces.
+- `get`, `create`, `update` (and `games mine`) print the returned object.
+- `list` prints the page's `data` array (`[]` when empty); with `--meta` it prints
+  `{ data, page, pages, perPage, total }`.
+- `list --all` streams every item as NDJSON (one compact JSON object per line), one page at a
+  time; an empty list prints nothing.
+- A closed pipe (for example `| head`) stops quietly with exit code 0; Ctrl-C during a request
+  or `--all` aborts the in-flight request and exits 130.
+
+```sh
+majora npcs list --game epic-quest --all | jq -r '.name'
+majora npcs list --game epic-quest --meta | jq '.total'
+```
+
+### Exit codes and errors
+
+Errors go to stderr as one line with the error message; a `ValidationError` adds its `fields`
+object on the next line. Stack traces only with `--debug`.
+
+| Code | Cause |
+|---|---|
+| 0 | Success |
+| 1 | Unexpected / internal error |
+| 2 | Usage error: bad arguments, `UsageError`, `ConfigurationError`, invalid `--data` |
+| 3 | `AuthenticationError` (401) |
+| 4 | `PermissionError` (403) |
+| 5 | `NotFoundError` (404) |
+| 6 | `ValidationError` (400) |
+| 7 | Other `ApiError` (409, 422, ...) |
+| 8 | `ServerError` (5xx) |
+| 9 | `NetworkError`, including timeouts |
+| 130 | Interrupted (SIGINT) |
+
+Usage errors (exit 2) include an unknown resource or action, an action the resource does not
+have (`pcs create`), a missing `<id>`, `--data` on a read or missing on a write, `--all` with
+`--page`, `--restricted` on a family without that variant, and `--data` that is not a valid JSON
+object. The command grammar, flags, exit codes and JSON output are part of the package's semver
+contract.
 
 ## Development
 
