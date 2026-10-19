@@ -108,7 +108,9 @@ rules:
 - Never include mutation endpoints (anything other than `GET`).
 - Navi never sends a Bearer token: Bearer (scoped API token) requests never touch the proxy
   cache (#1643, see [proxy architecture](architecture/proxy.md#bearer-requests-never-touch-the-cache-bearerskipcachemiddleware)),
-  so warming them would be pointless.
+  so warming them would be pointless. The token management endpoints
+  (`account/api_tokens*.json`, `staff/users/<id>/api-tokens.json`) are private, set
+  `X-Skip-Cache: true` and stay out of the warm-up chain.
 - Never include restricted endpoints (cross-check `docs/agents/access-control/`) — except when
   the same URL serves both a regular and a restricted form (e.g. `/games.json`), in which case
   the regular form is included as usual. Note that `/games.json`'s per-domain form is itself
