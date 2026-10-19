@@ -12,4 +12,3 @@
   environment and is written to `~/.npmrc` inside the release job, never committed.
 - Local `MAJORA_TOKEN` values for the `majora_client` service come from the host environment or
   `.env` and are never committed.
-

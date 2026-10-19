@@ -11,4 +11,3 @@
   form-encoded body gets `415`.
 - Bearer (scoped token) requests carry no cookie-based credential the browser adds on its own,
   so CSRF does not apply to them.
-

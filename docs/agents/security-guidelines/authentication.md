@@ -31,4 +31,3 @@ Rules for `Authorization: Bearer mjr_...` tokens (`accounts.ApiToken`). The full
 - The [client library](../client/library.md#configuration-and-transport-security) refuses plain
   HTTP except for `localhost` or an explicit `allowInsecureHttp`, so the token never travels in
   clear text by accident.
-

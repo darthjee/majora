@@ -167,4 +167,3 @@ A form-encoded body gets `415`.
   (`backend/staff/views/_api_token_shared.py`): action, token id, `user_id` and acting staff id,
   never the secret or the hash. The user is not notified.
 - See also [Authentication guidelines](../security-guidelines/authentication.md#scoped-api-tokens).
-
