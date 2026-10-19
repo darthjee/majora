@@ -321,8 +321,10 @@ make client            # open a shell in the majora_client container
 
 ## Documentation
 
-See the [client spec](../docs/agents/specs/client.md) and its aspect pages under
-`docs/agents/specs/client/`.
+- [Client guide](../docs/guides/client.md): creating a scoped API token and using it with this
+  package.
+- [Client agent docs](../docs/agents/client.md): design and internals of the library, the CLI
+  and the packaging.
 
 ## License
 

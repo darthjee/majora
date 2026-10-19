@@ -54,6 +54,10 @@ Requests authenticated with a scoped API token (`Authorization: Bearer ...`) nev
 - `rules/private_game_data_cache.php`: marker `X-Bearer-Request` with `skip_cache_header => 'X-Bearer-Request'` (it cannot honour `X-Skip-Cache`, which its routes always send). It is also configured with `skipWhenMissing => 'X-Cache-Token'`, so a request without (or with a blank) `X-Cache-Token` is never stored or served, and no shared "empty token" entry can exist.
 - Both `prod_configuration` and `dev_configuration` rules are wired. Inbound marker headers are not stripped: spoofing one only skips the sender's own cache.
 - The backend's `accounts.middleware.BearerNoCacheMiddleware` also adds `X-Skip-Cache: true` and `Cache-Control: no-store` to every Bearer response, as a second guard on the write path. It never reads `X-Bearer-Request`.
+- Why: `rules/backend.php` caches every `.json` GET whoever the caller is, and `rules/private_game_data_cache.php` keys its entries on `X-Cache-Token`, so a cache hit would skip every token check (`401`, `403` `token_not_allowed` / `game_not_allowed`). Tent matchers only look at the URI and the method, so a rule cannot be selected by a header; the middleware is the only place to branch on it.
+- `BearerNoCacheMiddleware` sits after `games.middleware.CacheControlMiddleware` in `MIDDLEWARE`, so it runs first on the way out and `CacheControlMiddleware` can never send `public, max-age` for a Bearer response. On its own it cannot stop a cache *hit*, and the private rule ignores `X-Skip-Cache`, so it complements the proxy middleware rather than replacing it. Django is reachable directly on Render, so it must never trust `X-Bearer-Request`.
+- Bearer detection must stay the same in the proxy and the backend: a looser proxy check (for example a literal `Bearer ` prefix) would miss variants the backend accepts and reopen the leak.
+- Rejected: caching Bearer responses per token (revocation must take effect at once) and skipping the cache on any `Authorization` header (the SPA sends `Authorization: Token` on every request).
 
 ## Photo uploads (`UploadHandler`)
 

@@ -14,5 +14,6 @@ Files
 - logging.md — Logging
 - bootstrap-linting-tests.md — Bootstrap, Linting & Tests
 - charts.md — Charts (Recharts conventions)
+- api-tokens.md — API Tokens UI (owner token page and staff panel)
 
 Each file preserves the original headings and contents from the consolidated document.

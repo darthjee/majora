@@ -23,8 +23,8 @@ Do NOT touch `backend/`, `frontend/`, `proxy/`, `crawler/`, `navi/`, `docker-com
 `frontend`, `proxy`, `crawler`, `cache`, or `infra`. In particular, the client wiring outside
 `client/` belongs to `infra`: the `majora_client` docker-compose service, the `client*`
 Makefile targets, the `client_tests`, `client_checks` and `client-release` CI jobs, and
-`scripts/bump_version.sh client` (see the
-[packaging spec](../../docs/agents/specs/client/packaging.md)).
+`scripts/bump_version.sh client` (see
+[Client packaging](../../docs/agents/client/packaging.md)).
 
 ## Naming
 
@@ -54,9 +54,14 @@ make client            # open a shell in the majora_client container
 
 ## Sources
 
-- The client spec — [`docs/agents/specs/client.md`](../../docs/agents/specs/client.md) and its
-  aspect pages under `docs/agents/specs/client/` (especially `library.md`, `cli.md`,
-  `packaging.md`, `scopes.md`).
+- The client docs — [`docs/agents/client/library.md`](../../docs/agents/client/library.md),
+  [`cli.md`](../../docs/agents/client/cli.md) and
+  [`packaging.md`](../../docs/agents/client/packaging.md). Keep them up to date when the library,
+  the CLI or the packaging changes.
+- The token rules — [`docs/agents/access-control/token-scopes.md`](../../docs/agents/access-control/token-scopes.md)
+  and [`api-token.md`](../../docs/agents/access-control/api-token.md).
+- The consumer guide — [`docs/guides/client.md`](../../docs/guides/client.md), updated
+  alongside `client/README.md` when user-facing behaviour changes.
 - The API guides under [`docs/guides/majora/`](../../docs/guides/majora/) for exact request and
   response shapes.
 - [`docs/agents/client.md`](../../docs/agents/client.md) — why this agent exists and how it
