@@ -29,7 +29,7 @@ const RESOURCES = Object.freeze({
   games: {
     actions: ['list', 'mine', 'get'],
     gameScoped: false,
-    description: 'Games (top-level, read-only); `get` takes the game slug',
+    description: 'Games (top-level, read-only)',
     accessor: (client) => client.games,
   },
   npcs: {

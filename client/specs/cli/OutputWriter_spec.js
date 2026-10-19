@@ -32,6 +32,14 @@ describe('OutputWriter', () => {
     });
   });
 
+  describe('#text', () => {
+    it('writes the text as is', async () => {
+      await writer.text('Usage: majora\n');
+
+      expect(stdout.output).toEqual('Usage: majora\n');
+    });
+  });
+
   describe('#page', () => {
     const page = new Page({ data: [{ id: 1 }, { id: 2 }], page: 2, pages: 3, perPage: 2, total: 6 });
 

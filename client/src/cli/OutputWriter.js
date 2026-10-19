@@ -48,6 +48,16 @@ export class OutputWriter {
   }
 
   /**
+   * Prints raw text as is (`--help` and `--version` only; every result is JSON).
+   * @param {string} text - The text.
+   * @returns {Promise<void>} Resolves once written.
+   * @throws {Error} The stream error when stdout fails (see `isClosedPipe`).
+   */
+  async text(text) {
+    await this.#write(text);
+  }
+
+  /**
    * Prints a `list` page: its `data` array, or `{ data, page, pages, perPage, total }` with
    * `meta`.
    * @param {import('../core/Page.js').Page} page - The page.
