@@ -16,3 +16,4 @@ original section headings.
 - docs/agents/frontend/api-client-requests.md
 - docs/agents/frontend/bootstrap-linting-tests.md
 - docs/agents/frontend/charts.md
+- docs/agents/frontend/api-tokens.md
