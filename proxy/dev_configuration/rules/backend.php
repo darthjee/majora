@@ -13,9 +13,10 @@
  * the response is cached or reaches the client. Its 'location' must match the
  * handler's cache folder ($cacheFolder).
  *
- * BearerSkipCacheMiddleware (issue #1643) is prepended first so it runs
- * before default_proxy's built-in FileCacheMiddleware: when the request
- * carries an `Authorization: Bearer ...` header (scoped API token) it sets
+ * BearerSkipCacheMiddleware (issue #1643) is prepended right after
+ * ResponseCacheClearMiddleware, so it also runs before default_proxy's
+ * built-in FileCacheMiddleware: when the request carries an
+ * `Authorization: Bearer ...` header (scoped API token) it sets
  * X-Skip-Cache: true, so the handler's skip_cache_header bypasses both the
  * cache read and the cache write. ResponseCacheClearMiddleware and
  * CacheCleanupMiddleware still run on Bearer writes, so stale entries are
@@ -38,12 +39,12 @@ Configuration::buildRule(
     ],
     'prependMiddlewares' => [
         [
-            'class'  => 'Tent\\Middlewares\\BearerSkipCacheMiddleware',
-            'header' => 'X-Skip-Cache'
-        ],
-        [
             'class'    => 'Tent\\Middlewares\\ResponseCacheClearMiddleware',
             'location' => $cacheFolder
+        ],
+        [
+            'class'  => 'Tent\\Middlewares\\BearerSkipCacheMiddleware',
+            'header' => 'X-Skip-Cache'
         ]
     ],
     'middlewares' => [
