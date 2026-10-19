@@ -18,8 +18,8 @@ Create one class per file in `client/src/core/errors/`, following the spec's Err
 - A factory (e.g. `ApiError.fromResponse({ status, method, path, body })`) that picks the
   subclass by status; other statuses (409, 422, …) give a plain `ApiError`.
 
-Errors never receive request headers or request bodies — only `method`, `path` (without query
-string token-free; the path is built by the library) and the parsed response body.
+Errors never receive request headers or request bodies — only `method`, `path` (built by the library, never
+containing credentials) and the parsed response body.
 
 Specs under `client/specs/core/errors/`: subclass and `instanceof` per status, `codes`
 extraction for every body shape in the spec's table (400, 401, 403 scope, 403 role/empty, 404
