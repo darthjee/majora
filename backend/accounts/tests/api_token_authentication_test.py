@@ -13,7 +13,7 @@ from rest_framework.permissions import AllowAny, BasePermission
 from rest_framework.response import Response
 from rest_framework.test import APIClient, APIRequestFactory
 
-from accounts.authentication import ApiTokenAuthentication
+from accounts.authentication import BEARER_PATTERN, ApiTokenAuthentication
 from accounts.models import ApiToken, UserProfile
 from games.decorators import token_scopes
 from games.tests.factories import GameFactory, UserFactory
@@ -21,6 +21,12 @@ from games.tests.factories import GameFactory, UserFactory
 ACCOUNT_URL = '/account/account.json'
 INVALID_HEADER = 'Bearer realm="api", error="invalid_token"'
 TEST_ROUTE = 'games/<slug:game_slug>/test.json'
+UNICODE_SCHEME_TEMPLATES = [
+    'Bearer\xa0{token}',
+    '\xa0Bearer {token}',
+    'Bearer\x85{token}',
+    'Bearer\x1f{token}',
+]
 
 
 class ApiTokenTestMixin:
@@ -143,6 +149,33 @@ class TestApiTokenAuthenticationFailures(ApiTokenTestMixin):
         """Test that a token whose owner is denied is invalid."""
         UserProfile.objects.filter(user=self.user).update(status=UserProfile.STATUS_DENIED)
         self._assert_invalid(f'Bearer {self.plain}')
+
+
+@pytest.mark.django_db
+class TestApiTokenAuthenticationUnicodeWhitespace(ApiTokenTestMixin):
+    """Tests that Bearer detection and parsing only honour ASCII whitespace, like the proxy."""
+
+    @pytest.mark.parametrize('template', UNICODE_SCHEME_TEMPLATES)
+    def test_unicode_scheme_separator_is_not_bearer(self, template):
+        """Test that Unicode whitespace around `Bearer` is not detected as a Bearer token."""
+        header = template.format(token=self.plain)
+        assert BEARER_PATTERN.search(header) is None
+        assert self.auth.authenticate(self._request(header)) is None
+        self.api_token.refresh_from_db()
+        assert self.api_token.last_used_at is None
+
+    @pytest.mark.parametrize('template', ['Bearer \xa0{token}', 'Bearer {token}\xa0'])
+    def test_unicode_whitespace_around_token_is_invalid(self, template):
+        """Test that Unicode whitespace next to the token is not stripped away."""
+        self._assert_invalid(template.format(token=self.plain))
+
+    @pytest.mark.parametrize('template', UNICODE_SCHEME_TEMPLATES)
+    def test_unicode_variant_does_not_authenticate_end_to_end(self, template):
+        """Test that a Unicode-whitespace Bearer header leaves the request anonymous."""
+        header = template.format(token=self.plain)
+        response = APIClient().get(ACCOUNT_URL, HTTP_AUTHORIZATION=header)
+        assert response.status_code == 401
+        assert response['WWW-Authenticate'] == 'Bearer realm="api"'
 
 
 @pytest.mark.django_db

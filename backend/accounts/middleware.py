@@ -7,7 +7,8 @@ class BearerNoCacheMiddleware:
     """Keep every response to a Bearer (scoped API token) request out of any cache.
 
     Responses to requests whose ``Authorization`` value matches ``BEARER_PATTERN`` get
-    ``X-Skip-Cache: true`` and ``Cache-Control: no-store``, whatever their status. Every
+    ``X-Skip-Cache: true`` and ``Cache-Control: no-store``, whatever their status. The rule
+    is ASCII-only, like the proxy's, so Unicode-whitespace variants are not Bearer. Every
     other response is left untouched. The ``X-Bearer-Request`` proxy marker is never read:
     Django is reachable directly, so only the ``Authorization`` header is trusted.
     """

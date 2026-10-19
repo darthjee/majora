@@ -13,7 +13,12 @@ from accounts.models.api_token import hash_secret
 from accounts.scopes import effective_scopes
 from games.decorators import get_token_scopes
 
-BEARER_PATTERN = re.compile(r'(^|,)\s*bearer(\s|$)', re.IGNORECASE)
+# Bearer detection must stay identical to the proxy's BearerSkipCacheMiddleware PCRE
+# `/(^|,)\s*bearer(\s|$)/i` (no `/u`): ASCII-only, so `\s` never matches Unicode whitespace
+# such as `\xa0`. Otherwise Django could authenticate a header the proxy would still cache.
+BEARER_PATTERN = re.compile(r'(^|,)\s*bearer(\s|$)', re.ASCII | re.IGNORECASE)
+# Token header parts are separated by ASCII spaces and tabs only (see `BEARER_PATTERN`).
+HEADER_SEPARATOR = re.compile(r'[ \t]+')
 API_TOKEN_PATTERN = re.compile(r'^mjr_([A-Za-z0-9]{8})_([A-Za-z0-9]{43})$')
 BEARER_REALM = 'Bearer realm="api"'
 INVALID_TOKEN_HEADER = f'{BEARER_REALM}, error="invalid_token"'
@@ -149,10 +154,14 @@ class ApiTokenAuthentication(BaseAuthentication):
 
     def _parse(self, header):
         """Return `(prefix, secret)` from a well-formed Bearer header, or raise."""
-        match = self._match_token(header.split())
+        match = self._match_token(self._split(header))
         if match is None:
             raise InvalidApiToken()
         return match.groups()
+
+    def _split(self, header):
+        """Return `header`'s parts split on ASCII spaces and tabs only, never Unicode spaces."""
+        return HEADER_SEPARATOR.split(header.strip(' \t'))
 
     def _match_token(self, parts):
         """Return the token pattern match for `[scheme, token]` parts, or None."""

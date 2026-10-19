@@ -8,6 +8,7 @@ from django.test import RequestFactory
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
+from accounts.authentication import BEARER_PATTERN
 from accounts.middleware import BearerNoCacheMiddleware
 from accounts.models import ApiToken
 from domains.tests.factories import DomainFactory
@@ -19,6 +20,7 @@ ACCOUNT_URL = '/account/account.json'
 GAMES_URL = '/games.json'
 UNKNOWN_URL = '/does-not-exist/at-all.json'
 BEARER_HEADERS = ['Bearer abc', 'bearer abc', 'BEARER abc', 'Bearer\tabc', 'Token x, Bearer y']
+UNICODE_HEADERS = ['Bearer\xa0abc', '\xa0Bearer abc', 'Bearer\x85abc', 'Token x,\xa0Bearer y']
 STATUSES = [200, 401, 403, 404, 500]
 
 
@@ -62,6 +64,12 @@ class TestBearerNoCacheMiddlewareDirect:
         """Test that non-Bearer Authorization values leave the response alone."""
         response = self._call(200, HTTP_AUTHORIZATION=header)
         _assert_untouched(response)
+
+    @pytest.mark.parametrize('header', UNICODE_HEADERS)
+    def test_unicode_whitespace_bearer_is_untouched(self, header):
+        """Test that Unicode-whitespace Bearer variants are not Bearer, agreeing with the rule."""
+        assert BEARER_PATTERN.search(header) is None
+        _assert_untouched(self._call(200, HTTP_AUTHORIZATION=header))
 
     def test_no_authorization_is_untouched(self):
         """Test that a request without Authorization leaves the response alone."""
