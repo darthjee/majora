@@ -257,6 +257,8 @@ await client.games.get('epic-quest');
 - **No `delete`**: none of these families' endpoints accept `DELETE`.
 - `update` sends a `PATCH` (partial update).
 - `games` is `list`, `mine` and `get` only.
+- `games.list` returns a `Page` (with its `iterate` counterpart), because `games.json` is
+  paginated; `games.mine` returns the plain parsed array, because `my-games.json` is not.
 - **Return values** are plain parsed JSON objects — no model classes. `list` returns a `Page`.
 
 #### Regular and restricted variants

@@ -1,21 +1,32 @@
 import { Config } from './core/Config.js';
 import { HttpClient } from './core/HttpClient.js';
 import { Paginator } from './core/Paginator.js';
+import { UsageError } from './core/errors/UsageError.js';
+import { Documents } from './resources/Documents.js';
+import { Factions } from './resources/Factions.js';
+import { Games } from './resources/Games.js';
+import { Items } from './resources/Items.js';
+import { Npcs } from './resources/Npcs.js';
+import { Pcs } from './resources/Pcs.js';
+import { isBlankSegment } from './resources/Resource.js';
 
 /**
  * Entry point of the Majora client library.
  *
  * Resolves and validates the configuration at construction (throwing
  * `ConfigurationError` before any request), then builds the shared HTTP layer and the
- * paginator the resource wrappers are built on.
+ * paginator the resource wrappers are built on. Top-level, read-only games hang off
+ * `client.games`; game-scoped families hang off `client.game(slug)`.
  *
  * @example
  * const client = new MajoraClient({ baseUrl: 'https://majora.example.com', token: 'mjr_...' });
- * const { body } = await client.http.get('my-games');
+ * const games = await client.games.mine();
+ * const page = await client.game('epic-quest').npcs.list({ page: 2 });
  */
 export class MajoraClient {
   #http;
   #paginator;
+  #games;
 
   /**
    * Builds the client.
@@ -38,6 +49,40 @@ export class MajoraClient {
 
     this.#http = new HttpClient(config);
     this.#paginator = new Paginator(this.#http);
+    this.#games = new Games(this.#http, this.#paginator);
+  }
+
+  /**
+   * The top-level, read-only games wrapper (`list`, `iterate`, `mine`, `get`).
+   * @returns {Games} The games wrapper.
+   */
+  get games() {
+    return this.#games;
+  }
+
+  /**
+   * The game-scoped wrappers bound to one game. Builds them without any request.
+   * @param {string} slug - The game slug.
+   * @returns {{slug: string, npcs: Npcs, pcs: Pcs, factions: Factions, items: Items,
+   *   documents: Documents}} The wrappers of that game (frozen).
+   * @throws {UsageError} When the slug is missing or empty.
+   */
+  game(slug) {
+    if (isBlankSegment(slug)) {
+      throw new UsageError('Missing game slug');
+    }
+
+    const http = this.#http;
+    const paginator = this.#paginator;
+
+    return Object.freeze({
+      slug,
+      npcs: new Npcs(http, paginator, slug),
+      pcs: new Pcs(http, paginator, slug),
+      factions: new Factions(http, paginator, slug),
+      items: new Items(http, paginator, slug),
+      documents: new Documents(http, paginator, slug),
+    });
   }
 
   /**

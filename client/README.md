@@ -4,8 +4,9 @@ Node.js library and command-line client for the [Majora](https://github.com/dart
 RPG campaign manager API, meant for automations.
 
 > **Work in progress.** This package is being built as part of epic #1592. The core library
-> (configuration, HTTP, pagination, retries and errors) is available; the resource wrappers
-> (`client.game(slug)`, `client.games`) and the `majora` CLI come in later sub-issues.
+> (configuration, HTTP, pagination, retries and errors) and the first resource wrappers
+> (`client.games`, `client.game(slug)`) are available; document pages, links, photo uploads
+> and the `majora` CLI come in later sub-issues.
 
 ## Overview
 
@@ -36,8 +37,82 @@ const client = new MajoraClient({
   or `allowInsecureHttp: true` is passed (for example for a docker-compose service name).
 - `fetch` can be injected (`new MajoraClient({ fetch })`), defaulting to `globalThis.fetch`.
 
-Until the resource wrappers land, requests go through `client.http` and `client.paginator`.
-Paths are relative to `baseUrl` and given without the `.json` suffix:
+### Resources
+
+Resource wrappers map one-to-one onto the token scope families. They return plain parsed JSON
+(no model classes); `list` returns a `Page` (see [Pagination](#pagination)) and `iterate`
+yields every item, one page at a time. A wrapper does not check scopes itself: the API does.
+
+#### Games (top-level, read-only)
+
+```js
+await client.games.list({ page: 2 });  // games.json, returns a Page
+client.games.iterate();                // every game, page by page
+await client.games.mine();             // my-games.json, returns the plain array (not paginated)
+await client.games.get('epic-quest');  // games/epic-quest.json
+```
+
+#### Game-scoped families
+
+`client.game(slug)` returns the wrappers bound to one game (`games/<slug>/...`). It makes no
+request; a missing or empty slug throws `UsageError`.
+
+```js
+const game = client.game('epic-quest');
+
+await game.npcs.list({ page: 2, perPage: 50, query: { name: 'Bob' } });
+for await (const npc of game.npcs.iterate()) { /* ... */ }
+await game.npcs.get(12);
+await game.npcs.create({ name: 'Bob' });             // POST
+await game.npcs.update(12, { name: 'Robert' });      // PATCH (partial update)
+```
+
+| Family | Actions |
+|---|---|
+| `game.npcs` | `list` (+ `iterate`), `get`, `create`, `update` |
+| `game.pcs` | `list` (+ `iterate`), `get`, `update` — no `create` (the API has no PC create route) |
+| `game.factions` | `list` (+ `iterate`), `get`, `create`, `update` |
+| `game.items` | `list` (+ `iterate`), `get`, `create`, `update` |
+| `game.documents` | `list` (+ `iterate`), `get`, `create`, `update` |
+
+There is **no `delete`** on any of them: none of these endpoints accept `DELETE`. Every action
+also accepts the request options `headers`, `timeout`, `retries` and `signal` (and `query`;
+`list` / `iterate` add `page` and `perPage`). Slugs and ids are URL-encoded.
+
+#### Regular and restricted variants
+
+The regular variant is the default. `{ restricted: true }` selects the restricted URL
+(`all.json` / `full.json`), which needs the matching restricted scope:
+
+```js
+await game.npcs.list({ restricted: true });             // npcs/all.json
+await game.npcs.get(12, { restricted: true });          // npcs/12/full.json
+await game.npcs.create(data, { restricted: true });     // POST npcs/full.json
+await game.npcs.update(12, data, { restricted: true }); // PATCH npcs/12/full.json
+```
+
+| Family | `list` | `get` | `create` | `update` |
+|---|---|---|---|---|
+| `npcs` | `npcs/all.json` | `npcs/<id>/full.json` | `POST npcs/full.json` | `PATCH npcs/<id>/full.json` |
+| `pcs` | — | `pcs/<id>/full.json` | — (no create at all) | `PATCH pcs/<id>/full.json` |
+| `factions` | — | — | — | — |
+| `items` | `items/all.json` | `items/<id>/full.json` | — | — |
+| `documents` | `documents/all.json` | `documents/<id>/full.json` | — | — |
+
+`games` has no restricted variant.
+
+Asking for a variant or an action that does not exist (for example `game.pcs.list({ restricted:
+true })` or `game.pcs.create(...)`), or passing a blank id or slug, throws `UsageError`
+locally, before any request. There is **no automatic fallback** to the regular URL (for
+example on a 403): it would hide scope problems.
+
+Document pages (#1621), character links (#1622) and photo uploads (#1623) are coming in later
+sub-issues.
+
+### Raw requests
+
+For anything the wrappers do not cover yet, requests can go through `client.http` and
+`client.paginator`. Paths are relative to `baseUrl` and given without the `.json` suffix:
 
 ```js
 const { body } = await client.http.get('games/epic-quest/npcs/12');
@@ -50,7 +125,7 @@ Every request carries `Authorization: Bearer <token>`. Bodies are sent as JSON, 
 ### Pagination
 
 ```js
-const page = await client.paginator.list('games/epic-quest/npcs', {
+const page = await client.game('epic-quest').npcs.list({
   page: 2, perPage: 50, query: { name: 'Bob' },
 });
 page.data;    // array of plain objects
@@ -61,13 +136,15 @@ page.total;   // 330
 page.hasNext; // true
 await page.next(); // the next Page, or null on the last one
 
-for await (const npc of client.paginator.iterate('games/epic-quest/npcs', { query: { slain: false } })) {
+for await (const npc of client.game('epic-quest').npcs.iterate({ query: { slain: false } })) {
   // one page fetched at a time, on demand
 }
 ```
 
 - Filters go in `query`; they cannot override `page` / `per_page`.
 - `perPage` is sent only when given; otherwise the server default applies.
+- `client.paginator.list(path, options)` / `client.paginator.iterate(path, options)` do the
+  same on a raw path.
 - Non-paginated lists return a single `Page` (`page = pages = 1`, `total = data.length`).
 - Pagination is offset-based: items created or deleted during an iteration can be skipped or
   repeated.
@@ -92,7 +169,7 @@ Everything the library throws extends `MajoraError`:
 import { PermissionError, ValidationError } from 'majora-client';
 
 try {
-  await client.http.get('games/epic-quest/npcs/all');
+  await client.game('epic-quest').npcs.list({ restricted: true });
 } catch (error) {
   if (error instanceof PermissionError && error.code === 'scope_missing') {
     // the token lacks the scope

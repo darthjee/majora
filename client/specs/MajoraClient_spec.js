@@ -2,6 +2,12 @@ import { inspect } from 'node:util';
 import { MajoraClient } from '../src/MajoraClient.js';
 import { HttpClient } from '../src/core/HttpClient.js';
 import { Paginator } from '../src/core/Paginator.js';
+import { Documents } from '../src/resources/Documents.js';
+import { Factions } from '../src/resources/Factions.js';
+import { Games } from '../src/resources/Games.js';
+import { Items } from '../src/resources/Items.js';
+import { Npcs } from '../src/resources/Npcs.js';
+import { Pcs } from '../src/resources/Pcs.js';
 import {
   ApiError, AuthenticationError, ConfigurationError, MajoraError, NetworkError, NotFoundError,
   PermissionError, ServerError, UsageError, ValidationError,
@@ -36,10 +42,57 @@ describe('MajoraClient', () => {
       expect(client.http).toEqual(jasmine.any(HttpClient));
     });
 
-    it('has no resource accessors yet', () => {
-      expect(client.game).toBeUndefined();
-      expect(client.games).toBeUndefined();
+  });
+
+  describe('games', () => {
+    it('is one read-only Games wrapper', () => {
+      expect(client.games).toEqual(jasmine.any(Games));
+      expect(client.games).toBe(client.games);
+      expect(() => {
+        client.games = null;
+      }).toThrowError(TypeError);
     });
+
+    it('lists my games with the Bearer header', async () => {
+      stub.reply(200, [{ slug: 'epic-quest' }]);
+
+      expect(await client.games.mine()).toEqual([{ slug: 'epic-quest' }]);
+      expect(stub.lastCall.url).toEqual('https://majora.example.com/my-games.json');
+      expect(stub.lastCall.options.headers.Authorization).toEqual(`Bearer ${token}`);
+    });
+  });
+
+  describe('game', () => {
+    it('builds the game-scoped wrappers without any request', () => {
+      const game = client.game('epic-quest');
+
+      expect(game.slug).toEqual('epic-quest');
+      expect(game.npcs).toEqual(jasmine.any(Npcs));
+      expect(game.pcs).toEqual(jasmine.any(Pcs));
+      expect(game.factions).toEqual(jasmine.any(Factions));
+      expect(game.items).toEqual(jasmine.any(Items));
+      expect(game.documents).toEqual(jasmine.any(Documents));
+      expect(Object.isFrozen(game)).toBeTrue();
+      expect(stub.calls).toEqual([]);
+    });
+
+    it('binds the wrappers to the slug and sends the Bearer header', async () => {
+      stub.reply(200, { id: 12 });
+
+      expect(await client.game('epic-quest').npcs.get(12)).toEqual({ id: 12 });
+      expect(stub.lastCall.url).toEqual('https://majora.example.com/games/epic-quest/npcs/12.json');
+      expect(stub.lastCall.options.headers.Authorization).toEqual(`Bearer ${token}`);
+    });
+
+    it('raises UsageError for a missing or empty slug, without any request', () => {
+      [undefined, null, ''].forEach((slug) => {
+        expect(() => client.game(slug)).toThrowError(UsageError, 'Missing game slug');
+      });
+      expect(stub.calls).toEqual([]);
+    });
+  });
+
+  describe('configuration', () => {
 
     it('falls back to the environment', async () => {
       client = new MajoraClient({ fetch: stub.fetch, env: { MAJORA_URL: 'https://env.example.com', MAJORA_TOKEN: 'mjr_env' } });
