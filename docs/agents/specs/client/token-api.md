@@ -309,7 +309,6 @@ and a joined `Token x, Bearer mjr_…`. The backend treats every such value as a
 Implemented as `accounts.middleware.BearerNoCacheMiddleware`, reusing
 `accounts.authentication.BEARER_PATTERN`.
 
-
 - A small Django middleware adds `X-Skip-Cache: true` **and `Cache-Control: no-store`** to every
   response to a Bearer request (same detection rule), whatever the status, including
   Django-level 404 and 500 responses.
