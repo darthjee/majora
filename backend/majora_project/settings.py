@@ -67,6 +67,9 @@ MIDDLEWARE = [
     'statistics.middleware.StatisticsSessionMiddleware',
     'simple_history.middleware.HistoryRequestMiddleware',
     'games.middleware.CacheControlMiddleware',
+    # Order is load-bearing: listed after CacheControlMiddleware, it runs first on the
+    # response, so CacheControlMiddleware sees X-Skip-Cache: true and keeps no-store.
+    'accounts.middleware.BearerNoCacheMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
