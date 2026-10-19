@@ -9,7 +9,7 @@ import {
 import { FetchStub } from './support/FetchStub.js';
 
 describe('MajoraClient', () => {
-  const token = 'mjr_Sup3rS3cretT0kenValue';
+  const token = 'mjr_fake_token_for_specs';
   const secretBody = 'private campaign content';
   let stub;
   let client;
