@@ -92,6 +92,7 @@ already settled), **Open questions** (each naming the improvement issue that set
 | 22 | #1621 | Document page wrappers | [Library](client/library.md) | client |
 | 23 | #1622 | Link route wrappers | [Library](client/library.md) | client |
 | 24 | #1623 | Photo upload wrappers | [Library](client/library.md) | client |
+| 25 | #1643 | Keep Bearer requests out of the proxy cache (done) | [Token API](client/token-api.md#caching-proxy-and-navi) | proxy, backend |
 
 Sub-issues 11 and 12 also get `security` and `data-access` reviews. Improvement issues 2 to 8 are one
 per aspect page; any that turns out to need no work is closed.

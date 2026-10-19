@@ -14,8 +14,17 @@
  * callers. The mechanism was introduced as a pilot in issue #949 (scoped to
  * a single test-only route) and went live for these real routes in #1072.
  *
- * Deliberately has no `skip_cache_header` option: all 3 routes keep sending
- * `X-Skip-Cache: true` unchanged, but this rule doesn't honor it.
+ * Does not honour `X-Skip-Cache`: all 3 routes keep sending
+ * `X-Skip-Cache: true` unchanged, so honouring it would disable this cache.
+ * Instead its `skip_cache_header` is `X-Bearer-Request` (issue #1643), set
+ * by the prepended BearerSkipCacheMiddleware before default_proxy's
+ * built-in FileCacheMiddleware runs. The marker is set when the request
+ * carries an `Authorization: Bearer ...` header (scoped API token), so Bearer
+ * requests are never served from or written to this cache, and also when
+ * `X-Cache-Token` is missing or blank, so the rule refuses to cache without
+ * a per-caller token (no shared "empty token" entry can be written or
+ * served).
+ *
  * Deliberately has no CacheCleanupMiddleware: its collection/entity cleanup
  * is keyed off the *mutating* request's own path, which never applies to
  * these GET-only routes.
@@ -32,6 +41,7 @@ Configuration::buildRule(
     'handler' => [
         'type' => 'default_proxy',
         'host' => 'http://backend:8080',
+        'skip_cache_header' => 'X-Bearer-Request',
         'request_hasher' => [
             'class' => 'Tent\\Cache\\PrivateRequestHasher',
             'headerName' => 'X-Cache-Token',
@@ -42,6 +52,13 @@ Configuration::buildRule(
             'method' => 'GET',
             'pattern' => '#^/games/[^/]+/n?pcs/(all|\d+/full)\.json$#',
             'type' => 'regex',
+        ],
+    ],
+    'prependMiddlewares' => [
+        [
+            'class'           => 'Tent\\Middlewares\\BearerSkipCacheMiddleware',
+            'header'          => 'X-Bearer-Request',
+            'skipWhenMissing' => 'X-Cache-Token'
         ],
     ],
     'middlewares' => [

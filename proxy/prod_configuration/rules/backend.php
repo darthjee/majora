@@ -12,6 +12,16 @@
  * a 2xx backend response's X-Cache-Clear header and strips that header before
  * the response is cached or reaches the client. It shares the handler's
  * domain-scoped cache folder.
+ *
+ * BearerSkipCacheMiddleware (issue #1643) is prepended right after
+ * ResponseCacheClearMiddleware, so it also runs before default_proxy's
+ * built-in FileCacheMiddleware: when the request carries an
+ * `Authorization: Bearer ...` header (scoped API token) it sets
+ * X-Skip-Cache: true, so the handler's skip_cache_header bypasses both the
+ * cache read and the cache write. ResponseCacheClearMiddleware and
+ * CacheCleanupMiddleware still run on Bearer writes, so stale entries are
+ * cleared. The backend also adds X-Skip-Cache: true to every Bearer
+ * response as a second guard on the write path.
  */
 
 use Tent\Configuration;
@@ -35,6 +45,10 @@ Configuration::buildRule(
         [
             'class'    => 'Tent\\Middlewares\\ResponseCacheClearMiddleware',
             'location' => $backendCacheLocation
+        ],
+        [
+            'class'  => 'Tent\\Middlewares\\BearerSkipCacheMiddleware',
+            'header' => 'X-Skip-Cache'
         ]
     ],
     'middlewares' => [
