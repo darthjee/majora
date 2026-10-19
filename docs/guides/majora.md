@@ -14,32 +14,35 @@ for the overall request flow).
 
 ## Authentication
 
-Every endpoint accepts either of the following, handled uniformly by
-`CookieTokenAuthentication` (`backend/accounts/authentication.py`), which is the
-DRF-wide default (`REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES']` in
-`backend/majora_project/settings.py`):
+Every endpoint accepts one of the following:
 
-- **API token header** (used by automated clients, e.g. the crawler): send
-  `Authorization: Token <key>` on every request. This is the recommended path for
-  non-browser clients.
-- **Session cookie** (used by the web frontend): the browser session carries an
-  `auth_token` value set at login, resolved server-side to the same token.
+- **Scoped API token** (recommended for automations): send
+  `Authorization: Bearer mjr_<prefix>_<secret>` on every request. Tokens are created from the
+  web UI (account menu → **API tokens**), carry `read`/`write` scopes per resource family and an
+  optional list of games, and never grant more than their owner can do. They are handled by
+  `ApiTokenAuthentication`, which runs first. An unknown, revoked, expired or malformed token
+  always gets `401` `token_invalid`; a valid token that lacks a scope or game gets `403`. See the
+  [client guide](client.md) for creating and using one, including the
+  [`majora-client`](client.md#using-majora-client) package.
+- **Legacy API token header** (used by the crawler): `Authorization: Token <key>`, a standard
+  DRF authtoken row (`rest_framework.authtoken.models.Token`) with all of its user's access and
+  no scopes. It is created for a service account through the Django admin (`/admin/`); see the
+  "Explicitly out of scope" note in
+  [issue #1148](../agents/issues/1148-centralize-user-check--allow-api-token-requests-and-document-api.md)
+  for why there is no other tooling.
+- **Session cookie** (used by the web frontend): the browser session carries an `auth_token`
+  value set at login. The legacy header and the cookie are both handled by
+  `CookieTokenAuthentication` (`backend/accounts/authentication.py`).
 
 A resolved user is only treated as authenticated if their `UserProfile.status` is
-`approved` — `pending`/`denied` users are treated as anonymous regardless of which
-auth path resolved them.
-
-**Obtaining a token today:** tokens are standard DRF authtoken rows
-(`rest_framework.authtoken.models.Token`, already installed). Create/rotate a
-service-account token for an automated client via the Django admin (`/admin/`) — no
-dedicated tooling exists yet; see the "Explicitly out of scope" note in
-[issue #1148](../agents/issues/1148-centralize-user-check--allow-api-token-requests-and-document-api.md)
-for why.
+`approved`. With the legacy header or the cookie, `pending`/`denied` users are treated as
+anonymous; a scoped token whose owner is not approved gets `401`.
 
 ## Available topic pages
 
 - [Miniatures API](./majora/miniatures.md) — `collections`, `sources`, `stl_models`
   endpoints (the surface the crawler will consume first)
+- [Client guide](./client.md) — scoped API tokens and the `majora-client` library and CLI
 
 More topic pages will be added incrementally as other parts of the API are
 documented for external consumers.

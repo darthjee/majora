@@ -109,7 +109,8 @@ All project documentation lives under [`docs/agents/`](docs/agents/):
 
 Public API documentation for external/automated consumers (not agents) lives separately
 under [`docs/guides/`](docs/guides/majora.md) — e.g. the miniatures API reference the
-`crawler` agent consumes.
+`crawler` agent consumes, and the [client guide](docs/guides/client.md) for scoped API tokens
+and the `majora-client` package.
 
 ### Issues (`docs/agents/issues/`)
 
