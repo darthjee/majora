@@ -40,12 +40,42 @@ Before a PR is considered complete, all CI checks relevant to the modified parts
 | `backend/` | `pytest_views_characters`, `pytest_views_rest`, `pytest_all`, `checks` | `cd backend && poetry run pytest --cov` and `poetry run ruff check .` |
 | `frontend/` | `jasmine`, `frontend-checks` | `cd frontend && npm run coverage` and `npm run lint` |
 | `proxy/` | `proxy_extension_tests` | `docker-compose run --rm proxy_tests` (see `.claude/scripts/check_proxy.sh` for the PHP lint step too) |
+| `client/` | `client_tests`, `client_checks` | `make client-tests` and `make client-lint` |
 | `navi/` | `warm-up-cache`, `wake-navi` | No local equivalent — these run only on tagged releases. Verify changes by reading the job definitions in `.circleci/config.yml`. |
-| `.circleci/`, `scripts/`, `dockerfiles/`, `docker-compose.yml`, `prod_proxy_config/` | `upload_proxy_files`, `upload_fe_files`, `link_photos`, `build-and-release`, `release` | No local equivalent — these run only on tagged releases. Verify changes by reading the job definitions in `.circleci/config.yml`. |
+| `.circleci/`, `scripts/`, `dockerfiles/`, `docker-compose.yml`, `prod_proxy_config/` | `upload_proxy_files`, `upload_fe_files`, `link_photos`, `build-and-release`, `release`, `client-release` | No local equivalent — these run only on tagged releases. Verify changes by reading the job definitions in `.circleci/config.yml`. |
 
 If a new top-level folder is added in the future, its corresponding test and check jobs must be added to `.circleci/config.yml` and to this table before merging changes to that folder.
 
 This same process must be followed when **planning how to resolve an issue**: include a final step in the plan that identifies the affected folders and lists the CI commands to run before opening a PR.
+
+## Releasing the client
+
+The Majora client (`client/`) is published to npm as **`majora-client`** together with the app,
+on the app's version tags. See the [packaging spec](specs/client/packaging.md#release) for the
+design.
+
+- **Bumping.** Run `scripts/bump_version.sh client X.Y.Z` in a normal PR. It only updates
+  `client/package.json`'s `version`. The client version is independent of the app version, and
+  the plain `scripts/bump_version.sh [X.Y.Z]` form never touches it.
+- **Publishing.** Nothing is published when the PR merges. Publishing happens on the next app
+  version tag: the `client-release` CircleCI job runs after the full app gate (the same
+  `requires` list as the app release jobs) and calls `scripts/release_client.sh`, which:
+  - finds the previous app tag (the highest `X.Y.Z` tag below the current one);
+  - compares `client/package.json`'s `version` at both tags;
+  - skips (the job passes as a no-op) when the version is unchanged;
+  - publishes with `npm publish --access public` when it changed, when there is no previous tag,
+    or when the previous tag has no `client/package.json`.
+- **Failure cases.** The job fails when the version already exists on npm, or is lower than
+  npm's `latest`. Nothing else depends on `client-release`, so a failed publish never blocks the
+  app release.
+- **Recovery.** Re-run `client-release` on the same tag: the comparison only depends on the two
+  tags, so it reaches the same decision. Waiting for the next app tag loses the publish, since
+  the versions would then compare equal.
+- **Token.** An npm *automation* token lives in the `NPM_TOKEN` CircleCI project environment
+  variable. The job writes it to `~/.npmrc` inside the job only. Never commit it.
+- **No client git tags.** Never create a git tag for the client: the app's tag filter
+  `/\d+\.\d+\.\d+/` is unanchored, so a tag such as `client-v1.2.3` would trigger the full app
+  release.
 
 ## Code Organization
 

@@ -13,7 +13,7 @@
 | `docker_volumes/` | Bind-mounted volumes used by Docker services (static assets, proxy cache, node_modules, etc.). |
 | `docs/` | Project documentation for agents and contributors, plus `docs/guides/` — public API documentation for external/automated consumers (not agents). |
 | `bin/` | Standalone shell scripts shared across CI jobs regardless of language/runtime (`image.sh`, `deploy_frontend.sh`). |
-| `scripts/` | Standalone shell scripts for releases (`bump_version.sh`, `deploy.sh`, `render.sh`). |
+| `scripts/` | Standalone shell scripts for releases (`bump_version.sh`, `deploy.sh`, `render.sh`, `release_client.sh`). |
 | `.circleci/` | CircleCI pipeline config (`config.yml`) and Navi cache-warmer config (`navi_config.yaml`). |
 | `.claude/` | Claude Code project configuration: custom agents, slash commands, and skill state. |
 | `.github/` | GitHub PR/commit message templates and Copilot instructions pointer. |
