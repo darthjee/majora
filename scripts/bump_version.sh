@@ -6,6 +6,34 @@ ROOT="$(git rev-parse --show-toplevel)"
 README="$ROOT/README.md"
 PACKAGE="$ROOT/frontend/package.json"
 PYPROJECT="$ROOT/backend/pyproject.toml"
+CLIENT_PACKAGE="$ROOT/client/package.json"
+
+# Exit with an error unless $1 is in X.Y.Z format
+validate_semver() {
+  if ! echo "$1" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+    echo "Error: version must be in X.Y.Z format" >&2
+    exit 1
+  fi
+}
+
+# Client form: bump only client/package.json, independently of the app version
+if [ "${1:-}" = "client" ]; then
+  if [ $# -lt 2 ]; then
+    echo "Usage: $0 client X.Y.Z" >&2
+    exit 1
+  fi
+
+  client_version="$2"
+  validate_semver "$client_version"
+
+  sed -i '' \
+    "s|\"version\": \"[0-9.]*\"|\"version\": \"${client_version}\"|" \
+    "$CLIENT_PACKAGE"
+
+  echo "New client version: $client_version"
+  echo "Done."
+  exit 0
+fi
 
 # Extract current Next Release version from README
 current_next=$(grep -oE '\*\*Next Release:\*\* \[[0-9]+\.[0-9]+\.[0-9]+' "$README" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
@@ -16,11 +44,7 @@ else
   new_version="$current_next"
 fi
 
-# Validate semver format
-if ! echo "$new_version" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
-  echo "Error: version must be in X.Y.Z format" >&2
-  exit 1
-fi
+validate_semver "$new_version"
 
 # Compute next release (increment patch)
 IFS='.' read -r major minor patch <<< "$new_version"

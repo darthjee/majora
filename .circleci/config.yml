@@ -129,6 +129,9 @@ workflows:
       - wake-navi:
           requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint]
           filters: *tags_only
+      - client-release:
+          requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint]
+          filters: *tags_only
 jobs:
   release-image:
     parameters:
@@ -390,6 +393,18 @@ jobs:
       - run:
           name: Check packaging
           command: npm pack --dry-run
+
+  client-release:
+    docker:
+      - image: darthjee/circleci_node:0.2.1
+    working_directory: ~/project/client
+    steps:
+      - checkout:
+          path: ~/project
+      - run:
+          name: Publish majora-client to npm (when its version changed since the previous app tag)
+          working_directory: ~/project
+          command: scripts/release_client.sh
 
   upload_proxy_files:
     docker:

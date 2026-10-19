@@ -24,7 +24,9 @@ The [crawler](crawler.md) is unchanged: `crawler/` still uses the legacy all-acc
   `specs/`, `eslint.config.mjs`, `package.json`, `yarn.lock` and `README.md`.
 - **`infra`** keeps the wiring outside it: the `majora_client` docker-compose service, the
   `client*` Makefile targets, the `client_tests`, `client_checks` and `client-release` CI jobs,
-  and `scripts/bump_version.sh client` (see [packaging](specs/client/packaging.md)).
+  `scripts/bump_version.sh client` and `scripts/release_client.sh` (see
+  [packaging](specs/client/packaging.md) and the release process in
+  [Releasing the client](contributing.md#releasing-the-client)).
 
 ## Naming
 

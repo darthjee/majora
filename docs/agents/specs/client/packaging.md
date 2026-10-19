@@ -114,7 +114,9 @@ For now the client is released **together with the app**, on the app's version t
 replaces the earlier design (publish when the version changes on `main`, separate from the app's
 release). A better flow may come later.
 
-The `client-release` job, in the app's tag workflow:
+The `client-release` job, in the app's tag workflow, runs `scripts/release_client.sh`, which
+holds the decision logic below. See
+[Releasing the client](../../contributing.md#releasing-the-client) for the contributor steps.
 
 - Runs on app version tags (`filters: *tags_only`) and `requires` the same full list as the app
   release jobs (app jobs plus `client_tests` and `client_checks`), so a client is never published
@@ -135,7 +137,7 @@ The `client-release` job, in the app's tag workflow:
   so a tag such as `client-v1.2.3` would trigger the full app release.
 - **npm token**: an npm *automation* token (bypasses 2FA for CI), stored as a CircleCI project
   environment variable, never in the repository, and written to `~/.npmrc` only inside the
-  release job. No `--provenance` (npm provenance does not support CircleCI as an identity
+  release job. The variable is named `NPM_TOKEN`. No `--provenance` (npm provenance does not support CircleCI as an identity
   provider).
 - **Published contents**: `client/package.json` declares a `files` whitelist (`src/`, `bin/`,
   `README.md`), so specs, lint config and the lockfile are never published. No changelog file
@@ -154,7 +156,10 @@ The `client-release` job, in the app's tag workflow:
 - **#1607** (implemented): the `client/` scaffold (`package.json`, ESLint and Jasmine config, `yarn.lock`), the
   `majora_client` service, the `.gitignore` entry, the Makefile targets, `client_tests` /
   `client_checks` and their gating.
-- **#1611**: the `client-release` job and the `scripts/bump_version.sh client <X.Y.Z>` form.
+- **#1611** (implemented): the `client-release` job, `scripts/release_client.sh` (the release
+  decision and the publish) and the `scripts/bump_version.sh client <X.Y.Z>` form. The npm token
+  lives in the `NPM_TOKEN` CircleCI project environment variable. The human-facing process is in
+  [Releasing the client](../../contributing.md#releasing-the-client).
 - #1611 already comes after #1608 (core library), so no empty package is ever published. The
   first published version is whatever `client/package.json` holds when #1611 lands (e.g.
   `0.1.0`).
@@ -171,6 +176,8 @@ None remain: #1600 settled them all.
   `requires` lists of the app release jobs and `coverage-final`.
 - `Makefile`: the `client*` targets under `# ── Client ──`.
 - `scripts/bump_version.sh`: the `client <X.Y.Z>` form.
+- `scripts/release_client.sh`: the `client-release` decision (previous-tag comparison, npm
+  checks) and the publish.
 - `client/package.json`: the package name, version, `files`, `bin`, `engines` and scripts.
 - `client/yarn.lock`: the committed lockfile.
 - `client/eslint.config.mjs`: the ESLint flat config.
