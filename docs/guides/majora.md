@@ -26,10 +26,8 @@ Every endpoint accepts one of the following:
   [`majora-client`](client.md#using-majora-client) package.
 - **Legacy API token header** (used by the crawler): `Authorization: Token <key>`, a standard
   DRF authtoken row (`rest_framework.authtoken.models.Token`) with all of its user's access and
-  no scopes. It is created for a service account through the Django admin (`/admin/`); see the
-  "Explicitly out of scope" note in
-  [issue #1148](../agents/issues/1148-centralize-user-check--allow-api-token-requests-and-document-api.md)
-  for why there is no other tooling.
+  no scopes. It is created for a service account through the Django admin (`/admin/`); there
+  is no other tooling for it (see issue #1148).
 - **Session cookie** (used by the web frontend): the browser session carries an `auth_token`
   value set at login. The legacy header and the cookie are both handled by
   `CookieTokenAuthentication` (`backend/accounts/authentication.py`).

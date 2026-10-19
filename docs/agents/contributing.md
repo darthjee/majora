@@ -51,7 +51,7 @@ This same process must be followed when **planning how to resolve an issue**: in
 ## Releasing the client
 
 The Majora client (`client/`) is published to npm as **`majora-client`** together with the app,
-on the app's version tags. See the [packaging spec](specs/client/packaging.md#release) for the
+on the app's version tags. See [Client packaging](client/packaging.md#release) for the
 design.
 
 - **Bumping.** Run `scripts/bump_version.sh client X.Y.Z` in a normal PR. It only updates
