@@ -5,6 +5,9 @@ the first resource wrappers built on it. Part of the [client spec](../client.md)
 Refined by #1598 and implemented by #1608 (core), #1609 (plain resource wrappers), #1621
 (document pages), #1622 (link routes) and #1623 (photo uploads).
 
+**Status:** the core (#1608) is implemented in `client/src/core/` and `client/src/MajoraClient.js`;
+the resource wrappers are not yet.
+
 ## Overview
 
 Automations import the library to call the Majora API with a scoped token (see
