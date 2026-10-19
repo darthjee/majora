@@ -4,6 +4,7 @@
   "description": "Node.js client for the Majora RPG campaign manager API",
   "type": "module",
   "main": "src/index.js",
+  "exports": "./src/index.js",
   "files": [
     "src/",
     "bin/",
