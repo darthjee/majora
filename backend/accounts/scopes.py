@@ -1,4 +1,4 @@
-"""Scope catalogue for scoped API tokens (see `docs/agents/specs/client/scopes.md`).
+"""Scope catalogue for scoped API tokens (see `docs/agents/access-control/token-scopes.md`).
 
 This module is the single source of truth for the scopes a token may carry. The
 decorator, the authentication check, token creation and the token UI options all
