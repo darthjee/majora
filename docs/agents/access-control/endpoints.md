@@ -143,7 +143,7 @@ read/write access of its own and needs no per-field role table.
 A scoped API token (`accounts.ApiToken`, many per user) sent as
 `Authorization: Bearer mjr_<prefix>_<secret>` and read by `ApiTokenAuthentication`, which runs
 **before** `CookieTokenAuthentication` in `DEFAULT_AUTHENTICATION_CLASSES`. Full design:
-[`specs/client/tokens.md`](../specs/client/tokens.md).
+[ApiToken](api-token.md#token-format-and-authentication) and [Token scopes](token-scopes.md).
 
 - **Stored**: only the SHA-256 hash of the secret part and the non-secret, unique `prefix`; the
   plain token is returned once, at creation.
