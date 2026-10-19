@@ -11,6 +11,10 @@ restricted GET endpoint is explicitly ruled out as a private-cache candidate dur
 issue discussion, so the reasoning stays traceable instead of getting re-litigated
 each time the endpoint comes up again.
 
+Separately, any request authenticated with a scoped API token (`Authorization: Bearer ...`)
+never reads from or writes to the private (or any) proxy cache, whatever the route (#1643, see
+[proxy architecture](architecture/proxy.md#bearer-requests-never-touch-the-cache-bearerskipcachemiddleware)).
+
 ## Excluded routes
 
 | Endpoint | Module/App | Why excluded |

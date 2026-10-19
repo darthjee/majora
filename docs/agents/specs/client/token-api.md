@@ -258,7 +258,7 @@ its position in the list, for example `{"errors": {"scopes": {"1": ["max_length"
 clear stale entries.**
 
 This Bearer cache work (the proxy middleware, the rule changes and the backend safety net) is
-implemented by #1643, not #1604. #1604 ships only the token endpoints'
+implemented by #1643 (done), not #1604. #1604 ships only the token endpoints'
 [own cache rules](#token-endpoints-and-navi).
 
 Why: `rules/backend.php` caches every `.json` GET whoever the caller is, and
@@ -291,7 +291,9 @@ and a joined `Token x, Bearer mjr_…`. The backend treats every such value as a
     and the middleware sets that header. It cannot use `X-Skip-Cache`, because its routes always
     send that header on the response, so honouring it would turn private caching off.
 - **Second guard on the private rule:** it never stores or serves an entry when `X-Cache-Token`
-  is missing or empty, so the shared "empty token" entry cannot exist.
+  is missing or empty, so the shared "empty token" entry cannot exist. Implemented by the same
+  middleware: on this rule it is configured with `skipWhenMissing => 'X-Cache-Token'`, so it
+  also sets `X-Bearer-Request: true` when that header is missing or blank.
 - `CacheCleanupMiddleware` and `ResponseCacheClearMiddleware` keep running for Bearer requests,
   so automation writes still clear collection and entity entries.
 - The change applies to both `proxy/prod_configuration/rules/` and
@@ -303,6 +305,10 @@ and a joined `Token x, Bearer mjr_…`. The backend treats every such value as a
   It cannot poison anyone else's entries, so inbound copies are not stripped.
 
 #### Backend safety net
+
+Implemented as `accounts.middleware.BearerNoCacheMiddleware`, reusing
+`accounts.authentication.BEARER_PATTERN`.
+
 
 - A small Django middleware adds `X-Skip-Cache: true` **and `Cache-Control: no-store`** to every
   response to a Bearer request (same detection rule), whatever the status, including

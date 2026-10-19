@@ -45,6 +45,16 @@ Used by:
 
 Since `game_slug` is globally unique, clearing a game path on every domain is correct; over-clearing only costs a cache miss. See [Game Content Copy](../game-content-copy.md#cache).
 
+## Bearer requests never touch the cache (`BearerSkipCacheMiddleware`)
+
+Requests authenticated with a scoped API token (`Authorization: Bearer ...`) never read from or write to the proxy cache (#1643). A request is a Bearer request when its whole `Authorization` value (several headers joined with `,`) matches `/(^|,)\s*bearer(\s|$)/i`, the same rule as the backend's `accounts.authentication.BEARER_PATTERN`.
+
+- `BearerSkipCacheMiddleware` (`proxy/extension/lib/middlewares/`) sets a configurable marker header (`header`) to `true` on a Bearer request. It is registered via `prependMiddlewares`, so it runs before `default_proxy`'s built-in `FileCacheMiddleware` and both the cache read and write are skipped through the rule's `skip_cache_header`.
+- `rules/backend.php`: marker `X-Skip-Cache`, listed right after `ResponseCacheClearMiddleware`. Cache cleanup (`ResponseCacheClearMiddleware`, `CacheCleanupMiddleware`) still runs on Bearer writes.
+- `rules/private_game_data_cache.php`: marker `X-Bearer-Request` with `skip_cache_header => 'X-Bearer-Request'` (it cannot honour `X-Skip-Cache`, which its routes always send). It is also configured with `skipWhenMissing => 'X-Cache-Token'`, so a request without (or with a blank) `X-Cache-Token` is never stored or served, and no shared "empty token" entry can exist.
+- Both `prod_configuration` and `dev_configuration` rules are wired. Inbound marker headers are not stripped: spoofing one only skips the sender's own cache.
+- The backend's `accounts.middleware.BearerNoCacheMiddleware` also adds `X-Skip-Cache: true` and `Cache-Control: no-store` to every Bearer response, as a second guard on the write path. It never reads `X-Bearer-Request`.
+
 ## Photo uploads (`UploadHandler`)
 
 `POST /uploads/<image|file>/<id>/submit` (rules/uploads.php, anchored regex `#^/uploads/(image|file)/\d+/submit$#`, so it never catches `/uploads/link/...`) validates the file, calls the backend `PATCH /uploads/<type>/<id>.json` with `status=uploading` to get the `file_path`, writes the file, then finalizes with `status=uploaded`. The client response is always built from scratch (`{"file_path": ...}`).
