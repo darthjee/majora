@@ -1,7 +1,6 @@
 """View returning the scope catalogue and reachable games for the token create form."""
 
-from rest_framework.decorators import api_view, parser_classes, permission_classes
-from rest_framework.parsers import JSONParser
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
@@ -15,7 +14,6 @@ from ._shared import session_owner_error
 
 @restricted
 @api_view(['GET'])
-@parser_classes([JSONParser])
 # AllowAny: authentication is enforced inline via require_session/require_authenticated so
 # scoped-token or anonymous callers receive a proper 403/401.
 @permission_classes([AllowAny])

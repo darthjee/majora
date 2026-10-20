@@ -1,8 +1,7 @@
 """View revoking (deleting) a user's scoped API token, restricted to staff/superuser sessions."""
 
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import api_view, parser_classes, permission_classes
-from rest_framework.parsers import JSONParser
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
@@ -14,7 +13,6 @@ from ._api_token_shared import log_api_token_action, staff_session_error
 
 @restricted
 @api_view(['DELETE'])
-@parser_classes([JSONParser])
 # AllowAny: authentication/authorisation is enforced inline via require_session and
 # require_staff so scoped-token, unauthenticated or non-staff callers get a proper 401/403.
 @permission_classes([AllowAny])

@@ -190,6 +190,13 @@ REST_FRAMEWORK = {
         'accounts.authentication.ApiTokenAuthentication',
         'accounts.authentication.CookieTokenAuthentication',
     ],
+    # JSON is the only accepted request body (#1618): session-authenticated writes are not
+    # CSRF-checked, so refusing form-encoded, multipart and `text/plain` bodies (415) closes the
+    # preflight-free same-site HTML form POST path. See docs/agents/security-guidelines/csrf.md.
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
+    ],
+    'TEST_REQUEST_DEFAULT_FORMAT': 'json',
     # Renders scoped-token 403s (`scope_missing`, `game_not_allowed`, `token_not_allowed`)
     # with the project's `{"errors": {"detail": [code]}}` body.
     'EXCEPTION_HANDLER': 'common.exception_handler.exception_handler',

@@ -123,7 +123,10 @@ class TestApiTokensCreate:
 
     def test_form_encoded_body_gives_415(self):
         """Test that a form-encoded body gives 415."""
-        response = self.client.post(LIST_URL, {'name': 'Bot', 'scopes': 'npcs:read'})
+        response = self.client.post(
+            LIST_URL, 'name=Bot&scopes=npcs:read',
+            content_type='application/x-www-form-urlencoded',
+        )
         assert response.status_code == 415
         assert not ApiToken.objects.exists()
 
