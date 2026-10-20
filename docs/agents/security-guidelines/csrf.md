@@ -7,6 +7,7 @@
   never calls `enforce_csrf`, and `@api_view` views are CSRF-exempt. They are protected by:
   - `SESSION_COOKIE_SAMESITE = 'Lax'` — cross-site requests do not carry the session cookie.
   - CORS without credentials — preflighted cross-origin requests cannot ride the session.
+    Never enable `CORS_ALLOW_CREDENTIALS` while `CORS_ALLOW_ALL_ORIGINS` is set.
   - JSON-only request bodies project-wide — `REST_FRAMEWORK['DEFAULT_PARSER_CLASSES']` holds
     only `JSONParser` (#1618), so a same-site HTML form POST (form-encoded, multipart or
     `text/plain`, none of which needs a preflight) gets `415`.
