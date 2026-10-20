@@ -131,8 +131,9 @@ creation, builds the `games` list of `options.json` (sorted by name) and gives `
 ## Endpoint details
 
 - **Decorators:** every token view has `@restricted` outermost (setting `X-Skip-Cache: true`),
-  then `@api_view`, `@parser_classes([JSONParser])` and `@permission_classes([AllowAny])`, with
-  the checks done inline: `session_owner_error` (`require_session` then `require_authenticated`)
+  then `@api_view` and `@permission_classes([AllowAny])`, with the checks done inline (JSON-only
+  bodies come from the global `REST_FRAMEWORK['DEFAULT_PARSER_CLASSES']`, see
+  [CSRF](../security-guidelines/csrf.md)): `session_owner_error` (`require_session` then `require_authenticated`)
   on the owner views, `staff_session_error` (`require_session` then `require_staff`) on the staff
   views. `require_session` lives in `backend/games/views/common.py`.
 - **Create** (`POST /account/api_tokens.json`) returns `201` with the token item plus
