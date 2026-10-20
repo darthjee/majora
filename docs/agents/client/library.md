@@ -48,7 +48,8 @@ client/
       Page.js             # one page of results and its pagination headers
       Paginator.js        # list and iterate over paginated endpoints
       errors/             # one class per file, plus buildApiError.js and extractCodes.js
-    resources/            # Resource, GameResource, CharacterResource and one file per family
+    resources/            # Resource, GameResource, CharacterResource, one file per family,
+                          # and nested sub-resources (DocumentPages)
     cli/                  # the CLI (see cli.md)
   specs/                  # Jasmine specs mirroring src/, plus specs/support/
 ```
@@ -157,6 +158,11 @@ await game.npcs.list({ page: 2 });
 await game.npcs.get(12, { restricted: true });
 await game.npcs.create({ name: 'Bob' });
 await game.npcs.update(12, { name: 'Robert' });
+
+const pages = game.documents.pages(7);                      // games/epic-quest/documents/7/pages
+await pages.list({ restricted: true });                     // GET documents/7/pages/all.json
+await pages.trim(3);                                        // DELETE documents/7/pages.json {keep: 3}
+await pages.bumpVersion({ version: 2, exclude_ids: [12] }); // PATCH documents/7/pages/bump_version.json
 ```
 
 - `client.games` is top-level and read-only (`list`, `iterate`, `mine`, `get`).
@@ -165,7 +171,13 @@ await game.npcs.update(12, { name: 'Robert' });
 - Base classes: `Resource` (`list`, `iterate`, `get`, `create` as `POST`, `update` as `PATCH`,
   `pathFor`), `GameResource` (game-scoped families) and `CharacterResource` (shared by `Npcs`
   and `Pcs`, whose routes are parallel).
-- There is no `delete`: none of these families' endpoints accept `DELETE`.
+- `game.documents.pages(id)` returns a `DocumentPages` bound to one document (a `Resource`
+  whose base path is built from the `Documents` base path; a blank id throws `UsageError`). It
+  has `list` (+ `iterate`), `create`, `update(pageId, data)`, plus `trim(keep)` (`DELETE` with
+  body `{ keep }`: archives then deletes every page with `order > keep`, answers `204`) and
+  `bumpVersion(data)` (`PATCH bump_version`, body passed through as-is, answers `200` with an
+  empty body). Both resolve with no meaningful value. There is no per-page `get` or `delete`.
+- There is no per-record `delete`: the only `DELETE` is the bulk `DocumentPages.trim(keep)`.
 - Return values are plain parsed JSON; there are no model classes.
 
 ### Regular and restricted variants
@@ -184,6 +196,17 @@ change.
 | `items` | `items/all` | `items/<id>/full` | regular | regular |
 | `documents` | `documents/all` | `documents/<id>/full` | regular | regular |
 
+`DocumentPages` (`documents/<id>/pages`) has a restricted `all` variant for every action and
+no `get`:
+
+| Action | Regular | Restricted |
+|---|---|---|
+| `list` | `GET pages` | `GET pages/all` |
+| `create` | `POST pages` | `POST pages/all` |
+| `update` | `PATCH pages/<page_id>` | `PATCH pages/<page_id>/all` |
+| `trim` | `DELETE pages` | `DELETE pages/all` |
+| `bumpVersion` | `PATCH pages/bump_version` | `PATCH pages/bump_version/all` |
+
 - Asking for a variant or an action that does not exist throws `UsageError` locally, before any
   request (`<Class> has no restricted variant for <action>`, `<Class> does not support
   <action>`). There is no silent downgrade and no automatic fallback on 403, which would hide
@@ -191,8 +214,7 @@ change.
 
 ### Not yet wrapped
 
-Document pages (#1621), link routes (#1622) and photo uploads (#1623) are tracked by their own
-issues, each of which updates this page, `client/README.md` and the
+Link routes (#1622) and photo uploads (#1623) are tracked by their own issues, each of which updates this page, `client/README.md` and the
 [consumer guide](../../guides/client.md) when it lands. The other families (`players`,
 `common_items`, `possessions`, `recipes`, `treasures`, `sessions`, `polls`, `tasks`,
 `conversations`, `miniatures`) are out of scope for now.

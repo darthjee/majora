@@ -95,6 +95,15 @@ try {
 }
 ```
 
+Document pages are nested under their document:
+
+```js
+const pages = game.documents.pages(7);
+for await (const page of pages.iterate()) { /* ... */ }    // needs documents:read
+await pages.trim(3);                                        // keeps pages 1-3, needs documents:write
+await pages.bumpVersion({ version: 2, exclude_ids: [12] }); // needs documents:write
+```
+
 ### CLI
 
 ```sh
