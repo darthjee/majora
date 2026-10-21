@@ -4,11 +4,13 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 
+from ....decorators import token_scopes
 from ....models import Game
 from .._character._detail import character_detail
 from ._npc_player_update import npc_player_update
 
 
+@token_scopes(GET=[], PATCH=['npcs:write'])
 @api_view(['GET', 'PATCH'])
 @permission_classes([AllowAny])
 def game_npc_detail(request, game_slug, character_id):

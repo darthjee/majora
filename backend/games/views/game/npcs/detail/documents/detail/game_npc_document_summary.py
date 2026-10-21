@@ -4,11 +4,12 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 
-from .......decorators import regular, skip_cache
+from .......decorators import regular, skip_cache, token_scopes
 from .......models import Game
 from .....documents._document_summary import character_document_summary
 
 
+@token_scopes(GET=[])
 @regular
 @skip_cache
 @api_view(['GET'])
