@@ -122,6 +122,20 @@ await game.items.summary(3, 'npcs', 12);                 // item 3 as held by NP
 `acquire` and `remove` are `POST`s and are never retried; a refused link raises an `ApiError`
 whose `codes` hold the API's error code.
 
+Photos can be uploaded to PCs, NPCs, factions, items and documents in one call; PCs, NPCs and
+documents can set their main photo, and characters can delete one:
+
+```js
+const buffer = await readFile('portrait.png');           // from node:fs/promises
+await game.npcs.uploadPhoto(12, buffer, { filename: 'portrait.png' }); // needs npcs:write
+await game.npcs.setMainPhoto(12, 3);
+await game.npcs.deletePhoto(12, 3);
+```
+
+`file` is a `Blob` / `File`, or a `Buffer` / `Uint8Array` with a `filename`. The upload step
+has a 120 s timeout by default (`{ timeout }` overrides it) and is never retried. Until #1639
+lands, scoped tokens are refused on the upload step with `403 token_not_allowed`.
+
 ### CLI
 
 ```sh

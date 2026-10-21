@@ -5,8 +5,8 @@ RPG campaign manager API, meant for automations.
 
 > **Work in progress.** This package is being built as part of epic #1592. The core library
 > (configuration, HTTP, pagination, retries and errors), the resource wrappers
-> (`client.games`, `client.game(slug)`, including document pages and character links) and the
-> [`majora` CLI](#cli) are available; photo uploads come in a later sub-issue.
+> (`client.games`, `client.game(slug)`, including document pages, character links and photo
+> uploads) and the [`majora` CLI](#cli) are available; the CLI has no photo command yet.
 
 ## Overview
 
@@ -187,7 +187,45 @@ await game.documents.summary(7, 'pcs', 4, { restricted: true }); // GET document
 `'pcs'` or `'npcs'`, otherwise `UsageError`. The API has no item-holders or
 document-characters list.
 
-Photo uploads (#1623) are coming in a later sub-issue.
+#### Photos
+
+PCs, NPCs, factions, items and documents take photo uploads; PCs, NPCs and documents can pick
+their main photo, and only characters can delete one:
+
+```js
+import { readFile } from 'node:fs/promises';
+
+const npcs = client.game('epic-quest').npcs;
+const buffer = await readFile('portrait.png');            // the library never reads files itself
+const { file_path } = await npcs.uploadPhoto(12, buffer, {
+  filename: 'portrait.png', contentType: 'image/png',
+});                                                        // POST npcs/12/photo_upload.json + submit
+await npcs.setMainPhoto(12, 3);                            // PATCH npcs/12/photos/3/set.json
+await npcs.deletePhoto(12, 3);                             // DELETE npcs/12/photos/3.json
+await client.game('epic-quest').factions.uploadPhoto(5, new File([buffer], 'crest.png'));
+```
+
+| Family | `uploadPhoto(id, file)` | `setMainPhoto(id, photoId)` | `deletePhoto(id, photoId)` |
+|---|---|---|---|
+| `npcs`, `pcs` | yes | yes | yes |
+| `documents` | yes | yes | — |
+| `factions`, `items` | yes (single photo, replaced in place) | — | — |
+
+- `uploadPhoto` runs both steps in one call: `POST <id>/photo_upload.json` returns an upload id
+  and an upload token, then the file is sent as `multipart/form-data` (field `file`) to
+  `POST /uploads/image/<upload_id>/submit` with the token in `X-Upload-Token`. It returns the
+  submit body, `{ file_path }`.
+- `file` is a `Blob` / `File`, or a `Buffer` / `Uint8Array` with a required `filename` option
+  (and an optional `contentType`); anything else throws `UsageError` before any request.
+- The submit step has a 120 s timeout by default, overridable with `{ timeout }`; the first step
+  keeps the configured timeout.
+- No photo action has a restricted variant (`{ restricted: true }` throws `UsageError`), and none
+  is retried. A rejected upload answers `422` (`{"error": "Unprocessable Entity", "reason":
+  "<code>"}`), raised as an `ApiError` whose `codes` include the reason. Neither token ever
+  appears in an error.
+- Scopes: an upload needs `write` on its family (`npcs:write` for an NPC photo). Until #1639
+  lands, the submit step refuses scoped tokens with `403 token_not_allowed` (faction photos
+  until #1639 covers them too).
 
 ### Raw requests
 
@@ -200,7 +238,8 @@ await client.http.patch('games/epic-quest/npcs/12', { name: 'Robert' });
 ```
 
 Every request carries `Authorization: Bearer <token>`. Bodies are sent as JSON, or as
-`multipart/form-data` when a native `FormData` is given.
+`multipart/form-data` when a native `FormData` is given. `{ json: false }` sends the request to
+`<baseUrl>/<path>` without the `.json` suffix (as the upload submit does).
 
 ### Pagination
 
