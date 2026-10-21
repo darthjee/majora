@@ -5,8 +5,14 @@ import { BASE_URL, buildCore } from './buildCore.js';
 const METHODS = {
   list: 'GET', get: 'GET', create: 'POST', update: 'PATCH',
 };
+const CUSTOM_METHODS = { trim: 'DELETE', bumpVersion: 'PATCH' };
 const ID = 12;
 const DATA = { name: 'Bob' };
+const KEEP = 3;
+const BUMP = { version: 2, exclude_ids: [ID] };
+const BODIES = {
+  create: DATA, update: DATA, trim: { keep: KEEP }, bumpVersion: BUMP,
+};
 
 /**
  * Calls one action of a wrapper.
@@ -23,6 +29,10 @@ function call(resource, action, options) {
       return resource.get(ID, options);
     case 'create':
       return resource.create(DATA, options);
+    case 'trim':
+      return resource.trim(KEEP, options);
+    case 'bumpVersion':
+      return resource.bumpVersion(BUMP, options);
     default:
       return resource.update(ID, DATA, options);
   }
@@ -33,7 +43,8 @@ function call(resource, action, options) {
  * and HTTP method, or a `UsageError` with no request when the variant / action is missing.
  * @param {Function} build - `(http, paginator) => resource`.
  * @param {object} table - `action → [regularPath, restrictedPath]` (paths without `.json`,
- *   `null` for a missing variant); actions not in the table must be unsupported.
+ *   `null` for a missing variant); actions not in the table must be unsupported. The custom
+ *   actions `trim` and `bumpVersion` are only checked when present in the table.
  */
 export function itResolvesVariants(build, table) {
   describe('variants', () => {
@@ -47,7 +58,13 @@ export function itResolvesVariants(build, table) {
       resource = build(http, paginator);
     });
 
-    Object.keys(METHODS).forEach((action) => {
+    const methods = { ...METHODS };
+
+    Object.keys(CUSTOM_METHODS).filter((action) => table[action]).forEach((action) => {
+      methods[action] = CUSTOM_METHODS[action];
+    });
+
+    Object.keys(methods).forEach((action) => {
       const paths = table[action];
 
       if (!paths) {
@@ -71,14 +88,14 @@ export function itResolvesVariants(build, table) {
           return;
         }
 
-        it(`sends ${METHODS[action]} ${path}.json for a ${label} ${action}`, async () => {
+        it(`sends ${methods[action]} ${path}.json for a ${label} ${action}`, async () => {
           stub.reply(200, action === 'list' ? [] : { id: ID });
           await call(resource, action, restricted ? { restricted } : {});
 
           expect(stub.lastCall.url).toEqual(`${BASE_URL}/${path}.json`);
-          expect(stub.lastCall.options.method).toEqual(METHODS[action]);
-          if (action === 'create' || action === 'update') {
-            expect(JSON.parse(stub.lastCall.options.body)).toEqual(DATA);
+          expect(stub.lastCall.options.method).toEqual(methods[action]);
+          if (BODIES[action]) {
+            expect(JSON.parse(stub.lastCall.options.body)).toEqual(BODIES[action]);
           }
         });
       });

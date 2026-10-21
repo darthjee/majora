@@ -5,8 +5,8 @@ RPG campaign manager API, meant for automations.
 
 > **Work in progress.** This package is being built as part of epic #1592. The core library
 > (configuration, HTTP, pagination, retries and errors), the first resource wrappers
-> (`client.games`, `client.game(slug)`) and the [`majora` CLI](#cli) are available; document
-> pages, links and photo uploads come in later sub-issues.
+> (`client.games`, `client.game(slug)`, including document pages) and the
+> [`majora` CLI](#cli) are available; links and photo uploads come in later sub-issues.
 
 ## Overview
 
@@ -74,10 +74,11 @@ await game.npcs.update(12, { name: 'Robert' });      // PATCH (partial update)
 | `game.factions` | `list` (+ `iterate`), `get`, `create`, `update` |
 | `game.items` | `list` (+ `iterate`), `get`, `create`, `update` |
 | `game.documents` | `list` (+ `iterate`), `get`, `create`, `update` |
+| `game.documents.pages(id)` | `list` (+ `iterate`), `create`, `update`, `trim`, `bumpVersion` — no `get` |
 
-There is **no `delete`** on any of them: none of these endpoints accept `DELETE`. Every action
-also accepts the request options `headers`, `timeout`, `retries` and `signal` (and `query`;
-`list` / `iterate` add `page` and `perPage`). Slugs and ids are URL-encoded.
+There is **no per-record `delete`**: the only `DELETE` is the bulk `pages(id).trim(keep)`.
+Every action also accepts the request options `headers`, `timeout`, `retries` and `signal`
+(and `query`; `list` / `iterate` add `page` and `perPage`). Slugs and ids are URL-encoded.
 
 #### Regular and restricted variants
 
@@ -106,8 +107,34 @@ true })` or `game.pcs.create(...)`), or passing a blank id or slug, throws `Usag
 locally, before any request. There is **no automatic fallback** to the regular URL (for
 example on a 403): it would hide scope problems.
 
-Document pages (#1621), character links (#1622) and photo uploads (#1623) are coming in later
-sub-issues.
+#### Document pages
+
+`game.documents.pages(documentId)` wraps `games/<slug>/documents/<id>/pages` (a blank id throws
+`UsageError`). Every action has a restricted `all.json` variant, and there is no per-page `get`
+or `delete`:
+
+```js
+const pages = client.game('epic-quest').documents.pages(7);
+await pages.list({ restricted: true });                     // GET documents/7/pages/all.json
+await pages.create({ content, order: 1, version: 2 });      // POST documents/7/pages.json
+await pages.update(12, { content, version: 2 });            // PATCH documents/7/pages/12.json
+await pages.trim(3);                                        // DELETE documents/7/pages.json {keep: 3}
+await pages.bumpVersion({ version: 2, exclude_ids: [12] }); // PATCH documents/7/pages/bump_version.json
+```
+
+| Action | Regular | Restricted |
+|---|---|---|
+| `list` | `pages.json` | `pages/all.json` |
+| `create` | `POST pages.json` | `POST pages/all.json` |
+| `update` | `PATCH pages/<page_id>.json` | `PATCH pages/<page_id>/all.json` |
+| `trim` | `DELETE pages.json` | `DELETE pages/all.json` |
+| `bumpVersion` | `PATCH pages/bump_version.json` | `PATCH pages/bump_version/all.json` |
+
+`trim(keep)` archives then deletes every page with `order > keep`; `bumpVersion(data)` sends
+its body as-is. Both resolve with no meaningful value (the API answers `204` / an empty `200`),
+and neither is retried. Listing needs `documents:read`, everything else `documents:write`.
+
+Character links (#1622) and photo uploads (#1623) are coming in later sub-issues.
 
 ### Raw requests
 
