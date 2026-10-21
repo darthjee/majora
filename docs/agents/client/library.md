@@ -44,12 +44,13 @@ client/
       Config.js           # options, env fallback, validation
       HttpClient.js       # fetch, Bearer header, .json URLs, bodies, error mapping, retries
       RetryPolicy.js      # which requests are retried and the backoff
-      requestHelpers.js   # jsonPath, appendQuery, encodeBody, parseBody, attemptSignal
+      requestHelpers.js   # jsonPath, rawPath, requestPath, appendQuery, encodeBody, parseBody, attemptSignal
       Page.js             # one page of results and its pagination headers
       Paginator.js        # list and iterate over paginated endpoints
       errors/             # one class per file, plus buildApiError.js and extractCodes.js
     resources/            # Resource, GameResource, CharacterResource, one file per family,
-                          # and nested sub-resources (DocumentPages)
+                          # nested sub-resources (DocumentPages), and shared helpers
+                          # (summaryPath.js, photoPath.js)
     cli/                  # the CLI (see cli.md)
   specs/                  # Jasmine specs mirroring src/, plus specs/support/
 ```
@@ -67,10 +68,12 @@ client/
 
 - Every request carries `Authorization: Bearer <token>`; it always overrides any caller header.
   `Accept: application/json` is sent by default.
-- `HttpClient.request(method, path, { query, body, headers, timeout, retries, signal })` (plus
-  `get`, `post`, `patch`, `delete`) takes paths without `.json` and calls
-  `<baseUrl>/<path>.json`. Query values that are `undefined` or `null` are skipped; arrays repeat
-  the key.
+- `HttpClient.request(method, path, { query, body, headers, json, timeout, retries, signal })`
+  (plus `get`, `post`, `patch`, `delete`) takes paths without `.json` and calls
+  `<baseUrl>/<path>.json`. With `json: false` it calls `<baseUrl>/<path>` instead (used by the
+  upload submit, `uploads/image/<upload_id>/submit`, which is outside the JSON API); headers,
+  auth, timeout and error mapping are unchanged, and errors carry the suffix-less path. Query
+  values that are `undefined` or `null` are skipped; arrays repeat the key.
 - Bodies are JSON (`Content-Type: application/json`) or a native `FormData`, passed as is.
 - Responses are parsed as JSON, or kept as raw text when they are not JSON (so an HTML 502 never
   breaks parsing); an empty body gives `null`.
@@ -171,6 +174,9 @@ await items.remove({ game_item_id: 3 });                    // POST npcs/12/item
 await game.pcs.factions(4).remove(5);                       // POST pcs/4/factions/5/remove.json
 await game.factions.characters(5);                          // GET factions/5/characters.json
 await game.items.summary(3, 'npcs', 12);                    // GET items/3/npcs/12/summary.json
+await game.npcs.uploadPhoto(12, buffer, { filename: 'bob.png' }); // POST npcs/12/photo_upload.json + submit
+await game.npcs.setMainPhoto(12, 3);                        // PATCH npcs/12/photos/3/set.json
+await game.npcs.deletePhoto(12, 3);                         // DELETE npcs/12/photos/3.json
 ```
 
 - `client.games` is top-level and read-only (`list`, `iterate`, `mine`, `get`).
@@ -205,7 +211,11 @@ await game.items.summary(3, 'npcs', 12);                    // GET items/3/npcs/
   read the per-character summary (`<family>/<id>/<pcs|npcs>/<character_id>/summary`, one
   object). `kind` must be `'pcs'` or `'npcs'`, otherwise `UsageError`, before any request. The
   API has no item-holders or document-characters list, so none is wrapped.
-- There is no per-record `delete`: the only `DELETE` is the bulk `DocumentPages.trim(keep)`.
+- Photos (`resources/photoPath.js`, see [Photos](#photos)): `uploadPhoto(id, file, options)` on
+  `npcs`, `pcs`, `factions`, `items` and `documents`; `setMainPhoto(id, photoId)` on `npcs`,
+  `pcs` and `documents`; `deletePhoto(id, photoId)` on `npcs` and `pcs`.
+- There is no per-record `delete`: the only `DELETE`s are the bulk `DocumentPages.trim(keep)` and
+  the character `deletePhoto(id, photoId)`.
 - Return values are plain parsed JSON; there are no model classes.
 
 ### Regular and restricted variants
@@ -266,11 +276,48 @@ also need its `read` (`npcs/<id>/documents/acquire/all.json` needs `npcs:write` 
   <action>`). There is no silent downgrade and no automatic fallback on 403, which would hide
   scope problems and double requests.
 
+### Photos
+
+| Family | `uploadPhoto` (`photoUpload`) | `setMainPhoto` (`photoSet`) | `deletePhoto` (`photoDelete`) |
+|---|---|---|---|
+| `npcs`, `pcs` | `POST <id>/photo_upload` | `PATCH <id>/photos/<photo_id>/set` | `DELETE <id>/photos/<photo_id>` |
+| `documents` | `POST <id>/photo_upload` | `PATCH <id>/photos/<photo_id>/set` | — |
+| `factions`, `items` | `POST <id>/photo_upload` (single photo, replaced in place) | — | — |
+
+Every photo variant is `restricted: null`: `{ restricted: true }` throws `UsageError`, before
+any request; a family lacking the action has no such method. The variant map entries
+(`PHOTO_UPLOAD_VARIANT`, `PHOTO_SET_VARIANT`, `PHOTO_DELETE_VARIANT`) are shared from
+`photoPath.js`; `pathFor` resolves `<id>/photos`, and `photoPath` appends the encoded photo id
+(and `/set`). A blank photo id throws `UsageError` `Missing photo id`.
+
+`uploadPhoto(id, file, options)` runs both steps in one call and returns the submit body
+(`{ file_path }`); the steps are not exposed separately:
+
+1. `POST <family>/<id>/photo_upload.json` (no body) returns `{ upload_id, token }`.
+2. `POST uploads/image/<upload_id>/submit` (`json: false`, no `.json`) with a native `FormData`
+   holding the file under the field `file`, and the upload token in `X-Upload-Token` (checked by
+   the backend upload view; see [proxy](../architecture/proxy.md), "Photo uploads"). The proxy
+   answers `{ "file_path": ... }`.
+
+- `file` is a `Blob` / `File` (its name is kept, `options.filename` overrides it), or a
+  `Buffer` / `Uint8Array` with a required `options.filename` and an optional
+  `options.contentType`. Anything else, or a missing `filename`, throws `UsageError` before any
+  request. The library never reads the filesystem.
+- The submit step uses a 120 s timeout (`UPLOAD_SUBMIT_TIMEOUT`), overridable with
+  `{ timeout }`; the init step keeps the configured timeout. `headers` and `signal` apply to both
+  steps. A failed init never sends the submit.
+- Neither `POST`, the `PATCH` nor the `DELETE` is retried. Neither the API token nor the upload
+  token appears in any error (errors never include request headers).
+- An upload 422 from the proxy `UploadHandler` (`{"error": "Unprocessable Entity", "reason":
+  "<code>"}`) surfaces as an `ApiError` whose `codes` include the reason.
+- Scopes: an upload follows the scope of its resource (an NPC photo needs `npcs:write`); the
+  wrapper never checks it. Until #1639 enforces scopes on the finalize step, the submit refuses
+  scoped tokens with `403 token_not_allowed`; faction photos stay refused until #1639 covers
+  `GameFactionPhoto`.
+
 ### Not yet wrapped
 
-Photo uploads (#1623) are tracked by their own issue, which updates this page,
-`client/README.md` and the [consumer guide](../../guides/client.md) when it lands. The
-character-item create/update routes, the document files/photos sub-routes and the
+The character-item create/update routes, the document files sub-routes and the
 possessions / recipes / treasures links are not wrapped. The other families (`players`,
 `common_items`, `possessions`, `recipes`, `treasures`, `sessions`, `polls`, `tasks`,
 `conversations`, `miniatures`) are out of scope for now.

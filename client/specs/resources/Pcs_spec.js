@@ -7,6 +7,7 @@ import { CharacterItems } from '../../src/resources/CharacterItems.js';
 import { CharacterResource } from '../../src/resources/CharacterResource.js';
 import { FetchStub } from '../support/FetchStub.js';
 import { BASE_URL, buildCore, collect, pageHeaders } from '../support/buildCore.js';
+import { itManagesPhotos } from '../support/photoExamples.js';
 import { itResolvesVariants } from '../support/variantExamples.js';
 
 describe('Pcs', () => {
@@ -83,4 +84,6 @@ describe('Pcs', () => {
       });
     });
   });
+
+  itManagesPhotos((http, paginator) => new Pcs(http, paginator, 'epic-quest'), 'games/epic-quest/pcs', { set: true, remove: true });
 });

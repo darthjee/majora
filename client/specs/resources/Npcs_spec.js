@@ -6,6 +6,7 @@ import { CharacterItems } from '../../src/resources/CharacterItems.js';
 import { CharacterResource } from '../../src/resources/CharacterResource.js';
 import { FetchStub } from '../support/FetchStub.js';
 import { BASE_URL, buildCore, collect, pageHeaders } from '../support/buildCore.js';
+import { itManagesPhotos } from '../support/photoExamples.js';
 import { itResolvesVariants } from '../support/variantExamples.js';
 
 describe('Npcs', () => {
@@ -73,4 +74,6 @@ describe('Npcs', () => {
       });
     });
   });
+
+  itManagesPhotos((http, paginator) => new Npcs(http, paginator, 'epic-quest'), 'games/epic-quest/npcs', { set: true, remove: true });
 });

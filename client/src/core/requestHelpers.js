@@ -4,7 +4,27 @@
  * @returns {string} The request path.
  */
 export function jsonPath(path) {
-  return `/${String(path).replace(/^\/+/, '')}.json`;
+  return `${rawPath(path)}.json`;
+}
+
+/**
+ * Builds the request path relative to `baseUrl` without any suffix:
+ * `uploads/image/7/submit` → `/uploads/image/7/submit`.
+ * @param {string} path - Path; leading slashes are ignored.
+ * @returns {string} The request path.
+ */
+export function rawPath(path) {
+  return `/${String(path).replace(/^\/+/, '')}`;
+}
+
+/**
+ * Builds the request path, with the `.json` suffix unless `json` is `false`.
+ * @param {string} path - Path without the `.json` suffix; leading slashes are ignored.
+ * @param {boolean} [json] - Whether to append `.json` (default `true`).
+ * @returns {string} The request path.
+ */
+export function requestPath(path, json = true) {
+  return json === false ? rawPath(path) : jsonPath(path);
 }
 
 /**
