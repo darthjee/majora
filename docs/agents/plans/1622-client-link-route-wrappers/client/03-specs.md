@@ -16,5 +16,6 @@ following `DocumentPages_spec.js`.
 - `Npcs_spec.js`/`Pcs_spec.js`: the factory methods return the right class bound to the right path.
 
 ## Files to Change
+
 - `client/specs/resources/CharacterItems_spec.js`, `CharacterDocuments_spec.js`, `CharacterFactions_spec.js` — new.
 - `client/specs/resources/Factions_spec.js`, `Items_spec.js`, `Documents_spec.js`, `Npcs_spec.js`, `Pcs_spec.js` — extended.

@@ -9,6 +9,7 @@
 - `docs/guides/client.md`: consumer-facing usage of the new methods.
 
 ## Files to Change
+
 - `docs/agents/client/library.md`
 - `client/README.md`
 - `docs/guides/client.md`

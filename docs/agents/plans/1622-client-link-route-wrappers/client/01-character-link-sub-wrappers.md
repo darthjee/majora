@@ -18,6 +18,7 @@ Subclasses and their variant maps (regular / restricted):
 No `create`/`update` entries, so the inherited methods throw `UsageError`.
 
 Methods on `CharacterLinks`:
+
 - `available(options)` → `paginator.list(pathFor('available'))`, and `iterateAvailable(options)`
   (path resolved synchronously, like `Resource.iterate`).
 - `acquire(data, options)` → `http.post(pathFor('acquire'), data, rest)`, returns the body.
@@ -31,6 +32,7 @@ new classes from `src/index.js` if the other resource classes are exported there
 with `@example` blocks matching the existing wrappers.
 
 ## Files to Change
+
 - `client/src/resources/CharacterLinks.js` — new shared base.
 - `client/src/resources/CharacterItems.js`, `CharacterDocuments.js`, `CharacterFactions.js` — new.
 - `client/src/resources/CharacterResource.js` — the three factory methods.

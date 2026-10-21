@@ -15,6 +15,7 @@
   or an equivalent that keeps the "unknown action/variant → `UsageError`" contract.
 
 ## Files to Change
+
 - `client/src/resources/Factions.js` — `characters`, `iterateCharacters`, `summary`.
 - `client/src/resources/Items.js`, `client/src/resources/Documents.js` — `summary`.
 - `client/src/resources/summaryPath.js` — new helper (name at the implementer's discretion).

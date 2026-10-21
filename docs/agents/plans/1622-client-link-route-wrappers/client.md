@@ -3,12 +3,14 @@
 Issue: [1622-client-link-route-wrappers.md](../../issues/1622-client-link-route-wrappers.md)
 
 ## Overview
+
 Wrap the character ↔ faction / document / item link routes for PCs and NPCs as bound
 sub-wrappers (same pattern as `documents.pages(id)`), and add `factions.characters(id)` and
 `<family>.summary(id, kind, characterId)` on the linked families. No scope checks in the
 wrapper; `POST`s are never retried (already the `HttpClient` behaviour).
 
 ## Context
+
 - Routes: `backend/games/urls/_character_routes.py` (character side) and
   `backend/games/urls/games.py` (faction members, summaries).
 - Verified in the backend:
@@ -31,11 +33,13 @@ wrapper; `POST`s are never retried (already the `HttpClient` behaviour).
 - [04 — Docs](client/04-docs.md)
 
 ## CI Checks
+
 - `client`: `make client-tests` (CI job: `client_tests`)
 - `client`: `make client-lint` (CI job: `client_checks`)
 - docs: markdownlint (CI job: `markdownlint`)
 
 ## Notes
+
 - Method names are fixed by the issue: `items(id)`, `documents(id)`, `factions(id)` on
   `npcs`/`pcs`; `list`/`iterate`, `get`, `available`/`iterateAvailable`, `acquire(data)`,
   `remove(data)` (items/documents) or `remove(factionId, data?)` (factions);
