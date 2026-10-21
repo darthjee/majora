@@ -3,4 +3,6 @@
 from .......decorators import token_scopes
 from ....._character.items._item_shared import build_item_detail_view
 
-game_pc_item_detail = token_scopes(GET=[], PATCH=['pcs:write'])(build_item_detail_view(npc=False))
+game_pc_item_detail = token_scopes(GET=[], PATCH=['pcs:write', 'items:read'])(
+    build_item_detail_view(npc=False),
+)
