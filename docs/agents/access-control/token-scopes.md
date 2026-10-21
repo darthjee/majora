@@ -4,10 +4,12 @@ What a scoped API token (`accounts.ApiToken`, see [ApiToken](api-token.md)) is a
 and how every endpoint enforces it. Who may manage tokens is in [ApiToken](api-token.md).
 
 **Status.** The catalogue, the authentication-time check and the `@token_scopes` decorator are
-in place, but no production view declares scopes yet: every view is on the coverage test's
-pending list, and #1630–#1639 add the declarations family by family. Until a view is declared,
-it refuses every scoped token with `403` `token_not_allowed` (fail closed). The rules below are
-the ones those declarations must follow.
+in place. The PC family (`games/<slug>/pcs…`, every route nested under a PC, PC photos and the
+reverse-nested PC summaries) is declared (#1631). Every other view, including
+`permissions/game/pc.json`, is still on the coverage test's pending list, and #1630 and
+#1632–#1639 add the remaining declarations family by family. Until a view is declared, it refuses
+every scoped token with `403` `token_not_allowed` (fail closed). The rules below are the ones
+those declarations must follow.
 
 ## Intersection with the owner's roles
 
@@ -72,10 +74,16 @@ giving the 32 scopes `<family>:<action>`. Token creation validates against it, a
   the one the URL nests under: `npcs/<id>/items/acquire.json` needs `npcs:write`,
   `games/<slug>/treasures/link.json` needs `treasures:write`. The linked family needs no
   `write`, since its content does not change.
+- **Creating a record in another family is a write on that family too.** `pcs/<id>/items.json`
+  `POST` creates a `GameItem`, so it needs `pcs:write` **and** `items:write`; the same goes for
+  `possessions.json` `POST` (`possessions:write`) and the per-item photo upload, which creates a
+  `GameItemPhoto` (`items:write`).
 - **A write also needs `read` on every other family whose restricted data it touches.** The plain
   `acquire.json` only accepts non-hidden records, so it needs `npcs:write` alone;
   `acquire/all.json` can link a hidden document (and its 404s reveal whether one exists), so it
   needs `npcs:write` **and** `documents:read`. The same goes for `remove/all.json`.
+  Updating a link row that may be hidden (e.g. `pcs/<id>/items/<item>.json` `PATCH`, which
+  returns the `full.json` shape) needs the linked family's `read` too.
 - `remove`, `sell` and `buy` are writes on the character's family.
 
 ## Per-game restriction
