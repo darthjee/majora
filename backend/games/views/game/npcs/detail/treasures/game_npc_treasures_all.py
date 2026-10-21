@@ -4,12 +4,14 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 
+from ......decorators import token_scopes
 from ......models import Game
 from ......serializers import CharacterTreasureAllSerializer
 from .....common import check_game_edit
 from ....treasures._treasures import character_treasures
 
 
+@token_scopes(GET=['npcs:read', 'treasures:read'])
 @api_view(['GET'])
 # AllowAny: authorization for this whole endpoint is enforced inline via
 # check_game_edit(), so unauthenticated/non-DM callers get the app's own

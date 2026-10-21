@@ -4,12 +4,14 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 
+from ....decorators import token_scopes
 from ....models import Game
 from ....serializers import CharacterFullListSerializer
 from ...common import check_game_edit, paginated_list_response
 from .._character._shared import _filter_characters, _with_treasure_value
 
 
+@token_scopes(GET=['npcs:read'])
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def game_npcs_all(request, game_slug):
