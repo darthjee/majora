@@ -4,12 +4,14 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 
+from ....decorators import token_scopes
 from ....models import Game
 from .._character._detail import character_detail
 from .._character._regular import character_regular_update
 from .._character._shared import _get_character_or_404
 
 
+@token_scopes(GET=[], PATCH=['pcs:write'])
 @api_view(['GET', 'PATCH'])
 @permission_classes([AllowAny])
 def game_pc_detail(request, game_slug, character_id):

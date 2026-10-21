@@ -4,12 +4,13 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 
-from .......decorators import restricted
+from .......decorators import restricted, token_scopes
 from .......models import Game
 from ....._character._shared import _get_character_or_404
 from .....items._item_summary import character_item_summary, check_item_summary_all_permission
 
 
+@token_scopes(GET=['pcs:read', 'items:read'])
 @restricted
 @api_view(['GET'])
 @permission_classes([AllowAny])

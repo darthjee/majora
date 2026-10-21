@@ -3,12 +3,14 @@
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view
 
+from ....decorators import token_scopes
 from ....models import Game
 from ....serializers import CharacterListSerializer
 from ...common import paginated_list_response
 from .._character._shared import _filter_by_character_name, _with_treasure_value
 
 
+@token_scopes(GET=[])
 @api_view(['GET'])
 def game_pcs(request, game_slug):
     """Return list of Player Characters (PCs) for a specific game."""

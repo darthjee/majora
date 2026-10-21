@@ -1,8 +1,11 @@
 """View for the PC item detail/full.json endpoint — dm, owner, or admin only (includes hidden)."""
 
+from .......decorators import token_scopes
 from .......serializers import CharacterItemDetailFullSerializer
 from ....._character.items._item_shared import build_item_detail_full_view
 
-game_pc_item_detail_full = build_item_detail_full_view(
-    npc=False, serializer_class=CharacterItemDetailFullSerializer,
+game_pc_item_detail_full = token_scopes(GET=['pcs:read', 'items:read'])(
+    build_item_detail_full_view(
+        npc=False, serializer_class=CharacterItemDetailFullSerializer,
+    ),
 )
