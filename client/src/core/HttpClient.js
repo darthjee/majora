@@ -2,7 +2,7 @@ import { buildApiError } from './errors/buildApiError.js';
 import { NetworkError } from './errors/NetworkError.js';
 import { RetryPolicy } from './RetryPolicy.js';
 import {
-  appendQuery, attemptSignal, encodeBody, jsonPath, parseBody,
+  appendQuery, attemptSignal, encodeBody, parseBody, requestPath as buildRequestPath,
 } from './requestHelpers.js';
 
 /**
@@ -26,7 +26,9 @@ function defaultSleep(ms) {
  * Shared HTTP layer of the client.
  *
  * Paths are given **without** the `.json` suffix and relative to `baseUrl`
- * (e.g. `games/epic-quest/npcs/all`); every request targets `<baseUrl>/<path>.json`.
+ * (e.g. `games/epic-quest/npcs/all`); every request targets `<baseUrl>/<path>.json`, unless
+ * the `json: false` option is given, in which case it targets `<baseUrl>/<path>` (used by
+ * routes outside the JSON API, such as the upload submit `uploads/image/<id>/submit`).
  * Every request carries `Authorization: Bearer <token>` and `Accept: application/json`.
  * Bodies are sent as JSON, or as `multipart/form-data` when a native `FormData` is given.
  *
@@ -64,6 +66,8 @@ export class HttpClient {
    * @param {object} [options.query] - Query parameters (`undefined` / `null` skipped).
    * @param {unknown} [options.body] - JSON-serializable body or `FormData`.
    * @param {object} [options.headers] - Extra request headers.
+   * @param {boolean} [options.json] - `false` targets `<baseUrl>/<path>` instead of
+   *   `<baseUrl>/<path>.json` (default `true`).
    * @param {number} [options.timeout] - Timeout per attempt in ms (`0` disables).
    * @param {number} [options.retries] - Retries for a `GET` (`0` disables).
    * @param {AbortSignal} [options.signal] - Caller abort signal.
@@ -137,7 +141,7 @@ export class HttpClient {
    * @returns {Promise<{status: number, headers: Headers, body: unknown}>} The response.
    */
   async #send(method, path, options) {
-    const requestPath = jsonPath(path);
+    const requestPath = buildRequestPath(path, options.json);
     const url = new URL(`${this.#config.baseUrl}${requestPath}`);
     const encoded = encodeBody(options.body);
 

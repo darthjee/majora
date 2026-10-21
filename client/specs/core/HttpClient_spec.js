@@ -58,6 +58,44 @@ describe('HttpClient', () => {
     });
   });
 
+  describe('json: false option', () => {
+    it('targets <baseUrl>/<path> without the .json suffix', async () => {
+      stub.reply(201, { file_path: 'x.png' });
+      await http.post('uploads/image/7/submit', new FormData(), { json: false });
+
+      expect(stub.lastCall.url).toEqual('https://majora.example.com/uploads/image/7/submit');
+      expect(stub.lastCall.options.method).toEqual('POST');
+    });
+
+    it('still appends .json by default', async () => {
+      stub.reply(201, {});
+      await http.post('games/x/npcs/1/photo_upload', {});
+
+      expect(stub.lastCall.url).toEqual('https://majora.example.com/games/x/npcs/1/photo_upload.json');
+    });
+
+    it('still appends .json when json is true', async () => {
+      stub.reply(200, {});
+      await http.get('games', { json: true });
+
+      expect(stub.lastCall.url).toEqual('https://majora.example.com/games.json');
+    });
+
+    it('still applies query parameters', async () => {
+      stub.reply(200, {});
+      await http.get('uploads/image/7/submit', { json: false, query: { a: 1 } });
+
+      expect(stub.lastCall.url).toEqual('https://majora.example.com/uploads/image/7/submit?a=1');
+    });
+
+    it('uses the suffix-less path in error messages', async () => {
+      stub.reply(404, { error: 'Not Found' });
+
+      await expectAsync(http.post('uploads/image/7/submit', new FormData(), { json: false }))
+        .toBeRejectedWith(jasmine.objectContaining({ path: '/uploads/image/7/submit' }));
+    });
+  });
+
   describe('headers', () => {
     it('sends the Bearer token and accepts JSON', async () => {
       stub.reply(200, {});
