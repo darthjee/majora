@@ -4,6 +4,7 @@ import { GameResource } from '../../src/resources/GameResource.js';
 import { FetchStub } from '../support/FetchStub.js';
 import { BASE_URL, buildCore, collect, pageHeaders } from '../support/buildCore.js';
 import { itReadsSummaries } from '../support/summaryExamples.js';
+import { itManagesPhotos } from '../support/photoExamples.js';
 import { itResolvesVariants } from '../support/variantExamples.js';
 
 describe('Items', () => {
@@ -49,4 +50,6 @@ describe('Items', () => {
   });
 
   itReadsSummaries((http, paginator) => new Items(http, paginator, 'epic-quest'), base);
+
+  itManagesPhotos((http, paginator) => new Items(http, paginator, 'epic-quest'), 'games/epic-quest/items');
 });

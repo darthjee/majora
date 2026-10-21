@@ -1,4 +1,5 @@
 import { GameResource } from './GameResource.js';
+import { PHOTO_UPLOAD_VARIANT, uploadPhoto } from './photoPath.js';
 import { SUMMARY_VARIANT, fetchSummary } from './summaryPath.js';
 
 /**
@@ -9,12 +10,16 @@ import { SUMMARY_VARIANT, fetchSummary } from './summaryPath.js';
  * Related lists: `characters(id)` (+ `iterateCharacters`), the faction members, and
  * `summary(id, kind, characterId)`; both have a restricted (`all`) variant.
  *
+ * Photo: `uploadPhoto(id, file)` (a single photo, replaced in place), with no restricted
+ * variant; there is no set-as-main nor photo deletion.
+ *
  * @example
  * const factions = client.game('epic-quest').factions;
  * await factions.list();                             // factions.json
  * await factions.create({ name: 'Guild' });          // POST factions.json
  * await factions.characters(5, { restricted: true }); // factions/5/characters/all.json
  * await factions.summary(5, 'npcs', 12);             // factions/5/npcs/12/summary.json
+ * await factions.uploadPhoto(5, blob);               // POST factions/5/photo_upload.json + submit
  */
 export class Factions extends GameResource {
   static family = 'factions';
@@ -26,6 +31,7 @@ export class Factions extends GameResource {
     update: { regular: ':id', restricted: null },
     characters: { regular: ':id/characters', restricted: ':id/characters/all' },
     summary: SUMMARY_VARIANT,
+    photoUpload: PHOTO_UPLOAD_VARIANT,
   };
 
   /**
@@ -71,5 +77,22 @@ export class Factions extends GameResource {
    */
   async summary(factionId, kind, characterId, options = {}) {
     return fetchSummary(this, factionId, kind, characterId, options);
+  }
+
+  /**
+   * Uploads a photo in one call: `POST factions/<id>/photo_upload.json`, then
+   * `POST uploads/image/<upload_id>/submit` (multipart, field `file`, header
+   * `X-Upload-Token`). See `photoPath.js#uploadPhoto` for the options.
+   * @param {string|number} factionId - The faction id.
+   * @param {Blob|Uint8Array} file - A `Blob` / `File`, or a `Buffer` / `Uint8Array` (then
+   *   `options.filename` is required).
+   * @param {object} [options] - Upload options (`filename`, `contentType`, `timeout` of the
+   *   submit step, default 120000, `headers`, `signal`).
+   * @returns {Promise<unknown>} The submit body (`{ file_path }`).
+   * @throws {import('../core/errors/UsageError.js').UsageError} On a restricted variant, a
+   *   blank id or an invalid file, before any request.
+   */
+  async uploadPhoto(factionId, file, options = {}) {
+    return uploadPhoto(this, factionId, file, options);
   }
 }
