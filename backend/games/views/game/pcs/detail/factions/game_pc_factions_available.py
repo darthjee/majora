@@ -1,5 +1,6 @@
 """View for the PC factions/available.json endpoint."""
 
+from ......decorators import token_scopes
 from ...._character.factions._faction_shared import build_factions_available_view
 
-game_pc_factions_available = build_factions_available_view(npc=False)
+game_pc_factions_available = token_scopes(GET=[])(build_factions_available_view(npc=False))
