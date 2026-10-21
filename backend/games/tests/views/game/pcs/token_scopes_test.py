@@ -295,3 +295,87 @@ class TestPcTokenScopesOtherCredentials(ScopedTokenRequestMixin):
             self._pc_url('/full.json'), HTTP_AUTHORIZATION=f'Token {token.key}',
         )
         assert response.status_code == 403
+
+
+@pytest.mark.django_db
+class TestPcTokenScopesRecipesAvailable(ScopedTokenRequestMixin):
+    """recipes/available.json is a gated read needing `pcs:read` plus `recipes:read`."""
+
+    def _available(self, scopes):
+        """GET recipes/available.json as the owner with `scopes`."""
+        return self._get(self._pc_url('/recipes/available.json'), self.owner, scopes)
+
+    def test_pcs_read_only_is_refused(self):
+        """Test that `pcs:read` alone gives `scope_missing`."""
+        self._assert_refused(self._available(['pcs:read']), 'scope_missing')
+
+    def test_both_reads_are_allowed(self):
+        """Test that `pcs:read` + `recipes:read` answers 200 for the owner."""
+        assert self._available(['pcs:read', 'recipes:read']).status_code == 200
+
+
+@pytest.mark.django_db
+class TestPcTokenScopesItemDetailPatch(ScopedTokenRequestMixin):
+    """PATCH items/<id>.json reaches hidden items, so it needs `pcs:write` plus `items:read`."""
+
+    def _patch(self, scopes):
+        """PATCH the hidden item's detail as the owner with `scopes`."""
+        return self.client.patch(
+            self._pc_url(f'/items/{self.hidden_item.id}.json'), {'name': 'Glamdring'},
+            format='json', **self._bearer(self.owner, scopes),
+        )
+
+    def test_pcs_write_only_is_refused(self):
+        """Test that `pcs:write` alone gives `scope_missing`."""
+        self._assert_refused(self._patch(['pcs:write']), 'scope_missing')
+
+    def test_write_and_items_read_succeed(self):
+        """Test that `pcs:write` + `items:read` answers 200."""
+        assert self._patch(['pcs:write', 'items:read']).status_code == 200
+
+
+@pytest.mark.django_db
+class TestPcTokenScopesCatalogueCreation(ScopedTokenRequestMixin):
+    """Creating an item or possession writes a catalogue record, so it needs the family's write."""
+
+    def _create(self, suffix, scopes):
+        """POST a new record to the PC's `suffix` collection as the owner with `scopes`."""
+        return self._post(self._pc_url(suffix), {'name': 'Lembas'}, self.owner, scopes)
+
+    def test_item_create_with_pcs_write_only_is_refused(self):
+        """Test that items.json POST with `pcs:write` alone gives `scope_missing`."""
+        self._assert_refused(self._create('/items.json', ['pcs:write']), 'scope_missing')
+
+    def test_item_create_with_both_writes_succeeds(self):
+        """Test that items.json POST with `pcs:write` + `items:write` answers 201."""
+        response = self._create('/items.json', ['pcs:write', 'items:write'])
+        assert response.status_code == 201
+
+    def test_possession_create_with_pcs_write_only_is_refused(self):
+        """Test that possessions.json POST with `pcs:write` alone gives `scope_missing`."""
+        self._assert_refused(self._create('/possessions.json', ['pcs:write']), 'scope_missing')
+
+    def test_possession_create_with_both_writes_succeeds(self):
+        """Test that possessions.json POST with `pcs:write` + `possessions:write` answers 201."""
+        response = self._create('/possessions.json', ['pcs:write', 'possessions:write'])
+        assert response.status_code == 201
+
+
+@pytest.mark.django_db
+class TestPcTokenScopesRemoveAll(ScopedTokenRequestMixin):
+    """items/remove/all.json removes hidden links, so it needs `pcs:write` plus `items:read`."""
+
+    def _remove_all(self, scopes):
+        """POST items/remove/all.json for the hidden item as the DM with `scopes`."""
+        return self._post(
+            self._pc_url('/items/remove/all.json'), {'game_item_id': self.game_item.id},
+            self.dm, scopes,
+        )
+
+    def test_pcs_write_only_is_refused(self):
+        """Test that `pcs:write` alone gives `scope_missing`."""
+        self._assert_refused(self._remove_all(['pcs:write']), 'scope_missing')
+
+    def test_write_and_items_read_succeed(self):
+        """Test that `pcs:write` + `items:read` answers 204."""
+        assert self._remove_all(['pcs:write', 'items:read']).status_code == 204
