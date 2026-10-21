@@ -4,19 +4,17 @@ import pytest
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
-from accounts.models import ApiToken
 from games.models import CharacterItem
 from games.tests.factories import (
     CharacterFactory,
     GameDocumentFactory,
     GameFactory,
     GameItemFactory,
-    PlayerFactory,
-    UserFactory,
 )
+from games.tests.views.game._scoped_token_fixtures import ScopedTokenMixin
 
 
-class ScopedTokenRequestMixin:
+class ScopedTokenRequestMixin(ScopedTokenMixin):
     """Shared fixtures: a game with a DM, an owning player and their PC, and another player."""
 
     def setup_method(self):
@@ -36,32 +34,9 @@ class ScopedTokenRequestMixin:
             character=self.character, game_item=self.game_item, hidden=True,
         )
 
-    def _member(self, username, is_dm=False):
-        """Return a new player (or the DM) of the fixture game, with its own user."""
-        user = UserFactory(username=username, password='secret-password')
-        return PlayerFactory(name=username, game=self.game, user=user, is_dm=is_dm)
-
-    def _bearer(self, user, scopes, games=None):
-        """Return request kwargs carrying a fresh scoped token of `user`."""
-        _, plain = ApiToken.objects.create_token(user, 'automation', scopes, games=games)
-        return {'HTTP_AUTHORIZATION': f'Bearer {plain}'}
-
     def _pc_url(self, suffix=''):
         """Return the URL of the fixture PC followed by `suffix`."""
         return f'/games/test-game/pcs/{self.character.id}{suffix}'
-
-    def _get(self, url, user, scopes, games=None):
-        """Issue a GET to `url` with a scoped token of `user`."""
-        return self.client.get(url, **self._bearer(user, scopes, games))
-
-    def _post(self, url, payload, user, scopes):
-        """Issue a JSON POST to `url` with a scoped token of `user`."""
-        return self.client.post(url, payload, format='json', **self._bearer(user, scopes))
-
-    def _assert_refused(self, response, code):
-        """Assert a 403 carrying the token error `code`."""
-        assert response.status_code == 403
-        assert response.json() == {'errors': {'detail': [code]}}
 
 
 @pytest.mark.django_db
@@ -262,12 +237,6 @@ class TestPcTokenScopesOwnerIntersection(ScopedTokenRequestMixin):
 @pytest.mark.django_db
 class TestPcTokenScopesOtherCredentials(ScopedTokenRequestMixin):
     """Session and legacy `Token` requests are unaffected by scope declarations."""
-
-    def _log_in(self, user):
-        """Store `user`'s auth token in the client session, as the login view does."""
-        session = self.client.session
-        session['auth_token'] = Token.objects.create(user=user).key
-        session.save()
 
     def test_session_owner_reads_full(self):
         """Test that the owner's session still reads full.json."""
