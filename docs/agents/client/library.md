@@ -163,6 +163,14 @@ const pages = game.documents.pages(7);                      // games/epic-quest/
 await pages.list({ restricted: true });                     // GET documents/7/pages/all.json
 await pages.trim(3);                                        // DELETE documents/7/pages.json {keep: 3}
 await pages.bumpVersion({ version: 2, exclude_ids: [12] }); // PATCH documents/7/pages/bump_version.json
+
+const items = game.npcs.items(12);                          // games/epic-quest/npcs/12/items
+await items.available();                                    // GET npcs/12/items/available.json
+await items.acquire({ game_item_id: 3 });                   // POST npcs/12/items/acquire.json
+await items.remove({ game_item_id: 3 });                    // POST npcs/12/items/remove.json
+await game.pcs.factions(4).remove(5);                       // POST pcs/4/factions/5/remove.json
+await game.factions.characters(5);                          // GET factions/5/characters.json
+await game.items.summary(3, 'npcs', 12);                    // GET items/3/npcs/12/summary.json
 ```
 
 - `client.games` is top-level and read-only (`list`, `iterate`, `mine`, `get`).
@@ -177,6 +185,26 @@ await pages.bumpVersion({ version: 2, exclude_ids: [12] }); // PATCH documents/7
   body `{ keep }`: archives then deletes every page with `order > keep`, answers `204`) and
   `bumpVersion(data)` (`PATCH bump_version`, body passed through as-is, answers `200` with an
   empty body). Both resolve with no meaningful value. There is no per-page `get` or `delete`.
+- `npcs.items(id)`, `npcs.documents(id)` and `npcs.factions(id)` (same on `pcs`) return a
+  `CharacterItems`, `CharacterDocuments` or `CharacterFactions` bound to one character (all
+  three extend `CharacterLinks`, a `Resource` whose base path is
+  `<npcs|pcs>/<character_id>/<items|documents|factions>`; a blank id throws `UsageError`
+  `Missing character id`). They have `list` (+ `iterate`), `get(linkedId)`, `available()`
+  (+ `iterateAvailable`, both paginated), `acquire(data)` and `remove(...)`; there is no
+  `create` or `update` (the character-item create/update routes are not wrapped).
+  - `acquire(data)` and `remove(...)` are `POST`s (the API has no `DELETE` for links), so they
+    are never retried. Bodies are passed through as-is, with no field renaming or validation.
+  - Items and documents take the target in the body: `remove(data)` posts to `remove.json`.
+    Factions are removed one at a time: `remove(factionId, data = {})` posts to
+    `factions/<faction_id>/remove.json`.
+  - A link 422 (`{"status": "failed", "error": "<code>"}`, from the proxy `LinkHandler`)
+    surfaces as an `ApiError` whose `codes` hold the error code.
+- `factions.characters(id)` (+ `iterateCharacters(id)`) lists the members of one faction
+  (`factions/<id>/characters`, paginated, a `Page`).
+- `items.summary(id, kind, characterId)`, `documents.summary(...)` and `factions.summary(...)`
+  read the per-character summary (`<family>/<id>/<pcs|npcs>/<character_id>/summary`, one
+  object). `kind` must be `'pcs'` or `'npcs'`, otherwise `UsageError`, before any request. The
+  API has no item-holders or document-characters list, so none is wrapped.
 - There is no per-record `delete`: the only `DELETE` is the bulk `DocumentPages.trim(keep)`.
 - Return values are plain parsed JSON; there are no model classes.
 
@@ -207,6 +235,32 @@ no `get`:
 | `trim` | `DELETE pages` | `DELETE pages/all` |
 | `bumpVersion` | `PATCH pages/bump_version` | `PATCH pages/bump_version/all` |
 
+The character link sub-wrappers (`<npcs|pcs>/<character_id>/<link>`, where `<link>` is
+`items`, `documents` or `factions`) have a restricted variant for every action:
+
+| Action | Regular | Restricted |
+|---|---|---|
+| `list` | `GET <link>` | `GET <link>/all` |
+| `get` | `GET <link>/<id>` | `GET <link>/<id>/full` |
+| `available` | `GET <link>/available` | `GET <link>/available/all` |
+| `acquire` | `POST <link>/acquire` | `POST <link>/acquire/all` |
+| `remove` (items, documents) | `POST <link>/remove` | `POST <link>/remove/all` |
+| `remove` (factions) | `POST factions/<id>/remove` | `POST factions/<id>/remove/all` |
+
+The related lists on the linked families also have restricted variants:
+
+| Method | Regular | Restricted |
+|---|---|---|
+| `factions.characters(id)` | `GET factions/<id>/characters` | `GET factions/<id>/characters/all` |
+| `<family>.summary(id, kind, characterId)` | `GET <family>/<id>/<kind>/<character_id>/summary` | `GET .../summary/all` |
+
+Scopes are enforced by the API, never by the wrapper (see
+[token scopes](../access-control/token-scopes.md)): a link write needs `write` on the owning
+family, the one the URL nests under (`npcs/<id>/items/acquire.json` needs `npcs:write`); the
+`/all` variants of `acquire` and `remove` can touch hidden records of the linked family, so they
+also need its `read` (`npcs/<id>/documents/acquire/all.json` needs `npcs:write` and
+`documents:read`). Restricted reads need the `read` scope of every family in the response.
+
 - Asking for a variant or an action that does not exist throws `UsageError` locally, before any
   request (`<Class> has no restricted variant for <action>`, `<Class> does not support
   <action>`). There is no silent downgrade and no automatic fallback on 403, which would hide
@@ -214,8 +268,10 @@ no `get`:
 
 ### Not yet wrapped
 
-Link routes (#1622) and photo uploads (#1623) are tracked by their own issues, each of which updates this page, `client/README.md` and the
-[consumer guide](../../guides/client.md) when it lands. The other families (`players`,
+Photo uploads (#1623) are tracked by their own issue, which updates this page,
+`client/README.md` and the [consumer guide](../../guides/client.md) when it lands. The
+character-item create/update routes, the document files/photos sub-routes and the
+possessions / recipes / treasures links are not wrapped. The other families (`players`,
 `common_items`, `possessions`, `recipes`, `treasures`, `sessions`, `polls`, `tasks`,
 `conversations`, `miniatures`) are out of scope for now.
 
