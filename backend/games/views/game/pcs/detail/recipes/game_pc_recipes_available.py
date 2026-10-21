@@ -3,4 +3,6 @@
 from ......decorators import token_scopes
 from ...._character.recipes._recipe_shared import build_recipes_available_view
 
-game_pc_recipes_available = token_scopes(GET=[])(build_recipes_available_view(npc=False))
+game_pc_recipes_available = token_scopes(GET=['pcs:read', 'recipes:read'])(
+    build_recipes_available_view(npc=False),
+)
