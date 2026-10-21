@@ -104,6 +104,24 @@ await pages.trim(3);                                        // keeps pages 1-3, 
 await pages.bumpVersion({ version: 2, exclude_ids: [12] }); // needs documents:write
 ```
 
+Character links (items, documents and factions of an NPC or a PC) are nested under the
+character:
+
+```js
+const items = game.npcs.items(12);
+for await (const item of items.iterateAvailable()) { /* ... */ } // what NPC 12 can acquire
+await items.acquire({ game_item_id: 3 });                // needs npcs:write
+await items.remove({ game_item_id: 3 });                 // needs npcs:write
+await game.pcs.factions(4).remove(5);                    // needs pcs:write
+await game.npcs.documents(12).acquire(data, { restricted: true }); // also needs documents:read
+
+await game.factions.characters(5);                       // the faction's members
+await game.items.summary(3, 'npcs', 12);                 // item 3 as held by NPC 12
+```
+
+`acquire` and `remove` are `POST`s and are never retried; a refused link raises an `ApiError`
+whose `codes` hold the API's error code.
+
 ### CLI
 
 ```sh

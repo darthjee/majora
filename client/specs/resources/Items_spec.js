@@ -3,6 +3,7 @@ import { Items } from '../../src/resources/Items.js';
 import { GameResource } from '../../src/resources/GameResource.js';
 import { FetchStub } from '../support/FetchStub.js';
 import { BASE_URL, buildCore, collect, pageHeaders } from '../support/buildCore.js';
+import { itReadsSummaries } from '../support/summaryExamples.js';
 import { itResolvesVariants } from '../support/variantExamples.js';
 
 describe('Items', () => {
@@ -46,4 +47,6 @@ describe('Items', () => {
       expect(stub.calls.length).toEqual(2);
     });
   });
+
+  itReadsSummaries((http, paginator) => new Items(http, paginator, 'epic-quest'), base);
 });

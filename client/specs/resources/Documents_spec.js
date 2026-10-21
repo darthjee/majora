@@ -5,6 +5,7 @@ import { Documents } from '../../src/resources/Documents.js';
 import { GameResource } from '../../src/resources/GameResource.js';
 import { FetchStub } from '../support/FetchStub.js';
 import { BASE_URL, buildCore, collect, pageHeaders } from '../support/buildCore.js';
+import { itReadsSummaries } from '../support/summaryExamples.js';
 import { itResolvesVariants } from '../support/variantExamples.js';
 
 describe('Documents', () => {
@@ -86,4 +87,6 @@ describe('Documents', () => {
       });
     });
   });
+
+  itReadsSummaries((http, paginator) => new Documents(http, paginator, 'epic-quest'), base);
 });

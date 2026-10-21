@@ -4,9 +4,9 @@ Node.js library and command-line client for the [Majora](https://github.com/dart
 RPG campaign manager API, meant for automations.
 
 > **Work in progress.** This package is being built as part of epic #1592. The core library
-> (configuration, HTTP, pagination, retries and errors), the first resource wrappers
-> (`client.games`, `client.game(slug)`, including document pages) and the
-> [`majora` CLI](#cli) are available; links and photo uploads come in later sub-issues.
+> (configuration, HTTP, pagination, retries and errors), the resource wrappers
+> (`client.games`, `client.game(slug)`, including document pages and character links) and the
+> [`majora` CLI](#cli) are available; photo uploads come in a later sub-issue.
 
 ## Overview
 
@@ -71,10 +71,11 @@ await game.npcs.update(12, { name: 'Robert' });      // PATCH (partial update)
 |---|---|
 | `game.npcs` | `list` (+ `iterate`), `get`, `create`, `update` |
 | `game.pcs` | `list` (+ `iterate`), `get`, `update` — no `create` (the API has no PC create route) |
-| `game.factions` | `list` (+ `iterate`), `get`, `create`, `update` |
-| `game.items` | `list` (+ `iterate`), `get`, `create`, `update` |
-| `game.documents` | `list` (+ `iterate`), `get`, `create`, `update` |
+| `game.factions` | `list` (+ `iterate`), `get`, `create`, `update`, `characters` (+ `iterateCharacters`), `summary` |
+| `game.items` | `list` (+ `iterate`), `get`, `create`, `update`, `summary` |
+| `game.documents` | `list` (+ `iterate`), `get`, `create`, `update`, `summary` |
 | `game.documents.pages(id)` | `list` (+ `iterate`), `create`, `update`, `trim`, `bumpVersion` — no `get` |
+| `game.npcs.items(id)` (and `documents(id)`, `factions(id)`; same on `pcs`) | `list` (+ `iterate`), `get`, `available` (+ `iterateAvailable`), `acquire`, `remove` |
 
 There is **no per-record `delete`**: the only `DELETE` is the bulk `pages(id).trim(keep)`.
 Every action also accepts the request options `headers`, `timeout`, `retries` and `signal`
@@ -134,7 +135,59 @@ await pages.bumpVersion({ version: 2, exclude_ids: [12] }); // PATCH documents/7
 its body as-is. Both resolve with no meaningful value (the API answers `204` / an empty `200`),
 and neither is retried. Listing needs `documents:read`, everything else `documents:write`.
 
-Character links (#1622) and photo uploads (#1623) are coming in later sub-issues.
+#### Character links
+
+`game.npcs.items(characterId)`, `game.npcs.documents(characterId)` and
+`game.npcs.factions(characterId)` (the same on `game.pcs`) wrap
+`games/<slug>/<npcs|pcs>/<character_id>/<items|documents|factions>` (a blank id throws
+`UsageError`). Every action has a restricted variant:
+
+```js
+const items = client.game('epic-quest').npcs.items(12);
+await items.list();                                     // GET npcs/12/items.json
+await items.get(3, { restricted: true });               // GET npcs/12/items/3/full.json
+await items.available();                                // GET npcs/12/items/available.json
+await items.acquire({ game_item_id: 3 });               // POST npcs/12/items/acquire.json
+await items.remove({ game_item_id: 3 });                // POST npcs/12/items/remove.json
+
+const factions = client.game('epic-quest').pcs.factions(4);
+await factions.remove(5);                               // POST pcs/4/factions/5/remove.json
+```
+
+| Action | Regular | Restricted |
+|---|---|---|
+| `list` | `<link>.json` | `<link>/all.json` |
+| `get` | `<link>/<id>.json` | `<link>/<id>/full.json` |
+| `available` | `<link>/available.json` | `<link>/available/all.json` |
+| `acquire` | `POST <link>/acquire.json` | `POST <link>/acquire/all.json` |
+| `remove` (items, documents) | `POST <link>/remove.json` | `POST <link>/remove/all.json` |
+| `remove` (factions) | `POST factions/<id>/remove.json` | `POST factions/<id>/remove/all.json` |
+
+- `list` and `available` return a `Page`; `iterate` and `iterateAvailable` walk every page.
+- `acquire(data)` and `remove(data)` send their body as-is; items and documents name the target
+  in the body, while factions are removed one at a time with `remove(factionId, data = {})`.
+- `acquire` and `remove` are `POST`s, so they are **never retried**. A refused link answers
+  `422` (`{"status": "failed", "error": "<code>"}`), raised as an `ApiError` whose `codes` hold
+  the error code.
+- Scopes: a link write needs `write` on the character family (`npcs:write` for
+  `npcs/<id>/items/acquire.json`); the restricted `acquire` / `remove` also need `read` on the
+  linked family (`documents:read` for `npcs/<id>/documents/acquire/all.json`).
+
+The linked families have two related reads, each with a restricted `all.json` variant:
+
+```js
+const game = client.game('epic-quest');
+await game.factions.characters(5);                      // GET factions/5/characters.json (a Page)
+for await (const member of game.factions.iterateCharacters(5)) { /* ... */ }
+await game.items.summary(3, 'npcs', 12);                // GET items/3/npcs/12/summary.json
+await game.documents.summary(7, 'pcs', 4, { restricted: true }); // GET documents/7/pcs/4/summary/all.json
+```
+
+`summary(id, kind, characterId)` exists on `items`, `documents` and `factions`; `kind` must be
+`'pcs'` or `'npcs'`, otherwise `UsageError`. The API has no item-holders or
+document-characters list.
+
+Photo uploads (#1623) are coming in a later sub-issue.
 
 ### Raw requests
 
