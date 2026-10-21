@@ -1,5 +1,8 @@
 import { Page } from '../../src/core/Page.js';
 import { Npcs } from '../../src/resources/Npcs.js';
+import { CharacterDocuments } from '../../src/resources/CharacterDocuments.js';
+import { CharacterFactions } from '../../src/resources/CharacterFactions.js';
+import { CharacterItems } from '../../src/resources/CharacterItems.js';
 import { CharacterResource } from '../../src/resources/CharacterResource.js';
 import { FetchStub } from '../support/FetchStub.js';
 import { BASE_URL, buildCore, collect, pageHeaders } from '../support/buildCore.js';
@@ -44,6 +47,30 @@ describe('Npcs', () => {
 
       expect(await collect(resource.iterate())).toEqual([{ id: 1 }, { id: 2 }, { id: 3 }]);
       expect(stub.calls.length).toEqual(2);
+    });
+  });
+
+  describe('link sub-wrappers', () => {
+    let resource;
+
+    beforeEach(() => {
+      const { http, paginator } = buildCore(new FetchStub());
+
+      resource = new Npcs(http, paginator, 'epic-quest');
+    });
+
+    [
+      ['items', CharacterItems],
+      ['documents', CharacterDocuments],
+      ['factions', CharacterFactions],
+    ].forEach(([factory, Klass]) => {
+      it(`${factory}(id) returns a ${Klass.name} bound to the character`, () => {
+        const links = resource[factory](12);
+
+        expect(links).toEqual(jasmine.any(Klass));
+        expect(links.characterId).toEqual(12);
+        expect(links.basePath).toEqual(`${base}/12/${factory}`);
+      });
     });
   });
 });
