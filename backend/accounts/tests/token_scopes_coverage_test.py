@@ -18,7 +18,6 @@ PENDING_TOKEN_SCOPES = frozenset(
         'permissions-game-document',
         'permissions-game-npc',
         'permissions-game-pc',
-        'upload-finalize',
     }
 )
 
