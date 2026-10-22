@@ -7,6 +7,7 @@
 Remove `game-players`, `game-player-detail` and `game-conversations` from `PENDING_TOKEN_SCOPES`.
 
 ## Files to Change
+
 - `backend/games/views/game/players/game_players.py` — add the declaration.
 - `backend/games/views/game/players/game_player_detail.py` — add the declaration.
 - `backend/games/views/game/conversations/game_conversations.py` — add the declaration.

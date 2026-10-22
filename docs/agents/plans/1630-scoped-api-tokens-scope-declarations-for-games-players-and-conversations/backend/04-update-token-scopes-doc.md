@@ -5,4 +5,5 @@
 - **Per-game restriction:** replace "`my-games.json` must be filtered … when it is declared (#1630)" with the actual behaviour, and note that `games.json` POST needs `games:write` with no game-list check.
 
 ## Files to Change
+
 - `docs/agents/access-control/token-scopes.md` — Status, Read scopes and Per-game restriction sections.

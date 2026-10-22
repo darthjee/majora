@@ -13,6 +13,7 @@ Filter `my-games.json`: when `request.auth` is an `ApiToken` whose `games` list 
 Remove `games-list`, `my-games-list`, `game-detail`, `game-access` and `permissions-game` from `PENDING_TOKEN_SCOPES`.
 
 ## Files to Change
+
 - `backend/games/views/games/games_list.py` — add the declaration.
 - `backend/games/views/games/my_games_list.py` — add the declaration and pass the token's games to the builder.
 - `backend/games/serializers/games/my_games/_my_games_builder.py` — optional game restriction.

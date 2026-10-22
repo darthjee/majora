@@ -12,6 +12,7 @@ Add tests in the style of `game_factions_token_scopes_test.py`, using `ScopedTok
 - At least one check that session and legacy `Token` callers still get the same `my-games.json` as before.
 
 ## Files to Change
+
 - `backend/games/tests/views/games/games_token_scopes_test.py` — new.
 - `backend/games/tests/views/game/players/game_players_token_scopes_test.py` — new.
 - `backend/games/tests/views/game/conversations/game_conversations_token_scopes_test.py` — new.
