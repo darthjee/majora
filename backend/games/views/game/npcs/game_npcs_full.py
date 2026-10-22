@@ -5,11 +5,13 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
+from ....decorators import token_scopes
 from ....models import Game
 from ....serializers import CharacterCreateSerializer, CharacterDetailSerializer
 from ...common import check_game_edit, save_or_error, validated_or_error
 
 
+@token_scopes(POST=['npcs:write'])
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def game_npcs_full(request, game_slug):

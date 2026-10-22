@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 
-from .......decorators import restricted
+from .......decorators import restricted, token_scopes
 from .......models import Game
 from .....factions._faction_summary import (
     character_faction_summary,
@@ -12,6 +12,7 @@ from .....factions._faction_summary import (
 )
 
 
+@token_scopes(GET=['npcs:read', 'factions:read'])
 @restricted
 @api_view(['GET'])
 @permission_classes([AllowAny])

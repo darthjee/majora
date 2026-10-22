@@ -4,12 +4,14 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 
+from ......decorators import token_scopes
 from ......models import Game
 from ...._character._full import _check_character_edit
 from ...._character._shared import _get_character_or_404
 from ....photos._photos import character_photos
 
 
+@token_scopes(GET=['npcs:read'])
 @api_view(['GET'])
 # AllowAny: authorization for this whole endpoint is enforced inline via
 # _check_character_edit() (CharacterEdit), checked before the hidden state is consulted,

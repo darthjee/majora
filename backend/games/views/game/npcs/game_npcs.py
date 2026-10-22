@@ -7,6 +7,7 @@ from rest_framework.response import Response
 
 from permissions import EndpointPermission
 
+from ....decorators import token_scopes
 from ....models import Game
 from ....serializers import (
     CharacterDetailSerializer,
@@ -17,6 +18,7 @@ from ...common import paginated_list_response, save_or_error, validated_or_error
 from .._character._shared import _filter_characters, _with_treasure_value
 
 
+@token_scopes(GET=[], POST=['npcs:write'])
 @api_view(['GET', 'POST'])
 # AllowAny: GET is intentionally public; POST authorization is enforced inline
 # inside _create_npc via EndpointPermission.check().
