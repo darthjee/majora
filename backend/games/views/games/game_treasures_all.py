@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 
+from ...decorators import token_scopes
 from ...models import Game, GameTreasure, Treasure
 from ...serializers import TreasureAllListSerializer
 from ..common import check_game_edit, paginated_list_response
@@ -13,6 +14,7 @@ from ._treasure_context import game_treasures_context
 from ._treasure_filters import filter_by_max_value, filter_by_min_value, filter_by_name
 
 
+@token_scopes(GET=['treasures:read'])
 @api_view(['GET'])
 # AllowAny: authorization for this whole endpoint is enforced inline via
 # EndpointPermission.check(), so unauthenticated/non-DM callers get the app's own

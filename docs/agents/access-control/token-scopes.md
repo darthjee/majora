@@ -21,10 +21,13 @@ recipes and recipe → characters listings, and `permissions/game_item.json`,
 (`games/<slug>/conversations.json`) are declared (#1630). The sessions family
 (`games/<slug>/sessions…`, with the past / future / unscheduled listings and the session
 messages) and the polls family (`games/<slug>/polls…`, votes, close and
-`sessions/<id>/poll.json`) are declared (#1637). Every other view, including the game
+`sessions/<id>/poll.json`) are declared (#1637). The treasures family
+(`games/<slug>/treasures…`, the top-level `treasures.json`, `treasures/<id>.json`,
+`treasures/<id>/access.json` and `treasures/<id>/photo_upload.json`, and
+`permissions/treasure.json` and `permissions/game_treasure.json`) is declared (#1636). Every other view, including the game
 photos and their upload init (#1665), `permissions/game/pc.json`, `permissions/game/npc.json` and
 `permissions/game_document.json` (#1666), is still on the coverage test's pending list, and
-#1636, #1638, #1639, #1665 and #1666 add the remaining declarations. Until a view is declared,
+#1638, #1639, #1665 and #1666 add the remaining declarations. Until a view is declared,
 it refuses every scoped token with `403` `token_not_allowed` (fail closed). The rules below are
 the ones those declarations must follow.
 
@@ -99,6 +102,12 @@ giving the 32 scopes `<family>:<action>`. Token creation validates against it, a
   `polls/<id>/votes.json` `GET` need `polls:read`.
 - **`sessions/<id>/poll.json` needs `polls:write` alone.** It creates a poll; the session it
   attaches to is public data, so no `sessions:*` scope is needed.
+- **Treasure listings and detail are public; the DM views are not.**
+  `games/<slug>/treasures.json` and `treasures/<id>.json` `GET` (which exclude and 404 hidden
+  copies), the top-level
+  `treasures.json`, `treasures/<id>.json` and `treasures/<id>/access.json` `GET` declare no
+  scope, while `treasures/all.json`, `treasures/missing.json` and `treasures/<id>/full.json`
+  need `treasures:read`.
 
 ## Write scopes and link routes
 
@@ -117,6 +126,12 @@ giving the 32 scopes `<family>:<action>`. Token creation validates against it, a
   Updating a link row that may be hidden (e.g. `pcs/<id>/items/<item>.json` `PATCH`, which
   returns the `full.json` shape) needs the linked family's `read` too.
 - `remove`, `sell` and `buy` are writes on the character's family.
+- **Treasure writes need `treasures:write` alone**: `games/<slug>/treasures.json` `POST`,
+  `treasures/<id>.json` `PATCH` and `link.json` `POST` (catalogue treasures have no hidden flag),
+  and the top-level `treasures.json` `POST`, `treasures/<id>.json` `PATCH` and
+  `treasures/<id>/photo_upload.json` `POST`. The views still apply their role checks: a DM
+  holding `treasures:write` cannot create a top-level treasure, and the top-level `PATCH` stays
+  limited to staff and superusers (superusers only on a game-exclusive treasure).
 
 ## Per-game restriction
 
@@ -127,7 +142,13 @@ giving the 32 scopes `<family>:<action>`. Token creation validates against it, a
   `game_not_allowed`. Routes game-scoped by other means must enforce the list in the view before
   they are declared.
 - Requests with no `game_slug` (the top-level `treasures/…` and `miniatures/…` routes) are
-  governed by scopes alone.
+  governed by scopes alone, except where the view resolves a game itself (below).
+- The top-level `treasures/<id>.json` `PATCH` and `treasures/<id>/photo_upload.json` `POST` can
+  act on a game-exclusive treasure (`treasure.game_id` set) without a `game_slug`, so the views
+  enforce the list themselves (`accounts.token_games.check_token_game`): after the treasure
+  lookup and before the role check, a token with a non-empty game list that does not include
+  the treasure's game gets `403` `game_not_allowed`. Catalogue treasures (no owning game),
+  sessions and legacy `Token` requests are unaffected.
 - `games.json` is a public read and is not filtered. `games.json` `POST` needs `games:write`
   and, having no `game_slug`, gets no game-list check; a game created by a token with a game
   list is not reachable by that token afterwards.

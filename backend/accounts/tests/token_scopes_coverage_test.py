@@ -15,12 +15,6 @@ PENDING_TOKEN_SCOPES = frozenset(
     {
         'game-photo-upload',
         'game-photos',
-        'game-treasure-detail',
-        'game-treasure-full',
-        'game-treasure-link',
-        'game-treasures',
-        'game-treasures-all',
-        'game-treasures-missing',
         'miniatures-collections-detail',
         'miniatures-collections-import',
         'miniatures-collections-list',
@@ -35,12 +29,6 @@ PENDING_TOKEN_SCOPES = frozenset(
         'permissions-game-document',
         'permissions-game-npc',
         'permissions-game-pc',
-        'permissions-game-treasure',
-        'permissions-treasure',
-        'treasure-access',
-        'treasure-detail',
-        'treasure-photo-upload',
-        'treasures-list',
         'upload-finalize',
     }
 )

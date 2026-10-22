@@ -5,11 +5,13 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
+from ...decorators import token_scopes
 from ...models import Game, GameTreasure
 from ...serializers import GameTreasureLinkSerializer, TreasureDetailSerializer
 from ..common import check_game_edit, validate_with_hidden_field
 
 
+@token_scopes(POST=['treasures:write'])
 @api_view(['POST'])
 # AllowAny: authorization for this whole endpoint is enforced inline via
 # EndpointPermission.check(), so unauthenticated/non-DM callers get the app's own

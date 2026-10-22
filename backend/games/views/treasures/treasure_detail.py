@@ -4,13 +4,16 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
+from accounts.token_games import check_token_game
 from permissions import EndpointPermission
 
+from ...decorators import token_scopes
 from ...models import GameTreasure, Treasure
 from ...serializers import TreasureDetailSerializer, TreasureUpdateSerializer
 from ..common import detail_or_update, validate_with_hidden_field
 
 
+@token_scopes(GET=[], PATCH=['treasures:write'])
 @api_view(['GET', 'PATCH'])
 # AllowAny: GET is intentionally public; PATCH authentication/authorisation is
 # enforced inline in detail_or_update/_patch_treasure via _check_treasure_edit().
@@ -51,6 +54,7 @@ def _patch_treasure(request, treasure):
     `hidden` to, so it is silently dropped (matching this endpoint's existing "ignored field"
     convention, e.g. `game` in the body is never honored either).
     """
+    check_token_game(request, treasure.game_id)
     error_response = _check_treasure_edit(request, treasure)
     if error_response:
         return error_response
