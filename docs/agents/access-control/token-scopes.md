@@ -18,12 +18,15 @@ recipes and recipe → characters listings, and `permissions/game_item.json`,
 (#1635). The games family (`games.json`, `my-games.json`, `games/<slug>.json`,
 `games/<slug>/access.json` and `permissions/game.json`), the players family
 (`games/<slug>/players.json` and `players/<id>.json`) and the conversations family
-(`games/<slug>/conversations.json`) are declared (#1630). Every other view, including the game
+(`games/<slug>/conversations.json`) are declared (#1630). The sessions family
+(`games/<slug>/sessions…`, with the past / future / unscheduled listings and the session
+messages) and the polls family (`games/<slug>/polls…`, votes, close and
+`sessions/<id>/poll.json`) are declared (#1637). Every other view, including the game
 photos and their upload init (#1665), `permissions/game/pc.json`, `permissions/game/npc.json` and
 `permissions/game_document.json` (#1666), is still on the coverage test's pending list, and
-#1636–#1639, #1665 and #1666 add the remaining declarations. Until a view is declared, it refuses
-every scoped token with `403` `token_not_allowed` (fail closed). The rules below are the ones
-those declarations must follow.
+#1636, #1638, #1639, #1665 and #1666 add the remaining declarations. Until a view is declared,
+it refuses every scoped token with `403` `token_not_allowed` (fail closed). The rules below are
+the ones those declarations must follow.
 
 ## Intersection with the owner's roles
 
@@ -89,6 +92,13 @@ giving the 32 scopes `<family>:<action>`. Token creation validates against it, a
   embedded PC and the conversation / unread counts need no `pcs:read` or `conversations:read`.
 - **`conversations.json` needs `conversations:read` and `players:read`.** It is gated on the
   player `show` permission, and its `player_id` 404s reveal whether a player exists.
+- **Session listings and detail are public; session messages are not.** `sessions.json`,
+  `sessions/past.json`, `future.json`, `unscheduled.json` and `sessions/<id>.json` `GET` declare
+  no scope, while `sessions/<id>/messages.json` `GET` needs `sessions:read` (members only).
+- **Polls have no public read path**: `polls.json`, `polls/<id>.json` and
+  `polls/<id>/votes.json` `GET` need `polls:read`.
+- **`sessions/<id>/poll.json` needs `polls:write` alone.** It creates a poll; the session it
+  attaches to is public data, so no `sessions:*` scope is needed.
 
 ## Write scopes and link routes
 
