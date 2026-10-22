@@ -27,10 +27,11 @@ messages) and the polls family (`games/<slug>/polls…`, votes, close and
 `permissions/treasure.json` and `permissions/game_treasure.json`) is declared (#1636). The
 miniatures family (`miniatures/sources…`, `miniatures/stl_models…` and
 `miniatures/collections…`, with their imports and photo upload inits) is declared (#1638).
-Every other view, including the game
-photos and their upload init (#1665), `permissions/game/pc.json`, `permissions/game/npc.json` and
+Upload finalize (`uploads/<type>/<id>.json`) is declared and checks tokens in the view (#1639,
+see [Uploads](#uploads)). Every other view, including the game photos and their upload init
+(#1665), `permissions/game/pc.json`, `permissions/game/npc.json` and
 `permissions/game_document.json` (#1666), is still on the coverage test's pending list, and
-#1639, #1665 and #1666 add the remaining declarations. Until a view is declared,
+#1665 and #1666 add the remaining declarations. Until a view is declared,
 it refuses every scoped token with `403` `token_not_allowed` (fail closed). The rules below are
 the ones those declarations must follow.
 
@@ -161,6 +162,8 @@ giving the 32 scopes `<family>:<action>`. Token creation validates against it, a
   lookup and before the role check, a token with a non-empty game list that does not include
   the treasure's game gets `403` `game_not_allowed`. Catalogue treasures (no owning game),
   sessions and legacy `Token` requests are unaffected.
+- Upload finalize (`uploads/<type>/<id>.json` `PATCH`) has no `game_slug` either, so the view
+  enforces the list itself on the game of the upload's linked object (see [Uploads](#uploads)).
 - `games.json` is a public read and is not filtered. `games.json` `POST` needs `games:write`
   and, having no `game_slug`, gets no game-list check; a game created by a token with a game
   list is not reachable by that token afterwards.
@@ -172,13 +175,35 @@ giving the 32 scopes `<family>:<action>`. Token creation validates against it, a
 
 - Upload flows follow the scope of the resource they attach to: uploading an NPC photo needs
   `npcs:write`.
-- `PATCH uploads/<type>/<id>.json` (finalize) does not name the resource in its URL, so its
-  family must come from the upload's `content_object` through a fixed model → family map
-  (`CharacterPhoto` → `pcs`/`npcs` following the character; `GameDocumentFile` /
-  `GameDocumentPhoto` → `documents`; `GameItemPhoto` → `items`; `SourcePhoto`, `StlModelPhoto`,
-  `CollectionPhoto` → `miniatures`), needing that family's `write`, with the game taken from the
-  object. Uploads with a staff or copy origin are rejected for scoped tokens. This in-view check
-  is tracked by #1639; until then finalize is undeclared and refuses tokens.
+- `PATCH uploads/<type>/<id>.json` (finalize) names neither the resource nor a `game_slug` in its
+  URL, so it is declared `@token_scopes(PATCH=[])`: the empty list only lets scoped tokens reach
+  the view, and `uploads.upload_token_scope_check.UploadTokenScopeCheck` enforces the real rule
+  inside it. The check runs after the `X-Upload-Token`, owner, expiry and status checks and
+  before the per-type role check, and does nothing for sessions and legacy `Token` requests.
+- Uploads with a staff or copy origin get `403` `token_not_allowed`, whatever the scopes.
+- Otherwise the scopes and game come from the upload's `content_object` through a fixed
+  model → scopes map. Each entry matches the scopes of the init route that created the upload:
+
+  | Model | Scopes | Game |
+  |---|---|---|
+  | `GamePhoto` | `games:write` | the photo's game |
+  | `CharacterPhoto` | `npcs:write` for an NPC, else `pcs:write` | the character's game |
+  | `CharacterItemPhoto` | `npcs:write` / `pcs:write` (following the character) + `items:write` | the character's game |
+  | `GameItemPhoto` | `items:write` | the item's game |
+  | `GamePossessionPhoto` | `possessions:write` | the possession's game |
+  | `GameCommonItemPhoto` | `common_items:write` | the common item's game |
+  | `GameFactionPhoto` | `factions:write` | the faction's game |
+  | `GameDocumentPhoto`, `GameDocumentFile` | `documents:write` | the document's game |
+  | `GameDocumentFilePhoto` | `documents:write` | the game of the document whose file holds the photo |
+  | `TreasurePhoto` | `treasures:write` | the treasure's game (none for a catalogue treasure) |
+  | `SourcePhoto`, `StlModelPhoto`, `CollectionPhoto` | `miniatures:write` | none |
+
+- A model missing from the map, or a `GameDocumentFilePhoto` not attached to exactly one file,
+  fails closed with `token_not_allowed`. A missing scope gives `scope_missing`; then, as in
+  [Per-game restriction](#per-game-restriction), a game off the token's list gives
+  `game_not_allowed` (objects with no game pass).
+- The role check still applies afterwards: miniatures photos stay staff-only, so a non-staff
+  owner's token with `miniatures:write` still gets `403`.
 
 ## Never reachable with a scoped token
 

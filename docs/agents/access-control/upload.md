@@ -63,6 +63,9 @@ already proven ownership via a valid `X-Upload-Token` — otherwise a caller cou
 "doesn't exist" (403) from "exists, wrong type" (404) from "exists, right type, not authorized"
 (403), leaking the existence and `upload_type` of an arbitrary upload it has no claim to.
 
+Scoped API tokens are checked inside the view, between the status check and the per-type role
+check; see [Token Scopes — Uploads](token-scopes.md#uploads).
+
 Finalize is decorated with `@restricted`, so every one of its responses (any status, regular or
 staff origin) carries `X-Skip-Cache: true`.
 

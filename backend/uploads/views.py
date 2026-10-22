@@ -6,7 +6,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from games.decorators import restricted
+from games.decorators import restricted, token_scopes
 from games.models import (
     CharacterItemPhoto,
     CharacterPhoto,
@@ -26,6 +26,7 @@ from permissions import EndpointPermission
 from .copy_link_finalizer import CopyLinkFinalizer
 from .models import Upload
 from .staff_upload_finalizer import StaffUploadFinalizer
+from .upload_token_scope_check import UploadTokenScopeCheck
 
 _FORBIDDEN = Response(status=status.HTTP_403_FORBIDDEN)
 _VALID_STATUSES = {Upload.STATUS_UPLOADING, Upload.STATUS_UPLOADED}
@@ -33,6 +34,9 @@ _COPY_VALID_STATUSES = _VALID_STATUSES | {Upload.STATUS_FAILED}
 
 
 @restricted
+# `PATCH=[]` only lets scoped tokens reach the view (its URL has no resource or game_slug);
+# `UploadTokenScopeCheck` enforces the real family scopes and game list inside it.
+@token_scopes(PATCH=[])
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
 def upload_finalize(request, upload_type, upload_id):
@@ -93,6 +97,7 @@ def _validate_upload(request, upload):
         return _FORBIDDEN
     if upload.status in (Upload.STATUS_UPLOADED, Upload.STATUS_FAILED):
         return _FORBIDDEN
+    UploadTokenScopeCheck(request, upload).run()
     return _check_permission(request, upload)
 
 
