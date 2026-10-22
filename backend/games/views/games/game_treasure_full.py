@@ -5,12 +5,14 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
+from ...decorators import token_scopes
 from ...models import Game
 from ...serializers import TreasureFullSerializer
 from ..common import check_game_edit
 from .game_treasure_detail import _get_game_treasure_or_404
 
 
+@token_scopes(GET=['treasures:read'])
 @api_view(['GET'])
 # AllowAny: authorization for this whole endpoint is enforced inline via check_game_edit(),
 # checked before the treasure is resolved so a 401/403 never reveals whether it exists.

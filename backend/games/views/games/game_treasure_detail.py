@@ -5,6 +5,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
+from ...decorators import token_scopes
 from ...models import Game, GameTreasure, Treasure
 from ...serializers import (
     GameTreasureUpdateSerializer,
@@ -19,6 +20,7 @@ from ..common import (
 )
 
 
+@token_scopes(GET=[], PATCH=['treasures:write'])
 @api_view(['GET', 'PATCH'])
 # AllowAny: GET is intentionally public; PATCH authorization is enforced inline via
 # EndpointPermission.check() against the resolved game — distinct from, and does not
