@@ -30,10 +30,10 @@ miniatures family (`miniatures/sources…`, `miniatures/stl_models…` and
 Upload finalize (`uploads/<type>/<id>.json`) is declared and checks tokens in the view (#1639,
 see [Uploads](#uploads)). The remaining permissions routes, `permissions/game_pc.json`,
 `permissions/game_npc.json` and `permissions/game_document.json`, are declared as public reads
-(#1662). Only the game photos and their upload init are still on the coverage test's pending
-list, and #1665 adds those declarations. Until a view is declared,
-it refuses every scoped token with `403` `token_not_allowed` (fail closed). The rules below are
-the ones those declarations must follow.
+(#1662). The game photos listing is declared as a public read and its upload init needs
+`games:write` (#1665), so every DRF view is now declared or excluded. A future view that is not
+declared refuses every scoped token with `403` `token_not_allowed` (fail closed). The rules below
+are the ones declarations must follow.
 
 ## Intersection with the owner's roles
 
@@ -55,7 +55,7 @@ giving the 32 scopes `<family>:<action>`. Token creation validates against it, a
 
 | Family | Covers (URL roots) | Game-scoped |
 |---|---|---|
-| `games` | `games.json`, `my-games.json`, `games/<slug>.json`, `games/<slug>/access.json`, `permissions/game.json` | yes |
+| `games` | `games.json`, `my-games.json`, `games/<slug>.json`, `games/<slug>/access.json`, `games/<slug>/photos.json`, `games/<slug>/photo_upload.json`, `permissions/game.json` | yes |
 | `players` | `games/<slug>/players…` | yes |
 | `pcs` | `games/<slug>/pcs…` and every route nested under a PC | yes |
 | `npcs` | `games/<slug>/npcs…` and every route nested under an NPC | yes |
@@ -230,8 +230,8 @@ credential and are unaffected.
   `HEAD` follows the `GET` entry. A new endpoint therefore never silently opens to tokens.
 - **Coverage test.** `backend/accounts/tests/token_scopes_coverage_test.py` walks every URL
   pattern: each DRF view must be excluded (prefix or `authentication_classes == []`), declare
-  every method it serves (except `OPTIONS` and `HEAD`), or be in `PENDING_TOKEN_SCOPES`. A new
-  view without a declaration fails CI.
+  every method it serves (except `OPTIONS` and `HEAD`). A new view without a declaration fails
+  CI.
 
 ### Declaring scopes on a view
 
@@ -249,8 +249,6 @@ def some_documents_view(request, game_slug):
 - An empty list declares a public read that needs no scope.
 - The decorator raises `ValueError` at import time for a non-DRF view, an unknown method or
   scope, a non-list value, a method the view does not serve, or an empty declaration.
-- When declaring a pending view, remove it from `PENDING_TOKEN_SCOPES` in the same PR, and
-  follow the read and write rules above.
 
 ## Error responses
 

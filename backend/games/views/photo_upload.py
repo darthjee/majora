@@ -7,10 +7,12 @@ from rest_framework.permissions import IsAuthenticated
 from uploads.photo_path import PhotoPathBuilder
 from uploads.upload_initiator import UploadInitiator
 
+from ..decorators import token_scopes
 from ..models import Game, GamePhoto
 from .common import check_game_edit
 
 
+@token_scopes(POST=['games:write'])
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def photo_upload(request, game_slug):

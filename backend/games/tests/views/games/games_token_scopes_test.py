@@ -10,6 +10,9 @@ from games.tests.views.game._scoped_token_fixtures import ScopedTokenMixin
 from majora_project.cache import memory_cache
 
 MY_GAMES_URL = '/my-games.json'
+PHOTOS_URL = '/games/test-game/photos.json'
+PHOTO_UPLOAD_URL = '/games/test-game/photo_upload.json'
+PHOTO_PAYLOAD = {'filename': 'photo.jpg'}
 
 
 class GamesScopedTokenMixin(ScopedTokenMixin):
@@ -122,6 +125,46 @@ class TestMyGamesTokenScopes(GamesScopedTokenMixin):
 
 
 @pytest.mark.django_db
+class TestGamePhotosTokenScopes(GamesScopedTokenMixin):
+    """The game photo listing is a public read, still bound to the token's game list (#1665)."""
+
+    def test_listing_needs_no_scope(self):
+        """Test that games/<slug>/photos.json answers 200 for a token with no scopes."""
+        assert self._get(PHOTOS_URL, self.player, []).status_code == 200
+
+    def test_listing_on_another_game_is_refused(self):
+        """Test that a token limited to another game gives `game_not_allowed` on photos.json."""
+        response = self._get(PHOTOS_URL, self.dm, [], games=[self.other_game])
+        self._assert_refused(response, 'game_not_allowed')
+
+
+@pytest.mark.django_db
+class TestGamePhotoUploadTokenScopes(GamesScopedTokenMixin):
+    """The game photo upload needs `games:write` (#1665)."""
+
+    def _upload(self, scopes, user=None, games=None):
+        """POST a photo upload init as `user` (default: the DM) with `scopes`."""
+        return self._post(PHOTO_UPLOAD_URL, PHOTO_PAYLOAD, user or self.dm, scopes, games)
+
+    def test_upload_without_write_is_refused(self):
+        """Test that photo_upload.json with `games:read` alone gives `scope_missing`."""
+        self._assert_refused(self._upload(['games:read']), 'scope_missing')
+
+    def test_upload_with_write_succeeds(self):
+        """Test that photo_upload.json with `games:write` answers 201."""
+        assert self._upload(['games:write']).status_code == 201
+
+    def test_upload_on_another_game_is_refused(self):
+        """Test that a token limited to another game gives `game_not_allowed`."""
+        response = self._upload(['games:write'], games=[self.other_game])
+        self._assert_refused(response, 'game_not_allowed')
+
+    def test_outsider_upload_is_refused_by_role(self):
+        """Test that a non-member with `games:write` still gets a role 403."""
+        self._assert_role_refused(self._upload(['games:write'], user=self.outsider))
+
+
+@pytest.mark.django_db
 class TestGamesTokenScopesOtherCredentials(GamesScopedTokenMixin):
     """Session and legacy `Token` requests are unaffected by scope declarations."""
 
@@ -144,3 +187,18 @@ class TestGamesTokenScopesOtherCredentials(GamesScopedTokenMixin):
             HTTP_AUTHORIZATION=f'Token {token.key}',
         )
         assert response.status_code == 200
+
+    def test_session_uploads_photo(self):
+        """Test that the DM's session still initialises a game photo upload (#1665)."""
+        self._log_in(self.dm)
+        response = self.client.post(PHOTO_UPLOAD_URL, PHOTO_PAYLOAD, format='json')
+        assert response.status_code == 201
+
+    def test_legacy_token_uploads_photo(self):
+        """Test that the DM's legacy Token still initialises a game photo upload (#1665)."""
+        token = Token.objects.create(user=self.dm)
+        response = self.client.post(
+            PHOTO_UPLOAD_URL, PHOTO_PAYLOAD, format='json',
+            HTTP_AUTHORIZATION=f'Token {token.key}',
+        )
+        assert response.status_code == 201
