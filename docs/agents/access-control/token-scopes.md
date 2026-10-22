@@ -28,10 +28,10 @@ messages) and the polls family (`games/<slug>/polls…`, votes, close and
 miniatures family (`miniatures/sources…`, `miniatures/stl_models…` and
 `miniatures/collections…`, with their imports and photo upload inits) is declared (#1638).
 Upload finalize (`uploads/<type>/<id>.json`) is declared and checks tokens in the view (#1639,
-see [Uploads](#uploads)). Every other view, including the game photos and their upload init
-(#1665), `permissions/game/pc.json`, `permissions/game/npc.json` and
-`permissions/game_document.json` (#1666), is still on the coverage test's pending list, and
-#1665 and #1666 add the remaining declarations. Until a view is declared,
+see [Uploads](#uploads)). The remaining permissions routes, `permissions/game_pc.json`,
+`permissions/game_npc.json` and `permissions/game_document.json`, are declared as public reads
+(#1662). Only the game photos and their upload init are still on the coverage test's pending
+list, and #1665 adds those declarations. Until a view is declared,
 it refuses every scoped token with `403` `token_not_allowed` (fail closed). The rules below are
 the ones those declarations must follow.
 
