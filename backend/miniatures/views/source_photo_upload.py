@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 
+from games.decorators import token_scopes
 from games.views.common import require_staff
 from uploads.photo_path import PhotoPathBuilder
 from uploads.upload_initiator import UploadInitiator
@@ -14,6 +15,7 @@ from ..models import Source, SourcePhoto
 from ._shared import skip_cache
 
 
+@token_scopes(POST=['miniatures:write'])
 @api_view(['POST'])
 # AllowAny: authentication/authorisation is enforced inline via require_staff so
 # unauthenticated or non-staff callers receive a proper 401/403.
