@@ -55,7 +55,7 @@ giving the 32 scopes `<family>:<action>`. Token creation validates against it, a
 
 | Family | Covers (URL roots) | Game-scoped |
 |---|---|---|
-| `games` | `games.json`, `my-games.json`, `games/<slug>.json`, `games/<slug>/access.json`, `permissions/game.json` | yes |
+| `games` | `games.json`, `my-games.json`, `games/<slug>.json`, `games/<slug>/access.json`, `games/<slug>/photos.json`, `games/<slug>/photo_upload.json`, `permissions/game.json` | yes |
 | `players` | `games/<slug>/players…` | yes |
 | `pcs` | `games/<slug>/pcs…` and every route nested under a PC | yes |
 | `npcs` | `games/<slug>/npcs…` and every route nested under an NPC | yes |
