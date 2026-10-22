@@ -8,9 +8,11 @@ from rest_framework.response import Response
 
 from permissions import EndpointPermission
 
+from ...decorators import token_scopes
 from ...models import Game, GameDocument
 
 
+@token_scopes(PATCH=['documents:write'])
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
 def game_document_photo_set(request, game_slug, document_id, photo_id):

@@ -8,9 +8,11 @@ from permissions import EndpointPermission
 from uploads.photo_path import PhotoPathBuilder
 from uploads.upload_initiator import UploadInitiator
 
+from ...decorators import token_scopes
 from ...models import Game, GameDocument, GameDocumentPhoto
 
 
+@token_scopes(POST=['documents:write'])
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def game_document_photo_upload(request, game_slug, document_id):

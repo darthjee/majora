@@ -4,6 +4,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 
+from ...decorators import token_scopes
 from ...models import Game
 from ...serializers import GameDocumentPageListSerializer
 from ..common import check_game_edit, paginated_list_response
@@ -11,6 +12,7 @@ from .game_document_page_create import game_document_page_create_all
 from .game_document_pages_trim import game_document_pages_trim_all
 
 
+@token_scopes(GET=['documents:read'], POST=['documents:write'], DELETE=['documents:write'])
 @api_view(['GET', 'POST', 'DELETE'])
 # AllowAny: authorization for this whole endpoint is enforced inline via
 # EndpointPermission.check()/check_game_edit(), so unauthenticated/non-DM callers get the
