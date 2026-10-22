@@ -19,5 +19,6 @@ Add test classes to `backend/games/tests/views/games/games_token_scopes_test.py`
 Mention issue #1665 in the new classes' docstrings, the way the module references #1630.
 
 ## Files to Change
+
 - `backend/games/tests/views/games/games_token_scopes_test.py` — new photo test classes and the
   extra session / legacy-token cases.

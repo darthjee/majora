@@ -8,5 +8,6 @@ same way other views do (e.g. `backend/games/views/game/pcs/detail/game_pc_photo
   `check_game_edit` role check as they are.
 
 ## Files to Change
+
 - `backend/games/views/games/game_photos.py` — add `@token_scopes(GET=[])`.
 - `backend/games/views/photo_upload.py` — add `@token_scopes(POST=['games:write'])`.

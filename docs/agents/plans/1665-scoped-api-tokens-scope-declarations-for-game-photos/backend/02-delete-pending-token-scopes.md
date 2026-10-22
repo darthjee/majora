@@ -11,4 +11,5 @@ With both photo views declared, the pending set is empty and goes away:
 - Update the module docstring (no "or is pending").
 
 ## Files to Change
+
 - `backend/accounts/tests/token_scopes_coverage_test.py` — remove the pending set and its tests.

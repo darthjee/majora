@@ -14,4 +14,5 @@ Remove every mention of the pending list from `docs/agents/access-control/token-
 Run `yarn lint_md` to check line length and formatting.
 
 ## Files to Change
+
 - `docs/agents/access-control/token-scopes.md` — Status, Coverage test and declaration sections.
