@@ -31,6 +31,10 @@ class ScopedTokenMixin:
         """Issue a JSON PATCH to `url` with a scoped token of `user`."""
         return self.client.patch(url, payload, format='json', **self._bearer(user, scopes))
 
+    def _put(self, url, payload, user, scopes):
+        """Issue a JSON PUT to `url` with a scoped token of `user`."""
+        return self.client.put(url, payload, format='json', **self._bearer(user, scopes))
+
     def _log_in(self, user):
         """Store `user`'s auth token in the client session, as the login view does."""
         session = self.client.session
