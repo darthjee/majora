@@ -24,10 +24,13 @@ messages) and the polls family (`games/<slug>/polls…`, votes, close and
 `sessions/<id>/poll.json`) are declared (#1637). The treasures family
 (`games/<slug>/treasures…`, the top-level `treasures.json`, `treasures/<id>.json`,
 `treasures/<id>/access.json` and `treasures/<id>/photo_upload.json`, and
-`permissions/treasure.json` and `permissions/game_treasure.json`) is declared (#1636). Every other view, including the game
+`permissions/treasure.json` and `permissions/game_treasure.json`) is declared (#1636). The
+miniatures family (`miniatures/sources…`, `miniatures/stl_models…` and
+`miniatures/collections…`, with their imports and photo upload inits) is declared (#1638).
+Every other view, including the game
 photos and their upload init (#1665), `permissions/game/pc.json`, `permissions/game/npc.json` and
 `permissions/game_document.json` (#1666), is still on the coverage test's pending list, and
-#1638, #1639, #1665 and #1666 add the remaining declarations. Until a view is declared,
+#1639, #1665 and #1666 add the remaining declarations. Until a view is declared,
 it refuses every scoped token with `403` `token_not_allowed` (fail closed). The rules below are
 the ones those declarations must follow.
 
@@ -108,6 +111,10 @@ giving the 32 scopes `<family>:<action>`. Token creation validates against it, a
   `treasures.json`, `treasures/<id>.json` and `treasures/<id>/access.json` `GET` declare no
   scope, while `treasures/all.json`, `treasures/missing.json` and `treasures/<id>/full.json`
   need `treasures:read`.
+- **Miniatures reads are login-only, so they are restricted and need `miniatures:read`.** That
+  covers `miniatures/sources.json`, `miniatures/sources/<id>.json`,
+  `miniatures/stl_models.json`, `miniatures/stl_models/<id>.json`,
+  `miniatures/collections.json` and `miniatures/collections/<id>.json` `GET`.
 
 ## Write scopes and link routes
 
@@ -132,6 +139,11 @@ giving the 32 scopes `<family>:<action>`. Token creation validates against it, a
   `treasures/<id>/photo_upload.json` `POST`. The views still apply their role checks: a DM
   holding `treasures:write` cannot create a top-level treasure, and the top-level `PATCH` stays
   limited to staff and superusers (superusers only on a game-exclusive treasure).
+- **Miniatures writes need `miniatures:write` alone**: the `sources.json`, `stl_models.json` and
+  `collections.json` `POST`, `stl_models/<id>.json` `PATCH`, `stl_models/import.json` and
+  `collections/import.json` `POST`, and the three `…/<id>/photo_upload.json` `POST` (all under
+  `miniatures/`). The views keep `require_staff`, so a non-staff owner holding
+  `miniatures:write` still gets `403`.
 
 ## Per-game restriction
 
