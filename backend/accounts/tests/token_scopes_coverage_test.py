@@ -13,11 +13,8 @@ IGNORED_METHODS = frozenset({'options', 'head'})
 # family's views and removes them from this set; the last one deletes the set.
 PENDING_TOKEN_SCOPES = frozenset(
     {
-        'game-conversations',
         'game-photo-upload',
         'game-photos',
-        'game-player-detail',
-        'game-players',
         'game-poll-close',
         'game-poll-detail',
         'game-poll-votes',
