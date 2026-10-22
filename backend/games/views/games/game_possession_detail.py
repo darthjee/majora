@@ -7,6 +7,7 @@ from rest_framework.response import Response
 
 from permissions import EndpointPermission
 
+from ...decorators import token_scopes
 from ...models import Game
 from ...serializers import (
     GamePossessionDetailFullSerializer,
@@ -16,6 +17,7 @@ from ...serializers import (
 from ..common import validated_or_error
 
 
+@token_scopes(GET=[], PATCH=['possessions:write'])
 @api_view(['GET', 'PATCH'])
 # AllowAny: GET is intentionally public (hidden possessions excluded below); PATCH
 # authorization is enforced inline via EndpointPermission.check().
