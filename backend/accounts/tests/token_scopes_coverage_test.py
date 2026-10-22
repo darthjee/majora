@@ -13,9 +13,7 @@ IGNORED_METHODS = frozenset({'options', 'head'})
 # family's views and removes them from this set; the last one deletes the set.
 PENDING_TOKEN_SCOPES = frozenset(
     {
-        'game-access',
         'game-conversations',
-        'game-detail',
         'game-photo-upload',
         'game-photos',
         'game-player-detail',
@@ -36,7 +34,6 @@ PENDING_TOKEN_SCOPES = frozenset(
         'game-treasures',
         'game-treasures-all',
         'game-treasures-missing',
-        'games-list',
         'miniatures-collections-detail',
         'miniatures-collections-import',
         'miniatures-collections-list',
@@ -48,8 +45,6 @@ PENDING_TOKEN_SCOPES = frozenset(
         'miniatures-sources-detail',
         'miniatures-sources-list',
         'miniatures-sources-photo-upload',
-        'my-games-list',
-        'permissions-game',
         'permissions-game-document',
         'permissions-game-npc',
         'permissions-game-pc',

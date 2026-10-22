@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from domains.models import Domain
 
 from ...caches import DomainGamesCache, RegisteredDomainsCache
+from ...decorators import token_scopes
 from ...models import Game, Player
 from ...serializers import GameCreateSerializer, GameDetailSerializer, GameListSerializer
 from ..common import paginated_list_response, require_authenticated, validated_or_error
@@ -14,6 +15,7 @@ from ..common import paginated_list_response, require_authenticated, validated_o
 UNRECOGNIZED_DOMAIN_RESPONSE_DATA = {'errors': {'detail': ['domain_not_recognized']}}
 
 
+@token_scopes(GET=[], POST=['games:write'])
 @api_view(['GET', 'POST'])
 # AllowAny: GET is an intentionally public listing; POST authentication is enforced
 # inline inside _create_game so that unauthenticated callers receive a proper 401.
