@@ -16,8 +16,7 @@ Rules for `Authorization: Bearer mjr_...` tokens (`accounts.ApiToken`). The full
   every failure is the same `401` `token_invalid`.
 - **Every new API view must declare `@token_scopes`** for each method it serves (above
   `@api_view`), or it refuses tokens with `403` `token_not_allowed`. The coverage test
-  (`backend/accounts/tests/token_scopes_coverage_test.py`) fails CI otherwise. Never add a view
-  to `PENDING_TOKEN_SCOPES` to silence it.
+  (`backend/accounts/tests/token_scopes_coverage_test.py`) fails CI otherwise.
 - A declaration must follow the read and write rules in
   [Token scopes](../access-control/token-scopes.md): restricted reads need the `read` scope of
   every family in the response, and a route game-scoped by anything other than the `game_slug`
