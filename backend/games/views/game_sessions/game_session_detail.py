@@ -6,11 +6,13 @@ from rest_framework.permissions import AllowAny
 
 from permissions import EndpointPermission
 
+from ...decorators import token_scopes
 from ...models import Game, GameSession
 from ...serializers import GameSessionDetailSerializer, GameSessionUpdateSerializer
 from ..common import detail_or_update
 
 
+@token_scopes(GET=[], PATCH=['sessions:write'])
 @api_view(['GET', 'PATCH'])
 # AllowAny: GET is intentionally public; PATCH authentication/authorisation is
 # enforced inline in detail_or_update via _check_session_edit().

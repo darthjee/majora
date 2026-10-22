@@ -7,10 +7,12 @@ from rest_framework.response import Response
 
 from permissions import EndpointPermission
 
+from ...decorators import token_scopes
 from ...models import Game, Poll
 from ...serializers import PollDetailSerializer
 
 
+@token_scopes(GET=['polls:read'])
 @api_view(['GET'])
 # AllowAny: authorisation is enforced inline below via EndpointPermission.check(), since
 # Polls have no public read path.

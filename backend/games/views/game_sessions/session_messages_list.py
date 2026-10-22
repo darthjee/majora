@@ -7,12 +7,14 @@ from rest_framework.response import Response
 
 from permissions import EndpointPermission
 
+from ...decorators import token_scopes
 from ...models import Game, GameSession
 from ...serializers import SessionMessageCreateSerializer, SessionMessageListSerializer
 from ...session_message_paginator import SessionMessagePaginator
 from ..common import validated_or_error
 
 
+@token_scopes(GET=['sessions:read'], POST=['sessions:write'])
 @api_view(['GET', 'POST'])
 # AllowAny: authorisation is enforced inline below via EndpointPermission, since
 # both GET and POST require the requester to be a player/DM/superuser/staff (view) or a

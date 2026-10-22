@@ -7,11 +7,13 @@ from rest_framework.response import Response
 
 from permissions import EndpointPermission
 
+from ...decorators import token_scopes
 from ...models import Game
 from ...serializers import PollCreateSerializer, PollDetailSerializer, PollListSerializer
 from ..common import paginated_list_response, validated_or_error
 
 
+@token_scopes(GET=['polls:read'], POST=['polls:write'])
 @api_view(['GET', 'POST'])
 # AllowAny: authorisation is enforced inline below via EndpointPermission.check(), since
 # Polls have no public read path (GET and POST share the same DM/player/admin check).

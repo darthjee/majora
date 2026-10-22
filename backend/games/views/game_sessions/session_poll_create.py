@@ -7,11 +7,13 @@ from rest_framework.response import Response
 
 from permissions import EndpointPermission
 
+from ...decorators import token_scopes
 from ...models import Game, GameSession
 from ...serializers import PollDetailSerializer, SessionPollCreateSerializer
 from ..common import validated_or_error
 
 
+@token_scopes(POST=['polls:write'])
 @api_view(['POST'])
 # AllowAny: authorisation is enforced inline below via EndpointPermission.check(), since
 # Polls have no public read path, unlike GameSession's own detail view.

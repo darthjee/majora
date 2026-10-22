@@ -3,9 +3,11 @@
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 
+from ...decorators import token_scopes
 from ._shared import game_sessions_list_response
 
 
+@token_scopes(GET=[])
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def game_sessions_unscheduled(request, game_slug):
