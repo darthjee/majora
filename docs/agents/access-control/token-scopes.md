@@ -15,9 +15,13 @@ document pages, files, photos and their upload inits) (#1633). The factions fami
 `possessions…`, `common_items…` and `recipes…`, with their photo upload inits, the common item →
 recipes and recipe → characters listings, and `permissions/game_item.json`,
 `game_possession.json`, `game_common_item.json` and `game_recipe.json`) are declared as well
-(#1635). Every other view, including `permissions/game/pc.json`, `permissions/game/npc.json` and
-`permissions/game_document.json`, is still on the coverage test's pending list, and #1630 and
-#1636–#1639 add the remaining declarations family by family. Until a view is declared, it refuses
+(#1635). The games family (`games.json`, `my-games.json`, `games/<slug>.json`,
+`games/<slug>/access.json` and `permissions/game.json`), the players family
+(`games/<slug>/players.json` and `players/<id>.json`) and the conversations family
+(`games/<slug>/conversations.json`) are declared (#1630). Every other view, including the game
+photos and their upload init (#1665), `permissions/game/pc.json`, `permissions/game/npc.json` and
+`permissions/game_document.json` (#1666), is still on the coverage test's pending list, and
+#1636–#1639, #1665 and #1666 add the remaining declarations. Until a view is declared, it refuses
 every scoped token with `403` `token_not_allowed` (fail closed). The rules below are the ones
 those declarations must follow.
 
@@ -81,6 +85,10 @@ giving the 32 scopes `<family>:<action>`. Token creation validates against it, a
   `common_items/<id>/recipes/all.json` needs `common_items:read` **and** `recipes:read`.
 - `permissions/*.json` and `…/access.json` are public reads: they only report what the caller's
   role may do.
+- **`my-games.json` needs `games:read` alone.** It is the caller's own membership summary: the
+  embedded PC and the conversation / unread counts need no `pcs:read` or `conversations:read`.
+- **`conversations.json` needs `conversations:read` and `players:read`.** It is gated on the
+  player `show` permission, and its `player_id` 404s reveal whether a player exists.
 
 ## Write scopes and link routes
 
@@ -110,8 +118,12 @@ giving the 32 scopes `<family>:<action>`. Token creation validates against it, a
   they are declared.
 - Requests with no `game_slug` (the top-level `treasures/…` and `miniatures/…` routes) are
   governed by scopes alone.
-- `games.json` is a public read and is not filtered. `my-games.json` must be filtered to the
-  token's games when it is declared (#1630).
+- `games.json` is a public read and is not filtered. `games.json` `POST` needs `games:write`
+  and, having no `game_slug`, gets no game-list check; a game created by a token with a game
+  list is not reachable by that token afterwards.
+- `my-games.json` has no `game_slug` either, so the view filters it itself: when the token has
+  a non-empty game list, only those games are listed (and their conversation counts computed).
+  An empty list, a session or a legacy `Token` lists every game.
 
 ## Uploads
 

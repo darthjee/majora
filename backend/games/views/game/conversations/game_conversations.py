@@ -8,11 +8,13 @@ from rest_framework.response import Response
 from conversations.models import Conversation
 from permissions import EndpointPermission
 
+from ....decorators import token_scopes
 from ....models import Game
 from ....serializers import ConversationListSerializer
 from ...common import paginated_list_response
 
 
+@token_scopes(GET=['conversations:read', 'players:read'])
 @api_view(['GET'])
 # AllowAny: authorisation is enforced inline below via EndpointPermission.check(), since
 # Conversations have no public read path.

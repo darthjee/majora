@@ -9,9 +9,10 @@ from games.models import Character, Player
 class MyGamesBuilder:
     """Builds one my-games item per `Player` row belonging to a given user."""
 
-    def __init__(self, user):
-        """Store the `user` whose games/roles/characters/conversations are being assembled."""
+    def __init__(self, user, game_ids=None):
+        """Store the `user` and optional `game_ids` restriction (None means every game)."""
         self.user = user
+        self.game_ids = game_ids
 
     def build(self):
         """Return a list of `{game, role, character, conversations}` dicts, one per game."""
@@ -22,7 +23,7 @@ class MyGamesBuilder:
     def _players(self):
         """Return the user's `Player` rows, with game and owned PC preloaded (no N+1)."""
         return (
-            Player.objects.filter(user=self.user)
+            self._player_rows()
             .select_related('game')
             .prefetch_related(
                 Prefetch(
@@ -32,6 +33,13 @@ class MyGamesBuilder:
                 )
             )
         )
+
+    def _player_rows(self):
+        """Return the user's `Player` queryset, restricted to `game_ids` when given."""
+        players = Player.objects.filter(user=self.user)
+        if self.game_ids is not None:
+            players = players.filter(game_id__in=self.game_ids)
+        return players
 
     def _conversation_counts(self, game_ids):
         """Return `{game_id: {'count': n, 'unread_count': n}}` for the given games."""

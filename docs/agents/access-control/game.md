@@ -118,7 +118,9 @@ endpoints](common-rules.md#edit-permission-endpoints-permissionsjson). Beyond `c
 data). Not paginated — bounded by how many games one user plays.
 
 Returns one item per `Player` row belonging to the requester (every game they belong to, as player
-or DM) — never another user's rows:
+or DM) — never another user's rows. A scoped API token needs `games:read`, and when it has a
+non-empty game list only those games are returned (see
+[Token scopes](token-scopes.md#per-game-restriction)):
 
 | Field | Type | Value |
 |-------|------|-------|

@@ -6,11 +6,13 @@ from rest_framework.permissions import AllowAny
 
 from permissions import EndpointPermission
 
+from ....decorators import token_scopes
 from ....models import Game
 from ....serializers import PlayerListSerializer
 from ...common import paginated_list_response
 
 
+@token_scopes(GET=['players:read'])
 @api_view(['GET'])
 # AllowAny: authorisation is enforced inline below via EndpointPermission.check(), since
 # Players have no public read path.
