@@ -5,11 +5,13 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
+from ....decorators import token_scopes
 from ....models import Game
 from ....serializers import GameRecipeDetailSerializer
 from ._recipe_write import game_recipe_update
 
 
+@token_scopes(GET=[], PATCH=['recipes:write', 'common_items:read'])
 @api_view(['GET', 'PATCH'])
 # AllowAny: GET is intentionally public; hidden recipes 404 and hidden output items are
 # masked by the serializer. PATCH authorization is enforced inline via
