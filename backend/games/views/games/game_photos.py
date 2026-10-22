@@ -4,11 +4,13 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 
+from ...decorators import token_scopes
 from ...models import Game
 from ...serializers import GamePhotoSerializer
 from ..common import paginated_list_response
 
 
+@token_scopes(GET=[])
 @api_view(['GET'])
 # AllowAny: this is a read-only endpoint that returns a public list of ready photos for a
 # given game; no user-specific data is exposed and there are no write operations.
