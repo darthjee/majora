@@ -7,12 +7,13 @@ from rest_framework.response import Response
 
 from permissions import EndpointPermission
 
-from ...decorators import restricted
+from ...decorators import restricted, token_scopes
 from ...models import Game, Task
 from ...serializers import GameTaskListSerializer, GameTaskUpdateSerializer
 from ..common import validated_or_error
 
 
+@token_scopes(GET=['tasks:read'], PATCH=['tasks:write'])
 @restricted
 @api_view(['GET', 'PATCH'])
 # AllowAny: authorisation is enforced inline below via EndpointPermission.check(),
