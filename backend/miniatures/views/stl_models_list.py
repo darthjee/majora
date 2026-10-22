@@ -4,6 +4,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from games.decorators import token_scopes
 from games.paginator import Paginator
 from games.views.common import require_staff, validated_or_error
 
@@ -22,6 +23,7 @@ from ._stl_model_filters import (
 )
 
 
+@token_scopes(GET=['miniatures:read'], POST=['miniatures:write'])
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
 def stl_models_list(request):

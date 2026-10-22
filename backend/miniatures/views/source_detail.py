@@ -4,11 +4,14 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from games.decorators import token_scopes
+
 from ..models import Source
 from ..serializers import SourceDetailSerializer
 from ._shared import NOT_FOUND_RESPONSE_DATA, skip_cache
 
 
+@token_scopes(GET=['miniatures:read'])
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def source_detail(request, source_id):

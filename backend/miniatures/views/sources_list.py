@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from common.query_filters import filter_by_name
+from games.decorators import token_scopes
 from games.paginator import Paginator
 from games.views.common import require_staff, validated_or_error
 
@@ -13,6 +14,7 @@ from ..serializers import SourceCreateSerializer, SourceDetailSerializer, Source
 from ._shared import skip_cache
 
 
+@token_scopes(GET=['miniatures:read'], POST=['miniatures:write'])
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
 def sources_list(request):

@@ -4,12 +4,14 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from games.decorators import token_scopes
 from games.views.common import require_staff, validated_or_error
 
 from ..serializers import CollectionDetailSerializer, CollectionImportSerializer
 from ._shared import skip_cache
 
 
+@token_scopes(POST=['miniatures:write'])
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def collection_import(request):

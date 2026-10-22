@@ -4,6 +4,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from games.decorators import token_scopes
 from games.views.common import detail_or_update, require_staff
 
 from ..models import StlModel
@@ -16,6 +17,7 @@ def _check_stl_model_edit(request, _stl_model):
     return require_staff(request)
 
 
+@token_scopes(GET=['miniatures:read'], PATCH=['miniatures:write'])
 @api_view(['GET', 'PATCH'])
 @permission_classes([IsAuthenticated])
 def stl_model_detail(request, stl_model_id):
