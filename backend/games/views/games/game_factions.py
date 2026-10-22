@@ -4,12 +4,14 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 
+from ...decorators import token_scopes
 from ...models import Game
 from ...serializers import GameFactionListSerializer
 from ..common import paginated_list_response
 from ._faction_create import faction_create
 
 
+@token_scopes(GET=[], POST=['factions:write'])
 @api_view(['GET', 'POST'])
 # AllowAny: GET is intentionally public; POST authorization is enforced inline via
 # EndpointPermission.check().

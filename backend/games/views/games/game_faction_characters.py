@@ -4,10 +4,12 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 
+from ...decorators import token_scopes
 from ...models import Game
 from ._faction_characters import faction_characters
 
 
+@token_scopes(GET=[])
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def game_faction_characters(request, game_slug, faction_id):

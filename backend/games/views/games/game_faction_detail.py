@@ -7,11 +7,13 @@ from rest_framework.response import Response
 
 from permissions import EndpointPermission
 
+from ...decorators import token_scopes
 from ...models import Game
 from ...serializers import GameFactionListSerializer, GameFactionUpdateSerializer
 from ..common import validated_or_error
 
 
+@token_scopes(GET=[], PATCH=['factions:write'])
 @api_view(['GET', 'PATCH'])
 # AllowAny: GET is intentionally public; PATCH authorization is enforced inline via
 # EndpointPermission.check().
