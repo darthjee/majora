@@ -3,10 +3,12 @@
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 
+from ...decorators import token_scopes
 from ...serializers import GamePossessionPermissionsSerializer
 from ..common import parse_role_booleans, permissions_response
 
 
+@token_scopes(GET=[])
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def game_possession_permissions(request):

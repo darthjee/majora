@@ -11,9 +11,13 @@ summaries) (#1632), and so is the documents family (`games/<slug>/documents…`,
 document pages, files, photos and their upload inits) (#1633). The factions family
 (`games/<slug>/factions…`, the faction photo upload init, the faction characters listings and
 `permissions/game_faction.json`) and the tasks family (`games/<slug>/tasks…`) are declared too
-(#1634). Every other view, including `permissions/game/pc.json`, `permissions/game/npc.json` and
+(#1634). The items, possessions, common items and recipes families (`games/<slug>/items…`,
+`possessions…`, `common_items…` and `recipes…`, with their photo upload inits, the common item →
+recipes and recipe → characters listings, and `permissions/game_item.json`,
+`game_possession.json`, `game_common_item.json` and `game_recipe.json`) are declared as well
+(#1635). Every other view, including `permissions/game/pc.json`, `permissions/game/npc.json` and
 `permissions/game_document.json`, is still on the coverage test's pending list, and #1630 and
-#1635–#1639 add the remaining declarations family by family. Until a view is declared, it refuses
+#1636–#1639 add the remaining declarations family by family. Until a view is declared, it refuses
 every scoped token with `403` `token_not_allowed` (fail closed). The rules below are the ones
 those declarations must follow.
 
@@ -71,6 +75,10 @@ giving the 32 scopes `<family>:<action>`. Token creation validates against it, a
   `all.json` / `full.json` routes and every other permission-gated read. For example
   `npcs/<id>/documents/<doc>/full.json` needs `npcs:read` **and** `documents:read`. A scope never
   leaks another family's restricted data.
+- **Recipes embed their output common item.** A GameEdit caller may give a recipe a hidden
+  output and the recipe response then unmasks it, so `recipes/all.json`, `recipes/<id>/full.json`
+  and recipe `POST` / `PATCH` also need `common_items:read`;
+  `common_items/<id>/recipes/all.json` needs `common_items:read` **and** `recipes:read`.
 - `permissions/*.json` and `…/access.json` are public reads: they only report what the caller's
   role may do.
 

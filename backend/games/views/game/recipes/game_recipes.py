@@ -4,6 +4,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 
+from ....decorators import token_scopes
 from ....models import Game
 from ....serializers import GameRecipeListSerializer
 from ...common import paginated_list_response
@@ -11,6 +12,7 @@ from ._recipe_filters import filter_by_category
 from ._recipe_write import game_recipe_create
 
 
+@token_scopes(GET=[], POST=['recipes:write', 'common_items:read'])
 @api_view(['GET', 'POST'])
 # AllowAny: GET is intentionally public; hidden recipes are excluded and hidden output items
 # are masked by the serializer. POST authorization is enforced inline via

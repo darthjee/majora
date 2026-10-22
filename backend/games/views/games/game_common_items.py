@@ -6,12 +6,14 @@ from rest_framework.permissions import AllowAny
 
 from common.query_filters import filter_by_name
 
+from ...decorators import token_scopes
 from ...models import Game
 from ...serializers import GameCommonItemListSerializer
 from ..common import paginated_list_response
 from ._common_item_create import game_common_item_create
 
 
+@token_scopes(GET=[], POST=['common_items:write'])
 @api_view(['GET', 'POST'])
 # AllowAny: GET is intentionally public; POST authorization is enforced inline via
 # EndpointPermission.check().
