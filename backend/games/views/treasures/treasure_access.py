@@ -3,11 +3,13 @@
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 
+from ...decorators import token_scopes
 from ...models import Treasure
 from ...serializers import TreasureAccessSerializer
 from ..common import access_response
 
 
+@token_scopes(GET=[])
 @api_view(['GET'])
 # AllowAny: access-check endpoints are intentionally open so the UI can adapt
 # before the user logs in, matching the game/pc/npc access endpoints.

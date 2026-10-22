@@ -6,18 +6,22 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 
+from accounts.token_games import check_token_game
 from permissions import EndpointPermission
 from uploads.photo_path import PhotoPathBuilder
 from uploads.upload_initiator import UploadInitiator
 
+from ...decorators import token_scopes
 from ...models import Treasure, TreasurePhoto
 
 
+@token_scopes(POST=['treasures:write'])
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def treasure_photo_upload(request, treasure_id):
     """Initialise a treasure photo upload and return the upload id and token."""
     treasure = get_object_or_404(Treasure, pk=treasure_id)
+    check_token_game(request, treasure.game_id)
 
     error_response = _check_photo_permission(request, treasure)
     if error_response:

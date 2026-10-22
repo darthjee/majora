@@ -4,6 +4,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
+from ...decorators import token_scopes
 from ...models import Game, Treasure
 from ...serializers import (
     TreasureCreateSerializer,
@@ -14,6 +15,7 @@ from ..common import paginated_list_response, require_authenticated, validated_o
 from ..games._treasure_filters import filter_by_max_value, filter_by_min_value, filter_by_name
 
 
+@token_scopes(GET=[], POST=['treasures:write'])
 @api_view(['GET', 'POST'])
 # AllowAny: GET is intentionally public; POST authentication is enforced
 # inline inside _create_treasure so unauthenticated callers receive a proper 401.
