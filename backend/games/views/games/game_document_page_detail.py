@@ -7,12 +7,14 @@ from rest_framework.response import Response
 
 from permissions import EndpointPermission
 
+from ...decorators import token_scopes
 from ...models import Game
 from ...serializers import GameDocumentPageListSerializer, GameDocumentPageUpdateSerializer
 from ..common import check_game_edit, validated_or_error
 from ._document_page_saga import archive_page
 
 
+@token_scopes(PATCH=['documents:write'])
 @api_view(['PATCH'])
 # AllowAny: authorization is enforced inline via EndpointPermission.check(), so an
 # unauthenticated/unauthorized caller gets the app's own 401/403 payload instead of DRF's
@@ -31,6 +33,7 @@ def game_document_page_detail(request, game_slug, document_id, page_id):
     return _update_page(document, page_id, request)
 
 
+@token_scopes(PATCH=['documents:write'])
 @api_view(['PATCH'])
 # AllowAny: authorization for this whole endpoint is enforced inline via check_game_edit(),
 # so an unauthenticated/non-DM caller gets the app's own 401/403 payload instead of DRF's
