@@ -23,13 +23,13 @@ class ScopedTokenMixin:
         """Issue a GET to `url` with a scoped token of `user`."""
         return self.client.get(url, **self._bearer(user, scopes, games))
 
-    def _post(self, url, payload, user, scopes):
+    def _post(self, url, payload, user, scopes, games=None):
         """Issue a JSON POST to `url` with a scoped token of `user`."""
-        return self.client.post(url, payload, format='json', **self._bearer(user, scopes))
+        return self.client.post(url, payload, format='json', **self._bearer(user, scopes, games))
 
-    def _patch(self, url, payload, user, scopes):
+    def _patch(self, url, payload, user, scopes, games=None):
         """Issue a JSON PATCH to `url` with a scoped token of `user`."""
-        return self.client.patch(url, payload, format='json', **self._bearer(user, scopes))
+        return self.client.patch(url, payload, format='json', **self._bearer(user, scopes, games))
 
     def _put(self, url, payload, user, scopes):
         """Issue a JSON PUT to `url` with a scoped token of `user`."""
