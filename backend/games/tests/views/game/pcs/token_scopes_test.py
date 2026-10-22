@@ -11,6 +11,9 @@ from games.tests.factories import (
     GameFactory,
     GameItemFactory,
 )
+from games.tests.views.game._permissions_token_scopes_behavior import (
+    PermissionsTokenScopesBehavior,
+)
 from games.tests.views.game._scoped_token_fixtures import ScopedTokenMixin
 
 
@@ -348,3 +351,10 @@ class TestPcTokenScopesRemoveAll(ScopedTokenRequestMixin):
     def test_write_and_items_read_succeed(self):
         """Test that `pcs:write` + `items:read` answers 204."""
         assert self._remove_all(['pcs:write', 'items:read']).status_code == 204
+
+
+@pytest.mark.django_db
+class TestPcPermissionsTokenScopes(PermissionsTokenScopesBehavior, ScopedTokenRequestMixin):
+    """permissions/game_pc.json is a public read; a token never adds rights to its answer."""
+
+    permissions_url = '/permissions/game_pc.json'
