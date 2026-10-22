@@ -11,6 +11,9 @@ from games.tests.factories import (
     GameFactory,
     GameItemFactory,
 )
+from games.tests.views.game._permissions_token_scopes_behavior import (
+    PermissionsTokenScopesBehavior,
+)
 from games.tests.views.game._scoped_token_fixtures import ScopedTokenMixin
 
 
@@ -385,3 +388,10 @@ class TestNpcTokenScopesRecipesAvailable(NpcScopedTokenRequestMixin):
     def test_both_reads_are_allowed(self):
         """Test that `npcs:read` + `recipes:read` answers 200 for the DM."""
         assert self._available(['npcs:read', 'recipes:read']).status_code == 200
+
+
+@pytest.mark.django_db
+class TestNpcPermissionsTokenScopes(PermissionsTokenScopesBehavior, NpcScopedTokenRequestMixin):
+    """permissions/game_npc.json is a public read; a token never adds rights to its answer."""
+
+    permissions_url = '/permissions/game_npc.json'

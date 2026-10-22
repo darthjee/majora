@@ -6,6 +6,9 @@ from rest_framework.test import APIClient
 
 from games.models import GameDocumentPage
 from games.tests.factories import GameDocumentFactory, GameFactory
+from games.tests.views.game._permissions_token_scopes_behavior import (
+    PermissionsTokenScopesBehavior,
+)
 from games.tests.views.game._scoped_token_fixtures import ScopedTokenMixin
 
 
@@ -190,3 +193,10 @@ class TestDocumentTokenScopesOtherCredentials(DocumentScopedTokenMixin):
         token = Token.objects.create(user=self.player)
         response = self.client.get(self._full_url(), HTTP_AUTHORIZATION=f'Token {token.key}')
         assert response.status_code == 403
+
+
+@pytest.mark.django_db
+class TestDocumentPermissionsTokenScopes(PermissionsTokenScopesBehavior, DocumentScopedTokenMixin):
+    """permissions/game_document.json is a public read; a token never adds rights to its answer."""
+
+    permissions_url = '/permissions/game_document.json'

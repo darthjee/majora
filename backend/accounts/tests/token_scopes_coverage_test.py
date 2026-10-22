@@ -15,9 +15,6 @@ PENDING_TOKEN_SCOPES = frozenset(
     {
         'game-photo-upload',
         'game-photos',
-        'permissions-game-document',
-        'permissions-game-npc',
-        'permissions-game-pc',
     }
 )
 
