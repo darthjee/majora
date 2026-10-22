@@ -8,10 +8,12 @@ in place. The PC family (`games/<slug>/pcs…`, every route nested under a PC, P
 reverse-nested PC summaries) is declared (#1631), and so is the NPC family
 (`games/<slug>/npcs…`, every route nested under an NPC, NPC photos and the reverse-nested NPC
 summaries) (#1632), and so is the documents family (`games/<slug>/documents…`, including
-document pages, files, photos and their upload inits) (#1633). Every other view, including
-`permissions/game/pc.json`, `permissions/game/npc.json` and `permissions/game_document.json`, is
-still on the coverage test's pending list, and #1630 and #1634–#1639 add the remaining
-declarations family by family. Until a view is declared, it refuses
+document pages, files, photos and their upload inits) (#1633). The factions family
+(`games/<slug>/factions…`, the faction photo upload init, the faction characters listings and
+`permissions/game_faction.json`) and the tasks family (`games/<slug>/tasks…`) are declared too
+(#1634). Every other view, including `permissions/game/pc.json`, `permissions/game/npc.json` and
+`permissions/game_document.json`, is still on the coverage test's pending list, and #1630 and
+#1635–#1639 add the remaining declarations family by family. Until a view is declared, it refuses
 every scoped token with `403` `token_not_allowed` (fail closed). The rules below are the ones
 those declarations must follow.
 
