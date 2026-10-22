@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from common.query_filters import filter_by_name
 from permissions import EndpointPermission
 
+from ...decorators import token_scopes
 from ...models import Game
 from ...serializers import (
     GameSessionCreateSerializer,
@@ -18,6 +19,7 @@ from ...serializers import (
 from ..common import paginated_list_response, validated_or_error
 
 
+@token_scopes(GET=[], POST=['sessions:write'])
 @api_view(['GET', 'POST'])
 # AllowAny: GET is public (like past/future/unscheduled); POST authorization is enforced
 # inline inside _create_session via EndpointPermission.check().

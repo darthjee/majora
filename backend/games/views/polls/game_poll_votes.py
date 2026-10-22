@@ -10,6 +10,7 @@ from rest_framework.response import Response
 
 from permissions import EndpointPermission
 
+from ...decorators import token_scopes
 from ...models import Game, Poll, PollVote
 from ...poll_vote_writer import MultiplePollVoteWriter, SinglePollVoteWriter
 from ...serializers import (
@@ -21,6 +22,7 @@ from ...serializers import (
 from ..common import validated_or_error
 
 
+@token_scopes(GET=['polls:read'], PUT=['polls:write'])
 @api_view(['GET', 'PUT'])
 # AllowAny: authorisation is enforced inline below via EndpointPermission, since GET and
 # PUT have different rules (view allows the superuser/staff bypass, voting does not) — there

@@ -8,11 +8,13 @@ from rest_framework.response import Response
 
 from permissions import EndpointPermission
 
+from ...decorators import token_scopes
 from ...models import Game, Poll
 from ...poll_close_writer import PollCloseWriter
 from ...serializers import PollDetailSerializer
 
 
+@token_scopes(PATCH=['polls:write'])
 @api_view(['PATCH'])
 # AllowAny: authorisation is enforced inline below via EndpointPermission.check(), since
 # closing a poll has no public path.
