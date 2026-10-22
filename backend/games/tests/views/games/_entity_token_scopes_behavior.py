@@ -1,7 +1,8 @@
 """Shared end-to-end `@token_scopes` behaviours for the game entity families (issue #1635).
 
-A concrete test module subclasses `EntityScopedTokenMixin`, sets `family`, `permissions_name`
-and `factory`, and mixes in the behaviour classes below under `Test*` names.
+A concrete test module subclasses `EntityScopedTokenMixin`, sets `family`, `permissions_name`,
+`factory` and, when needed, `create_payload`, and mixes in the behaviour classes below under
+`Test*` names.
 """
 
 from rest_framework.authtoken.models import Token
@@ -17,6 +18,7 @@ class EntityScopedTokenMixin(ScopedTokenMixin):
     family = None
     permissions_name = None
     factory = None
+    create_payload = {'name': 'New'}
 
     def setup_method(self):
         """Set up the game, its members, an outsider and the family's entities."""
@@ -99,7 +101,7 @@ class WritesBehavior:
 
     def _create(self, scopes):
         """POST a new entity to the collection as the DM with `scopes`."""
-        return self._post(self._list_url(), {'name': 'New'}, self.dm, scopes)
+        return self._post(self._list_url(), self.create_payload, self.dm, scopes)
 
     def _update(self, scopes):
         """PATCH the visible entity as the DM with `scopes`."""
@@ -189,7 +191,7 @@ class OtherCredentialsBehavior:
         """Test that the DM's legacy Token still creates an entity."""
         token = Token.objects.create(user=self.dm)
         response = self.client.post(
-            self._list_url(), {'name': 'New'}, format='json',
+            self._list_url(), self.create_payload, format='json',
             HTTP_AUTHORIZATION=f'Token {token.key}',
         )
         assert response.status_code == 201

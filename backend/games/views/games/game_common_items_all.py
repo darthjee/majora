@@ -6,11 +6,13 @@ from rest_framework.permissions import AllowAny
 
 from common.query_filters import filter_by_name
 
+from ...decorators import token_scopes
 from ...models import Game
 from ...serializers import GameCommonItemAllListSerializer
 from ..common import check_game_edit, paginated_list_response
 
 
+@token_scopes(GET=['common_items:read'])
 @api_view(['GET'])
 # AllowAny: authorization for this whole endpoint is enforced inline via
 # EndpointPermission.check(), so unauthenticated/non-DM callers get the app's own
