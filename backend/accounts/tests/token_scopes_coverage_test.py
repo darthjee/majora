@@ -1,4 +1,4 @@
-"""Coverage test: every DRF view declares `@token_scopes`, is excluded, or is pending."""
+"""Coverage test: every DRF view declares `@token_scopes` or is excluded."""
 
 from django.urls import URLPattern, URLResolver, get_resolver
 from rest_framework.views import APIView
@@ -7,16 +7,6 @@ from accounts.authentication import is_excluded_route
 from games.decorators import get_token_scopes
 
 IGNORED_METHODS = frozenset({'options', 'head'})
-
-# TEMPORARY: URL names of views that do not declare `@token_scopes` yet. Scoped tokens get
-# 403 `token_not_allowed` on them (fail closed). Each sub-issue (#1630-#1639) declares its
-# family's views and removes them from this set; the last one deletes the set.
-PENDING_TOKEN_SCOPES = frozenset(
-    {
-        'game-photo-upload',
-        'game-photos',
-    }
-)
 
 
 class RouteEntry:
@@ -73,7 +63,7 @@ class UrlWalker:
 
 
 class TestTokenScopesCoverage:
-    """Every DRF view declares `@token_scopes` for each method, is excluded, or is pending."""
+    """Every DRF view declares `@token_scopes` for each method or is excluded."""
 
     def setup_method(self):
         """Walk the URL configuration once per test."""
@@ -83,25 +73,11 @@ class TestTokenScopesCoverage:
         """The walk reaches the project's DRF views."""
         assert len(self.entries) > 100
 
-    def test_every_view_is_declared_excluded_or_pending(self):
-        """No DRF view serves a method without a declaration, unless excluded or pending."""
+    def test_every_view_is_declared_or_excluded(self):
+        """No DRF view serves a method without a declaration, unless excluded."""
         uncovered = [entry.route for entry in self.entries if not self._is_accounted_for(entry)]
         assert uncovered == []
 
     def _is_accounted_for(self, entry):
-        """Return whether `entry` is excluded, fully declared, or pending."""
-        return entry.is_excluded() or entry.is_covered() or entry.name in PENDING_TOKEN_SCOPES
-
-    def test_pending_entries_exist(self):
-        """Every pending name still names a DRF view."""
-        names = {entry.name for entry in self.entries}
-        assert sorted(PENDING_TOKEN_SCOPES - names) == []
-
-    def test_pending_entries_are_not_covered_or_excluded(self):
-        """A view that is declared or excluded must leave the pending set."""
-        stale = [
-            entry.name
-            for entry in self.entries
-            if entry.name in PENDING_TOKEN_SCOPES and (entry.is_covered() or entry.is_excluded())
-        ]
-        assert stale == []
+        """Return whether `entry` is excluded or fully declared."""
+        return entry.is_excluded() or entry.is_covered()
