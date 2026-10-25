@@ -8,7 +8,9 @@
   the `Authorization` header nor the create response body) and never kept in historical records
   or the Django admin. The `mjr_` tag lets secret scanners spot a leaked token. See
   [ApiToken](../access-control/api-token.md#secret-handling-logging-and-audit).
-- `NPM_TOKEN` (the `majora-client` release token) lives only in the CircleCI project
-  environment and is written to `~/.npmrc` inside the release job, never committed.
+- No npm token exists for the `majora-client` release: it uses npm trusted publishing
+  (short-lived CircleCI OIDC token), and `scripts/release_client.sh` refuses to run when
+  `NPM_TOKEN` or `NODE_AUTH_TOKEN` is set. Never add an npm token to the CircleCI environment,
+  an `.npmrc` or the repository.
 - Local `MAJORA_TOKEN` values for the `majora_client` service come from the host environment or
   `.env` and are never committed.

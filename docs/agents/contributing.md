@@ -63,16 +63,34 @@ design.
   - finds the previous app tag (the highest `X.Y.Z` tag below the current one);
   - compares `client/package.json`'s `version` at both tags;
   - skips (the job passes as a no-op) when the version is unchanged;
-  - publishes with `npm publish --access public` when it changed, when there is no previous tag,
-    or when the previous tag has no `client/package.json`.
-- **Failure cases.** The job fails when the version already exists on npm, or is lower than
-  npm's `latest`. Nothing else depends on `client-release`, so a failed publish never blocks the
-  app release.
-- **Recovery.** Re-run `client-release` on the same tag: the comparison only depends on the two
-  tags, so it reaches the same decision. Waiting for the next app tag loses the publish, since
-  the versions would then compare equal.
-- **Token.** An npm *automation* token lives in the `NPM_TOKEN` CircleCI project environment
-  variable. The job writes it to `~/.npmrc` inside the job only. Never commit it.
+  - publishes through npm trusted publishing (CircleCI OIDC) when it changed, when there is no
+    previous tag, or when the previous tag has no `client/package.json`;
+  - passes as a no-op when that version is already on npm.
+
+  See [Release](client/packaging.md#release) for the script's steps.
+- **Failure cases.** The job fails when `NPM_TOKEN` or `NODE_AUTH_TOKEN` is set, when Node is
+  below 22.14.0 or npm below 11.5.1, when the `circleci` CLI is missing, when the version is
+  lower than npm's `latest`, or when `npm publish` fails (`E404`/`E403`/`ENEEDAUTH` usually mean
+  the trusted publisher is not registered). Registry lag after a successful publish only
+  prints a warning. Nothing else depends on `client-release`, so a failed publish never blocks
+  the app release.
+- **Recovery.** Use "Rerun workflow from failed" (or re-run `client-release`) on the same tag:
+  the comparison only depends on the two tags, and an already-published version is a no-op, so
+  re-runs are safe. Waiting for the next app tag loses the publish, since the versions would
+  then compare equal.
+- **Trusted publisher.** No npm token exists anywhere: npm exchanges a short-lived CircleCI OIDC
+  token for a one-off publish credential. The package owner sets it up once, outside any PR:
+  1. register the CircleCI trusted publisher for `majora-client` (npmjs.com, package Settings,
+     Trusted Publisher, or `npm trust circleci majora-client ... --vcs-origin
+     github.com/darthjee/majora --allow-publish`);
+  2. in the package's Publishing access settings, require 2FA and disallow tokens;
+  3. delete the `NPM_TOKEN` CircleCI project environment variable (the job refuses to run
+     while it is set);
+  4. cut a release that bumps the client before the publisher's "Pending validation"
+     deadline, or register it again.
+
+  `client-release` must not run in a CircleCI context, or the publisher identity no longer
+  matches.
 - **No client git tags.** Never create a git tag for the client: the app's tag filter
   `/\d+\.\d+\.\d+/` is unanchored, so a tag such as `client-v1.2.3` would trigger the full app
   release.
