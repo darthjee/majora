@@ -394,15 +394,33 @@ jobs:
           name: Check packaging
           command: npm pack --dry-run
 
+  # Publishes through npm trusted publishing (CircleCI OIDC, no npm token). Needs Node >= 22.14.0
+  # (the image ships 22.14.0), npm >= 11.5.1 (pinned below) and the circleci CLI, which CircleCI
+  # injects into the job container. Must not run in a context: the trusted publisher identity
+  # registered on npm would no longer match.
   client-release:
     docker:
       - image: darthjee/circleci_node:0.2.1
     working_directory: ~/project/client
+    environment:
+      NPM_PIN: 11.21.1
+      NPM_MIN: 11.5.1
     steps:
       - checkout:
           path: ~/project
       - run:
-          name: Publish majora-client to npm (when its version changed since the previous app tag)
+          name: Ensure npm supports trusted publishing
+          command: |
+            node --version
+            npm --version
+            current="$(npm --version)"
+            if [ "$(printf '%s\n%s\n' "$NPM_MIN" "$current" | sort -V | head -n 1)" != "$NPM_MIN" ]; then
+              echo "npm $current is below $NPM_MIN; installing npm@${NPM_PIN}"
+              npm install -g "npm@${NPM_PIN}"
+              npm --version
+            fi
+      - run:
+          name: Publish majora-client to npm via OIDC trusted publishing (when its version changed since the previous app tag)
           working_directory: ~/project
           command: scripts/release_client.sh
 
