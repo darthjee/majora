@@ -68,7 +68,14 @@ All three jobs run in `darthjee/circleci_node:0.2.1`:
 - **`client-release`** runs on app version tags only (`/\d+\.\d+\.\d+/`), requires the common
   test and check jobs (including `client_tests` and `client_checks`), and calls
   `scripts/release_client.sh`. Nothing depends on it, so a failed publish never blocks the app
-  release.
+  release. It publishes through npm trusted publishing (see [Release](#release)):
+  - the image ships Node 22.14.0; a step before the publish prints the Node/npm versions and
+    installs `npm@${NPM_PIN}` (`11.21.1`) globally only when the image's npm is below
+    `NPM_MIN` (`11.5.1`, the first npm with trusted publishing);
+  - the `circleci` CLI, which mints the OIDC token, is injected by CircleCI into the job
+    container;
+  - the job runs **without a `context:`**: the trusted publisher registered on npm matches the
+    project/pipeline identity, and a context would change it (unless its id is also registered).
 
 ## Release
 
@@ -82,14 +89,37 @@ steps are in [Releasing the client](../contributing.md#releasing-the-client).
 3. Compares `client/package.json`'s `version` at the current tag with the one at the previous
    tag. The same version is a no-op (the job passes). A different version, no previous tag or no
    `client/package.json` at it means publish.
-4. Fails when that version already exists on npm, or is lower than npm's `latest`.
-5. Fails when `NPM_TOKEN` is unset; otherwise writes it to `~/.npmrc` (under `umask 077`) and
-   runs `npm publish --access public` in `client/`.
+4. **Preflight** (only once a publish is needed, so tags that don't bump the client stay green):
+   fails when `NPM_TOKEN` or `NODE_AUTH_TOKEN` is set (publishing is OIDC-only), when Node is
+   below 22.14.0 or npm below 11.5.1, or when the `circleci` CLI is not on `PATH`.
+5. Exits 0 without publishing when that version is already on npm (npm versions are
+   immutable, so re-runs are safe). Fails when it is lower than npm's `latest`.
+6. Mints a short-lived OIDC token with the npm audience and exports it as `NPM_ID_TOKEN`, then
+   runs a bare `npm publish` in `client/` (`access` and `tag` come from `publishConfig` in
+   `client/package.json`):
 
-- `NPM_TOKEN` is an npm automation token stored as a CircleCI project environment variable,
-  never in the repository. No `--provenance`: npm provenance does not support CircleCI.
-- A failed publish is fixed by re-running the job on the same tag. Waiting for the next app
-  tag would lose it, since the versions would then compare equal.
+   ```bash
+   NPM_ID_TOKEN="$(circleci run oidc get --claims '{"aud": "npm:registry.npmjs.org"}')"
+   export NPM_ID_TOKEN
+   npm publish
+   ```
+
+   npm exchanges it for a one-off publish credential. npm only reads `NPM_ID_TOKEN` on
+   CircleCI; the default `CIRCLE_OIDC_TOKEN_V2` has the org ID as audience and is ignored, which
+   makes npm continue unauthenticated (`ENEEDAUTH`).
+7. Polls `npm view majora-client@<version> version` every 5s for up to 300s and prints
+   `dist.integrity` once it is visible. On timeout it only prints a warning and exits 0: once
+   `npm publish` succeeded nothing can be undone, so registry lag never turns the job red. A
+   failing `npm publish` (or anything before it) still fails the job.
+
+- No npm token exists anywhere: no `NPM_TOKEN`/`NODE_AUTH_TOKEN`, no `.npmrc` auth line.
+- CircleCI publishes get **no npm provenance** (npm only generates it for GitHub Actions and
+  GitLab CI).
+- **Recovery.** A failed publish is fixed with "Rerun workflow from failed" (or re-running the
+  job) on the same tag; an already-published version is a no-op, so re-runs are safe. Waiting
+  for the next app tag would lose it, since the versions would then compare equal. Until the
+  trusted publisher is registered, `npm publish` fails with `E404`/`E403`/`ENEEDAUTH`; register
+  it and re-run.
 - No git tag is created for the client: the app's unanchored tag filter would match a tag such
   as `client-v1.2.3` and trigger a full app release.
 

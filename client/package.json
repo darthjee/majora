@@ -27,6 +27,10 @@
     "url": "git+https://github.com/darthjee/majora.git",
     "directory": "client"
   },
+  "publishConfig": {
+    "access": "public",
+    "tag": "latest"
+  },
   "author": "darthjee",
   "license": "MIT",
   "devDependencies": {
