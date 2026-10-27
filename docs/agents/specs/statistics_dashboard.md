@@ -23,7 +23,9 @@ Behaviour, Permissions & caching, Edge cases, Tests, Open questions, Implemented
 - [Count endpoint](statistics_dashboard/count-endpoint.md) — `GET
   staff/statistics/summary.json`, the unique-visitors count for a rolling period (#1682).
 - [Clear endpoint](statistics_dashboard/clear-endpoint.md) — `DELETE staff/statistics.json`,
-  the `statistics/reset.py` helper and the ID reset (#1684).
+  the `statistics/reset.py` helper and the ID reset (#1684). Clear deletes in small,
+  separately committed batches; see its [Batched clear](statistics_dashboard/clear-endpoint.md#batched-clear)
+  section.
 - [Tracking race](statistics_dashboard/tracking-race.md) — visit tracking and user attachment
   tolerating a session deleted mid-request (#1683).
 - [Dashboard card](statistics_dashboard/dashboard-card.md) — the frontend card, its typed
@@ -34,10 +36,6 @@ Behaviour, Permissions & caching, Edge cases, Tests, Open questions, Implemented
 These points are **not** settled by this spec. The topic pages state them as pending and link
 back here; each is settled by its own issue, which then updates the pages.
 
-- **Batched clear** → #1680: batch size, delete order and per-batch commits, locking, rows
-  inserted by live tracking while the clear runs, the `AUTO_INCREMENT` reset step, request
-  duration (synchronous or asynchronous), **concurrent clears** by two staff users, and the
-  behaviour when a clear **fails partway through** (some rows left).
 - **Audit log for Clear** → #1681: which fields are recorded, the log level, the destination,
   whether it is persisted or only a server log, retention, the behaviour when logging fails, and
   whether the caller IP is recorded.
