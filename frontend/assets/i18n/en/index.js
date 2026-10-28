@@ -35,6 +35,7 @@ const commonNamespaces = [
   'profile_photo_set_modal',
   'clear_cache_confirm_modal',
   'clear_crawler_confirm_modal',
+  'clear_statistics_confirm_modal',
   'delete_photo_confirm_modal',
   'kick_confirm_modal',
   'slain_confirm_modal',
