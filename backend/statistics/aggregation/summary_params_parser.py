@@ -63,4 +63,9 @@ class SummaryParamsParser:
 
     def _today_in(self, tz):
         """Return the injected `today`, or the current local date in `tz`."""
-        return self._today or timezone.now().astimezone(tz).date()
+        return self._today or self._now().astimezone(tz).date()
+
+    @staticmethod
+    def _now():
+        """Return the current aware UTC datetime (patched in tests to pin "today")."""
+        return timezone.now()

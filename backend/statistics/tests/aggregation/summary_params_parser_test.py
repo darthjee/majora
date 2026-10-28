@@ -120,9 +120,15 @@ class TestSummaryParamsParserToday:
     NOW = datetime(2026, 10, 28, 1, 0, tzinfo=timezone.utc)
 
     def _parse_at_now(self, params):
-        """Parse `params` with `timezone.now()` frozen at `NOW`."""
-        with patch('django.utils.timezone.now', return_value=self.NOW):
+        """Parse `params` with the parser's current time pinned at `NOW`."""
+        with patch.object(SummaryParamsParser, '_now', return_value=self.NOW):
             return SummaryParamsParser(params).parse()
+
+    def test_today_defaults_to_real_local_date(self):
+        """Test that without an injected or pinned today the window ends on a real date."""
+        summary, errors = SummaryParamsParser({'tz': 'Pacific/Kiritimati'}).parse()
+        assert errors == {}
+        assert isinstance(summary.filters.to_date, date)
 
     def test_today_in_utc(self):
         """Test that today is the UTC date when `tz` is UTC."""

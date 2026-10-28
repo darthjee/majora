@@ -104,6 +104,11 @@ urlpatterns = [
         name='staff-statistics-overview',
     ),
     path(
+        'staff/statistics/summary.json',
+        views.staff_statistics_summary,
+        name='staff-statistics-summary',
+    ),
+    path(
         'staff/statistics/visitors.json',
         views.staff_statistics_visitors,
         name='staff-statistics-visitors',
