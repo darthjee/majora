@@ -20,6 +20,7 @@ from .staff_statistics_domains import staff_statistics_domains
 from .staff_statistics_domains_summary import staff_statistics_domains_summary
 from .staff_statistics_duration import staff_statistics_duration
 from .staff_statistics_overview import staff_statistics_overview
+from .staff_statistics_summary import staff_statistics_summary
 from .staff_statistics_users import staff_statistics_users
 from .staff_statistics_visit_list import staff_statistics_visit_list
 from .staff_statistics_visitors import staff_statistics_visitors
@@ -68,6 +69,7 @@ __all__ = [
     'staff_statistics_domains_summary',
     'staff_statistics_duration',
     'staff_statistics_overview',
+    'staff_statistics_summary',
     'staff_statistics_users',
     'staff_statistics_visit_list',
     'staff_statistics_visits',

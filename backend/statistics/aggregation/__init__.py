@@ -1,9 +1,11 @@
 """On-the-fly aggregation of `Visit` rows for the staff access statistics endpoints.
 
-Plain classes, one per file: request filter parsing and validation, granularity resolution,
+Plain classes, one per file: request filter parsing and validation (`StatisticsParamsParser`,
+and `SummaryParamsParser` for the summary endpoint's `period` / `tz`), granularity resolution,
 time-zone-aware bucketing, the visit query, zero-filled series, pure metric helpers and the
 per-endpoint aggregations built on top of them (e.g. `VisitsSeries`, `VisitorsSeries`,
-`DurationSeries`, `OverviewTotals`, `DomainsSummary`, `UsersRanking`, `VisitList`).
+`DurationSeries`, `OverviewTotals`, `DomainsSummary`, `UsersRanking`, `VisitList`), plus the
+single-aggregate `UniqueVisitorsCount` of the summary endpoint.
 Never `import statistics` for the stdlib helpers: this app's name shadows that module.
 """
 
@@ -17,6 +19,9 @@ from .granularity import Granularity
 from .overview_totals import OverviewTotals
 from .params_parser import StatisticsParamsParser
 from .series import Series
+from .summary_params import SummaryParams
+from .summary_params_parser import SummaryParamsParser
+from .unique_visitors_count import UniqueVisitorsCount
 from .users_ranking import UsersRanking
 from .visit_list import VisitList
 from .visit_query import VisitQuery
@@ -33,6 +38,9 @@ __all__ = [
     'Series',
     'StatisticsFilters',
     'StatisticsParamsParser',
+    'SummaryParams',
+    'SummaryParamsParser',
+    'UniqueVisitorsCount',
     'UsersRanking',
     'VisitList',
     'VisitQuery',

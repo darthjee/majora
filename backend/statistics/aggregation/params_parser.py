@@ -20,6 +20,15 @@ def _timezones():
     return frozenset(available_timezones())
 
 
+def parse_tz(name):
+    """Return `(zone, error_code)` for a raw `tz` value: `UTC` when missing or invalid."""
+    if name is None:
+        return ZoneInfo('UTC'), None
+    if name not in _timezones():
+        return ZoneInfo('UTC'), 'invalid_timezone'
+    return ZoneInfo(name), None
+
+
 class StatisticsParamsParser:
     """Validates statistics query params, reporting every error at once."""
 
@@ -76,13 +85,10 @@ class StatisticsParamsParser:
 
     def _parse_tz(self):
         """Parse `tz` (default `UTC`); fall back to UTC after recording an error."""
-        name = self._get('tz')
-        if name is None:
-            return ZoneInfo('UTC')
-        if name not in _timezones():
-            self._add_error('tz', 'invalid_timezone')
-            return ZoneInfo('UTC')
-        return ZoneInfo(name)
+        zone, code = parse_tz(self._get('tz'))
+        if code:
+            self._add_error('tz', code)
+        return zone
 
     def _parse_choice(self, key, choices, default, code):
         """Parse an enum param, recording `code` when it is not one of `choices`."""
