@@ -73,11 +73,15 @@ class StatisticsSessionMiddleware:
         """Write `session.last_seen_at` only when stale beyond the configured touch interval.
 
         `Visit` carries per-request activity, so the session row is throttled to keep the
-        per-request write cost at about one row.
+        per-request write cost at about one row. A filtered `UPDATE` is used so a session
+        deleted after being loaded (e.g. by a statistics clear) is tolerated: it matches no
+        rows and nothing raises.
         """
         interval = timedelta(seconds=Settings.session_touch_interval_seconds())
-        if timezone.now() - session.last_seen_at >= interval:
-            session.save(update_fields=['last_seen_at'])
+        now = timezone.now()
+        if now - session.last_seen_at >= interval:
+            Session.objects.filter(pk=session.pk).update(last_seen_at=now)
+            session.last_seen_at = now
 
     def _track_visit(self, request):
         """Attribute this request to a `Visit` of the resolved session, before the view runs.
