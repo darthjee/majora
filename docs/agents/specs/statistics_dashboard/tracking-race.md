@@ -15,15 +15,24 @@ No new endpoint. These internal functions (in `backend/statistics/middleware.py`
 `visit_tracking.py` and `session_attachment.py`) must keep working when the session has
 vanished:
 
+- the statistics middleware's `_touch_session` (refresh of a reused session's `last_seen_at`)
 - the statistics middleware's `_track_visit` / `visit_tracking.track_visit`
 - the middleware's `_backfill_user` / `session_attachment.attach_user`
 
 ## Behaviour
 
-- A foreign-key / integrity error (or a missing row) caused by a session deleted between being
-  loaded and its visit being tracked, or between tracking and user attachment, is **caught**.
-- Tracking (or user attachment) is skipped for that request, and the request is served normally:
-  it **never returns a 500** because of this.
+- The session can vanish between being loaded and being touched, between being loaded (or
+  touched) and its visit being tracked, or between tracking and user attachment.
+- **Touch:** a reused session's `last_seen_at` is refreshed with a filtered `UPDATE` (not
+  `save(update_fields=...)`), so touching a deleted session matches no rows and is a no-op.
+- **Track:** opening a `Visit` for a deleted session raises a foreign-key `IntegrityError`; the
+  insert runs inside a savepoint and only that error is **caught**, so the enclosing transaction
+  stays usable. Extending the latest visit is an `UPDATE` that just matches no rows.
+- **User attachment:** already tolerates a deleted session — the in-place attach matches no rows
+  and falls through to rotation, so a new `Session` tied to the user is created. No code change
+  was needed; only tests were added.
+- Tracking is skipped for that request (no visit is written, nothing is logged), and the request
+  is served normally: it **never returns a 500** because of this.
 - The normal path is unchanged.
 - **Old cookies:** after a clear, every visitor's cookie points to a deleted `Session`.
   `_session_from_cookie` (via `_load_or_create_session`) already returns `None` for an unknown
@@ -43,8 +52,9 @@ No change (middleware only; no endpoint, permission or cache rule is added).
 
 ## Tests
 
-- Regression tests that delete the session at each point — between load and track, and between
-  track and user attachment — and assert there is no exception and no 500.
+- Regression tests that delete the session at each point — between load and touch, between load
+  and track, and between track and user attachment — and assert there is no exception and no
+  500.
 - A stale-cookie test: a cookie pointing to a deleted session gets a new session.
 
 ## Open questions
