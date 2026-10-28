@@ -17,6 +17,7 @@ Shared filter, envelope and aggregation conventions:
 | List domains for the filter bar (`GET /staff/statistics/domains.json`) | **Staff-or-superuser** |
 | Visits over time for the Visits tab (`GET /staff/statistics/visits.json`) | **Staff-or-superuser** |
 | Overview KPIs for the Overview tab (`GET /staff/statistics/overview.json`) | **Staff-or-superuser** |
+| Visitors summary for the staff dashboard card (`GET /staff/statistics/summary.json`) | **Staff-or-superuser** |
 | New vs returning visitors for the Visitors tab (`GET /staff/statistics/visitors.json`) | **Staff-or-superuser** |
 | Visit duration and hits per visit for the Duration tab (`GET /staff/statistics/duration.json`) | **Staff-or-superuser** |
 | Logged-in users ranking for the Users tab (`GET /staff/statistics/users.json`) | **Staff-or-superuser** |
@@ -57,7 +58,7 @@ parse; the cap is `MAJORA_STATISTICS_MAX_RANGE_DAYS`, default 366 inclusive days
 `errors` object); integer params
 are capped at `2**63 − 1` (at most 19 digits) so they cannot overflow `int()` or the id
 columns. Unknown params
-are ignored. A well-formed but unknown `user` or `domain` id returns empty data, not an
+are ignored. `summary.json` reads only `period` and `tz` (see its endpoint entry). A well-formed but unknown `user` or `domain` id returns empty data, not an
 error. Queries go through the ORM only, and filter payloads are not logged.
 
 ## Data exposed
@@ -89,6 +90,16 @@ the user identity (id, username, display name, email). The session cookie token
   "average_duration_seconds", "new_visitors", "returning_visitors"}}` with no `buckets`;
   `average_duration_seconds` is `null` when there are no visits. Only aggregated counts are
   exposed: no user identities and no IPs.
+- **`GET /staff/statistics/summary.json`** — unique visitors (a logged-in user, or an
+  anonymous session) with visits started in a rolling window of local days ending today, for
+  the staff dashboard card. Takes only `period` (`day` | `week` | `month`, default `day`;
+  windows of 1, 7 and 30 days) and `tz` (default `UTC`); any other param is ignored, not
+  validated. Invalid values are `400` with `invalid_period` / `invalid_timezone`, both
+  reported at once (`tz` validation is shared with the other statistics endpoints). Returns
+  the flat `{"period", "from", "to", "tz", "unique_visitors"}`, the count being one SQL
+  aggregate equal to `overview.json`'s `totals.unique_visitors` for the same `from` / `to` /
+  `tz`. Not cached server-side; sets `X-Skip-Cache: true` and is not warmed by Navi. Only an
+  aggregated count is exposed: no user identities and no IPs.
 - **`GET /staff/statistics/visitors.json`** — distinct visitors (a logged-in user, or an
   anonymous session) with visits started in the range, per bucket. Takes the shared filter
   params (`from`, `to`, `tz`, `granularity`, `user`, `domain`, `audience`); not paginated.
