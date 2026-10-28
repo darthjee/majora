@@ -32,3 +32,8 @@ class Settings:
     def max_range_days():
         """Return the maximum inclusive day span of a statistics query (default: 366)."""
         return env_int('MAJORA_STATISTICS_MAX_RANGE_DAYS', 366)
+
+    @staticmethod
+    def clear_batch_size():
+        """Return how many rows each batch of a statistics clear deletes (default: 10000)."""
+        return env_int('MAJORA_STATISTICS_CLEAR_BATCH_SIZE', 10000)
