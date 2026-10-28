@@ -48,6 +48,11 @@ open the full file before loading it. For a bare link-only table of contents ins
   folder exist: the Node.js library, CLI and `majora-client` npm package (epic #1592) that
   call the Majora API with scoped `Bearer mjr_` tokens; documents the boundaries with `infra`
   and with the unrelated `frontend/assets/js/client/`.
+- **[Investigator Agent](investigator.md)** — Why the `investigator` specialist agent exists:
+  temporary, standalone `investigations/<topic>/` folders (scripts, own `docker-compose.yml`,
+  git-ignored reports) for diagnosing bugs (epic #1696 first); documents the boundaries with
+  `infra` and application code and the production-data safety rules (read-only, user-authorized,
+  tokens in memory, anonymised write-ups).
 - **[Access Statistics](statistics.md)** — The staff access statistics page: `Session` as
   visitor and `Visit` as activity (30-minute inactivity window), the visitor key, metric
   definitions and counting caveats per tab, the shared filters and `staff/statistics/*.json`
