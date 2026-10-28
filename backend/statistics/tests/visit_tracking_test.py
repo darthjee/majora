@@ -73,6 +73,36 @@ class TestTrackVisit:
 
         assert self.session.visits.count() == 2
 
+    def test_skips_the_visit_for_a_deleted_new_session(self):
+        """Test that a session deleted before tracking (new-session path) gets no visit."""
+        self._delete_session_row()
+
+        track_visit(self.session, new_session=True)
+
+        assert Visit.objects.count() == 0
+
+    def test_skips_the_visit_for_a_deleted_reused_session(self):
+        """Test that a session deleted before tracking (default path) gets no visit."""
+        self._delete_session_row()
+
+        track_visit(self.session)
+
+        assert Visit.objects.count() == 0
+
+    def test_outer_transaction_survives_a_skipped_visit(self):
+        """Test that queries still work after the swallowed `IntegrityError`."""
+        self._delete_session_row()
+        track_visit(self.session, new_session=True)
+
+        other = Session.objects.create(ip='127.0.0.2')
+        track_visit(other, new_session=True)
+
+        assert Visit.objects.filter(session=other).count() == 1
+
+    def _delete_session_row(self):
+        """Delete `self.session`'s row while keeping the in-memory instance and its pk."""
+        Session.objects.filter(pk=self.session.pk).delete()
+
     def _visit_seen(self, minutes_ago):
         """Return a visit of `self.session` last seen `minutes_ago` minutes ago."""
         seen_at = timezone.now() - timedelta(minutes=minutes_ago)

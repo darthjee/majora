@@ -2,6 +2,7 @@
 
 from datetime import timedelta
 
+from django.db import IntegrityError, transaction
 from django.db.models import F
 from django.utils import timezone
 
@@ -15,10 +16,24 @@ def track_visit(session, *, new_session=False):
     Extending is a single atomic `UPDATE` (`hits = hits + 1`), so concurrent requests never
     lose a hit. A session created during this request (`new_session=True`) cannot have a
     visit yet, so the lookup is skipped and a visit is opened directly.
+
+    A session deleted mid-request (e.g. by a statistics clear) gets no visit and no error.
     """
     now = timezone.now()
     if new_session or not _extend_latest_visit(session, now):
-        Visit.objects.create(session=session, started_at=now, last_seen_at=now, hits=1)
+        _open_visit(session, now)
+
+
+def _open_visit(session, now):
+    """Open a visit for `session`; skip silently if the session vanished mid-request.
+
+    The savepoint keeps a caught `IntegrityError` from breaking an enclosing transaction.
+    """
+    try:
+        with transaction.atomic():
+            Visit.objects.create(session=session, started_at=now, last_seen_at=now, hits=1)
+    except IntegrityError:
+        pass
 
 
 def _extend_latest_visit(session, now):
