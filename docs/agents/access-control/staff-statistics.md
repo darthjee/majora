@@ -40,7 +40,7 @@ API tokens cannot reach it (`staff/` is excluded from token scopes). Every run w
 `staff_statistics_clear` line to the server log with the staff id, the counts, the duration
 and the status (plus the exception class on failure); it never logs the IP, username, email
 or exception message. See the
-[audit log](../specs/statistics_dashboard/clear-endpoint.md#audit-log).
+[audit log](../statistics.md#audit-log).
 
 ## Frontend
 
