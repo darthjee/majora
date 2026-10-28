@@ -35,6 +35,9 @@ CI (lint, tests, coverage) must not pick up `investigations/`.
 - Reports the sessions and visits each scenario created, read through the local export
   endpoint (see [Export endpoint](export-endpoint.md)).
 - Parallel bursts run only against the local stack.
+- **Local secrets:** the `X-Forwarded-For` scenario needs the local `PROXY_SECRET` (and the
+  scripts may need the local skip secret). `emulate.py` reads them from the local `.env` or the
+  environment, and never hardcodes, prints or logs them.
 
 ## `analyse.py` (#1703)
 

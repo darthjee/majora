@@ -34,8 +34,8 @@ confirmed from `analyse.py` evidence alone, documented as such (see
 ```
 
 - #1697 (these specs) and #1698 (the investigator agent, *planned by #1698*) come first.
-- #1699 adds the `statistics:read` scope and the export endpoint; #1700 lets staff grant the
-  scope from the token and device-authorization UI.
+- #1699 adds the `statistics:read` scope, the export endpoint and scoped device authorization;
+  #1700 lets staff grant the scope from the token and device-authorization UI.
 - #1701 releases the scope. The version bump only gates the **production** run of
   `analyse.py`; `emulate.py` and local runs of `analyse.py` work before it.
 - #1702 then #1703 build the scripts; #1703 is cross-validated on #1702's local data.
@@ -54,7 +54,8 @@ confirmed from `analyse.py` evidence alone, documented as such (see
 
 ## Constraints
 
-- The request hot path (`StatisticsSessionMiddleware`) does **not** change in this Epic. The
-  fix belongs to the issue created by #1705.
+- The session reuse and creation logic of the request hot path (`StatisticsSessionMiddleware`)
+  does **not** change in this Epic. The fix belongs to the issue created by #1705. The only
+  middleware change allowed is #1699's exact-route tracking exemption for the export endpoint.
 - The export endpoint's own requests must not be tracked (see
   [Export endpoint](export-endpoint.md#caching-and-tracking)).
