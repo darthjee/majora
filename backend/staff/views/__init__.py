@@ -16,6 +16,7 @@ from .staff_photo_delete import staff_photo_delete
 from .staff_photo_replace import staff_photo_replace
 from .staff_photos_index import staff_photos_index
 from .staff_photos_list import staff_photos_list
+from .staff_statistics_clear import staff_statistics_clear
 from .staff_statistics_domains import staff_statistics_domains
 from .staff_statistics_domains_summary import staff_statistics_domains_summary
 from .staff_statistics_duration import staff_statistics_duration
@@ -65,6 +66,7 @@ __all__ = [
     'staff_photo_replace',
     'staff_photo_deletable',
     'staff_photo_delete',
+    'staff_statistics_clear',
     'staff_statistics_domains',
     'staff_statistics_domains_summary',
     'staff_statistics_duration',

@@ -89,6 +89,11 @@ urlpatterns = [
         name='staff-copy-create',
     ),
     path(
+        'staff/statistics.json',
+        views.staff_statistics_clear,
+        name='staff-statistics-clear',
+    ),
+    path(
         'staff/statistics/domains.json',
         views.staff_statistics_domains,
         name='staff-statistics-domains',

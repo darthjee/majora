@@ -58,3 +58,22 @@ class TestSettingsMaxRangeDays:
         """Test that the default is returned when the env var is not an integer."""
         monkeypatch.setenv('MAJORA_STATISTICS_MAX_RANGE_DAYS', 'oops')
         assert Settings.max_range_days() == 366
+
+
+class TestSettingsClearBatchSize:
+    """Tests for `Settings.clear_batch_size()`."""
+
+    def test_returns_default_when_env_not_set(self, monkeypatch):
+        """Test that the default of 10000 rows is returned when the env var is absent."""
+        monkeypatch.delenv('MAJORA_STATISTICS_CLEAR_BATCH_SIZE', raising=False)
+        assert Settings.clear_batch_size() == 10000
+
+    def test_reads_value_from_env(self, monkeypatch):
+        """Test that the value from `MAJORA_STATISTICS_CLEAR_BATCH_SIZE` is used."""
+        monkeypatch.setenv('MAJORA_STATISTICS_CLEAR_BATCH_SIZE', '500')
+        assert Settings.clear_batch_size() == 500
+
+    def test_returns_default_when_env_is_invalid(self, monkeypatch):
+        """Test that the default is returned when the env var is not an integer."""
+        monkeypatch.setenv('MAJORA_STATISTICS_CLEAR_BATCH_SIZE', 'oops')
+        assert Settings.clear_batch_size() == 10000
