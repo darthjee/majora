@@ -16,3 +16,13 @@ staff_dashboard:
   crawler_summary_load_error: Unable to load crawler summary.
   crawler_summary_empty: No entries yet.
   crawler_summary_total: 'Total:'
+  visits_summary_title: Unique Visitors
+  visits_summary_load_error: Unable to load visits summary.
+  visits_period_label: Period
+  visits_period_day: Today
+  visits_period_week: Last 7 days
+  visits_period_month: Last 30 days
+  visits_clear_tooltip: Clear statistics
+  visits_clear_success: 'Statistics cleared: {{visits}} visits and {{sessions}} sessions deleted.'
+  visits_clear_error: Failed to clear statistics. Please try again.
+  visits_statistics_link: View full statistics

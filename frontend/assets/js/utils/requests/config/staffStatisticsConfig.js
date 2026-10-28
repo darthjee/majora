@@ -1,6 +1,6 @@
 /**
- * GET resource configuration for `staffStatistics` (issue #1499), the staff-only access
- * statistics endpoints.
+ * GET/mutation resource configuration for `staffStatistics` (issue #1499), the staff-only
+ * access statistics endpoints. Besides its `GET` entries it now also holds a `DELETE` one.
  *
  * @description Every endpoint here is staff/superuser-only, gated client-side by the route
  *   gates and `AccessStore.ensureStaffOrSuperUser()`, and enforced server-side too. None has a
@@ -28,6 +28,11 @@
  *   Each statistics tab adds its own quantity type (e.g. `overview`, `visits`, `visitors`,
  *   `duration`, `domainsSummary`, `usersRanking`, `visitList`); their filters travel as the request query
  *   (see `StatisticsQuery`).
+ *
+ *   `GET.summary` (`/staff/statistics/summary.json`, issue #1682) returns the staff
+ *   dashboard card's unique-visitors count for a `period` (`day` / `week` / `month`) and `tz`.
+ *   `DELETE.clear` (`/staff/statistics.json`, issue #1684) wipes every visit and session and
+ *   resets their IDs, returning `{deleted_visits, deleted_sessions}`.
  */
 const domains = { path: () => '/staff/statistics/domains.json', permission: null };
 const overview = { path: () => '/staff/statistics/overview.json', permission: null };
@@ -37,6 +42,8 @@ const duration = { path: () => '/staff/statistics/duration.json', permission: nu
 const domainsSummary = { path: () => '/staff/statistics/domains/summary.json', permission: null };
 const usersRanking = { path: () => '/staff/statistics/users.json', permission: null };
 const visitList = { path: () => '/staff/statistics/visit-list.json', permission: null };
+const summary = { path: () => '/staff/statistics/summary.json', permission: null };
+const clear = { path: () => '/staff/statistics.json', permission: null };
 
 export default {
   GET: {
@@ -48,5 +55,9 @@ export default {
     domainsSummary: { regular: domainsSummary, private: domainsSummary },
     usersRanking: { regular: usersRanking, private: usersRanking },
     visitList: { regular: visitList, private: visitList },
+    summary: { regular: summary, private: summary },
+  },
+  DELETE: {
+    clear: { regular: clear, private: clear },
   },
 };

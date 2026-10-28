@@ -98,6 +98,13 @@ clear_crawler_confirm_modal:
   body: Isso limpa todas as entradas de depuração do crawler capturadas. Esta ação não pode ser desfeita.
   confirm: Limpar entradas
   cancel: Cancelar
+clear_statistics_confirm_modal:
+  title: Limpar Estatísticas
+  body: Isso exclui todas as visitas e sessões e reinicia seus IDs. Esta ação não pode ser desfeita.
+  instruction: Digite CLEAR para confirmar.
+  input_label: Confirmação
+  confirm: Limpar Estatísticas
+  cancel: Cancelar
 delete_photo_confirm_modal:
   title: Excluir Foto
   body: Tem certeza de que deseja excluir esta foto? Esta ação não pode ser desfeita.

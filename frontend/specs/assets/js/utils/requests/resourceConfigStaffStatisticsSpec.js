@@ -65,6 +65,22 @@ describe('resourceConfig staffStatistics (issue #1499)', function() {
     expect(visitList.regular.permission).toBeNull();
   });
 
+  it('resolves GET.summary as a single un-branched variant (issue #1682)', function() {
+    const summary = resourceConfig.get('GET', 'staffStatistics', 'summary');
+
+    expect(summary.regular).toBe(summary.private);
+    expect(summary.regular.path()).toBe('/staff/statistics/summary.json');
+    expect(summary.regular.permission).toBeNull();
+  });
+
+  it('resolves DELETE.clear as a single un-branched variant (issue #1684)', function() {
+    const clear = resourceConfig.get('DELETE', 'staffStatistics', 'clear');
+
+    expect(clear.regular).toBe(clear.private);
+    expect(clear.regular.path()).toBe('/staff/statistics.json');
+    expect(clear.regular.permission).toBeNull();
+  });
+
   it('returns null for an unconfigured quantity type', function() {
     expect(resourceConfig.get('GET', 'staffStatistics', 'collection')).toBeNull();
   });
