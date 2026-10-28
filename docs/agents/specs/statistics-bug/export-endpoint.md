@@ -56,7 +56,8 @@ return `401` `token_invalid` for an unusable token, `403` `scope_missing` for a 
 
 Every other staff endpoint (cache, copy, crawler, photo) also stays `403` `token_not_allowed`
 for any scoped token, with or without the scope. "Staff owner later demoted" is an explicit
-test case.
+test case; the test invalidates `AdminOrStaffCache` (it caches the staff flag by user id), so
+the demotion takes effect as it does for every staff endpoint.
 
 ## Endpoint contract
 
@@ -106,7 +107,10 @@ Today that flow issues a legacy DRF `Token` and a browser session (`_issue_login
 in `backend/accounts/views/authorization_requests/poll.py`), with full staff powers, including
 the `DELETE` clear. That would defeat the read-only design, so #1699 extends it:
 
-- an authorization request carries the requested scopes;
+- an authorization request carries the requested scopes, validated at creation against the
+  scope catalogue (known `family:action` values only, a bounded list, `400` otherwise), since
+  the create endpoint is unauthenticated;
+- the approval screen shows only catalogue labels for those scopes, never raw client text;
 - the approval screen shows them, and approval rejects `statistics:read` for a non-staff
   approver (see [Scope](#scope));
 - polling an approved request that asked for scopes issues an `mjr_` scoped `ApiToken` with
