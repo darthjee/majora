@@ -1,6 +1,7 @@
 """Tests for `StatisticsSessionMiddleware`."""
 
 from datetime import timedelta
+from unittest.mock import patch
 
 import pytest
 from django.test import override_settings
@@ -11,7 +12,10 @@ from domains.tests.factories import DomainFactory
 from games.tests.factories import UserFactory
 from majora_project.cache import memory_cache
 from statistics import cookies
+from statistics.middleware import StatisticsSessionMiddleware
 from statistics.models import Session, Visit
+from statistics.session_attachment import attach_user
+from statistics.visit_tracking import track_visit
 
 
 @pytest.mark.django_db
@@ -445,6 +449,71 @@ class TestStatisticsSessionMiddleware:
 
         assert response.status_code == 200
         assert Session.objects.count() == 0
+
+    def test_session_deleted_before_the_touch_does_not_fail(self, client):
+        """Test that a stale cookie session deleted before its touch yields 200 and no visit."""
+        session = self._stale_session(seconds_ago=120)
+        client.cookies[cookies.COOKIE_NAME] = cookies.sign(session.token)
+        original = StatisticsSessionMiddleware._session_from_cookie
+
+        def load_then_delete(middleware, request, domain):
+            loaded = original(middleware, request, domain)
+            self._delete_session_row(loaded)
+            return loaded
+
+        with patch.object(StatisticsSessionMiddleware, '_session_from_cookie', load_then_delete):
+            response = client.get('/ready.json', REMOTE_ADDR='1.2.3.4')
+
+        assert response.status_code == 200
+        assert not Visit.objects.filter(session_id=session.pk).exists()
+
+    def test_session_deleted_before_the_track_does_not_fail(self, client):
+        """Test that a cookie session deleted right before visit tracking yields 200, no visit."""
+        session = Session.objects.create(ip='1.2.3.4', domain=self.domain)
+        client.cookies[cookies.COOKIE_NAME] = cookies.sign(session.token)
+
+        with patch('statistics.middleware.track_visit', self._deleting_first(track_visit)):
+            response = client.get('/ready.json', REMOTE_ADDR='1.2.3.4')
+
+        assert response.status_code == 200
+        assert not Visit.objects.filter(session_id=session.pk).exists()
+
+    def test_session_deleted_before_user_attachment_rotates_to_a_new_one(self, client):
+        """Test that a session deleted before attachment yields 200 and a new user session."""
+        session = Session.objects.create(ip='1.2.3.4', domain=self.domain)
+        client.cookies[cookies.COOKIE_NAME] = cookies.sign(session.token)
+
+        with patch('statistics.middleware.attach_user', self._deleting_first(attach_user)):
+            response = self._authenticated_get(client, REMOTE_ADDR='1.2.3.4')
+
+        assert response.status_code == 200
+        assert not Session.objects.filter(pk=session.pk).exists()
+        self._assert_single_user_session(response, ip='1.2.3.4')
+
+    def test_stale_cookie_after_a_clear_starts_a_new_session(self, client):
+        """Test that a cookie whose session was cleared gets a new session and one visit."""
+        first_response = client.get('/ready.json', REMOTE_ADDR='1.2.3.4')
+        old_token = cookies.unsign(first_response.cookies[cookies.COOKIE_NAME].value)
+        Session.objects.all().delete()
+
+        response = client.get('/ready.json', REMOTE_ADDR='1.2.3.4')
+
+        assert response.status_code == 200
+        new_session = self._session_from_response(response)
+        assert new_session.token != old_token
+        assert new_session.visits.get().hits == 1
+
+    def _deleting_first(self, function):
+        """Wrap `function` so it deletes its `session` argument's row before running."""
+        def wrapper(session, *args, **kwargs):
+            self._delete_session_row(session)
+            return function(session, *args, **kwargs)
+
+        return wrapper
+
+    def _delete_session_row(self, session):
+        """Delete `session`'s row while keeping the in-memory instance and its pk."""
+        Session.objects.filter(pk=session.pk).delete()
 
     def _stale_session(self, seconds_ago):
         """Return a session for '1.2.3.4' on `self.domain` last seen `seconds_ago` seconds ago."""

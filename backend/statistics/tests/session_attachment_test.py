@@ -92,3 +92,33 @@ class TestAttachUser:
         assert result.user_id == self.user.id
         session.refresh_from_db()
         assert session.user_id == other_user.id
+
+    def test_rotates_to_a_new_session_when_the_session_was_deleted(self):
+        """Test that a deleted anonymous session falls through to a new user-tied session."""
+        session = self._deleted_session()
+
+        result = attach_user(session, self.user)
+
+        self._assert_rotated_from(result, session)
+
+    def test_always_rotate_creates_a_new_session_when_the_session_was_deleted(self):
+        """Test that `always_rotate=True` on a deleted session creates a new user-tied one."""
+        session = self._deleted_session()
+
+        result = attach_user(session, self.user, always_rotate=True)
+
+        self._assert_rotated_from(result, session)
+
+    def _deleted_session(self):
+        """Return an anonymous session whose row is deleted but whose instance keeps its pk."""
+        session = Session.objects.create(ip='1.2.3.4', domain=self.domain)
+        Session.objects.filter(pk=session.pk).delete()
+        return session
+
+    def _assert_rotated_from(self, result, session):
+        """Assert `result` is a new stored session tied to `self.user`, copying `session`."""
+        assert result.id != session.id
+        assert Session.objects.get() == result
+        assert result.user_id == self.user.id
+        assert result.ip == session.ip
+        assert result.domain_id == self.domain.id
