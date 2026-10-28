@@ -52,7 +52,8 @@ open the full file before loading it. For a bare link-only table of contents ins
   visitor and `Visit` as activity (30-minute inactivity window), the visitor key, metric
   definitions and counting caveats per tab, the shared filters and `staff/statistics/*.json`
   API conventions (Python bucketing in the browser time zone, zero-filled buckets, range cap),
-  and the client IP caveat.
+  the staff dashboard visits summary card, the summary and Clear endpoints (batched delete, ID
+  reset, audit log), the tracking-race tolerance and the client IP caveat.
 - **[Game Content Copy](game-content-copy.md)** — The staff game content copy page
   (`#/staff/copies`): the Admin menu entry, selectors and URL state, the one-request-per-entity
   copy flow (`copied_from`, name clashes, `hidden`, cover, characters' available lists), hard

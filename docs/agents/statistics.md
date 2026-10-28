@@ -2,8 +2,11 @@
 
 The staff-only **access statistics page** (`#/staff/statistics`, #1477) reports site traffic
 recorded by the `statistics` app. It has seven tabs, each its own route, sharing one filter
-bar. This page holds the lasting knowledge about the feature: what is counted, how each
-metric is defined, and the conventions behind the `staff/statistics/*.json` API.
+bar. A **visits summary card** on the staff dashboard (#1678) shows the unique-visitors count
+and offers a staff-only **Clear** that wipes all statistics. This page holds the lasting
+knowledge about the feature: what is counted, how each metric is defined, the conventions
+behind the `staff/statistics/*.json` API, the dashboard card, Clear and how tracking survives
+a concurrent Clear.
 
 Related docs:
 
@@ -230,14 +233,16 @@ hash route's query, so switching tabs keeps the filters and links can be shared.
 
 ## API conventions
 
-Every endpoint is `GET /staff/statistics/<name>.json`, restricted to staff (see
+Every read endpoint is `GET /staff/statistics/<name>.json`, restricted to staff (see
 [Staff Statistics](access-control/staff-statistics.md) for access rules and validation
-codes), never cached by Tent nor warmed by Navi.
+codes), never cached by Tent nor warmed by Navi. The one write is
+[Clear](#clear) (`DELETE /staff/statistics.json`).
 
 | Endpoint | Tab | Shape |
 |----------|-----|-------|
 | `domains.json` | Filter bar | `[{"id", "domain"}]`, no filters |
 | `overview.json` | Overview | Envelope, `totals` only |
+| `summary.json` | Dashboard card | Flat object, own `period` / `tz` params (see [Summary endpoint](#summary-endpoint)) |
 | `visits.json` | Visits | Envelope with `buckets` |
 | `visitors.json` | Visitors | Envelope with `buckets` |
 | `duration.json` | Duration | Envelope with `buckets` and `histogram` |
@@ -282,6 +287,144 @@ official image does not load, and MySQL has no `MEDIAN`. Revisit only if it meas
 with identical `regular` / `private` variants, `permission: null` and no entry in
 `RequestPermissionResolvers.js` (the route gate handles access). `StatisticsQuery` turns the
 URL filters into the API query (resolving `range` into `from` / `to` and adding `tz`).
+
+## Staff dashboard card
+
+The **visits summary card** (#1685) is the last entry (`visits_summary`) of
+`frontend/assets/js/components/resources/staff_dashboard/pages/dashboardCardConfig.js` on
+`/#/staff/dashboard`. The route is gated with `staffOrSuperuser`. The feature is permanent,
+not a debug harness.
+
+- It shows the unique-visitors count from [`summary.json`](#summary-endpoint) for a rolling
+  period ending today, picked with a select: `day` (today, the default), `week` (the last 7
+  days) or `month` (the last 30 days). Changing the period fetches again, and may be served
+  from the `RequestStore` cache.
+- **Reload** purges the whole `staffStatistics` RequestStore resource, then fetches again.
+- **Clear** opens a confirmation modal. Its confirm button is enabled only when the input,
+  trimmed, equals `CLEAR`. The word is case-sensitive and never translated; the text around it
+  is. Cancelling, closing or confirming empties the input. Confirming calls
+  [Clear](#clear) through `RequestStore.mutate` (`DELETE`, quantity type `clear`). On success
+  the card shows the deleted visit and session counts. On failure it shows an error. In both
+  cases it reloads the count, since a failed Clear may have deleted some rows.
+- The period select, Reload and Clear are disabled while a fetch or a Clear is in flight.
+- A link goes to the full statistics page (`#/staff/statistics`).
+- `tz` is the browser zone (`Intl.DateTimeFormat().resolvedOptions().timeZone`). It is left
+  out of the query when the browser cannot resolve it, so the server falls back to `UTC`.
+
+Files, under `frontend/assets/js/components/resources/staff_dashboard/pages/elements/`:
+`VisitsSummaryCard.jsx`, `controllers/VisitsSummaryCardController.js`,
+`helpers/VisitsSummaryCardHelper.jsx` and the `ClearStatisticsConfirmModal` trio (component,
+controller, helper). Both requests are in
+`frontend/assets/js/utils/requests/config/staffStatisticsConfig.js` (`GET.summary`,
+`DELETE.clear`), with `permission: null` and no entry in `RequestPermissionResolvers.js`, like
+the other statistics endpoints.
+
+## Summary endpoint
+
+`GET /staff/statistics/summary.json` (`backend/staff/views/staff_statistics_summary.py`,
+#1682) returns the unique visitors for the card. It does not reuse `overview.json`, which loads
+every visit of the range into Python and runs the returning-visitors lookup. That is too heavy
+for a card that loads with every dashboard visit.
+
+- **Params** (`SummaryParamsParser`, `backend/statistics/aggregation/summary_params_parser.py`):
+  only `period` (`day` | `week` | `month`, default `day`) and `tz` (shared `parse_tz`, default
+  `UTC`). Other params are ignored. Validation codes and permissions:
+  [Staff Statistics](access-control/staff-statistics.md#endpoints).
+- **Window:** local days in `tz`, `to` = today and `from` = today minus 0, 6 or 29 days. It is
+  matched against `Visit.started_at` like every other endpoint (see
+  [Counting rules](#counting-rules-and-caveats)).
+- **Count** (`UniqueVisitorsCount`, `backend/statistics/aggregation/unique_visitors_count.py`):
+  one SQL aggregate over `VisitQuery`, distinct users plus distinct sessions without a user.
+  This is the [visitor key](#visitor-key), so the count equals `overview.json`'s
+  `totals.unique_visitors` for the same `from` / `to` / `tz`. It uses the existing
+  `started_at` index and is not cached server-side.
+- **Response:** the flat `{"period", "from", "to", "tz", "unique_visitors"}`.
+
+## Clear
+
+`DELETE /staff/statistics.json` (`backend/staff/views/staff_statistics_clear.py`, #1684)
+deletes every `Visit` and `Session` row and resets both tables' IDs, so the next rows start at
+id `1`. It returns `200 {"deleted_visits", "deleted_sessions"}` (zeros on an empty dataset)
+only after the reset has finished. The counts include the Clear request's own visit and
+session, which the middleware tracked before the view ran. Permissions, caching and token
+rules: [Staff Statistics](access-control/staff-statistics.md#clear).
+
+All the SQL lives in `StatisticsReset` (`backend/statistics/reset.py`). It is raw,
+MySQL-only SQL (`DELETE … ORDER BY … LIMIT`, `AUTO_INCREMENT`), which is acceptable because the
+test database is MySQL too.
+
+1. **Visits pass:** `DELETE FROM statistics_visit ORDER BY id LIMIT <batch>` until a batch
+   deletes nothing. Raw SQL skips Django's Python-side cascade collector, which would load
+   every related visit.
+2. **Sessions pass:** select up to `<batch>` session ids by id, delete their visits, then the
+   sessions, until no ids are left. This catches a visit a live request added after the
+   visits pass, so the session delete never fails on the foreign key.
+3. **ID reset:** `ALTER TABLE … AUTO_INCREMENT = 1` on both tables. If tracking inserts a row
+   before the `ALTER`, InnoDB keeps the highest id + 1 instead, which is harmless.
+
+Rules:
+
+- **No transaction.** Each batch commits on its own (autocommit), so locks last one batch and
+  live tracking is not blocked. `ALTER TABLE` commits implicitly anyway, so the reset cannot run
+  inside `atomic()`. `TRUNCATE` is not used: InnoDB refuses it on `statistics_session` because
+  of the foreign key from `statistics_visit`.
+- **Batch size:** `Settings.clear_batch_size()`, env `MAJORA_STATISTICS_CLEAR_BATCH_SIZE`,
+  default `10000`.
+- **Safety limit:** each pass stops after `MAX_BATCHES = 1000` batches by raising
+  `StatisticsResetLimitExceeded`, which ends as a `500`.
+- **No rollback on failure.** A database error or the safety limit returns `500`, and rows
+  already deleted stay deleted. Running Clear again finishes the job.
+- **Synchronous:** Clear runs inside the request. Production gunicorn has a 30 s timeout
+  (`backend/bin/server.sh`); a Clear that runs longer is killed partway, and clicking Clear
+  again finishes it.
+- Concurrent clears need no lock: the deletes are idempotent, and each response counts only its
+  own rows. Visit and session ids are reused after a clear, which is safe because no staff
+  statistics endpoint is cached.
+
+### Audit log
+
+Clear wipes production data, so every run writes one line to the **server log only** (no
+model, table or admin page). `log_statistics_clear` in the Clear view logs through
+`logging.getLogger(__name__)`, the `staff` logger, which writes to stdout and is kept by
+Render's log retention. It follows the other staff audit lines (`_api_token_shared.py`).
+
+```text
+staff_statistics_clear status=success staff_id=7 deleted_visits=1234 deleted_sessions=321 duration_ms=842
+```
+
+- `status` is `success` (logged at **INFO**) or `failed` (logged at **WARNING**, with an extra
+  `error=<exception class name>`).
+- `staff_id` is `request.user.id`. `duration_ms` is the time of the whole clear, so runs close
+  to the gunicorn timeout are visible.
+- **Partial counts:** on failure the line holds the rows deleted before the error. The counts
+  are kept on the `StatisticsReset` instance (`deleted_visits` / `deleted_sessions`), which the
+  view still holds when it logs. The exception is then re-raised.
+- **Not logged:** the IP, the username, the email and the exception message (it may contain
+  SQL). Leaving out the IP is deliberate: no backend log line records one, the IP is personal
+  data that a Clear is meant to wipe, and `staff_id` plus Render's own request logs are enough
+  to investigate.
+- A run killed by the gunicorn timeout writes **no** line. The next Clear's line shows the rows
+  that were left.
+
+## Tracking race
+
+A request that loaded its statistics session before or during a Clear may then write to a
+session that no longer exists (#1683). The middleware (`backend/statistics/middleware.py`,
+`visit_tracking.py`, `session_attachment.py`) tolerates this, so such a request is still
+served normally and never returns a `500`. Its visit is just not recorded.
+
+- **Touch:** `_touch_session` refreshes `last_seen_at` with a filtered `UPDATE`, which matches
+  no rows for a deleted session.
+- **Track:** opening a `Visit` runs inside a savepoint and catches only the foreign-key
+  `IntegrityError`, so the enclosing transaction stays usable. Extending a visit is an `UPDATE`
+  that matches no rows.
+- **User attachment:** `attach_user`'s in-place `UPDATE` matches no rows and falls through to
+  rotation, which creates a new user-tied `Session`.
+- **Old cookies:** after a Clear every cookie points to a deleted `Session`.
+  `_session_from_cookie` finds nothing, so the next request creates a new session.
+
+The staff user who ran Clear usually counts as one visitor on the next Reload. This is
+accepted: dashboard calls are tracked like any other request.
 
 ## Client IP integrity
 
