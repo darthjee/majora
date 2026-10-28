@@ -9,6 +9,7 @@
 | `proxy/` | PHP Tent proxy configuration (dev and prod routing rules) and custom middleware with PHPUnit tests. |
 | `crawler/` | STL-site crawler client (Node.js). Currently a bare scaffold (`package.json`, `README.md`) — no crawling logic yet; owned by the `crawler` agent. |
 | `client/` | Node.js Majora client (library, CLI and `majora-client` npm package using scoped API tokens). Not created yet — scaffolded by #1607; owned by the `client` agent. Unrelated to `frontend/assets/js/client/`. |
+| `investigations/` | Temporary, standalone investigation tooling, one folder per topic. Not created yet — scaffolded by #1702; owned by the `investigator` agent. |
 | `dockerfiles/` | Dockerfiles for each service image (backend, frontend, production variants). |
 | `docker_volumes/` | Bind-mounted volumes used by Docker services (static assets, proxy cache, node_modules, etc.). |
 | `docs/` | Project documentation for agents and contributors, plus `docs/guides/` — public API documentation for external/automated consumers (not agents). |
@@ -70,7 +71,7 @@
 | `issues/` | Detailed specs for open/closed issues, one file per issue. |
 | `migration/` | Temporary — tracks the app-wide migration of mutation requests onto `RequestStore`. Deleted once the last route in its checklist is migrated. |
 | `plans/` | Implementation plans for ongoing or upcoming features, one directory per issue. |
-| `architecture.md`, `flow.md`, `folder-structure.md`, `product.md`, `pagination.md`, `i18n.md`, `security-guidelines.md`, `views-organization.md`, `frontend.md`, `cache-warmer.md`, `contributing.md`, `crawler.md`, `client.md` | Other top-level internal reference docs — stay at the top level of `docs/agents/`; this reorg introduces only the two subfolders above, it does not regroup the rest. |
+| `architecture.md`, `flow.md`, `folder-structure.md`, `product.md`, `pagination.md`, `i18n.md`, `security-guidelines.md`, `views-organization.md`, `frontend.md`, `cache-warmer.md`, `contributing.md`, `crawler.md`, `client.md`, `investigator.md` | Other top-level internal reference docs — stay at the top level of `docs/agents/`; this reorg introduces only the two subfolders above, it does not regroup the rest. |
 
 ## `dockerfiles/` — Service Images
 
