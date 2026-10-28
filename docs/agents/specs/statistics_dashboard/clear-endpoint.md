@@ -24,8 +24,8 @@ The request has no body.
   { "deleted_visits": 1234, "deleted_sessions": 321 }
   ```
 
-  The same counts are recorded in the audit log (see *Open questions*). The card can show them
-  in its success status.
+  The same counts are recorded in the [audit log](#audit-log). The card can show them in its
+  success status.
 - An already-empty dataset returns `200 {"deleted_visits": 0, "deleted_sessions": 0}`.
 - `401` for anonymous callers and `403 {"errors": {"detail": ["not_allowed"]}}` for non-staff.
 - `405` for any method other than `DELETE`.
@@ -52,7 +52,7 @@ The response is sent only after the deletes and the ID reset have finished.
   run inside `atomic()`.
 - **Self-count:** the deleted counts include the Clear request's own visit and session (the
   middleware tracks the request before the view runs).
-- **Audit log:** every Clear writes an audit entry; its shape is pending (see *Open questions*).
+- **Audit log:** every Clear, successful or not, writes one audit line (see [Audit log](#audit-log)).
 - **ID reuse:** visit / session ids are reused after a clear. That is acceptable because the
   staff statistics endpoints are not cached.
 
@@ -95,6 +95,77 @@ Two constraints in the code shape the algorithm:
 - **MySQL-specific SQL:** `DELETE … ORDER BY … LIMIT` is MySQL-only. That is acceptable because
   all MySQL-specific SQL stays in `reset.py`, and the test database is MySQL too.
 
+### Audit log
+
+Clear is permanent and wipes production data, so every run leaves a trace of who ran it, when,
+and how many rows it deleted.
+
+**Destination**
+
+- **Server log only.** There is no model, table, migration or admin page.
+- The Clear view (`backend/staff/views/staff_statistics_clear.py`) logs with
+  `logging.getLogger(__name__)`, so the line goes to the existing `staff` logger. That logger is
+  configured in `backend/majora_project/settings.py` to write to stdout, which Render captures.
+  This follows the existing staff audit lines in `backend/staff/views/_api_token_shared.py` and
+  `_recovery_token_shared.py`.
+- Retention is Render's log retention; nothing is shown in the app.
+- A persisted `StatisticsClear` model was rejected: it would need a migration, a retention policy
+  and access-control docs, which is too much for this tool. A later issue can add it if needed.
+
+**Format**
+
+One `key=value` line per run, in the same style as the other staff audit lines, with the fixed
+message key `staff_statistics_clear` so it is easy to grep:
+
+```text
+2026-10-27 14:02:11,512 INFO staff.views.staff_statistics_clear staff_statistics_clear status=success staff_id=7 deleted_visits=1234 deleted_sessions=321 duration_ms=842
+```
+
+| Field | Value |
+|---|---|
+| `status` | `success` or `failed`. |
+| `staff_id` | `request.user.id` of the caller (same name as in the API-token audit lines). |
+| `deleted_visits`, `deleted_sessions` | The same counts as the response; on failure, the rows deleted before the error. |
+| `duration_ms` | Wall-clock time of the clear (deletes + ID reset), in milliseconds, so runs close to the 30s gunicorn timeout are visible. |
+| `error` | Only when `status=failed`: the exception class name (e.g. `OperationalError`). |
+
+The timestamp comes from the log formatter's `asctime`; it is not a field.
+
+**Not logged:** the request IP, the username, the email, the exception message (it may contain
+SQL) and the batch count. The IP is left out on purpose:
+
+- no backend log line records an IP today, so this would set a new precedent;
+- the IP is personal data, and logging it would keep visitor-adjacent data in the logs after a
+  Clear whose purpose is to wipe that data;
+- `staff_id` already identifies the account, and Render's own request logs record the client IP,
+  so an investigation can correlate by timestamp.
+
+**Helper**
+
+The line is written by a small helper in the view module,
+`log_statistics_clear(status, staff_id, deleted_visits, deleted_sessions, duration_ms, error=None)`,
+following `log_api_token_action` in `backend/staff/views/_api_token_shared.py`.
+
+**Levels and failures**
+
+- **Every run is logged**, success or failure.
+- Success logs at **INFO** with `status=success`.
+- A failure (database error, safety limit exceeded, …) logs at **WARNING** with `status=failed`,
+  the counts deleted before the error and `error=<exception class name>`. The exception is then
+  re-raised, so the endpoint still returns `500` and nothing is rolled back.
+- To log partial counts, `backend/statistics/reset.py` must make the running counts available
+  when it fails (e.g. the raised error carries `deleted_visits` / `deleted_sessions`). #1684
+  picks the exact mechanism.
+- A run killed by the gunicorn timeout writes **no** line, because the worker is killed before
+  the view can log. The next Clear's line shows the rows that were left.
+- **Logging failures** need no special handling: Python logging never raises into the caller
+  (handler errors go through `Handler.handleError`), so a logging failure cannot change the
+  response or the clear.
+
+**Security:** the line holds only the staff id, the row counts, the duration, the status and an
+exception class name — no secrets, tokens, IP or exception message. It needs no protection
+beyond the existing access to Render's logs.
+
 ## Permissions & caching
 
 - **Who:** staff or superuser only. There is no separate, stricter rule for Clear.
@@ -124,8 +195,9 @@ Two constraints in the code shape the algorithm:
 - **Failure partway through** (the batched deletes leave some rows, e.g. the safety limit, a
   database error or the gunicorn timeout): the endpoint returns `500` and nothing is rolled back.
   Rows already deleted stay deleted, and a retry finishes the rest. The card fetches the count
-  again after any failure (see [dashboard-card.md](dashboard-card.md)). Whether a partial run is
-  written to the audit log is settled by #1681.
+  again after any failure (see [dashboard-card.md](dashboard-card.md)). A partial run is logged
+  at WARNING with the partial counts (see [Audit log](#audit-log)); a run killed by the gunicorn
+  timeout writes no line.
 - **Old cookies and requests in flight** during the clear: see
   [tracking-race.md](tracking-race.md).
 
@@ -142,13 +214,14 @@ inside a transaction. They cover:
 - a visit attached to a session after the visits pass is deleted by the sessions pass, and the
   session delete does not fail on the foreign key;
 - going over the safety limit returns `500`;
-- the audit log entry is written (its shape → #1681).
+- a successful clear writes one INFO `status=success` line with the counts and `staff_id`, checked
+  with `assertLogs('staff', level='INFO')` (see [Audit log](#audit-log));
+- going over the safety limit writes one WARNING `status=failed` line with the partial counts and
+  `error=`, checked with `assertLogs('staff', level='WARNING')`.
 
 ## Open questions
 
-See the index's [Open questions](../statistics_dashboard.md#open-questions).
-
-- Audit log fields, level, destination and persistence → #1681.
+None. See the index's [Open questions](../statistics_dashboard.md#open-questions).
 
 ## Implemented by
 

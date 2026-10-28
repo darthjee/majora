@@ -25,7 +25,8 @@ Behaviour, Permissions & caching, Edge cases, Tests, Open questions, Implemented
 - [Clear endpoint](statistics_dashboard/clear-endpoint.md) — `DELETE staff/statistics.json`,
   the `statistics/reset.py` helper and the ID reset (#1684). Clear deletes in small,
   separately committed batches; see its [Batched clear](statistics_dashboard/clear-endpoint.md#batched-clear)
-  section.
+  section. Every Clear is audit-logged; see its
+  [Audit log](statistics_dashboard/clear-endpoint.md#audit-log) section.
 - [Tracking race](statistics_dashboard/tracking-race.md) — visit tracking and user attachment
   tolerating a session deleted mid-request (#1683).
 - [Dashboard card](statistics_dashboard/dashboard-card.md) — the frontend card, its typed
@@ -33,12 +34,7 @@ Behaviour, Permissions & caching, Edge cases, Tests, Open questions, Implemented
 
 ## Open questions
 
-These points are **not** settled by this spec. The topic pages state them as pending and link
-back here; each is settled by its own issue, which then updates the pages.
-
-- **Audit log for Clear** → #1681: which fields are recorded, the log level, the destination,
-  whether it is persisted or only a server log, retention, the behaviour when logging fails, and
-  whether the caller IP is recorded.
+All open questions are settled.
 
 ## Sub-issues
 
