@@ -1,9 +1,10 @@
 # Staff Statistics (access statistics page)
 
-**[Staff resource](principles.md#resource-categories).** Read-only, staff-only endpoints
-behind the access statistics page (`/staff/statistics`, #1477). They aggregate the
-`statistics` app's `Session` and `Visit` rows (model-level rules:
-[Statistics](statistics.md)). Every endpoint is **GET-only**, enforces
+**[Staff resource](principles.md#resource-categories).** Staff-only endpoints behind the
+access statistics page (`/staff/statistics`, #1477) and the staff dashboard. They aggregate
+the `statistics` app's `Session` and `Visit` rows (model-level rules:
+[Statistics](statistics.md)). The read endpoints are **GET-only**; the one write is
+[Clear](#clear) (`DELETE /staff/statistics.json`). Every endpoint enforces
 **Staff-or-superuser** inline (`require_staff`), matching every other `staff/*` endpoint, and
 sets `X-Skip-Cache: true` per the [`X-Skip-Cache` rule](principles.md#x-skip-cache-rule)
 (`@restricted`). None is warmed by Navi. There is no `EndpointPermission` /
@@ -23,9 +24,23 @@ Shared filter, envelope and aggregation conventions:
 | Logged-in users ranking for the Users tab (`GET /staff/statistics/users.json`) | **Staff-or-superuser** |
 | Raw visit list for the Visit list tab (`GET /staff/statistics/visit-list.json`) | **Staff-or-superuser** |
 | Per-domain comparison for the Domains tab (`GET /staff/statistics/domains/summary.json`) | **Staff-or-superuser** |
+| Clear all visit statistics and reset IDs (`DELETE /staff/statistics.json`) | **Staff-or-superuser** |
 
 Anonymous callers get `401` and non-staff callers (including DMs and game admins without
-staff) get `403`. No role can write through these endpoints.
+staff) get `403`. Clear is the only write; no role can write through the other endpoints.
+
+## Clear
+
+`DELETE /staff/statistics.json` (#1684) deletes every `Session` and `Visit` row in batches
+and resets both tables' IDs, then returns only the deleted row counts
+(`{"deleted_visits", "deleted_sessions"}`); any other method is `405`. There is no stricter
+rule than **Staff-or-superuser**, no environment gate and no rate limiting. It is
+`@restricted` (`X-Skip-Cache: true`), proxied but not cached, and not warmed by Navi. Scoped
+API tokens cannot reach it (`staff/` is excluded from token scopes). Every run writes one
+`staff_statistics_clear` line to the server log with the staff id, the counts, the duration
+and the status (plus the exception class on failure); it never logs the IP, username, email
+or exception message. See the
+[audit log](../specs/statistics_dashboard/clear-endpoint.md#audit-log).
 
 ## Frontend
 
