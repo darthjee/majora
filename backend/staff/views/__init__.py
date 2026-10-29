@@ -20,6 +20,7 @@ from .staff_statistics_clear import staff_statistics_clear
 from .staff_statistics_domains import staff_statistics_domains
 from .staff_statistics_domains_summary import staff_statistics_domains_summary
 from .staff_statistics_duration import staff_statistics_duration
+from .staff_statistics_export import staff_statistics_export
 from .staff_statistics_overview import staff_statistics_overview
 from .staff_statistics_summary import staff_statistics_summary
 from .staff_statistics_users import staff_statistics_users
@@ -68,6 +69,7 @@ __all__ = [
     'staff_photo_delete',
     'staff_statistics_clear',
     'staff_statistics_domains',
+    'staff_statistics_export',
     'staff_statistics_domains_summary',
     'staff_statistics_duration',
     'staff_statistics_overview',
