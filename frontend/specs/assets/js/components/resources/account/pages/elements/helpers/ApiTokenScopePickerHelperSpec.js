@@ -22,6 +22,24 @@ describe('ApiTokenScopePickerHelper', function() {
     expect(html.indexOf('Tasks')).toBeLessThan(html.indexOf('NPCs'));
   });
 
+  it('renders the Statistics group last, with no Write checkbox, when the catalogue has it', function() {
+    const html = render({ scopes: ['npcs:read', 'statistics:read'] });
+
+    expect(html).toContain('<th colSpan="3">Statistics</th>');
+    expect(html).toContain('Visitor statistics');
+    expect(html).toContain('Staff only.');
+    expect(html).toContain('data-testid="api-token-scope-statistics:read"');
+    expect(html).not.toContain('api-token-scope-statistics:write');
+    expect(html.indexOf('NPCs')).toBeLessThan(html.indexOf('Visitor statistics'));
+  });
+
+  it('renders no Statistics row when the catalogue does not have it', function() {
+    const html = render({ scopes: ['npcs:read', 'npcs:write'] });
+
+    expect(html).not.toContain('Statistics');
+    expect(html).not.toContain('api-token-scope-statistics');
+  });
+
   it('renders the shortcuts and the scopes note, with no "everything" shortcut', function() {
     const html = render({ scopes: ['npcs:read'] });
 

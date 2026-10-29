@@ -53,6 +53,8 @@ export default class ApiTokenScopeSelection {
    * Tick every catalogue scope of one action, keeping the rest of the selection.
    *
    * @description "Select all write" also ticks every `read`, following the Write-ticks-Read rule.
+   *   Explicit-only scopes (e.g. `statistics:read`) are never added, but stay ticked when they
+   *   already were.
    * @param {Array<string>} value - Current selection.
    * @param {Array<string>} available - The scope catalogue from `options.json`.
    * @param {string} action - `'read'` or `'write'`.
@@ -61,7 +63,8 @@ export default class ApiTokenScopeSelection {
   static selectAll(value, available, action) {
     const additions = available
       .filter((scope) => ApiTokenScopes.actionOf(scope) === action)
-      .flatMap((scope) => withRead(scope, available));
+      .flatMap((scope) => withRead(scope, available))
+      .filter((scope) => !ApiTokenScopes.isExplicitOnly(scope));
 
     return merge(value, additions);
   }

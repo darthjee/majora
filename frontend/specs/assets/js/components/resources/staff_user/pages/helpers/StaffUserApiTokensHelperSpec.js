@@ -84,6 +84,12 @@ describe('StaffUserApiTokensHelper', function() {
       expect(ApiTokenCellsHelper.renderStatus).toHaveBeenCalledWith(token);
     });
 
+    it('renders the statistics scope badge', function() {
+      const html = render({ tokens: [{ ...token, scopes: ['games:read', 'statistics:read'] }] });
+
+      expect(html).toContain('Visitor statistics: read');
+    });
+
     it('renders only a Revoke action, with no rename or create controls', function() {
       const html = render({ tokens: [token] });
 

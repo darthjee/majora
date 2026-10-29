@@ -1,7 +1,8 @@
 /**
  * UI-only grouping of the scope families (`backend/accounts/scopes.py` `FAMILIES`), in display
  * order. It is never sent to the API: the scopes themselves always come from `options.json` or
- * from a token's own `scopes` list.
+ * from a token's own `scopes` list. The `statistics` group (staff-only, read-only
+ * `statistics:read`) is last; `options.json` only offers it to staff users.
  *
  * @type {Array<{group: string, families: Array<string>}>}
  */
@@ -11,7 +12,16 @@ const SCOPE_GROUPS = [
   { group: 'documents', families: ['documents'] },
   { group: 'inventory', families: ['items', 'common_items', 'possessions', 'recipes', 'treasures'] },
   { group: 'miniatures', families: ['miniatures'] },
+  { group: 'statistics', families: ['statistics'] },
 ];
+
+/**
+ * Sensitive scopes that the "Select all" shortcuts never tick, so they can only be granted on
+ * purpose, by ticking their own checkbox.
+ *
+ * @type {Array<string>}
+ */
+const EXPLICIT_ONLY = ['statistics:read'];
 
 /**
  * Helpers for the `"<family>:<action>"` scope strings of scoped API tokens (issue #1605).
@@ -27,6 +37,25 @@ export default class ApiTokenScopes {
    */
   static get GROUPS() {
     return SCOPE_GROUPS;
+  }
+
+  /**
+   * The sensitive scopes the "Select all" shortcuts skip.
+   *
+   * @returns {Array<string>} The explicit-only scope strings.
+   */
+  static get EXPLICIT_ONLY() {
+    return EXPLICIT_ONLY;
+  }
+
+  /**
+   * Check whether a scope can only be ticked on purpose (never by "Select all").
+   *
+   * @param {string} scope - A scope string, e.g. `'statistics:read'`.
+   * @returns {boolean} Whether the scope is explicit-only.
+   */
+  static isExplicitOnly(scope) {
+    return EXPLICIT_ONLY.includes(scope);
   }
 
   /**

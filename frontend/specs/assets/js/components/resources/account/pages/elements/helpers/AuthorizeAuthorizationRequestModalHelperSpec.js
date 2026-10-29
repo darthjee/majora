@@ -1,6 +1,8 @@
 import AuthorizeAuthorizationRequestModalHelper from '../../../../../../../../../assets/js/components/resources/account/pages/elements/helpers/AuthorizeAuthorizationRequestModalHelper.jsx';
 import Modal from 'react-bootstrap/cjs/Modal.js';
 import FormField from '../../../../../../../../../assets/js/components/common/forms/FormField.jsx';
+import { renderToStaticMarkup } from 'react-dom/server';
+import AuthorizationRequestScopes from '../../../../../../../../../assets/js/components/resources/account/pages/elements/AuthorizationRequestScopes.jsx';
 
 const findElement = (node, matcher) => {
   if (!node) {
@@ -46,6 +48,63 @@ describe('AuthorizeAuthorizationRequestModalHelper', function() {
 
       expect(title.props.children).toBe('Authorize login request');
       expect(JSON.stringify(element)).toContain('own');
+    });
+
+    it('renders the login title and no scopes list for a request without scopes', function() {
+      const request = { ip: '203.0.113.5', browser: 'Firefox' };
+      const element = AuthorizeAuthorizationRequestModalHelper.render(
+        true, request, { password: '', error: false }, buildHandlers(),
+      );
+      const title = findElement(element, (child) => child.type === Modal.Title);
+      const body = renderToStaticMarkup(findElement(element, (child) => child.type === Modal.Body));
+
+      expect(title.props.children).toBe('Authorize login request');
+      expect(body).toContain('Are you sure you want to authorize this login request?');
+      expect(body).not.toContain('Requested permissions');
+    });
+
+    it('treats an empty scopes list as a login request', function() {
+      const element = AuthorizeAuthorizationRequestModalHelper.render(
+        true, { ip: '1.2.3.4', browser: 'Firefox', scopes: [] }, { password: '', error: false }, buildHandlers(),
+      );
+      const title = findElement(element, (child) => child.type === Modal.Title);
+
+      expect(title.props.children).toBe('Authorize login request');
+    });
+
+    describe('with requested scopes', function() {
+      const render = (scopes) => AuthorizeAuthorizationRequestModalHelper.render(
+        true, { ip: '1.2.3.4', browser: 'Firefox', scopes }, { password: '', error: false }, buildHandlers(),
+      );
+      const bodyOf = (element) => renderToStaticMarkup(findElement(element, (child) => child.type === Modal.Body));
+
+      it('renders the token title, body and the requested permissions', function() {
+        const element = render(['npcs:read', 'npcs:write']);
+        const title = findElement(element, (child) => child.type === Modal.Title);
+        const scopesList = findElement(element, (child) => child.type === AuthorizationRequestScopes);
+        const body = bodyOf(element);
+
+        expect(title.props.children).toBe('Authorize token request');
+        expect(scopesList.props.scopes).toEqual(['npcs:read', 'npcs:write']);
+        expect(body).toContain('This device asks for a token with the permissions below.');
+        expect(body).toContain('Requested permissions');
+        expect(body).toContain('NPCs: read/write');
+        expect(body).not.toContain('alert-warning');
+      });
+
+      it('renders the statistics warning when statistics:read is requested', function() {
+        const body = bodyOf(render(['statistics:read']));
+
+        expect(body).toContain('Visitor statistics: read');
+        expect(body).toContain('This grants access to visitor IP addresses and visit history.');
+      });
+
+      it('does not render unknown scopes', function() {
+        const body = bodyOf(render(['games:read', 'spells:write']));
+
+        expect(body).toContain('Games: read');
+        expect(body).not.toContain('spells');
+      });
     });
 
     it('renders the ip/browser info when a request is given', function() {

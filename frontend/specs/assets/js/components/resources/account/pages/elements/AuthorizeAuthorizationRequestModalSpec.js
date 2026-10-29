@@ -12,7 +12,9 @@ describe('AuthorizeAuthorizationRequestModal', function() {
     const onConfirm = jasmine.createSpy('onConfirm');
     const onCancel = jasmine.createSpy('onCancel');
     const onPasswordChange = jasmine.createSpy('onPasswordChange');
-    const request = { uuid: 'some-uuid', ip: '203.0.113.5', browser: 'Firefox' };
+    const request = {
+      uuid: 'some-uuid', ip: '203.0.113.5', browser: 'Firefox', scopes: ['statistics:read'],
+    };
 
     renderToStaticMarkup(
       React.createElement(AuthorizeAuthorizationRequestModal, {

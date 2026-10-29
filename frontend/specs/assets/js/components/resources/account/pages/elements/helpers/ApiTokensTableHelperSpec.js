@@ -49,6 +49,14 @@ describe('ApiTokensTableHelper', function() {
     expect(html.indexOf('api-token-row-1')).toBeLessThan(html.indexOf('api-token-row-2'));
   });
 
+  it('renders the statistics scope badge', function() {
+    const html = renderToStaticMarkup(ApiTokensTableHelper.render(
+      [{ ...tokens[0], scopes: ['statistics:read'] }], null, handlers,
+    ));
+
+    expect(html).toContain('Visitor statistics: read');
+  });
+
   it('keeps Rename and Revoke on expired tokens', function() {
     const element = ApiTokensTableHelper.render([tokens[1]], null, handlers);
     const [rename, revoke] = buttons(element);
