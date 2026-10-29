@@ -22,8 +22,11 @@ URL = '/staff/statistics/visit-list.json'
 RANGE = {'from': '2026-01-01', 'to': '2026-01-03', 'tz': 'UTC'}
 ROW_KEYS = [
     'id', 'started_at', 'last_seen_at', 'duration_seconds', 'hits', 'ongoing',
-    'ip', 'domain', 'session_id', 'user',
+    'ip', 'domain', 'session_id', 'user', 'first_path', 'last_path',
+    'session_first_path', 'session_creation_reason', 'session_first_seen_logged',
 ]
+TRACKING_KEYS = ROW_KEYS[-5:]
+GAME_PATTERN = 'games/<slug:game_slug>.json'
 USER_KEYS = ['id', 'name', 'display_name', 'email']
 VIEW_TIMEZONE = 'staff.views.staff_statistics_visit_list.timezone'
 
@@ -33,11 +36,11 @@ def _at(day, hour=12, month=1, year=2026):
     return datetime(year, month, day, hour, tzinfo=timezone.utc)
 
 
-def _visit(session, started_at, seconds=0, hits=1):
+def _visit(session, started_at, seconds=0, hits=1, **kwargs):
     """Create a visit of `session` started at `started_at`, lasting `seconds` with `hits`."""
     return Visit.objects.create(
         session=session, started_at=started_at,
-        last_seen_at=started_at + timedelta(seconds=seconds), hits=hits,
+        last_seen_at=started_at + timedelta(seconds=seconds), hits=hits, **kwargs,
     )
 
 
@@ -73,9 +76,13 @@ class _VisitListViewSetup:
         self.borin = UserFactory(username='borin', email='borin@example.com')
         self.carol = UserFactory(username='carol', email='carol@example.com')
         self.aria_session = Session.objects.create(
-            ip='203.0.113.7', user=self.aria, domain=self.zeta,
+            ip='203.0.113.7', user=self.aria, domain=self.zeta, first_path=GAME_PATTERN,
+            creation_reason=Session.CreationReason.LOGIN_ROTATION, first_seen_logged=False,
         )
-        self.v_aria = _visit(self.aria_session, _at(1), seconds=100, hits=5)
+        self.v_aria = _visit(
+            self.aria_session, _at(1), seconds=100, hits=5,
+            first_path=GAME_PATTERN, last_path='games.json',
+        )
         self.v_borin = _visit(_session(user=self.borin), _at(2), seconds=10, hits=2)
         self.v_anonymous = _visit(_session(domain=self.alpha), _at(3), seconds=0, hits=1)
         self.v_carol = _visit(_session(user=self.carol), _at(2, 14), seconds=300, hits=1)
@@ -157,7 +164,23 @@ class TestStaffStatisticsVisitListResponse(_VisitListViewSetup):
                 'id': self.aria.id, 'name': 'aria', 'display_name': 'Aria Stormwind',
                 'email': 'aria@example.com',
             },
+            'first_path': GAME_PATTERN,
+            'last_path': 'games.json',
+            'session_first_path': GAME_PATTERN,
+            'session_creation_reason': 'login_rotation',
+            'session_first_seen_logged': False,
         }
+
+    def test_legacy_tracking_fields_are_null(self, client):
+        """Test that a legacy visit and session give null for every tracking field."""
+        row = self._row(client, self.v_borin)
+        assert [row[key] for key in TRACKING_KEYS] == [None] * 5
+
+    @pytest.mark.parametrize('reason', Session.CreationReason.values)
+    def test_session_creation_reason_is_raw(self, client, reason):
+        """Test that every session creation reason is returned as its raw stored value."""
+        Session.objects.filter(pk=self.v_borin.session_id).update(creation_reason=reason)
+        assert self._row(client, self.v_borin)['session_creation_reason'] == reason
 
     def test_row_keys(self, client):
         """Test that the response is a plain list whose rows have exactly the spec keys."""

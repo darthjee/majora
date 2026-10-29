@@ -14,7 +14,10 @@ from .statistics_user_identity import StatisticsUserIdentitySerializer
 class StaffStatisticsVisitSerializer(serializers.ModelSerializer):
     """Serializes one visit of the staff visit list; reads the request's `now` from context.
 
-    The session token is never exposed: only the session id, IP, domain and user are read.
+    The session token is never exposed: only the session id, IP, domain, user and tracking
+    fields are read. Tracking fields are flat: the visit's `first_path` / `last_path` and the
+    session's `session_first_path`, raw `session_creation_reason` and
+    `session_first_seen_logged`. Paths are route patterns, never raw paths.
     """
 
     UNKNOWN_DOMAIN = {'id': StatisticsFilters.UNKNOWN_DOMAIN, 'domain': None}
@@ -27,6 +30,15 @@ class StaffStatisticsVisitSerializer(serializers.ModelSerializer):
     domain = serializers.SerializerMethodField()
     session_id = serializers.IntegerField(read_only=True)
     user = serializers.SerializerMethodField()
+    session_first_path = serializers.CharField(
+        source='session.first_path', read_only=True, allow_null=True,
+    )
+    session_creation_reason = serializers.CharField(
+        source='session.creation_reason', read_only=True, allow_null=True,
+    )
+    session_first_seen_logged = serializers.BooleanField(
+        source='session.first_seen_logged', read_only=True, allow_null=True,
+    )
 
     class Meta:
         """Metadata for the StaffStatisticsVisitSerializer."""
@@ -34,7 +46,8 @@ class StaffStatisticsVisitSerializer(serializers.ModelSerializer):
         model = Visit
         fields = [
             'id', 'started_at', 'last_seen_at', 'duration_seconds', 'hits', 'ongoing',
-            'ip', 'domain', 'session_id', 'user',
+            'ip', 'domain', 'session_id', 'user', 'first_path', 'last_path',
+            'session_first_path', 'session_creation_reason', 'session_first_seen_logged',
         ]
 
     def get_started_at(self, visit):
