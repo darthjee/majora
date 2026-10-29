@@ -121,6 +121,20 @@ class TestApiTokensCreate:
         response = self._post(client=client, games=['alpha'])
         assert response.json() == {'errors': {'games': ['game_not_reachable']}}
 
+    def test_staff_may_create_statistics_read_token(self):
+        """Test that a staff user creates a token carrying statistics:read."""
+        client = session_client(UserFactory(is_staff=True))
+        response = self._post(client=client, scopes=['statistics:read'])
+        assert response.status_code == 201
+        assert response.json()['scopes'] == ['statistics:read']
+
+    def test_non_staff_statistics_read_gives_scope_staff_only(self):
+        """Test that a non-staff user gets 400 scope_staff_only and no token is created."""
+        response = self._post(scopes=['npcs:read', 'statistics:read'])
+        assert response.status_code == 400
+        assert response.json() == {'errors': {'scopes': ['scope_staff_only']}}
+        assert not ApiToken.objects.exists()
+
     def test_form_encoded_body_gives_415(self):
         """Test that a form-encoded body gives 415."""
         response = self.client.post(

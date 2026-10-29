@@ -80,12 +80,23 @@ bodies only (`415` otherwise) and sets `X-Skip-Cache: true`.
 | Endpoint | Method | Who can call |
 |----------|--------|-------------|
 | `/account/api_tokens.json` | GET | Authenticated; the caller's own tokens, newest first |
-| `/account/api_tokens.json` | POST | Authenticated; the owner is always the caller. `201` with the full token, once |
-| `/account/api_tokens/options.json` | GET | Authenticated; scope catalogue, reachable games and `all_games` |
+| `/account/api_tokens.json` | POST | Authenticated; the owner is always the caller. `201` with the full token, once; `400` `scope_staff_only` for `statistics:read` on a non-staff owner |
+| `/account/api_tokens/options.json` | GET | Authenticated; grantable scopes (`statistics:read` for staff only), reachable games and `all_games` |
 | `/account/api_tokens/<id>.json` | PATCH | Authenticated, owner-only (`404` otherwise); `name` only |
 | `/account/api_tokens/<id>.json` | DELETE | Authenticated, owner-only (`404` otherwise); `204` |
 | `/staff/users/<user_id>/api-tokens.json` | GET | **Staff-or-superuser**; `404` for an unknown user |
 | `/staff/users/<user_id>/api-tokens/<token_id>.json` | DELETE | **Staff-or-superuser**; `404` unless the token belongs to `user_id`; logged |
+
+## Staff statistics export
+
+The raw statistics export for the investigation script (#1699); see
+[Staff Statistics](staff-statistics.md#export) and the
+[export endpoint spec](../specs/statistics-bug/export-endpoint.md#access-matrix). It is the
+only `staff/` route a scoped token can reach.
+
+| Endpoint | Method | Who can call |
+|----------|--------|-------------|
+| `/staff/statistics/export.json` | GET | **Staff-or-superuser**, re-checked on every request: a session, a legacy `Authorization: Token`, or a scoped token with `statistics:read` whose owner is still staff (`403` `not_allowed` otherwise; `403` `scope_missing` for a token without the scope) |
 
 ## Staff photo endpoints
 
@@ -155,13 +166,15 @@ A scoped API token (`accounts.ApiToken`, many per user) sent as
   that the token must carry every scope the view declares via `@token_scopes` for the request
   method (`HEAD` follows `GET`; an empty list means a public read needing no scope). Missing scope
   → `403` `scope_missing`.
-- **Catalogue**: `accounts/scopes.py`, `<family>:read|write`. Stored scopes no longer in the
-  catalogue grant nothing.
+- **Catalogue**: `accounts/scopes.py`, `<family>:read|write`, except the read-only, staff-only
+  `statistics:read`. Stored scopes no longer in the catalogue grant nothing.
 - **Fail closed**: a view with no `@token_scopes` declaration, or no entry for the method
   (including `OPTIONS`), is refused with `403` `token_not_allowed`. Views not yet declared are
   listed in the coverage test's pending list (sub-issues #1630–#1639).
 - **Excluded routes**: everything under `account/`, `users/`, `staff/` and `admin/` always refuses
-  tokens with `403` `token_not_allowed`, checked before any declaration.
+  tokens with `403` `token_not_allowed`, checked before any declaration. The one exception is
+  the exact route `staff/statistics/export.json` (never a prefix), which needs
+  `statistics:read` and a still-staff owner.
 - **Game restriction**: when the token has a game list, a `game_slug` URL kwarg not in it gets
   `403` `game_not_allowed`. Only the `game_slug` kwarg is read; routes game-scoped by other means
   must enforce the list in-view before being declared. An empty list at creation means all games;

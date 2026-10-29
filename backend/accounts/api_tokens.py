@@ -5,6 +5,8 @@
 staff count as members only.
 """
 
+from accounts.scopes import SCOPES, STAFF_ONLY_SCOPES
+from games.caches import AdminOrStaffCache
 from games.models import Game
 
 
@@ -18,3 +20,15 @@ def reachable_games(user):
     if reaches_all_games(user):
         return Game.objects.all()
     return Game.objects.filter(players__user=user).distinct()
+
+
+def may_hold_staff_scopes(user):
+    """Return whether `user` may be granted the staff-only scopes (admin or staff)."""
+    return AdminOrStaffCache.is_admin_or_staff(user)
+
+
+def grantable_scopes(user):
+    """Return the catalogue scopes `user` may put on a token, in catalogue order."""
+    if may_hold_staff_scopes(user):
+        return SCOPES
+    return tuple(scope for scope in SCOPES if scope not in STAFF_ONLY_SCOPES)

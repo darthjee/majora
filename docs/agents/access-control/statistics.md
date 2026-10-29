@@ -24,12 +24,13 @@ header. No role can create, update or delete these rows through any endpoint.
 | Authenticated | none |
 | Player | none |
 | GameMaster | none |
-| Staff | read-only: aggregated statistics plus raw per-visit rows (`visit-list.json`: raw IP, statistics session id, user identity; never `Session.token`), through the staff statistics endpoints (see [Staff Statistics](staff-statistics.md)) |
+| Staff | read-only: aggregated statistics plus raw per-visit rows (`visit-list.json`: raw IP, statistics session id, user identity; never `Session.token`) and raw session export (`export.json`: sessions with raw IP, domain, `user_id` and up to 100 visits each; never `Session.token`), through the staff statistics endpoints (see [Staff Statistics](staff-statistics.md)). `export.json` is the only one also reachable with a scoped API token carrying `statistics:read`, and only while the token owner is still staff (see [Export](staff-statistics.md#export)) |
 | Superuser | read-only, through Django Admin |
 
-**There are no write endpoints for `Session` or `Visit`.** The only serializer is the
-read-only, staff-only `StaffStatisticsVisitSerializer` behind `visit-list.json`, which never
-reads `Session.token`. Nothing is exposed to players or DMs. The only client-visible artifact is the `HttpOnly` statistics cookie,
+**There are no write endpoints for `Session` or `Visit`.** The only serializers are the
+read-only, staff-only `StaffStatisticsVisitSerializer` behind `visit-list.json` and
+`StaffStatisticsExportSessionSerializer` / `StaffStatisticsExportVisitSerializer` behind
+`export.json`. None of them reads `Session.token`. Nothing is exposed to players or DMs. The only client-visible artifact is the `HttpOnly` statistics cookie,
 which carries the signed session token and nothing else.
 
 Both models are registered in Django Admin with `ReadOnlyStatisticsAdmin`

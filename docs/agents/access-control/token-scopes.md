@@ -31,7 +31,9 @@ Upload finalize (`uploads/<type>/<id>.json`) is declared and checks tokens in th
 see [Uploads](#uploads)). The remaining permissions routes, `permissions/game_pc.json`,
 `permissions/game_npc.json` and `permissions/game_document.json`, are declared as public reads
 (#1662). The game photos listing is declared as a public read and its upload init needs
-`games:write` (#1665), so every DRF view is now declared or excluded. A future view that is not
+`games:write` (#1665), so every DRF view is now declared or excluded. The read-only,
+staff-only `statistics` family and its single route, `staff/statistics/export.json`, carved
+out of the `staff/` exclusion, are declared (#1699, see [Statistics](#statistics)). A future view that is not
 declared refuses every scoped token with `403` `token_not_allowed` (fail closed). The rules below
 are the ones declarations must follow.
 
@@ -49,9 +51,12 @@ restricted variant; tokens add no separate variant dimension. Token scopes add n
 
 ## Catalogue
 
-`backend/accounts/scopes.py` is the single source: 16 `FAMILIES` × `ACTIONS` (`read`, `write`),
-giving the 32 scopes `<family>:<action>`. Token creation validates against it, and
-`GET /account/api_tokens/options.json` serves it to the UI, so the frontend keeps no copy.
+`backend/accounts/scopes.py` is the single source: `FAMILY_ACTIONS` lists the 17 families with
+their actions. Every family offers `read` and `write` except `statistics`, which offers `read`
+only, giving the 33 scopes `<family>:<action>` (`SCOPES`). Token creation validates against it,
+and `GET /account/api_tokens/options.json` serves it to the UI, so the frontend keeps no copy.
+`STAFF_ONLY_SCOPES` (`statistics:read`) lists the scopes only staff owners may hold (see
+[Statistics](#statistics)).
 
 | Family | Covers (URL roots) | Game-scoped |
 |---|---|---|
@@ -71,6 +76,7 @@ giving the 32 scopes `<family>:<action>`. Token creation validates against it, a
 | `tasks` | `games/<slug>/tasks…` | yes |
 | `conversations` | `games/<slug>/conversations.json` | yes |
 | `miniatures` | `miniatures/sources`, `stl_models`, `collections` (with imports) | no |
+| `statistics` | `staff/statistics/export.json` only (read only, staff only) | no |
 
 - PCs and NPCs are separate families, so an automation generating NPCs can hold `npcs:write`
   without touching the players' characters. Photos and uploads follow their parent family.
@@ -205,13 +211,39 @@ giving the 32 scopes `<family>:<action>`. Token creation validates against it, a
 - The role check still applies afterwards: miniatures photos stay staff-only, so a non-staff
   owner's token with `miniatures:write` still gets `403`.
 
+## Statistics
+
+The `statistics` family (not `sessions`, which means game sessions) exists for the statistics
+investigation script (Epic #1696). It is read-only and staff-only, and reaches one route:
+
+- **Read only.** It offers `statistics:read` and no `statistics:write`; a stored
+  `statistics:write` is not in the catalogue and grants nothing.
+- **Staff-only granting.** `GET /account/api_tokens/options.json` lists `statistics:read` only to
+  admin/staff callers (`AdminOrStaffCache.is_admin_or_staff`), and
+  `POST /account/api_tokens.json` rejects it for a non-staff owner with `400`
+  `{"errors": {"scopes": ["scope_staff_only"]}}`. It is never silently stripped.
+- **Staff re-checked on every request.** `staff/statistics/export.json` declares
+  `@token_scopes(GET=['statistics:read'])` and calls `require_staff` on the token's owner on
+  every request. A staff owner demoted after the token was granted keeps the scope on the
+  token but gets `403` `not_allowed`.
+- **Per-game restrictions** have no effect: the route has no `game_slug`.
+- **Exact-route carve-out.** `SCOPED_STAFF_ROUTES` in `backend/accounts/authentication.py` lists
+  `staff/statistics/export.json`; `is_excluded_route` lets that exact route through and nothing
+  else (no prefix, no sibling). Every other `staff/*` route, including the other statistics
+  routes and the `DELETE staff/statistics.json` clear, keeps refusing every scoped token with
+  `token_not_allowed`.
+
+The full access matrix is in the
+[export endpoint spec](../specs/statistics-bug/export-endpoint.md#access-matrix).
+
 ## Never reachable with a scoped token
 
 `EXCLUDED_ROUTE_PREFIXES` (`account/`, `users/`, `staff/`, `admin/`) refuse every scoped token
 with `403` `token_not_allowed`, checked before any declaration, so a declaration there is
 ignored. That covers token management (also guarded in the views by `require_session`, see
 [ApiToken](api-token.md#actions)), account data, users and authorization requests, every staff
-endpoint (there are no staff scopes) and the Django admin.
+endpoint but one and the Django admin. The only exception is the exact route
+`staff/statistics/export.json` (`SCOPED_STAFF_ROUTES`, see [Statistics](#statistics)).
 
 Views with `@authentication_classes([])` (`ready.json`, `domain/config.json`,
 `users/status.json`, `users/header_status.json`, `access-route-config.json`) ignore every
@@ -224,14 +256,15 @@ credential and are unaffected.
   before the view body). It reads the declaration from the resolved view
   (`request.resolver_match.func`). Checking in the authentication class means views overriding
   `permission_classes` cannot skip it.
-- **Order.** Excluded prefix → declaration for the method → `scope_missing` → `game_not_allowed`.
+- **Order.** Excluded prefix (minus the exact `SCOPED_STAFF_ROUTES`) → declaration for the method → `scope_missing` → `game_not_allowed`.
 - **Fail closed.** No declaration, no entry for the method, `OPTIONS` (which cannot be
   declared), an excluded prefix or an unresolved request all give `403` `token_not_allowed`.
   `HEAD` follows the `GET` entry. A new endpoint therefore never silently opens to tokens.
 - **Coverage test.** `backend/accounts/tests/token_scopes_coverage_test.py` walks every URL
   pattern: each DRF view must be excluded (prefix or `authentication_classes == []`), declare
   every method it serves (except `OPTIONS` and `HEAD`). A new view without a declaration fails
-  CI.
+  CI. It uses `is_excluded_route`, so the carved-out `staff/statistics/export.json` must declare
+  its `GET`.
 
 ### Declaring scopes on a view
 

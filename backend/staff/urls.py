@@ -138,4 +138,9 @@ urlpatterns = [
         views.staff_statistics_visit_list,
         name='staff-statistics-visit-list',
     ),
+    path(
+        'staff/statistics/export.json',
+        views.staff_statistics_export,
+        name='staff-statistics-export',
+    ),
 ]

@@ -5,7 +5,8 @@ and `SummaryParamsParser` for the summary endpoint's `period` / `tz`), granulari
 time-zone-aware bucketing, the visit query, zero-filled series, pure metric helpers and the
 per-endpoint aggregations built on top of them (e.g. `VisitsSeries`, `VisitorsSeries`,
 `DurationSeries`, `OverviewTotals`, `DomainsSummary`, `UsersRanking`, `VisitList`), plus the
-single-aggregate `UniqueVisitorsCount` of the summary endpoint.
+single-aggregate `UniqueVisitorsCount` of the summary endpoint and the raw session export
+(`SessionExport`, `SessionExportVisits`).
 Never `import statistics` for the stdlib helpers: this app's name shadows that module.
 """
 
@@ -19,6 +20,8 @@ from .granularity import Granularity
 from .overview_totals import OverviewTotals
 from .params_parser import StatisticsParamsParser
 from .series import Series
+from .session_export import SessionExport
+from .session_export_visits import SessionExportVisits
 from .summary_params import SummaryParams
 from .summary_params_parser import SummaryParamsParser
 from .unique_visitors_count import UniqueVisitorsCount
@@ -36,6 +39,8 @@ __all__ = [
     'Granularity',
     'OverviewTotals',
     'Series',
+    'SessionExport',
+    'SessionExportVisits',
     'StatisticsFilters',
     'StatisticsParamsParser',
     'SummaryParams',

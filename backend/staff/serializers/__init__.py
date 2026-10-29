@@ -11,6 +11,8 @@ from .staff_copy_recipe import StaffCopyRecipeSerializer
 from .staff_copy_result import StaffCopyResultLinkSerializer
 from .staff_photo_list import StaffPhotoListSerializer
 from .staff_recovery_token import StaffRecoveryTokenSerializer
+from .staff_statistics_export_session import StaffStatisticsExportSessionSerializer
+from .staff_statistics_export_visit import StaffStatisticsExportVisitSerializer
 from .staff_statistics_visit import StaffStatisticsVisitSerializer
 from .staff_user_detail import StaffUserDetailSerializer
 from .staff_user_list import StaffUserListSerializer
@@ -29,6 +31,8 @@ __all__ = [
     'StaffCopyResultLinkSerializer',
     'StaffPhotoListSerializer',
     'StaffRecoveryTokenSerializer',
+    'StaffStatisticsExportSessionSerializer',
+    'StaffStatisticsExportVisitSerializer',
     'StaffStatisticsVisitSerializer',
     'StaffUserDetailSerializer',
     'StaffUserListSerializer',

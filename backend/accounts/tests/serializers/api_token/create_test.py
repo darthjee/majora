@@ -104,8 +104,30 @@ class TestApiTokenCreateSerializer:
         assert self._codes(self._serializer(scopes=scopes)) == {'scopes': ['max_length']}
 
     def test_scopes_at_catalogue_size(self):
-        """Test that the whole catalogue is accepted as a scope list."""
-        assert self._serializer(scopes=list(SCOPES)).is_valid()
+        """Test that the whole catalogue is accepted as a scope list for a staff owner."""
+        staff = UserFactory(is_staff=True)
+        assert self._serializer(user=staff, scopes=list(SCOPES)).is_valid()
+
+    def test_statistics_read_for_staff(self):
+        """Test that a staff owner may be granted statistics:read."""
+        staff = UserFactory(is_staff=True)
+        assert self._serializer(user=staff, scopes=['statistics:read']).is_valid()
+
+    def test_statistics_read_for_superuser(self):
+        """Test that a superuser owner may be granted statistics:read."""
+        user = SuperUserFactory()
+        assert self._serializer(user=user, scopes=['statistics:read']).is_valid()
+
+    def test_statistics_read_for_non_staff(self):
+        """Test that a non-staff owner gets scope_staff_only for statistics:read."""
+        errors = self._errors(self._serializer(scopes=['npcs:read', 'statistics:read']))
+        assert errors == {'scopes': ['scope_staff_only']}
+
+    def test_statistics_write_is_invalid(self):
+        """Test that statistics:write is outside the catalogue, even for staff."""
+        staff = UserFactory(is_staff=True)
+        errors = self._errors(self._serializer(user=staff, scopes=['statistics:write']))
+        assert errors == {'scopes': ['invalid_scope']}
 
     def test_scope_entry_max_length(self):
         """Test that a scope entry over 64 characters gives max_length keyed by index."""

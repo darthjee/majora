@@ -24,6 +24,7 @@ Shared filter, envelope and aggregation conventions:
 | Logged-in users ranking for the Users tab (`GET /staff/statistics/users.json`) | **Staff-or-superuser** |
 | Raw visit list for the Visit list tab (`GET /staff/statistics/visit-list.json`) | **Staff-or-superuser** |
 | Per-domain comparison for the Domains tab (`GET /staff/statistics/domains/summary.json`) | **Staff-or-superuser** |
+| Raw sessions and visits for the investigation script (`GET /staff/statistics/export.json`) | **Staff-or-superuser**, also through a scoped token with `statistics:read` (see [Export](#export)) |
 | Clear all visit statistics and reset IDs (`DELETE /staff/statistics.json`) | **Staff-or-superuser** |
 
 Anonymous callers get `401` and non-staff callers (including DMs and game admins without
@@ -36,11 +37,42 @@ and resets both tables' IDs, then returns only the deleted row counts
 (`{"deleted_visits", "deleted_sessions"}`); any other method is `405`. There is no stricter
 rule than **Staff-or-superuser**, no environment gate and no rate limiting. It is
 `@restricted` (`X-Skip-Cache: true`), proxied but not cached, and not warmed by Navi. Scoped
-API tokens cannot reach it (`staff/` is excluded from token scopes). Every run writes one
+API tokens cannot reach it (`staff/` is excluded from token scopes; only the exact
+[export](#export) route is carved out). Every run writes one
 `staff_statistics_clear` line to the server log with the staff id, the counts, the duration
 and the status (plus the exception class on failure); it never logs the IP, username, email
 or exception message. See the
 [audit log](../statistics.md#audit-log).
+
+## Export
+
+`GET /staff/statistics/export.json` (#1699) pages through the raw `Session` rows and their
+visits for the statistics investigation script (Epic #1696). Contract and access matrix:
+[export endpoint spec](../specs/statistics-bug/export-endpoint.md).
+
+- **Access:** `require_staff` on every request. It is the only `staff/` route a scoped API token
+  can reach: it declares `@token_scopes(GET=['statistics:read'])` and is carved out of the
+  `staff/` exclusion by exact route (`SCOPED_STAFF_ROUTES`), so a token needs the scope **and**
+  a still-staff owner (a demoted owner gets `403` `not_allowed`). See
+  [Token scopes](token-scopes.md#statistics).
+- **Params:** the shared parser (`from`, `to`, `tz`, `domain`, `page`, `per_page`; `user`,
+  `audience` and `granularity` are validated but ignored), validated after `require_staff` and
+  before any query. `per_page` defaults to `MAJORA_PAGINATION_SIZE`; above `100` it is `400`
+  `invalid_per_page`, not clamped.
+- **Rows:** the sessions **created** in `[from, to]` (local days in `tz`, default UTC), ordered
+  by `created_at`, then `id` (fixed, not a param). Paginated: a plain JSON array with the
+  `page` / `pages` / `per_page` / `total` headers. Each row is `{"id", "ip", "domain": {"id",
+  "domain"}, "user_id", "created_at", "last_seen_at", "visits": [{"started_at",
+  "last_seen_at", "hits"}], "visits_truncated"}`; a session without a domain gives
+  `{"id": "unknown", "domain": null}`, an anonymous one `user_id: null`.
+- **Visits:** only those whose `started_at` falls in the range, earliest first, at most
+  **100 per session** (`visits_truncated: true` when cut off). They are read in one windowed
+  query for the whole page (no N+1).
+- **Never exposed:** the session `token`, and no user e-mail, name or profile data.
+- **Caching and tracking:** `X-Skip-Cache: true` and `Cache-Control: private, no-store` on
+  every response; not warmed by Navi; listed in
+  [no-private-cache-routes](../no-private-cache-routes.md). `StatisticsSessionMiddleware` does
+  not track it (see [Access Statistics](../statistics.md)).
 
 ## Frontend
 

@@ -24,3 +24,4 @@ never reads from or writes to the private (or any) proxy cache, whatever the rou
 | `GET /account/api_tokens.json` | `accounts` (`accounts.views.api_tokens.list_create`) | Credential metadata (scoped API tokens) — never a private-cache candidate. |
 | `GET /account/api_tokens/options.json` | `accounts` (`accounts.views.api_tokens.options`) | Per-user data (reachable games) for the token create form — never a private-cache candidate. |
 | `GET /staff/users/<id>/api-tokens.json` | `staff` (`staff.views.staff_user_api_tokens`) | Credential metadata (another user's scoped API tokens) — never a private-cache candidate. |
+| `GET /staff/statistics/export.json` | `staff` (`staff.views.staff_statistics_export`) | Raw statistics sessions with IP addresses and user ids, also readable by a `statistics:read` scoped token — never a private-cache candidate; sent with `Cache-Control: private, no-store`. |

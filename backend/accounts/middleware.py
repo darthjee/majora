@@ -1,13 +1,15 @@
 """Custom middleware for the accounts app."""
 
 from accounts.authentication import BEARER_PATTERN
+from common.cache_control import forbid_storing
 
 
 class BearerNoCacheMiddleware:
     """Keep every response to a Bearer (scoped API token) request out of any cache.
 
     Responses to requests whose ``Authorization`` value matches ``BEARER_PATTERN`` get
-    ``X-Skip-Cache: true`` and ``Cache-Control: no-store``, whatever their status. The rule
+    ``X-Skip-Cache: true`` and ``Cache-Control: no-store`` (a view's own ``private, no-store``
+    is kept), whatever their status. The rule
     is ASCII-only, like the proxy's, so Unicode-whitespace variants are not Bearer. Every
     other response is left untouched. The ``X-Bearer-Request`` proxy marker is never read:
     Django is reachable directly, so only the ``Authorization`` header is trusted.
@@ -20,7 +22,7 @@ class BearerNoCacheMiddleware:
         response = self.get_response(request)
         if self._is_bearer(request):
             response['X-Skip-Cache'] = 'true'
-            response['Cache-Control'] = 'no-store'
+            forbid_storing(response)
         return response
 
     def _is_bearer(self, request):

@@ -1,9 +1,11 @@
 """Tests for CacheControlMiddleware."""
 
 import pytest
+from django.http import HttpResponse
 from rest_framework.authtoken.models import Token
 
 from domains.tests.factories import DomainFactory
+from games.middleware import CacheControlMiddleware
 from games.tests.factories import GameFactory, UserFactory
 from majora_project.cache import memory_cache
 
@@ -103,6 +105,28 @@ class TestCacheControlMiddlewareSkipCache:
         """GET /ready.json sets X-Skip-Cache: true and receives Cache-Control: no-store."""
         response = client.get('/ready.json')
         assert response['X-Skip-Cache'] == 'true'
+        assert response['Cache-Control'] == 'no-store'
+
+    def test_keeps_a_view_private_no_store(self, rf):
+        """A skip-cache response whose view set `private, no-store` keeps that value."""
+        def view(request):
+            response = HttpResponse()
+            response['X-Skip-Cache'] = 'true'
+            response['Cache-Control'] = 'private, no-store'
+            return response
+
+        response = CacheControlMiddleware(view)(rf.get('/'))
+        assert response['Cache-Control'] == 'private, no-store'
+
+    def test_replaces_a_view_storable_value(self, rf):
+        """A skip-cache response whose view set a storable value gets no-store."""
+        def view(request):
+            response = HttpResponse()
+            response['X-Skip-Cache'] = 'true'
+            response['Cache-Control'] = 'private, max-age=30'
+            return response
+
+        response = CacheControlMiddleware(view)(rf.get('/'))
         assert response['Cache-Control'] == 'no-store'
 
 
