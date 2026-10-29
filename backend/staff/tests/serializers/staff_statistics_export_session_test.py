@@ -52,10 +52,14 @@ class TestStaffStatisticsExportSessionSerializer:
         assert data['visits_truncated'] is True
 
     def test_visit_fields(self):
-        """Test that a visit serializes its start, last hit and hits only."""
-        data = StaffStatisticsExportVisitSerializer(_visit(self.session)).data
+        """Test that a visit serializes its start, last hit, hits and paths only."""
+        visit = _visit(self.session)
+        visit.first_path, visit.last_path = 'games.json', 'unresolved'
+        data = StaffStatisticsExportVisitSerializer(visit).data
         assert data == {
             'started_at': '2026-01-02T09:00:00Z',
             'last_seen_at': '2026-01-02T09:00:00Z',
             'hits': 2,
+            'first_path': 'games.json',
+            'last_path': 'unresolved',
         }
