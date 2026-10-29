@@ -778,6 +778,16 @@ class TestStatisticsSessionMiddlewareCreationTracking:
         assert old_session.user_id is None
         assert old_session.first_seen_logged is False
 
+    def test_visit_records_first_and_last_route(self, client):
+        """Test that the request's visit stores the first and latest route patterns."""
+        client.get('/ready.json?fake=1', REMOTE_ADDR='1.2.3.4')
+        client.get('/no/such/path.php', REMOTE_ADDR='1.2.3.4')
+
+        visit = Visit.objects.get()
+        assert visit.hits == 2
+        assert visit.first_path == 'ready.json'
+        assert visit.last_path == 'unresolved'
+
     def _token_get(self, client, **extra):
         """Issue a token-authenticated GET to `/games.json` as a fresh user."""
         token = Token.objects.create(user=UserFactory(username='alice'))

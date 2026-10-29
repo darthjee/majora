@@ -119,7 +119,10 @@ class StatisticsSessionMiddleware:
         Running before dispatch means a login request counts on the pre-rotation session.
         """
         session = request.statistics_session
-        track_visit(session, new_session=self._created_during_request(request, session))
+        track_visit(
+            session, new_session=self._created_during_request(request, session),
+            path=request.statistics_route,
+        )
 
     def _backfill_user(self, request):
         """Attach the DRF-resolved authenticated user to the session, if not already tied.
