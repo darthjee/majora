@@ -20,6 +20,11 @@ describe('VisitListController', function() {
     user: {
       id: 5, name: 'Ana', display_name: 'Ana S.', email: 'ana@example.com',
     },
+    first_path: '/#/games',
+    last_path: '/#/games/1',
+    session_first_path: '/#/',
+    session_creation_reason: 'no_cookie',
+    session_first_seen_logged: true,
     ...overrides,
   });
   const pagination = { page: 2, pages: 3, perPage: 20, total: 55 };
@@ -41,8 +46,37 @@ describe('VisitListController', function() {
         user: {
           id: 5, name: 'Ana', displayName: 'Ana S.', email: 'ana@example.com',
         },
+        firstPath: '/#/games',
+        lastPath: '/#/games/1',
+        sessionFirstPath: '/#/',
+        sessionCreationReason: 'no_cookie',
+        sessionFirstSeenLogged: true,
       }]);
       expect(data.empty).toBeFalse();
+    });
+
+    it('keeps null session tracking fields null', function() {
+      const data = VisitListController.map([visitRow({
+        first_path: null,
+        last_path: null,
+        session_first_path: null,
+        session_creation_reason: null,
+        session_first_seen_logged: null,
+      })], pagination, 'started_at');
+
+      expect(data.rows[0]).toEqual(jasmine.objectContaining({
+        firstPath: null,
+        lastPath: null,
+        sessionFirstPath: null,
+        sessionCreationReason: null,
+        sessionFirstSeenLogged: null,
+      }));
+    });
+
+    it('keeps a false logged flag false, distinct from null', function() {
+      const data = VisitListController.map([visitRow({ session_first_seen_logged: false })], pagination, 'started_at');
+
+      expect(data.rows[0].sessionFirstSeenLogged).toBe(false);
     });
 
     it('keeps the user null for an anonymous visit', function() {
