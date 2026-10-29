@@ -5,30 +5,40 @@ decorator, the authentication check, token creation and the token UI options all
 read from it.
 """
 
-FAMILIES = (
-    'games',
-    'players',
-    'pcs',
-    'npcs',
-    'documents',
-    'factions',
-    'items',
-    'common_items',
-    'possessions',
-    'recipes',
-    'treasures',
-    'sessions',
-    'polls',
-    'tasks',
-    'conversations',
-    'miniatures',
-)
-
 READ = 'read'
 WRITE = 'write'
 ACTIONS = (READ, WRITE)
+READ_ONLY = (READ,)
 
-SCOPES = tuple(f'{family}:{action}' for family in FAMILIES for action in ACTIONS)
+FAMILY_ACTIONS = (
+    ('games', ACTIONS),
+    ('players', ACTIONS),
+    ('pcs', ACTIONS),
+    ('npcs', ACTIONS),
+    ('documents', ACTIONS),
+    ('factions', ACTIONS),
+    ('items', ACTIONS),
+    ('common_items', ACTIONS),
+    ('possessions', ACTIONS),
+    ('recipes', ACTIONS),
+    ('treasures', ACTIONS),
+    ('sessions', ACTIONS),
+    ('polls', ACTIONS),
+    ('tasks', ACTIONS),
+    ('conversations', ACTIONS),
+    ('miniatures', ACTIONS),
+    ('statistics', READ_ONLY),
+)
+
+FAMILIES = tuple(family for family, _ in FAMILY_ACTIONS)
+
+SCOPES = tuple(
+    f'{family}:{action}' for family, actions in FAMILY_ACTIONS for action in actions
+)
+
+STATISTICS_READ = 'statistics:read'
+
+STAFF_ONLY_SCOPES = frozenset({STATISTICS_READ})
 
 METHOD_ACTIONS = {
     'GET': READ,
