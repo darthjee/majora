@@ -12,6 +12,9 @@ from statistics.aggregation import SessionExport, SessionExportVisits
 
 from ._staff_statistics_shared import parse_statistics_filters
 
+# The export holds IP addresses and user ids: neither the browser nor an intermediary may keep it.
+CACHE_CONTROL = 'private, no-store'
+
 
 @restricted
 @token_scopes(GET=['statistics:read'])
@@ -21,6 +24,13 @@ from ._staff_statistics_shared import parse_statistics_filters
 @permission_classes([AllowAny])
 def staff_statistics_export(request):
     """Return a page of raw sessions created in the range, each with its in-range visits."""
+    response = _export_response(request)
+    response['Cache-Control'] = CACHE_CONTROL
+    return response
+
+
+def _export_response(request):
+    """Return the staff check, params validation or export page response."""
     error_response = require_staff(request)
     if error_response:
         return error_response

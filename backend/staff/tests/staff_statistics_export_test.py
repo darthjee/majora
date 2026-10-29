@@ -228,8 +228,7 @@ class TestStaffStatisticsExportFilters(_ExportSetup):
         """Test that an invalid request runs no statistics query."""
         with CaptureQueriesContext(connection) as queries:
             self._get(per_page=101)
-        selects = [q['sql'] for q in queries if q['sql'].startswith('SELECT')]
-        assert not [sql for sql in selects if 'statistics_' in sql]
+        assert not [q for q in queries if 'statistics_' in q['sql']]
 
 
 @pytest.mark.django_db

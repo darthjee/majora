@@ -1,5 +1,6 @@
 """Custom middleware for the games app."""
 
+from common.cache_control import forbid_storing
 from games.settings import Settings
 
 
@@ -24,10 +25,10 @@ class CacheControlMiddleware:
         response = self.get_response(request)
 
         # Authorization/status endpoints opt out of caching via X-Skip-Cache: true.
-        # Respond with no-store so no client or proxy caches the result.
+        # Respond with no-store so no client or proxy caches the result (a view's own
+        # `private, no-store` is kept).
         if response.get('X-Skip-Cache') == 'true':
-            response['Cache-Control'] = 'no-store'
-            return response
+            return forbid_storing(response)
 
         # Every /permissions/ endpoint is identity-independent, role-simulated data, so it
         # always gets the public/anonymous cache tier regardless of the real requester's own

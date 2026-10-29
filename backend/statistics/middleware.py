@@ -19,8 +19,13 @@ class StatisticsSessionMiddleware:
     """Load/create a statistics `Session` per request and write its cookie back.
 
     Same `__init__(self, get_response)` / `__call__(self, request)` shape as
-    `games.middleware.CacheControlMiddleware`.
+    `games.middleware.CacheControlMiddleware`. Requests to `UNTRACKED_PATHS` (exact paths,
+    never prefixes) are not tracked, like requests carrying a valid statistics-skip header.
     """
+
+    # The raw statistics export reads the data this middleware writes: tracking its own
+    # requests would pollute the data being exported.
+    UNTRACKED_PATHS = frozenset({'/staff/statistics/export.json'})
 
     def __init__(self, get_response):
         """Store the next middleware/view callable."""
@@ -46,6 +51,14 @@ class StatisticsSessionMiddleware:
         return response
 
     def _skip_requested(self, request):
+        """Return whether this request is exempt from tracking (exact path or skip header)."""
+        return self._untracked_path(request) or self._skip_header(request)
+
+    def _untracked_path(self, request):
+        """Return whether the request path is exactly one of `UNTRACKED_PATHS`."""
+        return request.path_info in self.UNTRACKED_PATHS
+
+    def _skip_header(self, request):
         """Return whether this request carries a valid statistics-skip header."""
         header = request.META.get('HTTP_X_STATISTICS_SKIP_SECRET')
         return secret_matches(header, Settings.skip_secret())

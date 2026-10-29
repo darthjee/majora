@@ -76,6 +76,18 @@ class TestBearerNoCacheMiddlewareDirect:
         response = self._call(200)
         _assert_untouched(response)
 
+    def test_keeps_a_private_no_store_value(self):
+        """Test that a view's `private, no-store` survives a Bearer request."""
+        def view(request):
+            response = HttpResponse()
+            response['Cache-Control'] = 'private, no-store'
+            return response
+
+        request = self.factory.get('/', HTTP_AUTHORIZATION='Bearer abc')
+        response = BearerNoCacheMiddleware(view)(request)
+        assert response['X-Skip-Cache'] == 'true'
+        assert response['Cache-Control'] == 'private, no-store'
+
     def test_forged_bearer_marker_is_ignored(self):
         """Test that a forged `X-Bearer-Request` header on a non-Bearer request does nothing."""
         response = self._call(200, HTTP_X_BEARER_REQUEST='true')

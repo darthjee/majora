@@ -364,6 +364,36 @@ class TestStatisticsSessionMiddleware:
         assert Visit.objects.count() == 0
         assert cookies.COOKIE_NAME not in response.cookies
 
+    def test_export_route_is_not_tracked(self, client):
+        """Test that a request to the statistics export creates no session, visit or cookie."""
+        response = client.get('/staff/statistics/export.json', REMOTE_ADDR='192.0.2.1')
+
+        assert Session.objects.count() == 0
+        assert Visit.objects.count() == 0
+        assert cookies.COOKIE_NAME not in response.cookies
+
+    def test_export_route_does_not_extend_an_existing_visit(self, client):
+        """Test that an export request carrying a session cookie leaves its visit untouched."""
+        client.get('/ready.json', REMOTE_ADDR='192.0.2.1')
+
+        client.get('/staff/statistics/export.json', REMOTE_ADDR='192.0.2.1')
+
+        assert Visit.objects.get().hits == 1
+
+    @pytest.mark.parametrize('path', [
+        '/staff/statistics/visits.json',
+        '/staff/statistics/export.json/',
+        '/staff/statistics/export.jsonx',
+        '/staff/statistics/export',
+        '/staff/statistics.json',
+    ])
+    def test_exemption_is_exact(self, client, path):
+        """Test that only the exact export path escapes tracking, never a sibling or variant."""
+        client.get(path, REMOTE_ADDR='192.0.2.1')
+
+        assert Session.objects.count() == 1
+        assert Visit.objects.count() == 1
+
     def test_skipped_request_does_not_extend_an_existing_visit(self, client, monkeypatch):
         """Test that a skipped request carrying a session cookie leaves its visit untouched."""
         monkeypatch.setenv('STATISTICS_SKIP_SECRET', 'shh')

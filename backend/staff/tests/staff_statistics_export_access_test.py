@@ -12,6 +12,8 @@ from accounts.tests.api_tokens.support import legacy_token_client, session_clien
 from games.tests.factories import GameFactory, SuperUserFactory, UserFactory, UserProfileFactory
 from majora_project.cache import memory_cache
 from staff.tests.statistics_export_support import RANGE, URL, bearer_client
+from statistics.cookies import COOKIE_NAME as STATISTICS_COOKIE
+from statistics.models import Session, Visit
 
 SIBLING_URL = '/staff/statistics/visits.json'
 CLEAR_URL = '/staff/statistics.json'
@@ -116,6 +118,59 @@ class TestStaffStatisticsExportAccess:
         """Test that the export route refuses non-GET methods to a scoped token."""
         client = bearer_client(self.staff, ['statistics:read'])
         self._assert(client.post(URL, {}), 403, 'token_not_allowed')
+
+
+@pytest.mark.django_db
+class TestStaffStatisticsExportTrackingAndCaching:
+    """Export requests are never tracked nor stored by any cache."""
+
+    def setup_method(self):
+        """Set up a staff owner."""
+        memory_cache.clear()
+        self.staff = UserFactory(is_staff=True)
+
+    def _assert_untracked(self, response):
+        """Assert `response` succeeded and created no statistics session, visit or cookie."""
+        assert response.status_code == 200
+        assert not Session.objects.exists()
+        assert not Visit.objects.exists()
+        assert STATISTICS_COOKIE not in response.cookies
+
+    def test_staff_browser_request_is_not_tracked(self):
+        """Test that a staff browser export request creates no session or visit."""
+        self._assert_untracked(session_client(self.staff).get(URL, RANGE))
+
+    def test_scoped_token_request_is_not_tracked(self):
+        """Test that a scoped-token export request creates no session or visit."""
+        client = bearer_client(self.staff, ['statistics:read'])
+        self._assert_untracked(client.get(URL, RANGE))
+
+    def test_sibling_route_is_still_tracked(self):
+        """Test that a sibling statistics route still creates a session and a visit."""
+        session_client(self.staff).get(SIBLING_URL, RANGE)
+        assert Session.objects.count() == 1
+        assert Visit.objects.count() == 1
+
+    @pytest.mark.parametrize('client_factory', [session_client, legacy_token_client])
+    def test_cache_headers(self, client_factory):
+        """Test that a browser or legacy-token export carries the no-cache headers."""
+        response = client_factory(self.staff).get(URL, RANGE)
+        assert response['X-Skip-Cache'] == 'true'
+        assert response['Cache-Control'] == 'private, no-store'
+
+    def test_cache_headers_for_scoped_token(self):
+        """Test that a scoped-token export carries the no-cache headers."""
+        response = bearer_client(self.staff, ['statistics:read']).get(URL, RANGE)
+        assert response['X-Skip-Cache'] == 'true'
+        assert response['Cache-Control'] == 'private, no-store'
+
+    @pytest.mark.parametrize('params', [RANGE, {'per_page': '101'}])
+    def test_error_responses_are_not_stored(self, params):
+        """Test that refusals and validation errors carry the no-cache headers too."""
+        for client in (APIClient(), session_client(self.staff)):
+            response = client.get(URL, params)
+            assert response['X-Skip-Cache'] == 'true'
+            assert response['Cache-Control'] == 'private, no-store'
 
 
 @pytest.mark.django_db
