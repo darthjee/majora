@@ -83,7 +83,7 @@ the demotion takes effect as it does for every staff endpoint.
   `{"id": "unknown", "domain": null}`), `user_id`, `created_at`, `last_seen_at` (ISO 8601 UTC,
   whole seconds), each with its `visits` (`started_at`, `last_seen_at`, `hits`) and
   `visits_truncated`. Visits are fetched in one windowed query per page (no N+1).
-- **Tracking fields** (*added by #1713*): sessions gain `first_path`, `first_seen_logged` and
+- **Tracking fields**: sessions gain `first_path`, `first_seen_logged` and
   `creation_reason`; visits gain `first_path` and `last_path`. They are `null` for rows created
   before the migration. Definitions: [Tracking columns](tracking-columns.md#columns).
 - **Visits bound:** only the visits whose `started_at` falls in the requested range are

@@ -241,8 +241,13 @@ and `domains` (distinct domains, by hostname, "unknown" last). Rows carry the us
 ### Visit list
 
 One row per matched visit: `id`, `started_at`, `last_seen_at`, `duration_seconds`, `hits`,
-`ongoing`, `ip`, `domain`, `session_id` and `user` (`null` for anonymous and deleted-user
-visits). The session cookie token is never exposed.
+`ongoing`, `ip`, `domain`, `session_id`, `user` (`null` for anonymous and deleted-user
+visits), the visit's `first_path` / `last_path` and its session's `session_first_path`,
+`session_creation_reason` and `session_first_seen_logged` (#1713). Paths are
+[route patterns](#route-pattern-values); the reason is the raw
+[creation reason](#session-tracking-columns) value, without labels. The tracking fields are
+`null` for rows from before the [tracking columns](#session-tracking-columns). The session
+cookie token is never exposed.
 
 - `ongoing` is computed server-side with one clock per request: `true` while
   `now - last_seen_at` is below the inactivity window.
@@ -345,8 +350,10 @@ URL filters into the API query (resolving `range` into `from` / `to` and adding 
 `GET /staff/statistics/export.json` (#1699) returns the raw sessions **created** in the range
 (`created_at`, then `id`), each with its visits **started** in the range (at most 100 per
 session, `visits_truncated` when cut off), for the statistics investigation script. It reads
-`from` / `to` / `tz` / `domain` / `page` / `per_page`. It is the only statistics route a scoped
-API token (`statistics:read`, staff owner) can reach. Access, payload and validation:
+`from` / `to` / `tz` / `domain` / `page` / `per_page`. Sessions carry their
+[tracking columns](#session-tracking-columns) (`first_path`, `first_seen_logged`,
+`creation_reason`) and visits their `first_path` / `last_path` (#1713); `null` for older rows.
+It is the only statistics route a scoped API token (`statistics:read`, staff owner) can reach. Access, payload and validation:
 [Staff Statistics](access-control/staff-statistics.md#export) and the
 [export endpoint spec](specs/statistics-bug/export-endpoint.md).
 
