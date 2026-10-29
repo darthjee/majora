@@ -45,6 +45,19 @@ export default class ApiTokenCellsHelper {
   }
 
   /**
+   * Build the translated label of one scope family and its actions, e.g. "NPCs: read/write".
+   *
+   * @description Only catalogue labels are used, never raw scope strings; shared by the token
+   *   badges and the authorization request approval modal.
+   * @param {{family: string, read: boolean, write: boolean}} family - A grouped family, as
+   *   returned by `ApiTokenScopes.groupScopes`.
+   * @returns {string} The translated family and action label.
+   */
+  static scopeText(family) {
+    return `${Translator.t(`api_tokens_page.family_${family.family}`)}: ${actionLabel(family)}`;
+  }
+
+  /**
    * Render one badge per scope family, in group order, e.g. "NPCs: read/write".
    *
    * @param {{scopes: Array<string>}} token - Token item.
@@ -59,7 +72,7 @@ export default class ApiTokenCellsHelper {
           <Badge
             key={family.family}
             variant="info"
-            text={`${Translator.t(`api_tokens_page.family_${family.family}`)}: ${actionLabel(family)}`}
+            text={ApiTokenCellsHelper.scopeText(family)}
           />
         ))}
       </span>

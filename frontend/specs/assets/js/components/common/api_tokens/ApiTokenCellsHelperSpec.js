@@ -28,6 +28,15 @@ describe('ApiTokenCellsHelper', function() {
     expect(render(ApiTokenCellsHelper.renderPrefix(token))).toBe('<code>mjr_ab12cd…</code>');
   });
 
+  describe('.scopeText', function() {
+    it('renders the family label with its actions', function() {
+      expect(ApiTokenCellsHelper.scopeText({ family: 'npcs', read: true, write: true })).toBe('NPCs: read/write');
+      expect(ApiTokenCellsHelper.scopeText({ family: 'documents', read: false, write: true })).toBe('Documents: write');
+      expect(ApiTokenCellsHelper.scopeText({ family: 'statistics', read: true, write: false }))
+        .toBe('Visitor statistics: read');
+    });
+  });
+
   describe('.renderScopes', function() {
     it('renders one badge per family, in group order', function() {
       const html = render(ApiTokenCellsHelper.renderScopes(token));
