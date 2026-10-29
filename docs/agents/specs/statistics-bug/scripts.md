@@ -3,6 +3,8 @@
 Part of the [Statistics Bug](../statistics-bug.md) specs (Epic #1696).
 
 *Planned by #1702 (`emulate.py`) and #1703 (`analyse.py`).* Nothing on this page exists yet.
+Both scripts depend on the [tracking columns](tracking-columns.md) stored by #1712 and exposed by
+#1713.
 The general rules for investigation scripts live in the investigator agent docs (*planned by
 #1698*); this page only covers what is specific to this bug.
 
@@ -33,7 +35,15 @@ CI (lint, tests, coverage) must not pick up `investigations/`.
   - host change (hypothesis 4);
   - a mix of standard-rule and custom-handler requests (hypothesis 1).
 - Reports the sessions and visits each scenario created, read through the local export
-  endpoint (see [Export endpoint](export-endpoint.md)).
+  endpoint (see [Export endpoint](export-endpoint.md)), including, per session,
+  `creation_reason`, `first_path` and `first_seen_logged`, and per visit `first_path` and
+  `last_path`.
+- Each scenario declares the [creation reasons](tracking-columns.md#creation-reasons) it
+  expects, and the report flags any mismatch:
+  - IP change → `ip_changed`;
+  - host change → `domain_changed`;
+  - login mid-navigation → `login_rotation`;
+  - refresh without a cookie → one `no_cookie` session per parallel request.
 - Parallel bursts run only against the local stack.
 - **Local secrets:** the `X-Forwarded-For` scenario needs the local `PROXY_SECRET` (and the
   scripts may need the local skip secret). `emulate.py` reads them from the local `.env` or the
@@ -46,19 +56,27 @@ CI (lint, tests, coverage) must not pick up `investigations/`.
   poll. The token is kept in memory only. Denied, expired or revoked → clean stop, no partial
   report.
 - **Fetching:** pages **sequentially** (never in parallel) against production, starting with a
-  narrow date range.
+  narrow date range. The production range starts after the #1701 release, once the tracking
+  columns have collected data.
 - **Grouping:**
   - same `user_id` → high confidence;
   - same domain + same or nearby IP + close timestamps → low confidence (NAT caveat: unrelated
     visitors may share an IP).
 - **Classification:** parallel race, login rotation, IP flip, domain change, single-hit orphan,
   legitimate (see [Symptom](symptom.md#legitimate-new-sessions)), other.
-- **Report:** text and JSON, git-ignored (see [Privacy](privacy.md)).
+  - `creation_reason` is the primary signal where present; the heuristics are cross-checked
+    against it and disagreements are reported.
+  - Rows with `NULL` columns (created before the release) fall back to the heuristics and are
+    counted separately.
+- **Report:** text and JSON, git-ignored (see [Privacy](privacy.md)). It adds counts per
+  `creation_reason` and per `first_seen_logged`, and the top `first_path` values per reason,
+  aggregated (see [Privacy](privacy.md#path-columns)).
 
 ## Cross-validation
 
 `analyse.py` is first run on local data produced by `emulate.py`. It must find exactly the
-duplicates each scenario produced before it is trusted on production.
+duplicates each scenario produced, and recover each scenario's expected creation reasons,
+before it is trusted on production.
 
 ## Self-pollution
 

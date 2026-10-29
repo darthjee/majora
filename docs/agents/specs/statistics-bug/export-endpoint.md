@@ -83,10 +83,14 @@ the demotion takes effect as it does for every staff endpoint.
   `{"id": "unknown", "domain": null}`), `user_id`, `created_at`, `last_seen_at` (ISO 8601 UTC,
   whole seconds), each with its `visits` (`started_at`, `last_seen_at`, `hits`) and
   `visits_truncated`. Visits are fetched in one windowed query per page (no N+1).
+- **Tracking fields** (*added by #1713*): sessions gain `first_path`, `first_seen_logged` and
+  `creation_reason`; visits gain `first_path` and `last_path`. They are `null` for rows created
+  before the migration. Definitions: [Tracking columns](tracking-columns.md#columns).
 - **Visits bound:** only the visits whose `started_at` falls in the requested range are
   included, earliest first, and the number per session is capped at **100**. A session whose
   visits were cut off says so in the payload (`visits_truncated: true`).
-- **Never exposed:** the session `token`, and no user e-mail, name or profile data.
+- **Never exposed:** the session `token`, and no user e-mail, name or profile data. The path
+  fields hold route patterns, never a raw path, URL parameter or query string.
 - Params are validated before any query, like the other
   [statistics endpoints](../../statistics.md#api-conventions).
 
@@ -103,7 +107,9 @@ the demotion takes effect as it does for every staff endpoint.
   own requests create no statistics sessions or visits. The script cannot use
   `X-Statistics-Skip-Secret` against production, since that secret never leaves the server.
   The few device-authorization requests (create, poll) stay tracked like any client; the
-  `analyse.py` report notes this bounded side effect.
+  `analyse.py` report notes this bounded side effect. Only their route pattern is stored in the
+  [tracking columns](tracking-columns.md), never the request `uuid` (see
+  [Path values](tracking-columns.md#path-values)).
 
 ## Device authorization
 
@@ -113,8 +119,8 @@ user approves it at `account/authorization_requests/<uuid>/authorize.json`.
 
 Today that flow issues a legacy DRF `Token` and a browser session (`_issue_login_credentials`
 in `backend/accounts/views/authorization_requests/poll.py`), with full staff powers, including
-the `DELETE` clear. That would defeat the read-only design, so #1708 extends it (out of scope
-for #1699):
+the `DELETE` clear. That would defeat the read-only design, so #1708 extends it (#1699 only
+adds the scope and the endpoint):
 
 - an authorization request carries the requested scopes, validated at creation against the
   scope catalogue (known `family:action` values only, a bounded list, `400` otherwise), since

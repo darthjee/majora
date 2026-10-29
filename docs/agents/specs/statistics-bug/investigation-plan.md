@@ -1,7 +1,8 @@
 # Investigation Plan
 
-Part of the [Statistics Bug](../statistics-bug.md) specs (Epic #1696). Sub-issue status is
-tracked in the index's [Sub-issues](../statistics-bug.md#sub-issues) table.
+Part of the [Statistics Bug](../statistics-bug.md) specs (Epic #1696). Sub-issue status lives on
+GitHub; the index's [Sub-issues](../statistics-bug.md#sub-issues) table maps each sub-issue to its
+pages.
 
 ## Angles
 
@@ -24,19 +25,28 @@ confirmed from `analyse.py` evidence alone, documented as such (see
 
 ```text
 #1697 specs, #1698 agent
-  -> #1699 scope + export endpoint (backend)
+  -> #1699 scope + export endpoint (backend), #1708 scoped device authorization (backend)
   -> #1700 scope UI (frontend)
-  -> #1701 version bump
+  -> #1711 tracking-column specs
+  -> #1712 tracking columns: storage (backend)
+  -> #1713 tracking columns: API (backend)
+  -> #1714 tracking columns: UI (frontend)
+  -> #1701 version bump (after #1712 and #1713; #1714 does not block it)
   -> #1702 emulate.py
-  -> #1703 analyse.py (production run needs #1701)
+  -> #1703 analyse.py (production run after #1701 and after data has accumulated)
   -> #1704 code review & findings
   -> #1705 fix issue
 ```
 
 - #1697 (these specs) and #1698 (the investigator agent, *planned by #1698*) come first.
-- #1699 adds the `statistics:read` scope, the export endpoint and scoped device authorization;
-  #1700 lets staff grant the scope from the token and device-authorization UI.
-- #1701 releases the scope. The version bump only gates the **production** run of
+- #1699 adds the `statistics:read` scope and the export endpoint; #1708 adds scoped device
+  authorization (moved out of #1699); #1700 lets staff grant the scope from the token and
+  device-authorization UI.
+- #1711–#1714 add the [tracking columns](tracking-columns.md): #1711 specs them, #1712 stores
+  them, #1713 exposes them and #1714 shows them. They only collect data from the #1701 release
+  on, so the production run of `analyse.py` analyses a date range after that release, once data
+  has accumulated.
+- #1701 releases the scope and the tracking columns, after #1712 and #1713. The version bump only gates the **production** run of
   `analyse.py`; `emulate.py` and local runs of `analyse.py` work before it.
 - #1702 then #1703 build the scripts; #1703 is cross-validated on #1702's local data.
 - #1704 combines the code review and the script evidence into [Findings](findings.md).
@@ -55,7 +65,9 @@ confirmed from `analyse.py` evidence alone, documented as such (see
 ## Constraints
 
 - The session reuse and creation logic of the request hot path (`StatisticsSessionMiddleware`)
-  does **not** change in this Epic. The fix belongs to the issue created by #1705. The only
-  middleware change allowed is #1699's exact-route tracking exemption for the export endpoint.
+  does **not** change in this Epic. The fix belongs to the issue created by #1705. The allowed
+  middleware changes are #1699's exact-route tracking exemption for the export endpoint and
+  #1712's [tracking columns](tracking-columns.md), which record *why* a session was created
+  without changing *whether* it is created.
 - The export endpoint's own requests must not be tracked (see
   [Export endpoint](export-endpoint.md#caching-and-tracking)).
