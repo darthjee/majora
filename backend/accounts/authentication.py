@@ -27,10 +27,17 @@ INVALID_TOKEN_HEADER = f'{BEARER_REALM}, error="invalid_token"'
 # and account data (`account/`), `users/`, `staff/` and Django `admin/`.
 EXCLUDED_ROUTE_PREFIXES = ('account/', 'users/', 'staff/', 'admin/')
 
+# Exact routes carved out of `EXCLUDED_ROUTE_PREFIXES`: matched in full, never as a prefix,
+# so every sibling route stays excluded. The view still declares `@token_scopes`.
+SCOPED_STAFF_ROUTES = frozenset({'staff/statistics/export.json'})
+
 
 def is_excluded_route(route):
     """Return whether the URL `route` belongs to a family scoped tokens may never reach."""
-    return (route or '').lstrip('^').startswith(EXCLUDED_ROUTE_PREFIXES)
+    normalized = (route or '').lstrip('^')
+    if normalized in SCOPED_STAFF_ROUTES:
+        return False
+    return normalized.startswith(EXCLUDED_ROUTE_PREFIXES)
 
 
 def is_approved(user):
