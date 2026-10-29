@@ -4,7 +4,9 @@ from datetime import timedelta
 from unittest.mock import patch
 
 import pytest
-from django.test import override_settings
+from django.contrib.auth.models import AnonymousUser
+from django.http import HttpResponse
+from django.test import RequestFactory, override_settings
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
 
@@ -486,10 +488,10 @@ class TestStatisticsSessionMiddleware:
         client.cookies[cookies.COOKIE_NAME] = cookies.sign(session.token)
         original = StatisticsSessionMiddleware._session_from_cookie
 
-        def load_then_delete(middleware, request, domain):
-            loaded = original(middleware, request, domain)
+        def load_then_delete(middleware, request):
+            loaded, reason = original(middleware, request)
             self._delete_session_row(loaded)
-            return loaded
+            return loaded, reason
 
         with patch.object(StatisticsSessionMiddleware, '_session_from_cookie', load_then_delete):
             response = client.get('/ready.json', REMOTE_ADDR='1.2.3.4')
@@ -575,3 +577,185 @@ class TestStatisticsSessionMiddleware:
         assert user_session.domain_id == self.domain.id
         signed_value = response.cookies[cookies.COOKIE_NAME].value
         assert cookies.unsign(signed_value) == user_session.token
+
+
+@pytest.mark.django_db
+class TestStatisticsSessionMiddlewareCreationTracking:
+    """Tests for the creation reason, first path and logged state recorded on new sessions."""
+
+    def setup_method(self):
+        """Clear the shared memory cache and register 'testserver' as a known domain."""
+        memory_cache.clear()
+        self.domain = DomainFactory(domain='testserver')
+        self.factory = RequestFactory()
+
+    def test_no_cookie_reason(self, client):
+        """Test that a request without a cookie records `no_cookie`."""
+        response = client.get('/ready.json', REMOTE_ADDR='1.2.3.4')
+
+        assert self._new_session(response).creation_reason == 'no_cookie'
+
+    def test_invalid_cookie_reason(self, client):
+        """Test that a cookie failing to unsign records `invalid_cookie`."""
+        client.cookies[cookies.COOKIE_NAME] = 'garbage-not-a-signed-value'
+
+        response = client.get('/ready.json', REMOTE_ADDR='1.2.3.4')
+
+        assert self._new_session(response).creation_reason == 'invalid_cookie'
+
+    def test_cookie_session_not_found_reason(self, client):
+        """Test that a valid token with no matching row records `cookie_session_not_found`."""
+        client.cookies[cookies.COOKIE_NAME] = cookies.sign('fake-token-without-a-row')
+
+        response = client.get('/ready.json', REMOTE_ADDR='1.2.3.4')
+
+        assert self._new_session(response).creation_reason == 'cookie_session_not_found'
+
+    def test_domain_changed_reason(self, client):
+        """Test that a cookie session from another domain records `domain_changed`."""
+        self._cookie_for(client, ip='1.2.3.4', domain=DomainFactory(domain='other.example.com'))
+
+        response = client.get('/ready.json', REMOTE_ADDR='1.2.3.4')
+
+        assert self._new_session(response).creation_reason == 'domain_changed'
+
+    def test_ip_changed_reason(self, client):
+        """Test that a same-domain cookie session with another IP records `ip_changed`."""
+        self._cookie_for(client, ip='1.2.3.4', domain=self.domain)
+
+        response = client.get('/ready.json', REMOTE_ADDR='9.9.9.9')
+
+        assert self._new_session(response).creation_reason == 'ip_changed'
+
+    def test_domain_and_ip_changed_records_domain_changed(self, client):
+        """Test that both the domain and the IP differing records `domain_changed`."""
+        self._cookie_for(client, ip='1.2.3.4', domain=DomainFactory(domain='other.example.com'))
+
+        response = client.get('/ready.json', REMOTE_ADDR='9.9.9.9')
+
+        assert self._new_session(response).creation_reason == 'domain_changed'
+
+    def test_cookie_for_another_domain_is_not_reused(self, client):
+        """Test that a cookie session from another domain is still never reused."""
+        old_session = self._cookie_for(
+            client, ip='1.2.3.4', domain=DomainFactory(domain='other.example.com'),
+        )
+
+        response = client.get('/ready.json', REMOTE_ADDR='1.2.3.4')
+
+        assert self._new_session(response).pk != old_session.pk
+        assert Session.objects.count() == 2
+
+    def test_reused_session_keeps_its_tracking_columns(self, client):
+        """Test that reusing a session does not rewrite its creation columns."""
+        old_session = self._cookie_for(client, ip='1.2.3.4', domain=self.domain)
+
+        client.get('/ready.json', REMOTE_ADDR='1.2.3.4')
+
+        old_session.refresh_from_db()
+        assert old_session.creation_reason is None
+        assert old_session.first_path is None
+        assert old_session.first_seen_logged is None
+
+    def test_first_path_stores_the_route_pattern(self, client):
+        """Test that `first_path` stores the matched route pattern."""
+        response = client.get('/ready.json', REMOTE_ADDR='1.2.3.4')
+
+        assert self._new_session(response).first_path == 'ready.json'
+
+    def test_first_path_never_stores_the_query_string(self, client):
+        """Test that `first_path` never carries the query string."""
+        response = client.get('/ready.json?secret=fake-secret', REMOTE_ADDR='1.2.3.4')
+
+        assert self._new_session(response).first_path == 'ready.json'
+
+    def test_first_path_is_unresolved_for_a_404(self, client):
+        """Test that a path matching no route stores the `unresolved` marker."""
+        response = client.get('/no/such/path.php', REMOTE_ADDR='1.2.3.4')
+
+        assert response.status_code == 404
+        assert self._new_session(response).first_path == 'unresolved'
+
+    def test_anonymous_creation_is_not_logged(self, client):
+        """Test that a session created for an anonymous request records `false`."""
+        response = client.get('/ready.json', REMOTE_ADDR='1.2.3.4')
+
+        assert self._new_session(response).first_seen_logged is False
+
+    def test_authenticated_creation_is_logged(self, client):
+        """Test that a session created for an already-authenticated request records `true`."""
+        client.force_login(UserFactory(username='alice'))
+
+        response = client.get('/ready.json', REMOTE_ADDR='1.2.3.4')
+
+        assert self._new_session(response).first_seen_logged is True
+
+    def test_cookie_lookup_is_a_single_query(self, django_assert_num_queries):
+        """Test that resolving the cookie session issues exactly one query."""
+        session = Session.objects.create(ip='1.2.3.4', domain=self.domain)
+        request = self.factory.get('/ready.json')
+        request.COOKIES[cookies.COOKIE_NAME] = cookies.sign(session.token)
+        middleware = StatisticsSessionMiddleware(lambda request: None)
+
+        with django_assert_num_queries(1):
+            assert middleware._session_from_cookie(request) == (session, None)
+
+    def test_create_path_query_count(self, django_assert_num_queries):
+        """Test that creating a session (domain, insert, visit open) adds no query."""
+        request = self._anonymous_request(self.factory.get('/ready.json', REMOTE_ADDR='1.2.3.4'))
+        middleware = StatisticsSessionMiddleware(lambda request: HttpResponse())
+
+        with django_assert_num_queries(5):
+            middleware(request)
+
+    def test_reuse_and_extend_path_query_count(self, django_assert_num_queries):
+        """Test that reusing a fresh session and extending its visit adds no query."""
+        session = Session.objects.create(ip='1.2.3.4', domain=self.domain)
+        track_visit(session)
+        request = self._anonymous_request(self.factory.get('/ready.json', REMOTE_ADDR='1.2.3.4'))
+        request.COOKIES[cookies.COOKIE_NAME] = cookies.sign(session.token)
+        middleware = StatisticsSessionMiddleware(lambda request: HttpResponse())
+
+        with django_assert_num_queries(4):
+            middleware(request)
+
+    def test_skipped_request_computes_no_route(self, monkeypatch):
+        """Test that a skip-header request neither computes nor stores a route."""
+        monkeypatch.setenv('STATISTICS_SKIP_SECRET', 'shh')
+        request = self.factory.get('/ready.json', HTTP_X_STATISTICS_SKIP_SECRET='shh')
+        middleware = StatisticsSessionMiddleware(lambda request: HttpResponse())
+
+        with patch('statistics.middleware.route_pattern') as route_pattern:
+            middleware(request)
+
+        route_pattern.assert_not_called()
+        assert request.statistics_route is None
+        assert Session.objects.count() == 0
+
+    def test_untracked_path_computes_no_route(self):
+        """Test that an untracked path neither computes nor stores a route."""
+        request = self.factory.get('/staff/statistics/export.json')
+        middleware = StatisticsSessionMiddleware(lambda request: HttpResponse())
+
+        with patch('statistics.middleware.route_pattern') as route_pattern:
+            middleware(request)
+
+        route_pattern.assert_not_called()
+        assert request.statistics_route is None
+        assert Session.objects.count() == 0
+
+    def _cookie_for(self, client, ip, domain):
+        """Create a session for `ip`/`domain` and put its signed token in the client cookie."""
+        session = Session.objects.create(ip=ip, domain=domain)
+        client.cookies[cookies.COOKIE_NAME] = cookies.sign(session.token)
+        return session
+
+    def _anonymous_request(self, request):
+        """Return `request` carrying an anonymous `user`, as `AuthenticationMiddleware` would."""
+        request.user = AnonymousUser()
+        return request
+
+    def _new_session(self, response):
+        """Return the `Session` whose token is carried by `response`'s statistics cookie."""
+        token = cookies.unsign(response.cookies[cookies.COOKIE_NAME].value)
+        return Session.objects.get(token=token)
