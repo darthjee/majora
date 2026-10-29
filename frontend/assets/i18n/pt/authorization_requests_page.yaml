@@ -17,6 +17,10 @@ authorization_requests_page:
   dismiss_modal_body: Tem certeza de que deseja negar esta solicitação de autorização?
   authorize_modal_title: Autorizar solicitação de login
   authorize_modal_body: Tem certeza de que deseja autorizar esta solicitação de login? Confira se o dispositivo e a localização abaixo são realmente seus.
+  authorize_token_modal_title: Autorizar solicitação de token
+  authorize_token_modal_body: Este dispositivo solicita um token com as permissões abaixo. Confira se o dispositivo e a localização abaixo são realmente seus.
+  scopes_label: Permissões solicitadas
+  statistics_warning: Isto concede acesso aos endereços IP dos visitantes e ao histórico de visitas.
   ip_label: Endereço IP
   browser_label: Navegador
   password_label: Senha

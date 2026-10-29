@@ -45,6 +45,7 @@ api_tokens_page:
   group_documents: Documentos
   group_inventory: Inventário
   group_miniatures: Miniaturas
+  group_statistics: Estatísticas
   family_games: Jogos
   family_games_help: Jogos, seus detalhes e o seu acesso a eles.
   family_players: Jogadores
@@ -77,6 +78,8 @@ api_tokens_page:
   family_treasures_help: Tesouros, tanto as cópias de um jogo quanto o catálogo compartilhado de tesouros.
   family_miniatures: Miniaturas
   family_miniatures_help: Fontes de miniaturas, modelos STL e coleções, incluindo importações.
+  family_statistics: Estatísticas de visitantes
+  family_statistics_help: Acesso às estatísticas, incluindo endereços IP dos visitantes e histórico de visitas. Apenas para a equipe.
   games_label: Jogos
   games_search: Buscar jogos...
   games_remove: Remover
