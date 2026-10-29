@@ -16,6 +16,14 @@ const SCOPE_GROUPS = [
 ];
 
 /**
+ * Sensitive scopes that the "Select all" shortcuts never tick, so they can only be granted on
+ * purpose, by ticking their own checkbox.
+ *
+ * @type {Array<string>}
+ */
+const EXPLICIT_ONLY = ['statistics:read'];
+
+/**
  * Helpers for the `"<family>:<action>"` scope strings of scoped API tokens (issue #1605).
  *
  * @description Shared by the owner token page and the staff token panel, both for the list's
@@ -29,6 +37,25 @@ export default class ApiTokenScopes {
    */
   static get GROUPS() {
     return SCOPE_GROUPS;
+  }
+
+  /**
+   * The sensitive scopes the "Select all" shortcuts skip.
+   *
+   * @returns {Array<string>} The explicit-only scope strings.
+   */
+  static get EXPLICIT_ONLY() {
+    return EXPLICIT_ONLY;
+  }
+
+  /**
+   * Check whether a scope can only be ticked on purpose (never by "Select all").
+   *
+   * @param {string} scope - A scope string, e.g. `'statistics:read'`.
+   * @returns {boolean} Whether the scope is explicit-only.
+   */
+  static isExplicitOnly(scope) {
+    return EXPLICIT_ONLY.includes(scope);
   }
 
   /**

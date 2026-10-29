@@ -12,6 +12,14 @@ describe('ApiTokenScopes', function() {
     });
   });
 
+  describe('.EXPLICIT_ONLY / .isExplicitOnly', function() {
+    it('lists statistics:read as explicit-only', function() {
+      expect(ApiTokenScopes.EXPLICIT_ONLY).toEqual(['statistics:read']);
+      expect(ApiTokenScopes.isExplicitOnly('statistics:read')).toBeTrue();
+      expect(ApiTokenScopes.isExplicitOnly('npcs:read')).toBeFalse();
+    });
+  });
+
   describe('.familyOf / .actionOf', function() {
     it('splits a scope string', function() {
       expect(ApiTokenScopes.familyOf('common_items:write')).toBe('common_items');
