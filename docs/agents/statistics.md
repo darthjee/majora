@@ -63,8 +63,10 @@ visits: counting sessions by `created_at` measures new sessions, and
   both open a visit; this rare duplicate is accepted.
 - `hits` counts **uncached backend requests, not page views**. Every request that reaches
   Django's middleware stack is tracked (any path, method or status, admin and the statistics
-  endpoints included, no bot filtering); the only exclusion is a valid
-  `X-Statistics-Skip-Secret` header (`STATISTICS_SKIP_SECRET`; empty disables skipping).
+  endpoints included, no bot filtering); the only exclusions are a valid
+  `X-Statistics-Skip-Secret` header (`STATISTICS_SKIP_SECRET`; empty disables skipping) and the
+  exact paths in `StatisticsSessionMiddleware.UNTRACKED_PATHS` (today only
+  `/staff/statistics/export.json`, see [Export endpoint](#export-endpoint)).
 - **Login is a visit boundary.** When an anonymous session is rotated to a new user-tied
   `Session`, the login request counts on the anonymous visit, which ends; the next request
   opens a visit on the new session. When the user is attached in place (session created in
@@ -97,7 +99,8 @@ that user.
   Deleting a `Domain` sets its sessions' domain to `NULL`, moving their history to "unknown".
 - **Deleted users** leave sessions with `user = NULL`, counted as anonymous.
 - **Staff traffic is counted**, including the statistics page itself. Requests carrying a
-  valid `X-Statistics-Skip-Secret` (e.g. Navi) create or update nothing.
+  valid `X-Statistics-Skip-Secret` (e.g. Navi) and requests to the
+  [export endpoint](#export-endpoint) create or update nothing.
 - **Times are stored in UTC**; ranges and buckets use the browser's time zone.
 
 ## Metrics
@@ -249,6 +252,7 @@ codes), never cached by Tent nor warmed by Navi. The one write is
 | `domains/summary.json` | Domains | Envelope with `domains` instead of `buckets` |
 | `users.json` | Users | Paginated array |
 | `visit-list.json` | Visit list | Paginated array |
+| `export.json` | none (investigation script) | Paginated array of raw sessions (see [Export endpoint](#export-endpoint)) |
 
 **Query params:** `from` / `to` (inclusive local days, default the last 30 days ending today
 in `tz`), `tz` (IANA zone, default `UTC`), `granularity`, `user`, `domain`, `audience`, plus
@@ -287,6 +291,25 @@ official image does not load, and MySQL has no `MEDIAN`. Revisit only if it meas
 with identical `regular` / `private` variants, `permission: null` and no entry in
 `RequestPermissionResolvers.js` (the route gate handles access). `StatisticsQuery` turns the
 URL filters into the API query (resolving `range` into `from` / `to` and adding `tz`).
+
+## Export endpoint
+
+`GET /staff/statistics/export.json` (#1699) returns the raw sessions **created** in the range
+(`created_at`, then `id`), each with its visits **started** in the range (at most 100 per
+session, `visits_truncated` when cut off), for the statistics investigation script. It reads
+`from` / `to` / `tz` / `domain` / `page` / `per_page`. It is the only statistics route a scoped
+API token (`statistics:read`, staff owner) can reach. Access, payload and validation:
+[Staff Statistics](access-control/staff-statistics.md#export) and the
+[export endpoint spec](specs/statistics-bug/export-endpoint.md).
+
+- **No self-tracking.** `StatisticsSessionMiddleware.UNTRACKED_PATHS` holds
+  `/staff/statistics/export.json`, matched against `request.path_info` **exactly** (no prefix,
+  no trailing-slash variant). A request there gets `request.statistics_session = None`, opens or
+  extends no visit and sets no cookie, like a valid skip header, so the export never pollutes
+  the data it reads. Every other statistics route stays tracked.
+- **Never stored by a cache:** `X-Skip-Cache: true` and `Cache-Control: private, no-store`
+  (`CacheControlMiddleware` and `BearerNoCacheMiddleware` keep a view's own `no-store` value,
+  `common/cache_control.py`).
 
 ## Staff dashboard card
 

@@ -45,8 +45,14 @@ exclusion in `ApiTokenAuthentication`.
 - **Create** accepts `name`, `scopes`, `games` and `expires_at` only; the owner is always the
   caller. **Rename** accepts `name` only. Any other field gives `400` `not_editable`, keyed by
   the field. Nothing lets a caller widen a token's scopes or games after creation.
-- **Options** returns the scope catalogue, the caller's reachable games and `all_games`
-  (`true` for superusers).
+- **Options** returns the scopes the caller may grant, the caller's reachable games and
+  `all_games` (`true` for superusers). The staff-only scopes (`STAFF_ONLY_SCOPES`, today
+  `statistics:read`) are listed only for admin/staff callers.
+- **Staff-only scopes:** creating a token with `statistics:read` for a non-staff owner gives
+  `400` `scope_staff_only`; the scope is never silently stripped. The token then reaches
+  `GET /staff/statistics/export.json`, the only staff route open to scoped tokens, and only
+  while its owner is still staff (see
+  [Token scopes](token-scopes.md#statistics)).
 
 ## Lookups
 
@@ -142,7 +148,8 @@ creation, builds the `games` list of `options.json` (sorted by name) and gives `
 - **Rename** returns `200` with the item; **revoke** returns `204` with no body.
 - **Lists** are plain arrays, newest first; each item's `games` is sorted by name.
 - **Options** (`GET /account/api_tokens/options.json`):
-  `{"scopes": [sorted catalogue], "games": [{"slug", "name"}], "all_games": false}`.
+  `{"scopes": [sorted grantable scopes], "games": [{"slug", "name"}], "all_games": false}`;
+  `statistics:read` is in `scopes` only for admin/staff callers.
 
 ### Validation codes (`400`)
 
@@ -152,7 +159,7 @@ error in a list is keyed by its position (`{"errors": {"scopes": {"1": ["max_len
 | Field | Codes |
 |---|---|
 | `name` | `required`, `blank`, `max_length` (100, after trimming) |
-| `scopes` | `required`, `empty`, `invalid_scope`, `duplicate_scope`, `max_length` (more entries than the catalogue, or an entry over 64 characters) |
+| `scopes` | `required`, `empty`, `invalid_scope`, `scope_staff_only` (a staff-only scope such as `statistics:read` for a non-staff owner), `duplicate_scope`, `max_length` (more entries than the catalogue, or an entry over 64 characters) |
 | `games` | `duplicate_game` (checked first), `game_not_reachable` (unknown or unreachable slug, one code so slugs cannot be probed), `max_length` (over 100 slugs, or a slug too long) |
 | `expires_at` | `invalid`, `expires_in_past` |
 | any other field | `not_editable`, keyed by the field (on create anything outside `name`, `scopes`, `games`, `expires_at`; on rename anything but `name`) |
