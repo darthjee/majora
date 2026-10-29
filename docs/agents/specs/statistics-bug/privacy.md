@@ -32,6 +32,19 @@ Examples use documentation-only values: IPs from the RFC 5737 ranges (`192.0.2.0
   [Findings](findings.md)) is aggregated or anonymised, for example masked IPs such as
   `203.0.113.x`.
 
+## Path columns
+
+The [tracking columns](tracking-columns.md) `first_path` and `last_path` store paths:
+
+- **No token or secret is ever stored**, by construction: only route patterns are stored, with
+  no URL parameter and no query string (see [Path values](tracking-columns.md#path-values)).
+  The device-authorization request `uuid`, a poll secret carried in the path, is the case that
+  motivates it.
+- The columns stay staff-only: the export endpoint and the staff visit list.
+- Reports and committed findings show paths only aggregated (counts).
+- Any raw path that appears elsewhere (for example script logs) has ids and slugs masked, e.g.
+  `/games/<slug>/...`.
+
 ## Exploitable findings
 
 If the investigation confirms something exploitable (for example cookie or session leakage
