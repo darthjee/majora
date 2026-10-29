@@ -7,6 +7,8 @@ describe('StatisticsVisitListTable', function() {
   const row = (id, user) => ({
     id, startedAt: '2026-01-07T10:00:00Z', lastSeenAt: '2026-01-07T10:05:00Z', durationSeconds: 300,
     hits: 4, ongoing: false, ip: '10.0.0.1', domain: 'example.com', sessionId: `s${id}`, user,
+    firstPath: '/#/games', lastPath: '/#/games/:id', sessionFirstPath: '/#/',
+    sessionCreationReason: 'no_cookie', sessionFirstSeenLogged: false,
   });
   const rows = [row(5, null), row(3, { id: 1, name: 'ana', displayName: null, email: 'ana@example.com' })];
   const filters = { range: '7d', granularity: 'auto', audience: 'all' };
@@ -32,6 +34,14 @@ describe('StatisticsVisitListTable', function() {
 
   it('renders rows that are not links', function() {
     expect(render()).not.toContain('role="link"');
+  });
+
+  it('renders the paths and session cells of each row', function() {
+    const html = render();
+
+    expect(html).toContain('data-testid="statistics-visit-list-paths-5"');
+    expect(html).toContain('data-testid="statistics-visit-list-session-3"');
+    expect(html).toContain('title="/#/games/:id"');
   });
 
   it('renders an empty table without rows', function() {

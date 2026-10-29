@@ -6,7 +6,9 @@ import StatisticsVisitListTableHelper from './helpers/StatisticsVisitListTableHe
  * @description Sorting is server-side and lives in the URL: each sortable header is a link to
  *   the same tab sorted by that column (back to page 1). Rows are not clickable; a logged-in
  *   user's name links to the Overview tab filtered by that user (keeping the other filters)
- *   and the profile link opens the staff user page.
+ *   and the profile link opens the staff user page. The non-sortable Paths and Session
+ *   columns show the visit's first / last paths and the session's first path, creation
+ *   reason and logged-in-at-creation flag ("unknown" for rows from before the tracking).
  * @param {object} props - Component props.
  * @param {object[]} props.rows - Visit rows in API order (see `VisitListController.map`).
  * @param {string} props.sort - The current sort key (see `visitListSort.currentSort`).
