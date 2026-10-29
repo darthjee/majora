@@ -39,3 +39,20 @@ class TestVisit:
         self.session.delete()
 
         assert Visit.objects.count() == 0
+
+    def test_paths_default_to_none(self):
+        """Test that `first_path` and `last_path` are `None` when not provided."""
+        visit = Visit.objects.create(session=self.session)
+
+        assert visit.first_path is None
+        assert visit.last_path is None
+
+    def test_paths_can_be_set(self):
+        """Test that `first_path` and `last_path` persist their values."""
+        visit = Visit.objects.create(
+            session=self.session, first_path='games.json', last_path='games/<slug:game_slug>.json',
+        )
+        visit.refresh_from_db()
+
+        assert visit.first_path == 'games.json'
+        assert visit.last_path == 'games/<slug:game_slug>.json'
