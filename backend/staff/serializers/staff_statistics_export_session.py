@@ -12,7 +12,9 @@ class StaffStatisticsExportSessionSerializer(serializers.ModelSerializer):
     """Serializes one exported session with its in-range visits, capped per session.
 
     Reads the page's batched visits from `context['visits']` (`{session_id: [visit, ...]}`,
-    up to the cap + 1). Never exposes the session `token` nor any user data beyond the id.
+    up to the cap + 1). Also carries the session tracking fields: `first_path` (a route
+    pattern, never a raw path), `first_seen_logged` and the raw `creation_reason` value.
+    Never exposes the session `token` nor any user data beyond the id.
     """
 
     UNKNOWN_DOMAIN = {'id': StatisticsFilters.UNKNOWN_DOMAIN, 'domain': None}
@@ -31,7 +33,7 @@ class StaffStatisticsExportSessionSerializer(serializers.ModelSerializer):
         model = Session
         fields = [
             'id', 'ip', 'domain', 'user_id', 'created_at', 'last_seen_at',
-            'visits', 'visits_truncated',
+            'visits', 'visits_truncated', 'first_path', 'first_seen_logged', 'creation_reason',
         ]
 
     def get_domain(self, session):
