@@ -39,6 +39,13 @@ describe('ApiTokenCellsHelper', function() {
       expect(npcs).toBeGreaterThan(games);
       expect(documents).toBeGreaterThan(npcs);
     });
+
+    it('renders the statistics badge last', function() {
+      const html = render(ApiTokenCellsHelper.renderScopes({ ...token, scopes: ['statistics:read', 'games:read'] }));
+
+      expect(html).toContain('Visitor statistics: read');
+      expect(html.indexOf('Games: read')).toBeLessThan(html.indexOf('Visitor statistics: read'));
+    });
   });
 
   describe('.renderGames', function() {

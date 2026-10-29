@@ -1,7 +1,8 @@
 /**
  * UI-only grouping of the scope families (`backend/accounts/scopes.py` `FAMILIES`), in display
  * order. It is never sent to the API: the scopes themselves always come from `options.json` or
- * from a token's own `scopes` list.
+ * from a token's own `scopes` list. The `statistics` group (staff-only, read-only
+ * `statistics:read`) is last; `options.json` only offers it to staff users.
  *
  * @type {Array<{group: string, families: Array<string>}>}
  */
@@ -11,6 +12,7 @@ const SCOPE_GROUPS = [
   { group: 'documents', families: ['documents'] },
   { group: 'inventory', families: ['items', 'common_items', 'possessions', 'recipes', 'treasures'] },
   { group: 'miniatures', families: ['miniatures'] },
+  { group: 'statistics', families: ['statistics'] },
 ];
 
 /**

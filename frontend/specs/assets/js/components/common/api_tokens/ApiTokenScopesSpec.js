@@ -2,12 +2,13 @@ import ApiTokenScopes from '../../../../../../assets/js/components/common/api_to
 
 describe('ApiTokenScopes', function() {
   describe('.GROUPS', function() {
-    it('lists the 16 families in 5 groups', function() {
+    it('lists the 17 families in 6 groups, with statistics last', function() {
       const groups = ApiTokenScopes.GROUPS.map(({ group }) => group);
       const families = ApiTokenScopes.GROUPS.flatMap(({ families: list }) => list);
 
-      expect(groups).toEqual(['game', 'characters', 'documents', 'inventory', 'miniatures']);
-      expect(families.length).toBe(16);
+      expect(groups).toEqual(['game', 'characters', 'documents', 'inventory', 'miniatures', 'statistics']);
+      expect(families.length).toBe(17);
+      expect(ApiTokenScopes.GROUPS.at(-1)).toEqual({ group: 'statistics', families: ['statistics'] });
     });
   });
 
@@ -37,6 +38,15 @@ describe('ApiTokenScopes', function() {
       expect(ApiTokenScopes.groupScopes(['documents:write'])).toEqual([
         { group: 'documents', families: [{ family: 'documents', read: false, write: true }] },
       ]);
+    });
+
+    it('returns the read-only statistics group last', function() {
+      const result = ApiTokenScopes.groupScopes(['statistics:read', 'miniatures:read', 'games:read']);
+
+      expect(result.map(({ group }) => group)).toEqual(['game', 'miniatures', 'statistics']);
+      expect(result.at(-1)).toEqual({
+        group: 'statistics', families: [{ family: 'statistics', read: true, write: false }],
+      });
     });
 
     it('returns an empty list for no scopes', function() {
