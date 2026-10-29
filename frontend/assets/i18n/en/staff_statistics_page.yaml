@@ -136,6 +136,23 @@ staff_statistics_page:
     sorted_descending: Sorted descending
     empty: No visits in this range.
     load_error: Unable to load visits.
+    paths: Paths
+    session: Session
+    first_path: First
+    last_path: Last
+    session_first_path: First path
+    creation_reason: Reason
+    first_seen_logged: Logged in at creation
+    'yes': 'yes'
+    'no': 'no'
+    unknown: unknown
+    creation_reasons:
+      no_cookie: No cookie
+      invalid_cookie: Invalid cookie
+      cookie_session_not_found: Cookie session not found
+      domain_changed: Domain changed
+      ip_changed: IP changed
+      login_rotation: Login rotation
   overview:
     visits: Visits
     unique_visitors: Unique visitors

@@ -44,8 +44,13 @@ function toUser(user) {
 /**
  * Maps a visit row of the response to a table row.
  *
+ * @description The session tracking fields (`first_path`, `last_path`,
+ *   `session_first_path`, `session_creation_reason`, `session_first_seen_logged`) pass
+ *   through unchanged: `null` stays `null` ("unknown"), and the logged flag keeps
+ *   `true` / `false` / `null` (never coerced to a boolean).
  * @param {object} row - A `{ id, started_at, last_seen_at, duration_seconds, hits, ongoing,
- *   ip, domain, session_id, user }` row.
+ *   ip, domain, session_id, user, first_path, last_path, session_first_path,
+ *   session_creation_reason, session_first_seen_logged }` row.
  * @returns {object} The camelCased row, with its domain as a label.
  */
 function toRow(row) {
@@ -60,6 +65,11 @@ function toRow(row) {
     domain: domainLabel(row.domain),
     sessionId: row.session_id,
     user: toUser(row.user),
+    firstPath: row.first_path,
+    lastPath: row.last_path,
+    sessionFirstPath: row.session_first_path,
+    sessionCreationReason: row.session_creation_reason,
+    sessionFirstSeenLogged: row.session_first_seen_logged,
   };
 }
 

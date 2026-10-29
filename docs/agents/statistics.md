@@ -256,6 +256,14 @@ cookie token is never exposed.
 - A session's IP and domain are fixed, so every visit of a session shows the same IP and
   domain, and the anonymous visitor id (`session_id`) repeats across rows.
 
+The Visit list tab (#1714) adds two non-sortable columns after Hits. **Paths** shows the visit's
+first and last paths; **Session** shows the session's first path, its creation reason and
+whether it was logged in at creation (yes / no). Route patterns (or `unresolved`) are shown
+as-is, monospace and truncated, with the full value on hover (`title`). The creation reason is
+translated under `staff_statistics_page.visit_list.creation_reasons.<value>`, falling back to
+the raw value for a reason the frontend does not know. A `null` tracking field is shown as
+"unknown" (never as "no").
+
 ## Filters and URL state
 
 One filter bar (`StaffStatisticsFilterBar`) is shared by every tab. Its state lives in the

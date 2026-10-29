@@ -1,5 +1,5 @@
 import { renderToStaticMarkup } from 'react-dom/server';
-import StatisticsVisitListTableHelper, { VISIT_LIST_COLUMNS }
+import StatisticsVisitListTableHelper, { CREATION_REASONS, VISIT_LIST_COLUMNS }
   from '../../../../../../../../../assets/js/components/resources/staff_statistics/pages/elements/helpers/StatisticsVisitListTableHelper.jsx';
 import StatisticsDateTimeFormatter
   from '../../../../../../../../../assets/js/components/resources/staff_statistics/pages/helpers/StatisticsDateTimeFormatter.js';
@@ -21,6 +21,11 @@ describe('StatisticsVisitListTableHelper', function() {
     user: {
       id: 5, name: 'Ana', displayName: 'Ana S.', email: 'ana@example.com',
     },
+    firstPath: '/#/games',
+    lastPath: '/#/games/:id/characters',
+    sessionFirstPath: 'unresolved',
+    sessionCreationReason: 'login_rotation',
+    sessionFirstSeenLogged: true,
   };
   const anonymousRow = {
     ...loggedRow, id: 8, user: null, ongoing: true, domain: t('unknown_domain'), ip: null,
@@ -130,11 +135,88 @@ describe('StatisticsVisitListTableHelper', function() {
     });
   });
 
-  it('does not link the user, ip and domain headers', function() {
+  it('does not link the user, ip, domain, paths and session headers', function() {
     const headers = findAll(element(), (node) => node.type === 'th');
     const plain = headers.filter((header) => findAll(header.props.children, (node) => node.type === 'a').length === 0);
 
-    expect(plain.length).toBe(3);
+    expect(plain.map((header) => header.props.children)).toEqual([
+      t('user'), t('ip'), t('domain'), t('paths'), t('session'),
+    ]);
+  });
+
+  it('renders the paths and session headers after hits', function() {
+    const html = render();
+
+    expect(html.indexOf(`>${t('paths')}</th>`)).toBeGreaterThan(html.indexOf(t('hits')));
+    expect(html.indexOf(`>${t('session')}</th>`)).toBeGreaterThan(html.indexOf(`>${t('paths')}</th>`));
+  });
+
+  describe('session tracking cells', function() {
+    const cell = (row, kind) => {
+      const html = render({ rows: [row] });
+      const start = html.indexOf(`data-testid="statistics-visit-list-${kind}-${row.id}"`);
+
+      return html.slice(start, html.indexOf('</td>', start));
+    };
+    const detail = (label, value) => `<span class="text-muted">${label}: </span>${value}</div>`;
+    const unknown = `<span>${t('unknown')}</span>`;
+
+    it('renders the first and last paths in the paths cell', function() {
+      const html = cell(loggedRow, 'paths');
+
+      expect(html).toContain(t('first_path'));
+      expect(html).toContain('title="/#/games"');
+      expect(html).toContain(t('last_path'));
+      expect(html).toContain('title="/#/games/:id/characters"');
+      expect(html).toContain('font-monospace text-truncate');
+    });
+
+    it('renders the session first path, reason and logged flag in the session cell', function() {
+      const html = cell(loggedRow, 'session');
+
+      expect(html).toContain(t('session_first_path'));
+      expect(html).toContain('title="unresolved"');
+      expect(html).toContain(detail(t('creation_reason'), t('creation_reasons.login_rotation')));
+      expect(html).toContain(detail(t('first_seen_logged'), t('yes')));
+    });
+
+    CREATION_REASONS.forEach((reason) => {
+      it(`translates the ${reason} creation reason`, function() {
+        const label = t(`creation_reasons.${reason}`);
+
+        expect(label).not.toContain('creation_reasons');
+        expect(cell({ ...loggedRow, sessionCreationReason: reason }, 'session'))
+          .toContain(detail(t('creation_reason'), label));
+      });
+    });
+
+    it('falls back to the raw value for an unknown reason', function() {
+      expect(cell({ ...loggedRow, sessionCreationReason: 'brand_new_reason' }, 'session'))
+        .toContain(detail(t('creation_reason'), 'brand_new_reason'));
+    });
+
+    it('renders no for a false logged flag', function() {
+      expect(cell({ ...loggedRow, sessionFirstSeenLogged: false }, 'session'))
+        .toContain(detail(t('first_seen_logged'), t('no')));
+    });
+
+    it('renders unknown for null paths', function() {
+      const html = cell({ ...loggedRow, firstPath: null, lastPath: null }, 'paths');
+
+      expect(html).toContain(detail(t('first_path'), unknown));
+      expect(html).toContain(detail(t('last_path'), unknown));
+    });
+
+    it('renders unknown for a null session first path, reason and logged flag', function() {
+      const html = cell({
+        ...loggedRow, sessionFirstPath: null, sessionCreationReason: null, sessionFirstSeenLogged: null,
+      }, 'session');
+
+      expect(html).toContain(detail(t('session_first_path'), unknown));
+      expect(html).toContain(detail(t('creation_reason'), t('unknown')));
+      expect(html).toContain(detail(t('first_seen_logged'), t('unknown')));
+      expect(html).not.toContain(detail(t('first_seen_logged'), t('no')));
+    });
   });
 
   it('marks only the active header as sorted descending', function() {
