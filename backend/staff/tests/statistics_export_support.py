@@ -26,11 +26,11 @@ def make_session(created_at, ip='203.0.113.7', **kwargs):
     return session
 
 
-def make_visit(session, started_at, seconds=0, hits=1):
+def make_visit(session, started_at, seconds=0, hits=1, **kwargs):
     """Create a visit of `session` started at `started_at`, lasting `seconds` with `hits`."""
     return Visit.objects.create(
         session=session, started_at=started_at,
-        last_seen_at=started_at + timedelta(seconds=seconds), hits=hits,
+        last_seen_at=started_at + timedelta(seconds=seconds), hits=hits, **kwargs,
     )
 
 

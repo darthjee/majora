@@ -43,7 +43,8 @@ class TestStaffStatisticsVisitSerializerKeys:
         data = _data(self.visit)
         assert list(data.keys()) == [
             'id', 'started_at', 'last_seen_at', 'duration_seconds', 'hits', 'ongoing',
-            'ip', 'domain', 'session_id', 'user',
+            'ip', 'domain', 'session_id', 'user', 'first_path', 'last_path',
+            'session_first_path', 'session_creation_reason', 'session_first_seen_logged',
         ]
         assert dict(data) == {
             'id': self.visit.id,
@@ -59,6 +60,11 @@ class TestStaffStatisticsVisitSerializerKeys:
                 'id': self.user.id, 'name': 'aria', 'display_name': 'Aria Stormwind',
                 'email': 'aria@example.com',
             },
+            'first_path': None,
+            'last_path': None,
+            'session_first_path': None,
+            'session_creation_reason': None,
+            'session_first_seen_logged': None,
         }
 
     def test_token_is_never_serialized(self):

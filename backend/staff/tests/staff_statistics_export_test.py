@@ -12,12 +12,14 @@ from domains.tests.factories import DomainFactory
 from games.tests.factories import UserFactory
 from majora_project.cache import memory_cache
 from staff.tests.statistics_export_support import RANGE, URL, at, make_session, make_visit
-from statistics.models import Visit
+from statistics.models import Session, Visit
 
 SESSION_KEYS = [
     'id', 'ip', 'domain', 'user_id', 'created_at', 'last_seen_at', 'visits', 'visits_truncated',
+    'first_path', 'first_seen_logged', 'creation_reason',
 ]
-VISIT_KEYS = ['started_at', 'last_seen_at', 'hits']
+VISIT_KEYS = ['started_at', 'last_seen_at', 'hits', 'first_path', 'last_path']
+GAME_PATTERN = 'games/<slug:game_slug>.json'
 
 
 class _ExportSetup:
@@ -30,7 +32,10 @@ class _ExportSetup:
         self.zeta = DomainFactory(domain='zeta.example.com')
         self.alpha = DomainFactory(domain='alpha.example.com')
         self.aria = UserFactory(username='aria', email='aria@example.com')
-        self.first = make_session(at(1, 10), user=self.aria, domain=self.zeta)
+        self.first = make_session(
+            at(1, 10), user=self.aria, domain=self.zeta, first_path=GAME_PATTERN,
+            creation_reason=Session.CreationReason.IP_CHANGED, first_seen_logged=True,
+        )
         self.second = make_session(at(2, 9), ip='198.51.100.4', domain=self.alpha)
         self.third = make_session(at(2, 9), ip='192.0.2.10')
         self.before = make_session(at(31, 23, month=12).replace(year=2025))
@@ -55,7 +60,10 @@ class TestStaffStatisticsExportPayload(_ExportSetup):
 
     def test_row(self):
         """Test that a session row carries exactly its export fields and visits."""
-        make_visit(self.first, at(1, 10), seconds=100, hits=5)
+        make_visit(
+            self.first, at(1, 10), seconds=100, hits=5,
+            first_path=GAME_PATTERN, last_path='games.json',
+        )
         assert self._row(self.first) == {
             'id': self.first.id,
             'ip': '203.0.113.7',
@@ -67,9 +75,27 @@ class TestStaffStatisticsExportPayload(_ExportSetup):
                 'started_at': '2026-01-01T10:00:00Z',
                 'last_seen_at': '2026-01-01T10:01:40Z',
                 'hits': 5,
+                'first_path': GAME_PATTERN,
+                'last_path': 'games.json',
             }],
             'visits_truncated': False,
+            'first_path': GAME_PATTERN,
+            'first_seen_logged': True,
+            'creation_reason': 'ip_changed',
         }
+
+    def test_legacy_row_tracking_fields_are_null(self):
+        """Test that a legacy session and visit without tracking columns give null."""
+        make_visit(self.second, at(2, 9))
+        row = self._row(self.second)
+        assert [row[key] for key in SESSION_KEYS[-3:]] == [None, None, None]
+        assert [row['visits'][0][key] for key in VISIT_KEYS[-2:]] == [None, None]
+
+    @pytest.mark.parametrize('reason', Session.CreationReason.values)
+    def test_creation_reason_is_raw(self, reason):
+        """Test that every creation reason is returned as its raw stored value."""
+        Session.objects.filter(pk=self.second.pk).update(creation_reason=reason)
+        assert self._row(self.second)['creation_reason'] == reason
 
     def test_row_keys(self):
         """Test that the response is a plain list whose rows have exactly the export keys."""
