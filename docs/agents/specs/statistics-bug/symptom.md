@@ -26,18 +26,37 @@ See [Access Statistics](../../statistics.md#data-model) for the full model.
    - a pre-existing anonymous session is always **rotated** to a new user-tied `Session`
      (login is a visit boundary).
 
+Each branch that creates a row records a
+[creation reason](tracking-columns.md#creation-reasons) (*planned by #1712*):
+
+| Branch | `creation_reason` |
+|---|---|
+| No cookie | `no_cookie` |
+| Cookie fails to unsign | `invalid_cookie` |
+| Valid token, no matching row | `cookie_session_not_found` |
+| Session exists for another domain | `domain_changed` |
+| Session exists, IP differs | `ip_changed` |
+| Rotation in `_backfill_user` | `login_rotation` |
+
+The in-place attach creates no row: it only sets `first_seen_logged` on the session created in
+the same request.
+
 ## Legitimate new sessions
 
 These create a new `Session` by design. `analyse.py` reports them separately and they do not
 count as the bug:
 
-- another browser or device;
-- a private window;
-- cleared cookies;
-- logout (the view deletes the cookie);
-- a real IP change of the client;
-- bots that never keep cookies;
-- cookies pointing to sessions removed by a statistics Clear (#1684).
+- another browser or device (`no_cookie`);
+- a private window (`no_cookie`);
+- cleared cookies (`no_cookie`);
+- logout (the view deletes the cookie; `no_cookie` on the next request);
+- a real IP change of the client (`ip_changed`);
+- bots that never keep cookies (`no_cookie`);
+- cookies pointing to sessions removed by a statistics Clear, #1684
+  (`cookie_session_not_found`).
+
+The reason in parentheses is the one each case is expected to record once the
+[tracking columns](tracking-columns.md) exist.
 
 ## Background
 
