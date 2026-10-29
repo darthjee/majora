@@ -109,6 +109,57 @@ class TestAttachUser:
 
         self._assert_rotated_from(result, session)
 
+    def test_in_place_attach_in_the_creating_request_marks_logged(self):
+        """Test that an in-place attach to a session created this request records `true`."""
+        session = Session.objects.create(ip='1.2.3.4', first_seen_logged=False)
+
+        attach_user(session, self.user, created_in_request=True)
+
+        assert session.first_seen_logged is True
+        session.refresh_from_db()
+        assert session.first_seen_logged is True
+
+    def test_in_place_attach_to_an_earlier_session_stays_not_logged(self):
+        """Test that an in-place attach to a session from an earlier request keeps `false`."""
+        session = Session.objects.create(ip='1.2.3.4', first_seen_logged=False)
+
+        attach_user(session, self.user)
+
+        session.refresh_from_db()
+        assert session.user_id == self.user.id
+        assert session.first_seen_logged is False
+
+    def test_in_place_attach_is_a_single_query(self, django_assert_num_queries):
+        """Test that marking the session logged rides on the attach `UPDATE`."""
+        session = Session.objects.create(ip='1.2.3.4', first_seen_logged=False)
+
+        with django_assert_num_queries(1):
+            attach_user(session, self.user, created_in_request=True)
+
+    def test_rotation_records_login_rotation(self):
+        """Test that a rotated row records `login_rotation`, `true` and the rotating route."""
+        session = Session.objects.create(ip='1.2.3.4')
+
+        result = attach_user(
+            session, self.user, always_rotate=True, first_path='users/login.json',
+        )
+
+        result.refresh_from_db()
+        assert result.creation_reason == 'login_rotation'
+        assert result.first_seen_logged is True
+        assert result.first_path == 'users/login.json'
+
+    def test_lost_race_rotation_records_login_rotation(self):
+        """Test that losing the in-place race still rotates and records `login_rotation`."""
+        session = Session.objects.create(ip='1.2.3.4')
+        Session.objects.filter(pk=session.pk).update(user=UserFactory(username='carol'))
+
+        result = attach_user(session, self.user, created_in_request=True)
+
+        assert result.id != session.id
+        assert result.creation_reason == 'login_rotation'
+        assert result.first_seen_logged is True
+
     def _deleted_session(self):
         """Return an anonymous session whose row is deleted but whose instance keeps its pk."""
         session = Session.objects.create(ip='1.2.3.4', domain=self.domain)

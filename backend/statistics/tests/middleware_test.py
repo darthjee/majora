@@ -744,6 +744,45 @@ class TestStatisticsSessionMiddlewareCreationTracking:
         assert request.statistics_route is None
         assert Session.objects.count() == 0
 
+    def test_backfill_in_the_creating_request_marks_logged(self, client):
+        """Test that an in-place back-fill on a session created this request records `true`."""
+        response = self._token_get(client, REMOTE_ADDR='1.2.3.4')
+
+        session = self._new_session(response)
+        assert session.user_id is not None
+        assert session.creation_reason == 'no_cookie'
+        assert session.first_seen_logged is True
+
+    def test_backfill_rotation_records_login_rotation(self, client):
+        """Test that a back-fill rotation records `login_rotation`, `true` and its route."""
+        old_session = self._cookie_for(client, ip='1.2.3.4', domain=self.domain)
+
+        response = self._token_get(client, REMOTE_ADDR='1.2.3.4')
+
+        rotated = self._new_session(response)
+        assert rotated.pk != old_session.pk
+        assert rotated.creation_reason == 'login_rotation'
+        assert rotated.first_seen_logged is True
+        assert rotated.first_path == 'games.json'
+
+    def test_backfill_rotation_leaves_the_earlier_session_untouched(self, client):
+        """Test that the rotated-away anonymous session keeps its own tracking columns."""
+        old_session = Session.objects.create(
+            ip='1.2.3.4', domain=self.domain, first_seen_logged=False,
+        )
+        client.cookies[cookies.COOKIE_NAME] = cookies.sign(old_session.token)
+
+        self._token_get(client, REMOTE_ADDR='1.2.3.4')
+
+        old_session.refresh_from_db()
+        assert old_session.user_id is None
+        assert old_session.first_seen_logged is False
+
+    def _token_get(self, client, **extra):
+        """Issue a token-authenticated GET to `/games.json` as a fresh user."""
+        token = Token.objects.create(user=UserFactory(username='alice'))
+        return client.get('/games.json', HTTP_AUTHORIZATION=f'Token {token.key}', **extra)
+
     def _cookie_for(self, client, ip, domain):
         """Create a session for `ip`/`domain` and put its signed token in the client cookie."""
         session = Session.objects.create(ip=ip, domain=domain)

@@ -271,9 +271,20 @@ def attach_statistics_session(request, user):
     session = request.statistics_session
     if session is None:
         return
-    new_session = attach_user(session, user)
+    new_session = attach_user(
+        session, user, created_in_request=_created_in_request(request, session),
+        first_path=getattr(request._request, 'statistics_route', None),
+    )
     if new_session is not session:
         _set_statistics_session(request, new_session)
+
+
+def _created_in_request(request, session):
+    """Return whether `session` is the row `StatisticsSessionMiddleware` created for `request`.
+
+    Read off the underlying `HttpRequest`, where the middleware stored it.
+    """
+    return session is getattr(request._request, 'statistics_session_created', None)
 
 
 def _set_statistics_session(request, session):

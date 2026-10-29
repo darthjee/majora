@@ -145,9 +145,10 @@ class StatisticsSessionMiddleware:
         if session.user_id is not None or not request.user.is_authenticated:
             return
 
-        always_rotate = not self._created_during_request(request, session)
+        created_in_request = self._created_during_request(request, session)
         request.statistics_session = attach_user(
-            session, request.user, always_rotate=always_rotate
+            session, request.user, always_rotate=not created_in_request,
+            created_in_request=created_in_request, first_path=request.statistics_route,
         )
 
     def _created_during_request(self, request, session):

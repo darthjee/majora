@@ -13,8 +13,11 @@ from rest_framework.authtoken.models import Token
 
 from accounts.models import AuthorizationRequest, UserProfile
 from games.tests.factories import UserFactory, UserProfileFactory
+from statistics import cookies
+from statistics.models import Session
 
 TEST_PASSWORD = get_random_string(20)
+POLL_ROUTE = 'users/authorization_requests/<uuid:uuid>.json'
 
 
 def _poll_url(authorization_request):
@@ -206,3 +209,45 @@ class TestAuthorizationRequestPollView:
             thread.join()
 
         assert sorted(results) == [202, 403]
+
+
+@pytest.mark.django_db
+class TestAuthorizationRequestPollStatisticsSession:
+    """Tests for the statistics session tracking columns written by an approved poll."""
+
+    def setup_method(self):
+        """Set up a requesting user with an approved authorization request."""
+        self.user = UserFactory(username='alice', password=TEST_PASSWORD)
+        self.authorization_request, self.raw_token = AuthorizationRequest.create_with_token(
+            user=self.user, ip='1.2.3.4', browser='test-agent',
+        )
+        self.authorization_request.status = AuthorizationRequest.STATUS_APPROVED
+        self.authorization_request.save(update_fields=['status'])
+
+    def test_poll_without_cookie_marks_the_new_session_logged(self, client):
+        """Test that a poll attaching in place to the session it created records `true`."""
+        response = _poll(client, self.authorization_request, self.raw_token)
+
+        session = self._session_from(response)
+        assert session.user_id == self.user.id
+        assert session.first_seen_logged is True
+        assert session.first_path == POLL_ROUTE
+
+    def test_poll_rotation_records_login_rotation_without_uuid(self, client):
+        """Test that a poll rotation records `login_rotation` and a route without the `uuid`."""
+        existing_session = Session.objects.create(ip='127.0.0.1', user=self.user)
+        client.cookies[cookies.COOKIE_NAME] = cookies.sign(existing_session.token)
+
+        response = _poll(client, self.authorization_request, self.raw_token)
+
+        rotated = self._session_from(response)
+        assert rotated.pk != existing_session.pk
+        assert rotated.creation_reason == 'login_rotation'
+        assert rotated.first_seen_logged is True
+        assert rotated.first_path == POLL_ROUTE
+        assert str(self.authorization_request.uuid) not in rotated.first_path
+
+    def _session_from(self, response):
+        """Return the statistics `Session` carried by `response`'s cookie."""
+        signed_value = response.cookies[cookies.COOKIE_NAME].value
+        return Session.objects.get(token=cookies.unsign(signed_value))
