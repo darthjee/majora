@@ -189,6 +189,43 @@ class TestLoginView:
         post_login_cookie = response.cookies[cookies.COOKIE_NAME].value
         assert cookies.unsign(post_login_cookie) != existing_session.token
 
+    def test_login_without_cookie_marks_the_new_session_logged(self, client):
+        """Test that a login attaching in place to the session it created records `true`."""
+        UserFactory(username='alice', password=TEST_PASSWORD)
+
+        response = self._login(client)
+
+        session = self._session_from(response)
+        assert session.user.username == 'alice'
+        assert session.creation_reason == 'no_cookie'
+        assert session.first_path == 'users/login.json'
+        assert session.first_seen_logged is True
+
+    def test_login_on_an_earlier_anonymous_session_stays_not_logged(self, client):
+        """Test that a login attaching in place to an earlier anonymous session keeps `false`."""
+        UserFactory(username='alice', password=TEST_PASSWORD)
+        client.get('/ready.json')
+
+        response = self._login(client)
+
+        session = self._session_from(response)
+        assert session.user.username == 'alice'
+        assert session.first_seen_logged is False
+
+    def test_login_rotation_records_login_rotation(self, client):
+        """Test that a login rotation records `login_rotation`, `true` and the login route."""
+        user = UserFactory(username='alice', password=TEST_PASSWORD)
+        existing_session = Session.objects.create(ip='127.0.0.1', user=user)
+        client.cookies[cookies.COOKIE_NAME] = cookies.sign(existing_session.token)
+
+        response = self._login(client)
+
+        rotated = self._session_from(response)
+        assert rotated.pk != existing_session.pk
+        assert rotated.creation_reason == 'login_rotation'
+        assert rotated.first_seen_logged is True
+        assert rotated.first_path == 'users/login.json'
+
     def test_no_crash_when_skip_header_used_on_login(self, client, monkeypatch):
         """Test that logging in with the skip header present succeeds without a statistics row."""
         monkeypatch.setenv('STATISTICS_SKIP_SECRET', 'shh')
@@ -205,3 +242,16 @@ class TestLoginView:
         data = json.loads(response.content)
         assert 'token' in data
         assert Session.objects.count() == 0
+
+    def _login(self, client):
+        """Post valid `alice` credentials to the login endpoint."""
+        return client.post(
+            '/users/login.json',
+            data=json.dumps({'username': 'alice', 'password': TEST_PASSWORD}),
+            content_type='application/json',
+        )
+
+    def _session_from(self, response):
+        """Return the statistics `Session` carried by `response`'s cookie."""
+        signed_value = response.cookies[cookies.COOKIE_NAME].value
+        return Session.objects.get(token=cookies.unsign(signed_value))

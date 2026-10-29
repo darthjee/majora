@@ -72,3 +72,30 @@ class TestSession:
 
         assert session.domain_id is None
         assert Session.objects.filter(id=session.id).exists()
+
+    def test_tracking_columns_default_to_none(self):
+        """Test that the tracking columns are `None` (unknown) when not provided."""
+        session = Session.objects.create(ip='127.0.0.1')
+
+        assert session.first_path is None
+        assert session.creation_reason is None
+        assert session.first_seen_logged is None
+
+    def test_tracking_columns_can_be_set(self):
+        """Test that the tracking columns persist their values."""
+        session = Session.objects.create(
+            ip='127.0.0.1', first_path='games/<slug:game_slug>.json',
+            creation_reason=Session.CreationReason.NO_COOKIE, first_seen_logged=False,
+        )
+        session.refresh_from_db()
+
+        assert session.first_path == 'games/<slug:game_slug>.json'
+        assert session.creation_reason == 'no_cookie'
+        assert session.first_seen_logged is False
+
+    def test_creation_reason_choices(self):
+        """Test that `CreationReason` exposes exactly the documented values."""
+        assert Session.CreationReason.values == [
+            'no_cookie', 'invalid_cookie', 'cookie_session_not_found',
+            'domain_changed', 'ip_changed', 'login_rotation',
+        ]

@@ -48,6 +48,51 @@ visits: counting sessions by `created_at` measures new sessions, and
 (`Settings.session_touch_interval_seconds()`, env
 `MAJORA_STATISTICS_SESSION_TOUCH_INTERVAL_SECONDS`).
 
+### Session tracking columns
+
+Each new `Session` row records where and why it was created (#1712). All three columns are
+nullable with no backfill: rows created before #1712 stay `NULL` (unknown).
+
+- `first_path`: the [route pattern](#route-pattern-values) of the request that created it.
+- `first_seen_logged`: whether the session was **logged at creation**, not "logged ever".
+  `true` when the creating request was already authenticated, or when the same request then
+  attaches a user in place (middleware back-fill, login view, device-authorization poll; the
+  attach `UPDATE` sets it in the same statement). An in-place attach to an anonymous session
+  from an earlier request leaves it `false`. Rotation rows are always `true`.
+- `creation_reason` (`Session.CreationReason`):
+
+| Value | Meaning |
+|-------|---------|
+| `no_cookie` | The request carried no statistics cookie |
+| `invalid_cookie` | The cookie failed to unsign |
+| `cookie_session_not_found` | Valid token, but no row (deleted, cleared) |
+| `domain_changed` | The token's session exists for another domain (wins when the IP also changed) |
+| `ip_changed` | The token's session exists for the same domain, but the IP differs |
+| `login_rotation` | `attach_user` created a new row (always-rotate or lost in-place race) |
+
+The middleware looks the cookie session up **by token only** (the token is unique, so it is
+still one query) and derives the reason by comparing domain first, then IP. The reuse rule is
+unchanged: a session is reused only when both IP and domain match.
+
+A `login_rotation` row stores the rotating request's route (login, device-authorization poll or
+any authenticated request through the middleware back-fill). As before, it gets no visit until
+the next request carrying its cookie.
+
+### Route pattern values
+
+Path columns never store the raw path. They store the matched URL route pattern,
+`resolve(request.path_info).route` (e.g. `games/<slug:game_slug>/documents/<int:id>.json`), so
+no URL parameter, token or secret is stored: the device-authorization poll stores
+`users/authorization_requests/<uuid:uuid>.json`, never its `uuid`. A path matching no route
+(404s, bots) stores the fixed marker `unresolved`. The query string is never stored, and values
+are truncated to 255 characters. Resolution is in-memory URL matching done once per tracked
+request by the middleware (`request.statistics_route`); untracked paths and skip-header
+requests compute and store nothing.
+
+**Hot path:** none of these columns adds a query per request. The creation columns ride on the
+session `INSERT`, the logged state on the attach `UPDATE`, the visit paths on the visit
+`INSERT` / extend `UPDATE`, and the cookie lookup stays a single query.
+
 ### `Visit` is the activity
 
 `statistics.Visit` is a burst of activity under one session: `session` (FK,
@@ -72,6 +117,9 @@ visits: counting sessions by `created_at` measures new sessions, and
   opens a visit on the new session. When the user is attached in place (session created in
   the same request), the visit stays on that session. Visits are never moved between sessions.
 - **No backfill:** visit data starts at the #1478 deploy.
+- `first_path` / `last_path` store the [route pattern](#route-pattern-values) of the request
+  that opened the visit and of the latest request. `last_path` is written by the same atomic
+  extend `UPDATE`, so it adds no query.
 
 Visit **duration** is `last_seen_at - started_at` in whole seconds; **hits per visit** is
 `hits`. Durations measure the first to the last backend request, so they are a lower bound of

@@ -3,10 +3,12 @@
 The `statistics` app records site access per visitor. It has two models:
 
 - **`Session`** — the visitor (device/browser) identity, identified by a signed cookie
-  token; carries `ip`, optional `user`, optional `domain`, `created_at` and a throttled
-  `last_seen_at`.
+  token; carries `ip`, optional `user`, optional `domain`, `created_at`, a throttled
+  `last_seen_at`, and the nullable tracking columns `first_path` (route pattern, never the
+  raw path), `creation_reason` and `first_seen_logged`.
 - **`Visit`** — a burst of activity under a `Session` (`started_at`, `last_seen_at`,
-  exact `hits`), closed after an inactivity window. See the
+  exact `hits`, nullable route-pattern `first_path` / `last_path`), closed after an
+  inactivity window. See the
   [access statistics data model](../statistics.md#data-model) for the design.
 
 ## Writes
@@ -14,7 +16,9 @@ The `statistics` app records site access per visitor. It has two models:
 Both models are written **only by `StatisticsSessionMiddleware`**
 (`backend/statistics/middleware.py`, with `session_attachment.py` and `visit_tracking.py`),
 on every request that reaches Django and does not carry a valid `X-Statistics-Skip-Secret`
-header. No role can create, update or delete these rows through any endpoint.
+header. No role can create, update or delete these rows through any endpoint. The tracking
+columns (`first_path`, `creation_reason`, `first_seen_logged`, `last_path`) are not returned
+by any serializer; only Django Admin (superuser, read-only) shows them.
 
 ## Reads
 

@@ -10,6 +10,7 @@ from common.secret_compare import secret_matches
 from domains.models import Domain
 from statistics import cookies
 from statistics.models import Session
+from statistics.route_pattern import route_pattern
 from statistics.session_attachment import attach_user
 from statistics.settings import Settings
 from statistics.visit_tracking import track_visit
@@ -34,10 +35,12 @@ class StatisticsSessionMiddleware:
     def __call__(self, request):
         """Attach `request.statistics_session`, track its visit, run the view, write the cookie."""
         request.statistics_session_created = None
+        request.statistics_route = None
         if self._skip_requested(request):
             request.statistics_session = None
             return self.get_response(request)
 
+        request.statistics_route = route_pattern(request)
         ip = client_ip(request)
         domain = self._domain_for_request(request)
         request.statistics_session = self._load_or_create_session(request, ip, domain)
@@ -70,15 +73,29 @@ class StatisticsSessionMiddleware:
 
     def _load_or_create_session(self, request, ip, domain):
         """Return the current request's session, reusing a valid cookie-borne one if possible."""
-        session = self._session_from_cookie(request, domain)
+        session, reason = self._session_from_cookie(request)
         domain_id = domain.id if domain is not None else None
 
         if session is not None and session.ip == ip and session.domain_id == domain_id:
             self._touch_session(session)
             return session
 
+        reason = reason or self._mismatch_reason(session, domain_id)
+        return self._create_session(request, ip, domain, reason)
+
+    def _mismatch_reason(self, session, domain_id):
+        """Return why a found cookie session was not reused; the domain is checked first."""
+        if session.domain_id != domain_id:
+            return Session.CreationReason.DOMAIN_CHANGED
+        return Session.CreationReason.IP_CHANGED
+
+    def _create_session(self, request, ip, domain, reason):
+        """Create the request's session in a single `INSERT`, recording why and where."""
         user = request.user if request.user.is_authenticated else None
-        created = Session.objects.create(ip=ip, user=user, domain=domain)
+        created = Session.objects.create(
+            ip=ip, user=user, domain=domain, creation_reason=reason,
+            first_path=request.statistics_route, first_seen_logged=user is not None,
+        )
         request.statistics_session_created = created
         return created
 
@@ -102,7 +119,10 @@ class StatisticsSessionMiddleware:
         Running before dispatch means a login request counts on the pre-rotation session.
         """
         session = request.statistics_session
-        track_visit(session, new_session=self._created_during_request(request, session))
+        track_visit(
+            session, new_session=self._created_during_request(request, session),
+            path=request.statistics_route,
+        )
 
     def _backfill_user(self, request):
         """Attach the DRF-resolved authenticated user to the session, if not already tied.
@@ -128,26 +148,35 @@ class StatisticsSessionMiddleware:
         if session.user_id is not None or not request.user.is_authenticated:
             return
 
-        always_rotate = not self._created_during_request(request, session)
+        created_in_request = self._created_during_request(request, session)
         request.statistics_session = attach_user(
-            session, request.user, always_rotate=always_rotate
+            session, request.user, always_rotate=not created_in_request,
+            created_in_request=created_in_request, first_path=request.statistics_route,
         )
 
     def _created_during_request(self, request, session):
         """Return whether `session` is the very row this middleware created for `request`."""
         return session is request.statistics_session_created
 
-    def _session_from_cookie(self, request, domain):
-        """Return the `Session` referenced by the request's cookie, or `None` if invalid."""
+    def _session_from_cookie(self, request):
+        """Return `(session, reason)` for the request's cookie.
+
+        `session` is the row referenced by the cookie's token (any domain: the token is
+        unique, so this is a single query) or `None`; `reason` is the creation reason when no
+        row was found, else `None`.
+        """
         cookie_value = request.COOKIES.get(cookies.COOKIE_NAME)
         if cookie_value is None:
-            return None
+            return None, Session.CreationReason.NO_COOKIE
 
         token = cookies.unsign(cookie_value)
         if token is None:
-            return None
+            return None, Session.CreationReason.INVALID_COOKIE
 
-        return Session.objects.filter(token=token, domain=domain).first()
+        session = Session.objects.filter(token=token).first()
+        if session is None:
+            return None, Session.CreationReason.COOKIE_SESSION_NOT_FOUND
+        return session, None
 
     def _cookie_deleted_by_view(self, response):
         """Return whether the view already explicitly deleted the statistics cookie."""
