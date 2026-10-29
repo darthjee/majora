@@ -2,7 +2,7 @@
 
 import pytest
 
-from accounts.scopes import SCOPES
+from accounts.scopes import SCOPES, STAFF_ONLY_SCOPES
 from accounts.tests.api_tokens.support import session_client
 from games.tests.factories import (
     CharacterFactory,
@@ -35,9 +35,23 @@ class TestApiTokenOptions:
         """GET the options as `user` through a session."""
         return session_client(user).get(OPTIONS_URL)
 
-    def test_scopes_are_full_sorted_catalogue(self):
-        """Test that scopes is the full catalogue, sorted."""
-        assert self._get(self.user).json()['scopes'] == sorted(SCOPES)
+    def test_member_scopes_skip_staff_only(self):
+        """Test that a non-staff caller gets the sorted catalogue without staff-only scopes."""
+        expected = sorted(set(SCOPES) - STAFF_ONLY_SCOPES)
+        assert self._get(self.user).json()['scopes'] == expected
+
+    def test_member_scopes_lack_statistics_read(self):
+        """Test that a non-staff caller is not offered statistics:read."""
+        assert 'statistics:read' not in self._get(self.user).json()['scopes']
+
+    def test_staff_scopes_are_full_sorted_catalogue(self):
+        """Test that a staff caller gets the full catalogue, sorted."""
+        staff = UserFactory(is_staff=True)
+        assert self._get(staff).json()['scopes'] == sorted(SCOPES)
+
+    def test_superuser_scopes_include_statistics_read(self):
+        """Test that a superuser is offered statistics:read."""
+        assert 'statistics:read' in self._get(SuperUserFactory()).json()['scopes']
 
     def test_member_games(self):
         """Test that a member gets their DM, player and PC-owner games, sorted by name."""

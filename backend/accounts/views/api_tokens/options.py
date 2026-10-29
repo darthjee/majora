@@ -4,8 +4,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from accounts.api_tokens import reachable_games, reaches_all_games
-from accounts.scopes import SCOPES
+from accounts.api_tokens import grantable_scopes, reachable_games, reaches_all_games
 from accounts.serializers import ApiTokenGameSerializer
 from games.decorators import restricted
 
@@ -18,13 +17,13 @@ from ._shared import session_owner_error
 # scoped-token or anonymous callers receive a proper 403/401.
 @permission_classes([AllowAny])
 def api_token_options(request):
-    """Return the sorted scope catalogue, the reachable games and the `all_games` flag."""
+    """Return the sorted grantable scopes, the reachable games and the `all_games` flag."""
     error_response = session_owner_error(request)
     if error_response:
         return error_response
     games = reachable_games(request.user).order_by('name', 'game_slug')
     return Response({
-        'scopes': sorted(SCOPES),
+        'scopes': sorted(grantable_scopes(request.user)),
         'games': ApiTokenGameSerializer(games, many=True).data,
         'all_games': reaches_all_games(request.user),
     })

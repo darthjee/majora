@@ -4,9 +4,9 @@ from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.exceptions import ErrorDetail
 
-from accounts.api_tokens import reachable_games
+from accounts.api_tokens import may_hold_staff_scopes, reachable_games
 from accounts.models import ApiToken
-from accounts.scopes import SCOPES
+from accounts.scopes import SCOPES, STAFF_ONLY_SCOPES
 from accounts.serializers.api_token.item import ApiTokenItemSerializer
 from accounts.serializers.api_token.strict_fields import StrictFieldsMixin
 from games.models import Game
@@ -45,10 +45,12 @@ class ApiTokenCreateSerializer(StrictFieldsMixin, serializers.Serializer):
     expires_at = serializers.DateTimeField(required=False, allow_null=True, default=None)
 
     def validate_scopes(self, value):
-        """Reject scopes outside the catalogue (`invalid_scope`) and duplicates."""
+        """Reject unknown scopes, staff-only scopes for non-staff owners and duplicates."""
         errors = []
         if any(scope not in SCOPES for scope in value):
             errors.append(error('invalid_scope'))
+        if self._has_forbidden_staff_scope(value):
+            errors.append(error('scope_staff_only'))
         if has_duplicates(value):
             errors.append(error('duplicate_scope'))
         if errors:
@@ -80,6 +82,12 @@ class ApiTokenCreateSerializer(StrictFieldsMixin, serializers.Serializer):
     def created_data(self):
         """Return the token item plus the full token: the only payload ever carrying it."""
         return {**ApiTokenItemSerializer(self.instance).data, 'token': self.plain_token}
+
+    def _has_forbidden_staff_scope(self, scopes):
+        """Return whether `scopes` holds a staff-only scope the owner may not be granted."""
+        if STAFF_ONLY_SCOPES.isdisjoint(scopes):
+            return False
+        return not may_hold_staff_scopes(self._user())
 
     def _user(self):
         """Return the owner taken from the serializer context."""
