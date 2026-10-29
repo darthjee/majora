@@ -136,6 +136,23 @@ staff_statistics_page:
     sorted_descending: Ordenado de forma decrescente
     empty: Nenhuma visita neste período.
     load_error: Não foi possível carregar as visitas.
+    paths: Caminhos
+    session: Sessão
+    first_path: Primeiro
+    last_path: Último
+    session_first_path: Primeiro caminho
+    creation_reason: Motivo
+    first_seen_logged: Logado na criação
+    'yes': 'sim'
+    'no': 'não'
+    unknown: desconhecido
+    creation_reasons:
+      no_cookie: Sem cookie
+      invalid_cookie: Cookie inválido
+      cookie_session_not_found: Sessão do cookie não encontrada
+      domain_changed: Domínio alterado
+      ip_changed: IP alterado
+      login_rotation: Rotação no login
   overview:
     visits: Visitas
     unique_visitors: Visitantes únicos
