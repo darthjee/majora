@@ -6,6 +6,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
 
+from accounts.device_authorization_token import DeviceAuthorizationToken
 from accounts.models import AuthorizationRequest, UserProfile
 from accounts.views.auth._shared import attach_statistics_session
 
@@ -64,6 +65,8 @@ def _resolve_approved(request, authorization_request):
     request) gets the same `403 not_found` response as any other already-consumed request.
     A `denied` user's request also gets that same response, instead of a token, keeping
     the enumeration-safety invariant already established by `authorization_requests/create`.
+    A scoped request yields only a scoped API token: no legacy `Token`, no browser session
+    and no statistics session attached.
     """
     if _user_is_denied(authorization_request.user):
         return skip_cache(Response(NOT_FOUND_ERROR, status=403))
@@ -71,7 +74,7 @@ def _resolve_approved(request, authorization_request):
     if not authorization_request.try_transition_approved_to_logged():
         return skip_cache(Response(NOT_FOUND_ERROR, status=403))
 
-    token_key = _issue_login_credentials(request, authorization_request.user)
+    token_key = _issue_credentials(request, authorization_request)
     return skip_cache(Response({'status': 'approved', 'token': token_key}, status=202))
 
 
@@ -79,6 +82,13 @@ def _user_is_denied(user):
     """Return whether `user`'s profile status is `denied`."""
     profile, _ = UserProfile.objects.get_or_create(user=user)
     return profile.status == UserProfile.STATUS_DENIED
+
+
+def _issue_credentials(request, authorization_request):
+    """Issue a scoped `mjr_` token for a scoped request, else a real login."""
+    if authorization_request.is_scoped():
+        return DeviceAuthorizationToken(authorization_request).issue()
+    return _issue_login_credentials(request, authorization_request.user)
 
 
 def _issue_login_credentials(request, user):
