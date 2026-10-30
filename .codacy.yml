@@ -1,3 +1,5 @@
+exclude_paths:
+  - "investigations/**"
 engines:
   duplication:
     exclude_paths:
