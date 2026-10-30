@@ -125,7 +125,7 @@ approves or denies the request.
 | `/account/authorization_requests/<uuid>/deny.json` | PATCH | Authenticated, owner-only | `403` if not the caller's own request. `422` if not currently `open`. Sets `denied` |
 | `/account/authorization_requests/<uuid>/authorize.json` | PATCH | Authenticated, owner-only | Requires the caller's own current password (re-authentication before granting a login elsewhere): `401` on mismatch. `403` if not the caller's own request. `422` if not currently `open`. A request asking for a staff-only scope (`statistics:read`) approved by a non-staff caller gets `400 {"errors": {"scopes": ["scope_staff_only"]}}` and stays `open`. Sets `approved` |
 
-List serializer exposes only `uuid`, `created_at`, `status`, `ip`, `browser` — never the row's
+List serializer exposes only `uuid`, `created_at`, `status`, `ip`, `browser`, `scopes` — never the row's
 `id`, hashed token, or `user`/`user_id`. `ip` is captured from `REMOTE_ADDR` only (deliberately
 ignoring `X-Forwarded-For`), since it's shown to the approving human as a trust signal and must
 not be client-spoofable. All five endpoints set `X-Skip-Cache`.
