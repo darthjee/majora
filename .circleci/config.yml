@@ -282,7 +282,7 @@ jobs:
       - checkout
       - run:
           name: Set folder
-          command: rm frontend -rf; cp backend/* ./ -r; rm backend -rf
+          command: rm frontend investigations -rf; cp backend/* ./ -r; rm backend -rf
       - run:
           name: Poetry Install
           command: poetry install --no-root --no-interaction --no-ansi

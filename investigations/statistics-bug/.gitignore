@@ -1,0 +1,5 @@
+# Generated output of the investigation scripts: never committed.
+reports/
+*.json
+*.log
+__pycache__/

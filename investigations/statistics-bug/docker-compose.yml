@@ -1,0 +1,37 @@
+# Standalone runner for the statistics-bug investigation (Epic #1696, issue #1702).
+#
+# Not part of the project's compose file. Run from the repository root:
+#
+#   docker-compose -f investigations/statistics-bug/docker-compose.yml run --rm emulate
+#
+# The service joins the project's Docker network (created by the root
+# docker-compose.yml, `<project folder>_default`, i.e. `majora_default`) so it
+# reaches the proxy (`majora_proxy`, port 80) and the backend (`majora_app`,
+# port 8080) by name. Override the network with MAJORA_DOCKER_NETWORK when the
+# project folder has another name.
+#
+# Secrets (PROXY_SECRET, STATISTICS_SKIP_SECRET) come from the root `.env` (or
+# from the shell with `run -e NAME`); their values are never copied here.
+
+services:
+  emulate:
+    image: python:3.12.7-slim
+    working_dir: /investigation
+    volumes:
+      - ./:/investigation
+    env_file:
+      - path: ../../.env
+        required: false
+    environment:
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+      - MAJORA_BASE_URL=${MAJORA_BASE_URL:-http://majora_proxy}
+      - MAJORA_BACKEND_URL=${MAJORA_BACKEND_URL:-http://majora_app:8080}
+    networks:
+      - majora
+    entrypoint: ["python", "-I", "-B", "emulate.py"]
+
+networks:
+  majora:
+    name: ${MAJORA_DOCKER_NETWORK:-majora_default}
+    external: true
