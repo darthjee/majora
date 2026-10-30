@@ -52,6 +52,7 @@ class AuthorizationRequest(models.Model):
     )
     expires_at = models.DateTimeField()
     status = EnumCharField(max_length=16, choices=STATUS_CHOICES, default=STATUS_OPEN)
+    scopes = models.JSONField(default=list, blank=True)
     history = EnumSafeHistoricalRecords(app='versioning', user_db_constraint=False)
 
     class Meta:
@@ -60,7 +61,7 @@ class AuthorizationRequest(models.Model):
         ordering = ['-id']
 
     @classmethod
-    def create_with_token(cls, user, ip, browser):
+    def create_with_token(cls, user, ip, browser, scopes=None):
         """Create a new request for `user` (may be `None`); return `(instance, raw_token)`."""
         raw_token = secrets.token_urlsafe(32)
         created_at = timezone.now()
@@ -70,8 +71,13 @@ class AuthorizationRequest(models.Model):
             browser=browser,
             token_hash=cls._hash_token(raw_token),
             expires_at=created_at + EXPIRATION,
+            scopes=list(scopes or []),
         )
         return instance, raw_token
+
+    def is_scoped(self):
+        """Return whether this request asks for scopes (yielding a scoped API token)."""
+        return bool(self.scopes)
 
     def is_expired(self):
         """Return whether this request is lazily past due, evaluated against the current time."""

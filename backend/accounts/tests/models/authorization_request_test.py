@@ -221,3 +221,43 @@ class TestAuthorizationRequestStatusColumn(TestCase):
         update_status_raw(self.instance, AuthorizationRequest.STATUS_APPROVED)
         self.instance.refresh_from_db()
         assert self.instance.status == AuthorizationRequest.STATUS_APPROVED
+
+
+@pytest.mark.django_db
+class TestAuthorizationRequestScopes:
+    """Tests for AuthorizationRequest.scopes and is_scoped."""
+
+    def setup_method(self):
+        """Set up a user to own created requests."""
+        self.user = UserFactory(username='alice', password='secret-password')
+
+    def _create(self, **kwargs):
+        """Create a request for the user with the given extra arguments."""
+        instance, _ = AuthorizationRequest.create_with_token(
+            user=self.user, ip='1.2.3.4', browser='test-agent', **kwargs,
+        )
+        return instance
+
+    def test_defaults_to_empty_scopes(self):
+        """Test that a request created without scopes stores an empty list."""
+        instance = self._create()
+        instance.refresh_from_db()
+        assert instance.scopes == []
+
+    def test_stores_the_given_scopes(self):
+        """Test that create_with_token persists the given scopes."""
+        instance = self._create(scopes=['statistics:read'])
+        instance.refresh_from_db()
+        assert instance.scopes == ['statistics:read']
+
+    def test_is_scoped_is_false_without_scopes(self):
+        """Test that a request without scopes is not scoped."""
+        assert self._create().is_scoped() is False
+
+    def test_is_scoped_is_false_for_empty_scopes(self):
+        """Test that a request with an empty scopes list is not scoped."""
+        assert self._create(scopes=[]).is_scoped() is False
+
+    def test_is_scoped_is_true_with_scopes(self):
+        """Test that a request with scopes is scoped."""
+        assert self._create(scopes=['statistics:read']).is_scoped() is True
