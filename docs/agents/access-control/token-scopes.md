@@ -222,6 +222,12 @@ investigation script (Epic #1696). It is read-only and staff-only, and reaches o
   admin/staff callers (`AdminOrStaffCache.is_admin_or_staff`), and
   `POST /account/api_tokens.json` rejects it for a non-staff owner with `400`
   `{"errors": {"scopes": ["scope_staff_only"]}}`. It is never silently stripped.
+- **Device authorization.** Scopes can also be granted through the device-authorization flow
+  (#1708): a request created with `scopes` yields, once approved and polled, a 24-hour `mjr_`
+  token with exactly those scopes and no legacy token or session. Approving a request that asks
+  for `statistics:read` as a non-staff user gets the same `400 scope_staff_only`, and the
+  request stays `open`. See
+  [ApiToken](api-token.md#scoped-device-authorization).
 - **Staff re-checked on every request.** `staff/statistics/export.json` declares
   `@token_scopes(GET=['statistics:read'])` and calls `require_staff` on the token's owner on
   every request. A staff owner demoted after the token was granted keeps the scope on the
