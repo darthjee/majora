@@ -24,10 +24,13 @@ Each investigation lives in its own folder at the repository root, `investigatio
 
 Investigation folders are excluded from CI and are temporary: a folder is deleted once its
 investigation is solved, and any durable knowledge is moved to the relevant `docs/agents/` page
-first. The exclusion is declared in two places: the `ignores` list of
+first. The exclusion is declared in three places: the `ignores` list of
 `.markdownlint-cli2.jsonc` and the top-level `exclude_paths` of `.codacy.yml`, both with the
-glob `investigations/**`; the other CI jobs are scoped to `backend/`, `frontend/`, `client/`, `proxy/` or
-`crawler/navi-extension/` and never see the folder.
+glob `investigations/**`, and the `Set folder` step of the CircleCI `checks` job, which deletes
+`investigations/` before `ruff check .` and `bin/reports.sh ci` (xenon) scan the repository
+root. The pytest jobs run inside `backend/`, and the frontend jobs lint only `assets/` and
+`specs/`; the `client`, `proxy` and `crawler` jobs are scoped to their own folders. None of
+these jobs see the folder.
 
 The agent also takes part in the analysis (code review, findings write-up) alongside the
 architect.
