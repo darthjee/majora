@@ -14,6 +14,8 @@ Safety:
 Standard library only.
 """
 
+from __future__ import annotations
+
 import argparse
 import json
 import os
@@ -521,6 +523,481 @@ def self_pollution_check(reader, window):
 
 
 # ---------------------------------------------------------------------------
+# Page request lists (from the frontend, see README "Refresh-burst request list")
+# ---------------------------------------------------------------------------
+
+SLUG = '<slug>'  # placeholder: the real slug is substituted at send time, never reported
+SKIP_CACHE = {'X-Skip-Cache': 'true'}
+
+
+@dataclass(frozen=True)
+class PageCall:
+    """One API call a page fires, as the frontend sends it.
+
+    `label` is the masked form used in reports. `backend` is False for calls Tent serves
+    itself (static rules), which never reach Django and so never touch statistics.
+    """
+
+    method: str
+    label: str
+    headers: tuple = ()
+    backend: bool = True
+
+    def path(self, slug):
+        """Return the real path for `slug`."""
+        return self.label.replace(SLUG, urllib.parse.quote(slug, safe=''))
+
+
+# Fired by every page load (app boot), in parallel:
+APP_BOOT = (
+    # AppController constructor -> AccessRouteConfigStore.load() -> AccessRouteConfigClient
+    PageCall('GET', '/access-route-config.json'),
+    # HeaderController.checkStatus() -> AuthClient#headerStatus (skip-cache endpoint)
+    PageCall('GET', '/users/header_status.json', tuple(SKIP_CACHE.items())),
+    # HeaderController.fetchDomainConfig() -> DomainClient#config (Tent static rule)
+    PageCall('GET', '/domain/config.json', backend=False),
+)
+# Fired by the game page (#/games/<slug>):
+GAME_PAGE = (
+    # GameController -> RequestStore 'game' single -> GET /games/<slug>.json
+    PageCall('GET', f'/games/{SLUG}.json'),
+    # GameController#renderGame -> AccessStore.ensureGameAccess (`/access.json`: skip-cache)
+    PageCall('GET', f'/games/{SLUG}/access.json', tuple(SKIP_CACHE.items())),
+    # GameController#renderGame -> AccessStore.ensureGamePermissions (no role: skip-cache)
+    PageCall('GET', '/permissions/game.json', tuple(SKIP_CACHE.items())),
+)
+# A refresh of a game page: every call above at once.
+REFRESH_BURST = APP_BOOT + GAME_PAGE
+# Games list page.
+GAMES_LIST = (PageCall('GET', '/games.json'),)
+
+# Mixed handlers (hypothesis 1): standard `.json` rule vs Tent custom handlers. Only
+# anonymous requests that the backend refuses (4xx) or that are pure reads; the cache-clear
+# route (`DELETE /staff/cache/disk.json`) is never called.
+STANDARD_CALLS = (
+    PageCall('GET', '/users/header_status.json', tuple(SKIP_CACHE.items())),
+    PageCall('GET', f'/games/{SLUG}.json'),
+)
+CUSTOM_HANDLER_CALLS = (
+    # rules/cache.php: CacheSizeHandler (read; anonymous is refused by the backend)
+    PageCall('GET', '/staff/cache/size.json'),
+    # rules/delete.php: DeleteHandler, anonymous, id 0 never exists -> 4xx, nothing deleted
+    PageCall('DELETE', f'/games/{SLUG}/pcs/0/photos/0.json'),
+    # rules/uploads.php: UploadHandler, anonymous, no file, id 0 -> 4xx, nothing stored
+    PageCall('POST', '/uploads/image/0/submit'),
+)
+
+# IP change (hypothesis 3): documentation-only addresses (RFC 5737).
+IP_A = '192.0.2.10'
+IP_B = '198.51.100.20'
+DOC_NETWORKS = ('192.0.2.', '198.51.100.', '203.0.113.')
+# Host change (hypothesis 4): the same local proxy under two host names.
+HOST_A = 'localhost:3000'
+HOST_B = '127.0.0.1:3000'
+
+# Pause between a scenario's setup and its window, and between scenarios, so the
+# one-second window slack never captures another scenario's sessions.
+GAP_SECONDS = 2.5
+
+
+# ---------------------------------------------------------------------------
+# Scenarios
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class Expect:
+    """Creation reasons a scenario expects inside its window.
+
+    `exact`: reason -> exact count; `at_most`: reason -> upper bound. Any reason not listed
+    must not appear. An empty `Expect()` means "no new session".
+    """
+
+    exact: dict = field(default_factory=dict)
+    at_most: dict = field(default_factory=dict)
+    text: str = ''
+
+
+@dataclass
+class Context:
+    """What scenarios share: configuration, secrets, the untracked client, test data."""
+
+    config: Config
+    secrets: Secrets
+    client: SelfClient
+    game_slug: str = 'unknown-game'
+    login_username: str = ''
+    login_password: str = ''
+    _login_token: str = None
+
+    def __repr__(self):
+        """Never show secrets, passwords or tokens."""
+        return '<Context (secrets hidden)>'
+
+    @property
+    def can_login(self):
+        """Return whether local test credentials are configured."""
+        return bool(self.login_username and self.login_password)
+
+    def side_login_token(self):
+        """Return a login token obtained by an untracked request (memory only)."""
+        if self._login_token is None:
+            response = self.client.request(
+                'POST', '/users/login.json', headers=SKIP_CACHE,
+                body={'username': self.login_username, 'password': self.login_password},
+            )
+            token = (response.json() or {}).get('token')
+            if response.status != 200 or not token:
+                raise Refused(f'local test login failed (HTTP {response.status}).')
+            self._login_token = token
+        return self._login_token
+
+
+@dataclass
+class ScenarioResult:
+    """What one scenario did: its window, its requests and any notes or skip reason."""
+
+    name: str
+    hypothesis: str
+    expect: Expect
+    window: Window = None
+    responses: list = field(default_factory=list)
+    notes: list = field(default_factory=list)
+    skipped: str = None
+    sessions: list = field(default_factory=list)
+
+
+class Scenario:
+    """Base scenario: optional setup (outside the window), then `run` inside the window."""
+
+    name = ''
+    hypothesis = '-'
+    expect = Expect()
+
+    def skip_reason(self, ctx):
+        """Return why the scenario cannot run here, or `None`."""
+        return None
+
+    def setup(self, ctx, browser, result):
+        """Prepare state (e.g. an existing cookie) before the window opens."""
+
+    def run(self, ctx, browser, result):
+        """Send the scenario's requests inside the window."""
+        raise NotImplementedError
+
+    def after(self, ctx, result):
+        """Add notes once the window's sessions are known."""
+
+    # -- helpers ----------------------------------------------------------------
+
+    @staticmethod
+    def visit(ctx, browser, calls, headers=None, host=None, target='proxy'):
+        """Fire `calls` one after the other (sequential navigation)."""
+        return [
+            browser.request(call.method, call.path(ctx.game_slug),
+                            headers={**dict(call.headers), **(headers or {})},
+                            host=host, target=target, label=call.label)
+            for call in calls
+        ]
+
+    @staticmethod
+    def refresh(ctx, browser, calls, headers=None):
+        """Fire `calls` at once (page refresh); responses come back in arrival order."""
+        return browser.burst([
+            {'method': call.method, 'path': call.path(ctx.game_slug), 'label': call.label,
+             'headers': {**dict(call.headers), **(headers or {})}}
+            for call in calls
+        ])
+
+
+def _auth(token):
+    """Return the frontend's authentication header for a legacy login token."""
+    return {'Authorization': f'Token {token}'}
+
+
+def _backend_calls(calls):
+    return sum(1 for call in calls if call.backend)
+
+
+class FirstVisit(Scenario):
+    """A first visit with no cookie: the app boot then a game page, sequentially."""
+
+    name = 'first_visit'
+    expect = Expect(exact={'no_cookie': 1}, text='one no_cookie session')
+
+    def run(self, ctx, browser, result):
+        self.visit(ctx, browser, APP_BOOT + GAME_PAGE)
+
+
+class SequentialNavigation(Scenario):
+    """Navigation with an existing cookie: every request reuses the session."""
+
+    name = 'sequential_navigation'
+    expect = Expect(text='the same session reused; no new session')
+
+    def setup(self, ctx, browser, result):
+        self.visit(ctx, browser, APP_BOOT[:2])
+
+    def run(self, ctx, browser, result):
+        self.visit(ctx, browser, GAMES_LIST + GAME_PAGE + GAMES_LIST + GAME_PAGE)
+
+
+class RefreshBurstNoCookie(Scenario):
+    """Refresh of a game page with no cookie: every request races to create a session."""
+
+    name = 'refresh_burst_no_cookie_anonymous'
+    hypothesis = '2a'
+    expect = Expect(
+        exact={'no_cookie': _backend_calls(REFRESH_BURST)},
+        text='one no_cookie session per parallel request reaching the backend',
+    )
+
+    def run(self, ctx, browser, result):
+        self.refresh(ctx, browser, REFRESH_BURST)
+
+    def after(self, ctx, result):
+        if len({r['set_statistics_cookie'] for r in result.responses}) > 1:
+            result.notes.append('only some burst responses set the statistics cookie '
+                                '(cached by Tent or not tracked?)')
+
+
+class RefreshBurstWithCookie(Scenario):
+    """Refresh of a game page carrying an existing anonymous cookie."""
+
+    name = 'refresh_burst_with_cookie_anonymous'
+    hypothesis = '2c'
+    expect = Expect(text='the existing session reused; no new session')
+
+    def setup(self, ctx, browser, result):
+        self.visit(ctx, browser, APP_BOOT[:2])
+
+    def run(self, ctx, browser, result):
+        self.refresh(ctx, browser, REFRESH_BURST)
+        # The next page load uses whatever cookie the last-arriving response left.
+        self.visit(ctx, browser, APP_BOOT[:2])
+
+
+class RefreshBurstLoggedIn(Scenario):
+    """Refresh while logged in (frontend token) but carrying an anonymous cookie.
+
+    The token comes from an untracked side login, so the jar keeps its anonymous statistics
+    cookie, as when the frontend still holds a token after the cookie was reset. Each
+    authenticated request of the burst may rotate that same anonymous session.
+    """
+
+    name = 'refresh_burst_with_cookie_logged_in'
+    hypothesis = '2b'
+    expect = Expect(at_most={'login_rotation': 1}, text='at most one login_rotation session')
+
+    def skip_reason(self, ctx):
+        if not ctx.can_login:
+            return 'MAJORA_LOGIN_USERNAME / MAJORA_LOGIN_PASSWORD not set'
+        return None
+
+    def setup(self, ctx, browser, result):
+        self.visit(ctx, browser, APP_BOOT[:2])
+        ctx.side_login_token()
+
+    def run(self, ctx, browser, result):
+        headers = _auth(ctx.side_login_token())
+        self.refresh(ctx, browser, REFRESH_BURST, headers=headers)
+        self.visit(ctx, browser, APP_BOOT[:2], headers=headers)
+
+
+class MixedHandlers(Scenario):
+    """Standard-rule requests interleaved with Tent custom-handler requests, one cookie jar."""
+
+    name = 'mixed_handlers'
+    hypothesis = '1'
+    expect = Expect(text='no new session (an ip_changed session confirms hypothesis 1)')
+
+    def setup(self, ctx, browser, result):
+        self.visit(ctx, browser, STANDARD_CALLS[:1])
+        if not ctx.secrets.available(Secrets.PROXY):
+            result.notes.append(
+                'PROXY_SECRET is not set: if Tent and the backend also run without it, every '
+                'request records the proxy IP, so this scenario cannot show an IP flip.'
+            )
+
+    def run(self, ctx, browser, result):
+        for standard, custom in zip(STANDARD_CALLS * 2, CUSTOM_HANDLER_CALLS + ('',)):
+            self.visit(ctx, browser, (standard,))
+            if custom:
+                self.visit(ctx, browser, (custom,))
+        self.visit(ctx, browser, STANDARD_CALLS)
+
+
+class LoginMidNavigation(Scenario):
+    """Anonymous navigation, then a login in the same browser, then navigation logged in."""
+
+    name = 'login_mid_navigation'
+    hypothesis = '2b'
+    expect = Expect(exact={'login_rotation': 1}, text='one login_rotation session')
+
+    def skip_reason(self, ctx):
+        if not ctx.can_login:
+            return 'MAJORA_LOGIN_USERNAME / MAJORA_LOGIN_PASSWORD not set'
+        return None
+
+    def setup(self, ctx, browser, result):
+        self.visit(ctx, browser, APP_BOOT + GAME_PAGE)
+
+    def run(self, ctx, browser, result):
+        response = browser.request(
+            'POST', '/users/login.json', headers=SKIP_CACHE, label='/users/login.json',
+            body={'username': ctx.login_username, 'password': ctx.login_password},
+        )
+        token = (response.json() or {}).get('token')
+        if response.status != 200 or not token:
+            result.notes.append(f'login failed (HTTP {response.status})')
+            return
+        self.visit(ctx, browser, APP_BOOT + GAME_PAGE, headers=_auth(token))
+
+
+class IpChange(Scenario):
+    """The client IP changes mid-navigation (sent straight to the backend).
+
+    Tent's `SetClientIpMiddleware` overwrites `X-Forwarded-For`, so these requests go to the
+    backend directly with `X-Proxy-Secret` and an `X-Forwarded-For` from the RFC 5737
+    documentation ranges.
+    """
+
+    name = 'ip_change'
+    hypothesis = '3'
+    expect = Expect(exact={'ip_changed': 1}, text='one ip_changed session')
+
+    def skip_reason(self, ctx):
+        if not ctx.secrets.available(Secrets.PROXY):
+            return 'PROXY_SECRET not set (it must match the backend\'s)'
+        return None
+
+    def _headers(self, ctx, ip):
+        return {'X-Proxy-Secret': ctx.secrets.require(Secrets.PROXY, 'the IP change scenario'),
+                'X-Forwarded-For': ip}
+
+    def setup(self, ctx, browser, result):
+        self.visit(ctx, browser, APP_BOOT[:2], headers=self._headers(ctx, IP_A),
+                   target='backend')
+
+    def run(self, ctx, browser, result):
+        self.visit(ctx, browser, APP_BOOT[:2], headers=self._headers(ctx, IP_A),
+                   target='backend')
+        self.visit(ctx, browser, APP_BOOT[:2] + GAME_PAGE, headers=self._headers(ctx, IP_B),
+                   target='backend')
+
+    def after(self, ctx, result):
+        if result.sessions and not any(
+            (s.get('ip') or '').startswith(DOC_NETWORKS) for s in result.sessions
+        ):
+            result.notes.append('no session carries a documentation IP: the backend did not '
+                                'trust X-Forwarded-For (PROXY_SECRET mismatch?)')
+
+
+class HostChange(Scenario):
+    """The same cookie sent to the local proxy under two host names.
+
+    Django sets the statistics cookie host-only (no `Domain`), so a browser would not send it
+    from `localhost` to `127.0.0.1`. The jar carries it on purpose, emulating a cookie that
+    reaches another host of the same site (e.g. a `www.` variant).
+    """
+
+    name = 'host_change'
+    hypothesis = '4'
+    expect = Expect(exact={'domain_changed': 1}, text='one domain_changed session')
+
+    def setup(self, ctx, browser, result):
+        self.visit(ctx, browser, APP_BOOT[:2], host=HOST_A)
+        result.notes.append('the cookie is carried to the second host on purpose '
+                            '(a browser would not send a host-only cookie there)')
+
+    def run(self, ctx, browser, result):
+        self.visit(ctx, browser, APP_BOOT[:2], host=HOST_A)
+        self.visit(ctx, browser, APP_BOOT[:2] + GAME_PAGE, host=HOST_B)
+
+    def after(self, ctx, result):
+        if result.sessions and all(
+            (s.get('domain') or {}).get('id') == 'unknown' for s in result.sessions
+        ):
+            result.notes.append('every session has an unknown domain: register localhost or '
+                                '127.0.0.1 as a local Domain, otherwise both hosts resolve to '
+                                'no domain and the session is reused')
+
+
+SCENARIOS = (
+    FirstVisit(),
+    SequentialNavigation(),
+    RefreshBurstNoCookie(),
+    RefreshBurstWithCookie(),
+    RefreshBurstLoggedIn(),
+    MixedHandlers(),
+    LoginMidNavigation(),
+    IpChange(),
+    HostChange(),
+)
+
+
+def summarize_response(response, origin):
+    """Return the reportable facts of one response (masked path, no cookie values)."""
+    return {
+        'request': f'{response.method} {response.label}',
+        'status': response.status,
+        'arrival_order': response.arrival_seq,
+        'sent_ms': round((response.sent_at - origin) * 1000),
+        'arrived_ms': round((response.arrived_at - origin) * 1000),
+        'set_statistics_cookie': any(
+            header.split('=', 1)[0].strip() == STATISTICS_COOKIE
+            for header in response.set_cookies
+        ),
+        'cache': response.header('x-cache') or response.header('x-tent-cache'),
+    }
+
+
+def run_scenario(ctx, scenario, out=sys.stdout):
+    """Run one scenario with a fresh browser; return its `ScenarioResult` (no sessions yet)."""
+    result = ScenarioResult(scenario.name, scenario.hypothesis, scenario.expect)
+    result.skipped = scenario.skip_reason(ctx)
+    if result.skipped:
+        print(f'- {scenario.name}: skipped ({result.skipped})', file=out, flush=True)
+        return result
+    browser = Browser(ctx.config, ctx.secrets, name=scenario.name)
+    scenario.setup(ctx, browser, result)
+    time.sleep(GAP_SECONDS)
+    setup_count = len(browser.responses)
+    result.window = Window.open_now()
+    origin = time.time()
+    scenario.run(ctx, browser, result)
+    result.window.close()
+    result.responses = [
+        summarize_response(response, origin) for response in browser.responses[setup_count:]
+    ]
+    print(f'- {scenario.name}: {len(result.responses)} request(s) sent', file=out, flush=True)
+    time.sleep(GAP_SECONDS)
+    return result
+
+
+def discover_game_slug(ctx):
+    """Return a local game slug (`MAJORA_GAME_SLUG`, else the first listed game)."""
+    slug = os.environ.get('MAJORA_GAME_SLUG')
+    if slug:
+        return slug
+    response = ctx.client.request('GET', '/games.json', headers=SKIP_CACHE)
+    games = response.json() if response.status == 200 else None
+    if isinstance(games, list) and games and games[0].get('slug'):
+        return games[0]['slug']
+    return 'unknown-game'
+
+
+def run_scenarios(ctx, out=sys.stdout):
+    """Run the selected scenarios sequentially; return their results."""
+    selected = [s for s in SCENARIOS if not ctx.config.scenarios or s.name in ctx.config.scenarios]
+    unknown = set(ctx.config.scenarios) - {s.name for s in SCENARIOS}
+    if unknown:
+        raise Refused(f'unknown scenario(s): {", ".join(sorted(unknown))}')
+    print(f'Running {len(selected)} scenario(s) against the local stack...', file=out, flush=True)
+    return [run_scenario(ctx, scenario, out) for scenario in selected]
+
+
+# ---------------------------------------------------------------------------
 # Configuration and entry point
 # ---------------------------------------------------------------------------
 
@@ -588,6 +1065,27 @@ def authorize(config, secrets):
     return client, reader, self_pollution_check(reader, window)
 
 
+def build_context(config, secrets, client):
+    """Return the scenarios' shared context (test credentials from the environment only)."""
+    ctx = Context(
+        config=config, secrets=secrets, client=client,
+        login_username=os.environ.get('MAJORA_LOGIN_USERNAME', ''),
+        login_password=os.environ.get('MAJORA_LOGIN_PASSWORD', ''),
+    )
+    ctx.game_slug = discover_game_slug(ctx)
+    return ctx
+
+
+def collect_sessions(ctx, reader, results):
+    """Read each scenario's sessions through the export, then run its `after` checks."""
+    by_name = {scenario.name: scenario for scenario in SCENARIOS}
+    for result in results:
+        if result.skipped:
+            continue
+        result.sessions = reader.sessions(result.window)
+        by_name[result.name].after(ctx, result)
+
+
 def main(argv=None):
     """Entry point."""
     try:
@@ -598,10 +1096,13 @@ def main(argv=None):
             print('Dry run: configuration is local-only and the skip secret is present. '
                   f'{Secrets.PROXY} present: {secrets.available(Secrets.PROXY)}.')
             return 0
-        _client, _reader, self_check = authorize(config, secrets)
+        client, reader, self_check = authorize(config, secrets)
         print(f'Self-pollution check: {"ok" if self_check["ok"] else "FAILED"} '
               f'({self_check["self_sessions"]} session(s), {self_check["self_visits"]} '
               'visit(s) from the script\'s own routes).')
+        ctx = build_context(config, secrets, client)
+        results = run_scenarios(ctx)
+        collect_sessions(ctx, reader, results)
         return 0
     except Refused as error:
         print(f'Refused: {error}', file=sys.stderr)
