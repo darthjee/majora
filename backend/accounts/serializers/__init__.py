@@ -7,6 +7,7 @@ from accounts.serializers.api_token.rename import ApiTokenRenameSerializer
 from accounts.serializers.auth.my_account_detail import MyAccountDetailSerializer
 from accounts.serializers.auth.my_account_update import MyAccountUpdateSerializer
 from accounts.serializers.authorization_request.list import AuthorizationRequestListSerializer
+from accounts.serializers.authorization_request.scopes import AuthorizationRequestScopesSerializer
 
 __all__ = [
     'ApiTokenCreateSerializer',
@@ -14,6 +15,7 @@ __all__ = [
     'ApiTokenItemSerializer',
     'ApiTokenRenameSerializer',
     'AuthorizationRequestListSerializer',
+    'AuthorizationRequestScopesSerializer',
     'MyAccountDetailSerializer',
     'MyAccountUpdateSerializer',
 ]

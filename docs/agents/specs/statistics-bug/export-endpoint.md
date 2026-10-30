@@ -3,10 +3,10 @@
 Part of the [Statistics Bug](../statistics-bug.md) specs (Epic #1696).
 
 *Planned by #1699 (backend), #1700 (frontend) and #1708 (device authorization).* The scope,
-the access matrix, the endpoint and its caching and tracking rules are implemented by #1699;
-the [Device authorization](#device-authorization) changes (#1708) and the
-[Frontend](#frontend-1700) (#1700) are not yet. It is the contract those sub-issues implement
-and test; if they have to deviate, they update this page in the same PR.
+the access matrix, the endpoint and its caching and tracking rules are implemented by #1699,
+the [Frontend](#frontend-1700) by #1700 and the [Device authorization](#device-authorization)
+changes by #1708. It is the contract those sub-issues implement and test; if they have to
+deviate, they update this page in the same PR.
 
 ## Scope
 
@@ -117,10 +117,10 @@ The `analyse.py` script (see [Scripts](scripts.md)) gets its token through the
 device-authorization flow: it creates and polls `users/authorization_requests.json`, and a staff
 user approves it at `account/authorization_requests/<uuid>/authorize.json`.
 
-Today that flow issues a legacy DRF `Token` and a browser session (`_issue_login_credentials`
-in `backend/accounts/views/authorization_requests/poll.py`), with full staff powers, including
-the `DELETE` clear. That would defeat the read-only design, so #1708 extends it (#1699 only
-adds the scope and the endpoint):
+Before #1708 that flow issued a legacy DRF `Token` and a browser session
+(`_issue_login_credentials` in `backend/accounts/views/authorization_requests/poll.py`), with
+full staff powers, including the `DELETE` clear. That would have defeated the read-only design,
+so #1708 extended it (#1699 only adds the scope and the endpoint):
 
 - an authorization request carries the requested scopes, validated at creation against the
   scope catalogue (known `family:action` values only, a bounded list, `400` otherwise), since
@@ -130,7 +130,12 @@ adds the scope and the endpoint):
   approver (see [Scope](#scope));
 - polling an approved request that asked for scopes issues an `mjr_` scoped `ApiToken` with
   exactly those scopes, never a legacy `Token` or a session;
-- requests without scopes keep today's behaviour.
+- requests without scopes keep the legacy behaviour (legacy `Token`, session).
+
+*Implemented by #1708:* the token is named `Device authorization <YYYY-MM-DD> — <browser>`
+(cut to the 100-character token name limit), expires 24 hours after issuing and has no
+per-game restriction. Details in
+[ApiToken](../../access-control/api-token.md#scoped-device-authorization).
 
 ## Frontend (#1700)
 

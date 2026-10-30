@@ -8,6 +8,8 @@ from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
 
 from accounts.models import AuthorizationRequest
+from accounts.serializers import AuthorizationRequestScopesSerializer
+from games.views.common import validated_or_error
 
 from ._shared import MISSING_IDENTIFIER_ERROR, client_ip, skip_cache
 
@@ -30,18 +32,24 @@ def create(request):
     (with `user=None`) so that timing/behavior is indistinguishable, but it can never leave
     `open` since there is no matching user to approve or deny it from. A missing/blank
     identifier is a client error, not an enumeration concern, so it is rejected with 422.
+
+    The optional `scopes` list (catalogue values, no duplicates) is validated before the user
+    lookup, so an invalid list gets the same `400` whether or not the identifier matches.
     """
     identifier = request.data.get('username', '')
     if not identifier:
         return skip_cache(Response(MISSING_IDENTIFIER_ERROR, status=422))
 
-    user = User.objects.filter(Q(username__iexact=identifier) | Q(email__iexact=identifier)).first()
-    # Truncated to fit AuthorizationRequest.browser's CharField(max_length=255): an oversized
-    # User-Agent header must not be able to trigger a DB-level error here.
-    browser = request.META.get('HTTP_USER_AGENT', '')[:255]
+    scopes_serializer = AuthorizationRequestScopesSerializer(data=request.data)
+    error_response = validated_or_error(scopes_serializer)
+    if error_response:
+        return skip_cache(error_response)
 
     authorization_request, raw_token = AuthorizationRequest.create_with_token(
-        user=user, ip=client_ip(request), browser=browser,
+        user=_find_user(identifier),
+        ip=client_ip(request),
+        browser=_browser(request),
+        scopes=scopes_serializer.validated_data['scopes'],
     )
 
     payload = {
@@ -50,3 +58,16 @@ def create(request):
         'token': raw_token,
     }
     return skip_cache(Response(payload, status=201))
+
+
+def _find_user(identifier):
+    """Return the user whose username or email matches `identifier`, or `None`."""
+    return User.objects.filter(Q(username__iexact=identifier) | Q(email__iexact=identifier)).first()
+
+
+def _browser(request):
+    """Return the request's User-Agent, truncated to fit `AuthorizationRequest.browser`.
+
+    An oversized User-Agent header must not be able to trigger a DB-level error here.
+    """
+    return request.META.get('HTTP_USER_AGENT', '')[:255]

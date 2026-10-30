@@ -166,6 +166,40 @@ error in a list is keyed by its position (`{"errors": {"scopes": {"1": ["max_len
 
 A form-encoded body gets `415`.
 
+## Scoped device authorization
+
+Besides `POST /account/api_tokens.json`, a token can be issued by the device-authorization
+flow (`backend/accounts/views/authorization_requests/`), used by automation such as the
+`analyse.py` statistics script (#1708):
+
+- **Create** (`POST /users/authorization_requests.json`, unauthenticated) takes an optional
+  `scopes` list, stored on `AuthorizationRequest.scopes`. Missing or `[]` is a plain login
+  request. Otherwise every entry must be a catalogue value, with no duplicates and no more
+  entries than the catalogue: anything else gets `400 {"errors": {"scopes": [...]}}` with
+  `not_a_list`, `null`, `invalid_scope`, `duplicate_scope` or `max_length`
+  (`AuthorizationRequestScopesSerializer`). Since the requester is anonymous, this is the only
+  guard on the stored values; it runs before the user lookup, so the response stays
+  enumeration-safe. Staff-only scopes are not checked here.
+- **List** (`GET /account/authorization_requests.json`) returns each request's stored `scopes`,
+  so the approval screen only ever shows catalogue labels.
+- **Approve** (`PATCH /account/authorization_requests/<uuid>/authorize.json`): after the
+  password check, a request asking for a staff-only scope (`statistics:read`) approved by a
+  non-staff user gets `400 {"errors": {"scopes": ["scope_staff_only"]}}` and stays `open`, so it
+  can still be denied.
+- **Poll** (`GET /users/authorization_requests/<uuid>.json`): once approved, a request with
+  scopes yields `202 {"status": "approved", "token": "mjr_…"}`, issued by
+  `DeviceAuthorizationToken` (`backend/accounts/device_authorization_token.py`) through
+  `ApiToken.objects.create_token`:
+  - exactly the requested scopes, no per-game restriction;
+  - `expires_at` 24 hours after issuing (`SCOPED_TOKEN_LIFETIME`);
+  - named `Device authorization <YYYY-MM-DD> — <browser>` (just the date when the browser is
+    blank), cut to the 100-character name limit, so it can be renamed or revoked from the token
+    list like any other token;
+  - never a legacy `Token`, never the browser session, never a statistics session.
+
+  The plain token is returned once by that poll and only its hash is stored. A request without
+  scopes keeps the legacy behaviour (DRF `Token`, session and statistics session).
+
 ## Secret handling, logging and audit
 
 - `ApiToken` has no `HistoricalRecords` and is not registered in the Django admin, so the hash

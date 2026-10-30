@@ -151,3 +151,76 @@ class TestAuthorizationRequestAuthorizeView(TokenAuthRequestMixin):
             token=self.token,
         )
         assert response['X-Skip-Cache'] == 'true'
+
+
+@pytest.mark.django_db
+class TestAuthorizationRequestAuthorizeScopes(TokenAuthRequestMixin):
+    """Tests for the staff-only scope check of the authorize endpoint."""
+
+    def setup_method(self):
+        """Set up a staff user and a non-staff user, each with a token."""
+        self.staff = UserFactory(username='staff', password=TEST_PASSWORD, is_staff=True)
+        self.staff_token = Token.objects.create(user=self.staff)
+        self.player = UserFactory(username='player', password=TEST_PASSWORD)
+        self.player_token = Token.objects.create(user=self.player)
+
+    def _authorize(self, client, user, token, scopes):
+        """Create a request for `user` asking for `scopes`, approve it; return both."""
+        authorization_request, _ = AuthorizationRequest.create_with_token(
+            user=user, ip='1.2.3.4', browser='test-agent', scopes=scopes,
+        )
+        response = self.patch(
+            client, _authorize_url(authorization_request), {'password': TEST_PASSWORD},
+            token=token,
+        )
+        authorization_request.refresh_from_db()
+        return response, authorization_request
+
+    def test_staff_approves_a_statistics_read_request(self, client):
+        """Test that a staff user approves a statistics:read request."""
+        response, authorization_request = self._authorize(
+            client, self.staff, self.staff_token, ['statistics:read'],
+        )
+        assert response.status_code == 202
+        assert authorization_request.status == AuthorizationRequest.STATUS_APPROVED
+
+    def test_non_staff_gets_scope_staff_only(self, client):
+        """Test that a non-staff user approving statistics:read gets 400 scope_staff_only."""
+        response, _ = self._authorize(
+            client, self.player, self.player_token, ['statistics:read'],
+        )
+        assert response.status_code == 400
+        assert response.json() == {'errors': {'scopes': ['scope_staff_only']}}
+
+    def test_non_staff_rejection_keeps_the_request_open(self, client):
+        """Test that a rejected staff-only approval leaves the request open."""
+        _, authorization_request = self._authorize(
+            client, self.player, self.player_token, ['games:read', 'statistics:read'],
+        )
+        assert authorization_request.status == AuthorizationRequest.STATUS_OPEN
+
+    def test_non_staff_rejection_returns_skip_cache_header(self, client):
+        """Test that the scope_staff_only response includes the X-Skip-Cache header."""
+        response, _ = self._authorize(
+            client, self.player, self.player_token, ['statistics:read'],
+        )
+        assert response['X-Skip-Cache'] == 'true'
+
+    def test_non_staff_approves_non_staff_scopes(self, client):
+        """Test that a non-staff user approves a request with only non-staff scopes."""
+        response, authorization_request = self._authorize(
+            client, self.player, self.player_token, ['games:read'],
+        )
+        assert response.status_code == 202
+        assert authorization_request.status == AuthorizationRequest.STATUS_APPROVED
+
+    def test_wrong_password_is_checked_before_scopes(self, client):
+        """Test that a wrong password still returns 401 for a staff-only request."""
+        authorization_request, _ = AuthorizationRequest.create_with_token(
+            user=self.player, ip='1.2.3.4', browser='test-agent', scopes=['statistics:read'],
+        )
+        response = self.patch(
+            client, _authorize_url(authorization_request), {'password': 'wrong-password'},
+            token=self.player_token,
+        )
+        assert response.status_code == 401
