@@ -31,9 +31,9 @@ class TestAuthorizationRequestListSerializer(TestCase):
         assert data['browser'] == 'test-agent'
 
     def test_only_exposes_the_documented_fields(self):
-        """Test that exactly uuid/created_at/status/ip/browser are exposed."""
+        """Test that exactly uuid/created_at/status/ip/browser/scopes are exposed."""
         data = AuthorizationRequestListSerializer(self.instance).data
-        assert set(data.keys()) == {'uuid', 'created_at', 'status', 'ip', 'browser'}
+        assert set(data.keys()) == {'uuid', 'created_at', 'status', 'ip', 'browser', 'scopes'}
 
     def test_never_exposes_id(self):
         """Test that the internal numeric id is never exposed."""
@@ -54,3 +54,8 @@ class TestAuthorizationRequestListSerializer(TestCase):
         data = AuthorizationRequestListSerializer(self.instance).data
         assert 'user' not in data
         assert 'user_id' not in data
+
+    def test_serializes_scopes(self):
+        """Test that the stored scopes are serialized ([] for a plain request)."""
+        data = AuthorizationRequestListSerializer(self.instance).data
+        assert data['scopes'] == []

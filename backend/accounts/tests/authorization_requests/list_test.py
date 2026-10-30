@@ -56,12 +56,28 @@ class TestAuthorizationRequestListView(TokenAuthRequestMixin):
         assert [row['uuid'] for row in data] == [str(second.uuid), str(first.uuid)]
 
     def test_row_shape_excludes_id_token_and_user(self, client):
-        """Test that each listed row exposes only uuid/created_at/status/ip/browser."""
+        """Test that each listed row exposes only uuid/created_at/status/ip/browser/scopes."""
         AuthorizationRequest.create_with_token(user=self.user, ip='1.2.3.4', browser='mine')
 
         response = self.get(client, LIST_URL, token=self.token)
         data = json.loads(response.content)
-        assert set(data[0].keys()) == {'uuid', 'created_at', 'status', 'ip', 'browser'}
+        assert set(data[0].keys()) == {'uuid', 'created_at', 'status', 'ip', 'browser', 'scopes'}
+
+    def test_returns_empty_scopes_for_a_plain_request(self, client):
+        """Test that a request without scopes is listed with an empty scopes list."""
+        AuthorizationRequest.create_with_token(user=self.user, ip='1.2.3.4', browser='mine')
+
+        response = self.get(client, LIST_URL, token=self.token)
+        assert json.loads(response.content)[0]['scopes'] == []
+
+    def test_returns_the_stored_scopes(self, client):
+        """Test that a scoped request is listed with its stored scopes."""
+        AuthorizationRequest.create_with_token(
+            user=self.user, ip='1.2.3.4', browser='mine', scopes=['statistics:read'],
+        )
+
+        response = self.get(client, LIST_URL, token=self.token)
+        assert json.loads(response.content)[0]['scopes'] == ['statistics:read']
 
     def test_returns_skip_cache_header(self, client):
         """Test that the response includes the X-Skip-Cache: true header."""
