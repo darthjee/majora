@@ -756,9 +756,12 @@ class RefreshBurstNoCookie(Scenario):
         self.refresh(ctx, browser, REFRESH_BURST)
 
     def after(self, ctx, result):
-        if len({r['set_statistics_cookie'] for r in result.responses}) > 1:
-            result.notes.append('only some burst responses set the statistics cookie '
-                                '(cached by Tent or not tracked?)')
+        setting = sum(1 for r in result.responses if r['set_statistics_cookie'])
+        expected = _backend_calls(REFRESH_BURST)
+        if setting < expected:
+            result.notes.append(f'only {setting} of the {expected} backend-bound burst '
+                                'responses set the statistics cookie (served from the Tent '
+                                'cache, or not tracked?)')
 
 
 class RefreshBurstWithCookie(Scenario):
@@ -915,7 +918,8 @@ class HostChange(Scenario):
         self.visit(ctx, browser, APP_BOOT[:2] + GAME_PAGE, host=HOST_B)
 
     def after(self, ctx, result):
-        if result.sessions and all(
+        reasons = {s.get('creation_reason') for s in result.sessions}
+        if 'domain_changed' not in reasons and all(
             (s.get('domain') or {}).get('id') == 'unknown' for s in result.sessions
         ):
             result.notes.append('every session has an unknown domain: register localhost or '
@@ -987,14 +991,184 @@ def discover_game_slug(ctx):
     return 'unknown-game'
 
 
-def run_scenarios(ctx, out=sys.stdout):
-    """Run the selected scenarios sequentially; return their results."""
-    selected = [s for s in SCENARIOS if not ctx.config.scenarios or s.name in ctx.config.scenarios]
-    unknown = set(ctx.config.scenarios) - {s.name for s in SCENARIOS}
+def select_scenarios(names):
+    """Return the scenarios named in `names` (all when empty); refuse unknown names."""
+    unknown = set(names) - {s.name for s in SCENARIOS}
     if unknown:
         raise Refused(f'unknown scenario(s): {", ".join(sorted(unknown))}')
+    return [s for s in SCENARIOS if not names or s.name in names]
+
+
+def run_scenarios(ctx, reader, out=sys.stdout):
+    """Run the selected scenarios sequentially, exporting each window right after it."""
+    selected = select_scenarios(ctx.config.scenarios)
     print(f'Running {len(selected)} scenario(s) against the local stack...', file=out, flush=True)
-    return [run_scenario(ctx, scenario, out) for scenario in selected]
+    results = []
+    for scenario in selected:
+        result = run_scenario(ctx, scenario, out)
+        if not result.skipped:
+            result.sessions = reader.sessions(result.window)
+            scenario.after(ctx, result)
+        results.append(result)
+    return results
+
+
+# ---------------------------------------------------------------------------
+# Report: expected vs actual creation reasons
+# ---------------------------------------------------------------------------
+
+MATCH, MISMATCH, SKIPPED = 'MATCH', 'MISMATCH', 'SKIPPED'
+
+
+def reason_counts(sessions):
+    """Return `{creation_reason: count}`; `NULL` reasons are counted as `null`."""
+    counts = {}
+    for session in sessions:
+        reason = session.get('creation_reason') or 'null'
+        counts[reason] = counts.get(reason, 0) + 1
+    return dict(sorted(counts.items()))
+
+
+def check_expectation(expect, actual):
+    """Return the list of mismatches between `expect` and the `actual` reason counts."""
+    mismatches = []
+    for reason, count in expect.exact.items():
+        if actual.get(reason, 0) != count:
+            mismatches.append(f'{reason}: expected {count}, got {actual.get(reason, 0)}')
+    for reason, bound in expect.at_most.items():
+        if actual.get(reason, 0) > bound:
+            mismatches.append(f'{reason}: expected at most {bound}, got {actual[reason]}')
+    allowed = set(expect.exact) | set(expect.at_most)
+    for reason, count in actual.items():
+        if reason not in allowed:
+            mismatches.append(f'{reason}: expected 0, got {count}')
+    return mismatches
+
+
+def _iso(moment):
+    return moment.isoformat().replace('+00:00', 'Z') if moment else None
+
+
+def session_entry(session):
+    """Return the reported fields of one exported session (no token: the export has none)."""
+    visits = session.get('visits') or []
+    return {
+        'id': session.get('id'),
+        'ip': session.get('ip'),
+        'domain': session.get('domain'),
+        'user_id': session.get('user_id'),
+        'created_at': session.get('created_at'),
+        'last_seen_at': session.get('last_seen_at'),
+        'creation_reason': session.get('creation_reason'),
+        'first_path': session.get('first_path'),
+        'first_seen_logged': session.get('first_seen_logged'),
+        'visit_count': len(visits),
+        'visits_truncated': session.get('visits_truncated'),
+        'visits': [
+            {key: visit.get(key) for key in
+             ('started_at', 'last_seen_at', 'hits', 'first_path', 'last_path')}
+            for visit in visits
+        ],
+    }
+
+
+def scenario_entry(result):
+    """Return the report entry of one scenario."""
+    entry = {
+        'name': result.name,
+        'hypothesis': result.hypothesis,
+        'expected': {'text': result.expect.text, 'exact': result.expect.exact,
+                     'at_most': result.expect.at_most},
+        'notes': list(result.notes),
+    }
+    if result.skipped:
+        return {**entry, 'status': SKIPPED, 'skipped': result.skipped}
+    actual = reason_counts(result.sessions)
+    mismatches = check_expectation(result.expect, actual)
+    start, end = result.window.widened()
+    return {
+        **entry,
+        'status': MISMATCH if mismatches else MATCH,
+        'actual': actual,
+        'mismatches': mismatches,
+        'window': {'start': _iso(result.window.start), 'end': _iso(result.window.end),
+                   'filtered_from': _iso(start), 'filtered_to': _iso(end)},
+        'requests': result.responses,
+        'sessions': [session_entry(session) for session in result.sessions],
+    }
+
+
+def build_report(config, started, auth_check, run_check, results):
+    """Return the machine-readable report (input for validating `analyse.py`, #1703)."""
+    scenarios = [scenario_entry(result) for result in results]
+    return {
+        'tool': 'investigations/statistics-bug/emulate.py',
+        'issue': 1702,
+        'started_at': _iso(started),
+        'finished_at': _iso(datetime.now(timezone.utc)),
+        'target': {'base_url': config.base_url, 'backend_url': config.backend_url,
+                   'host': config.host},
+        'window_slack_seconds': WINDOW_SLACK.total_seconds(),
+        'self_pollution': {'authorization': auth_check, 'run': run_check},
+        'summary': {status: sum(1 for s in scenarios if s['status'] == status)
+                    for status in (MATCH, MISMATCH, SKIPPED)},
+        'scenarios': scenarios,
+    }
+
+
+def _format_counts(counts):
+    return ', '.join(f'{reason}={count}' for reason, count in counts.items()) or 'none'
+
+
+def format_text(report):
+    """Return the text summary (no IPs, ids, tokens or secrets)."""
+    auth = report['self_pollution']['authorization']
+    run_check = report['self_pollution']['run']
+    lines = [
+        f'Statistics bug emulation — {report["started_at"]} (local stack)',
+        f'Self-pollution: authorization {"ok" if auth["ok"] else "FAILED"}, '
+        f'run {"ok" if run_check["ok"] else "FAILED"} '
+        f'({run_check["self_sessions"]} session(s) / {run_check["self_visits"]} visit(s) '
+        'on the script\'s own routes)',
+        '',
+        f'{"scenario":38} {"hyp":4} {"status":9} expected -> actual',
+    ]
+    for scenario in report['scenarios']:
+        expected = scenario['expected']['text']
+        if scenario['status'] == SKIPPED:
+            actual = f'(skipped: {scenario["skipped"]})'
+        else:
+            actual = _format_counts(scenario['actual'])
+        lines.append(f'{scenario["name"]:38} {scenario["hypothesis"]:4} '
+                     f'{scenario["status"]:9} {expected} -> {actual}')
+        for mismatch in scenario.get('mismatches', []):
+            lines.append(f'{"":53}! {mismatch}')
+        for session in scenario.get('sessions', []):
+            lines.append(
+                f'{"":53}- {session["creation_reason"] or "null"} '
+                f'first_path={session["first_path"]} logged={session["first_seen_logged"]} '
+                f'visits={session["visit_count"]}'
+            )
+        for note in scenario['notes']:
+            lines.append(f'{"":53}note: {note}')
+    summary = report['summary']
+    lines += ['', f'{summary[MATCH]} match, {summary[MISMATCH]} mismatch, '
+                  f'{summary[SKIPPED]} skipped. Mismatches are findings, not failures.']
+    return '\n'.join(lines)
+
+
+def write_reports(report, text, reports_dir):
+    """Write `emulate-<timestamp>.json` and `.txt` in the git-ignored reports folder."""
+    os.makedirs(reports_dir, exist_ok=True)
+    stamp = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')
+    json_path = os.path.join(reports_dir, f'emulate-{stamp}.json')
+    text_path = os.path.join(reports_dir, f'emulate-{stamp}.txt')
+    with open(json_path, 'w', encoding='utf-8') as handle:
+        json.dump(report, handle, indent=2)
+        handle.write('\n')
+    with open(text_path, 'w', encoding='utf-8') as handle:
+        handle.write(text + '\n')
+    return json_path, text_path
 
 
 # ---------------------------------------------------------------------------
@@ -1076,14 +1250,23 @@ def build_context(config, secrets, client):
     return ctx
 
 
-def collect_sessions(ctx, reader, results):
-    """Read each scenario's sessions through the export, then run its `after` checks."""
-    by_name = {scenario.name: scenario for scenario in SCENARIOS}
-    for result in results:
-        if result.skipped:
-            continue
-        result.sessions = reader.sessions(result.window)
-        by_name[result.name].after(ctx, result)
+def run(config, secrets, out=sys.stdout):
+    """Authorize, run every scenario (exporting its window right after it), report."""
+    started = datetime.now(timezone.utc)
+    client, reader, auth_check = authorize(config, secrets)
+    print(f'Self-pollution check (authorization): {"ok" if auth_check["ok"] else "FAILED"}',
+          file=out, flush=True)
+    ctx = build_context(config, secrets, client)
+    run_window = Window.open_now()
+    results = run_scenarios(ctx, reader, out)
+    run_window.close()
+    run_check = self_pollution_check(reader, run_window)
+    report = build_report(config, started, auth_check, run_check, results)
+    text = format_text(report)
+    print('\n' + text, file=out, flush=True)
+    for path in write_reports(report, text, config.reports_dir):
+        print(f'Report written: {path}', file=out, flush=True)
+    return report
 
 
 def main(argv=None):
@@ -1092,24 +1275,24 @@ def main(argv=None):
         config = parse_args(argv)
         secrets = Secrets()
         SelfClient(config, secrets)  # fails early when the skip secret is missing
+        select_scenarios(config.scenarios)  # fails early on an unknown scenario name
         if config.dry_run:
             print('Dry run: configuration is local-only and the skip secret is present. '
                   f'{Secrets.PROXY} present: {secrets.available(Secrets.PROXY)}.')
             return 0
-        client, reader, self_check = authorize(config, secrets)
-        print(f'Self-pollution check: {"ok" if self_check["ok"] else "FAILED"} '
-              f'({self_check["self_sessions"]} session(s), {self_check["self_visits"]} '
-              'visit(s) from the script\'s own routes).')
-        ctx = build_context(config, secrets, client)
-        results = run_scenarios(ctx)
-        collect_sessions(ctx, reader, results)
+        run(config, secrets)
+        # Mismatches are findings, not failures: a completed run exits 0.
         return 0
     except Refused as error:
         print(f'Refused: {error}', file=sys.stderr)
         return 2
     except AuthorizationFailed as error:
-        print(f'Authorization failed: {error}. No report written.', file=sys.stderr)
+        print(f'Authorization or export failed: {error}. No report written.', file=sys.stderr)
         return 3
+    except (urllib.error.URLError, OSError) as error:
+        print(f'Run failed (is the local stack up?): {error.__class__.__name__}: '
+              f'{getattr(error, "reason", error)}. No report written.', file=sys.stderr)
+        return 4
 
 
 if __name__ == '__main__':

@@ -134,5 +134,37 @@ others, which is the worst case for the race.
 
 ## Reports
 
-Reports are written to `reports/`, which is git-ignored. Anything copied from a report into the
-repository or an issue is aggregated or anonymised (see the Privacy spec).
+Each scenario's window is exported right after the scenario runs. A run writes, in the
+git-ignored `reports/` folder:
+
+- `emulate-<timestamp>.json` — machine-readable; the input `analyse.py` (#1703) is validated
+  against. Per scenario: `status` (`MATCH` / `MISMATCH` / `SKIPPED`), `expected`, `actual`
+  (creation reason counts, `null` for none), `mismatches`, `notes`, the `window` (and the
+  widened range actually filtered), the `requests` sent (masked paths, status, arrival order,
+  send/arrival offsets in ms, whether the response set the statistics cookie) and the
+  `sessions` created in the window: `id`, `ip`, `domain`, `user_id`, `created_at`,
+  `last_seen_at`, `creation_reason`, `first_path`, `first_seen_logged`, `visit_count`,
+  `visits_truncated` and `visits` (`started_at`, `last_seen_at`, `hits`, `first_path`,
+  `last_path`). It also holds the self-pollution checks.
+- `emulate-<timestamp>.txt` — the text summary also printed to stdout: one line per scenario
+  (`expected -> actual`), its mismatches (`!`), its sessions (reason, `first_path`, logged,
+  visit count) and notes. It shows no IP, id, token or secret.
+
+How to read it:
+
+- `MISMATCH` is a **finding**, not a failure: compare it with the scenario's hypothesis in
+  [Hypotheses](../../docs/agents/specs/statistics-bug/hypotheses.md).
+- **Window:** the export's timestamps are whole seconds, so sessions are kept when their
+  `created_at` falls in the scenario window widened by one second on each side (the 2.5-second
+  pauses keep neighbouring scenarios out).
+- **Self-pollution:** the script's own requests (authorization create/poll, export, setup
+  login, game discovery) send `X-Statistics-Skip-Secret`. The report checks that no session or
+  visit inside the authorization window, and the whole run, was opened on the script's own
+  routes (`authorization` and `run`).
+
+Exit codes: `0` the run completed (whatever the matches); `2` refused (non-local target,
+missing secret or username, unknown scenario); `3` authorization denied or expired, or export
+refused (no report); `4` the local stack is unreachable (no report).
+
+The JSON report holds local IPs and ids: it stays in `reports/`. Anything copied from a report
+into the repository or an issue is aggregated or anonymised (see the Privacy spec).

@@ -29,7 +29,7 @@ services:
       - MAJORA_BACKEND_URL=${MAJORA_BACKEND_URL:-http://majora_app:8080}
     networks:
       - majora
-    entrypoint: ["python", "-I", "emulate.py"]
+    entrypoint: ["python", "-I", "-B", "emulate.py"]
 
 networks:
   majora:
