@@ -67,7 +67,7 @@ frontend/specs/                   # mirrors assets/js/ structure
 ```bash
 docker-compose run --rm majora_fe yarn test        # run Jasmine specs
 docker-compose run --rm majora_fe yarn lint        # ESLint check
-docker-compose run --rm majora_fe yarn lint_fix    # ESLint auto-fix
+docker-compose run --rm majora_fe yarn lint_fix    # ESLint auto-fix (optional; review its diff before committing)
 docker-compose run --rm majora_fe yarn build       # Vite production build
 ```
 
@@ -157,7 +157,7 @@ Every change must go through this loop until both checks are clean and no refact
 
 2. Check
    ├─ docker-compose run --rm majora_fe yarn test
-   └─ docker-compose run --rm majora_fe yarn lint_fix
+   └─ docker-compose run --rm majora_fe yarn lint
 
 3. Analyze
    └─ review the new/changed JSX against the extraction rules above

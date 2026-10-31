@@ -13,6 +13,11 @@ export default [
   { ignores: ['node_modules/**/*.js', 'dist/**/*.js', 'report/**'] },
   js.configs.recommended,
   {
+    // Keep deliberate eslint-disable directives (e.g. for rules from plugins not
+    // loaded locally) instead of reporting or auto-removing them as unused.
+    linterOptions: { reportUnusedDisableDirectives: 'off' },
+  },
+  {
     files: ['**/*.{js,jsx,mjs}'],
     plugins: {
       complexity,
