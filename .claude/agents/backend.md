@@ -72,7 +72,8 @@ backend/
 
 ```bash
 docker-compose run --rm majora_tests pytest              # run all tests
-docker-compose run --rm majora_tests ruff check --fix .  # lint and auto-fix
+docker-compose run --rm majora_tests ruff check .        # lint check (no file changes)
+docker-compose run --rm majora_tests ruff check --fix .  # optional: lint and auto-fix
 ```
 
 To open an interactive shell inside the test container:
@@ -131,7 +132,7 @@ Every change must go through this loop until both checks are clean and no refact
 
 2. Check
    ├─ docker-compose run --rm majora_tests pytest
-   └─ docker-compose run --rm majora_tests ruff check --fix .
+   └─ docker-compose run --rm majora_tests ruff check .
 
 3. Analyze
    └─ review new/changed code against the small methods rule
