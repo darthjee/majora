@@ -165,14 +165,17 @@ To test the cache warmer locally, set `MAJORA_PRODUCTION_URL` in your `.env` fil
 `http://localhost:3000` in `.env.dev.sample`) and run:
 
 ```bash
-docker-compose up majora_navi
+docker-compose -f docker-compose.yml -f docker-compose.ports.yml up majora_navi
 ```
 
 The Navi web UI will be available at <http://localhost:3100> while the container is running.
+Host ports are opt-in (#1724): the `-f docker-compose.ports.yml` pair publishes port 3100 on
+`127.0.0.1`; a plain `docker-compose up majora_navi` publishes nothing.
 To point it at production instead of localhost, override the variable:
 
 ```bash
-MAJORA_PRODUCTION_URL=https://your-production-domain.com docker-compose up majora_navi
+MAJORA_PRODUCTION_URL=https://your-production-domain.com \
+  docker-compose -f docker-compose.yml -f docker-compose.ports.yml up majora_navi
 ```
 
 `NAVI_NAMEPACE` doesn't need to be set manually for local dev — it defaults to `default` in
