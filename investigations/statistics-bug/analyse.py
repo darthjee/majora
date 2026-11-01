@@ -27,6 +27,7 @@ Standard library only. It re-implements the small HTTP / authorization / export 
 from __future__ import annotations
 
 import argparse
+import ipaddress
 import json
 import os
 import sys
@@ -35,7 +36,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from dataclasses import dataclass, field
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 # ---------------------------------------------------------------------------
 # Safety: local hosts, or the configured production URL only
@@ -478,6 +479,326 @@ def split_at_resets(sessions, race_window):
     if current.sessions or not segments:
         segments.append(current)
     return segments, warnings
+
+
+# ---------------------------------------------------------------------------
+# Grouping and classification (pure functions over exported session dicts)
+# ---------------------------------------------------------------------------
+
+HIGH, LOW = 'high', 'low'
+
+RACE, LOGIN_ROTATION, IP_CHANGE, DOMAIN_CHANGE = 'race', 'login_rotation', 'ip_change', \
+    'domain_change'
+SINGLE_HIT_ORPHAN, LEGITIMATE, OTHER = 'single_hit_orphan', 'legitimate', 'other'
+CAUSES = (RACE, LOGIN_ROTATION, IP_CHANGE, DOMAIN_CHANGE, SINGLE_HIT_ORPHAN, LEGITIMATE, OTHER)
+
+COOKIE_REASONS = frozenset({'no_cookie', 'invalid_cookie', 'cookie_session_not_found'})
+KNOWN_REASONS = COOKIE_REASONS | {'domain_changed', 'ip_changed', 'login_rotation'}
+# Heuristic causes each creation reason is consistent with; anything else is a disagreement.
+COMPATIBLE_CAUSES = {
+    'no_cookie': frozenset({RACE, SINGLE_HIT_ORPHAN, LEGITIMATE}),
+    'invalid_cookie': frozenset({RACE, SINGLE_HIT_ORPHAN, LEGITIMATE}),
+    'cookie_session_not_found': frozenset({RACE, SINGLE_HIT_ORPHAN, LEGITIMATE}),
+    'login_rotation': frozenset({LOGIN_ROTATION}),
+    'ip_changed': frozenset({IP_CHANGE, LEGITIMATE}),
+    'domain_changed': frozenset({DOMAIN_CHANGE}),
+}
+# The cause a creation reason stands for when the heuristic does not fit it.
+REASON_CAUSE = {
+    'no_cookie': OTHER,
+    'invalid_cookie': OTHER,
+    'cookie_session_not_found': LEGITIMATE,  # sessions removed by a statistics Clear (#1684)
+    'login_rotation': LOGIN_ROTATION,
+    'ip_changed': IP_CHANGE,
+    'domain_changed': DOMAIN_CHANGE,
+}
+# A new session this long after the previous one's last activity is a fresh start (logout,
+# cookie expiry, ...): the default visit inactivity (MAJORA_STATISTICS_VISIT_INACTIVITY_SECONDS).
+LEGITIMATE_GAP_SECONDS = 30 * 60
+UNRESOLVED_PATH = 'unresolved'
+NAT_CAVEAT = ('Low-confidence groups join anonymous sessions by domain, IP and time only: '
+              'unrelated visitors behind the same NAT can share an IP.')
+
+
+def domain_key(session):
+    """Return the session's domain id (`unknown` when it has none)."""
+    domain = session.get('domain') or {}
+    return domain.get('id', 'unknown') if isinstance(domain, dict) else domain
+
+
+def created(session):
+    """Return the session's `created_at` (whole seconds, UTC)."""
+    return parse_iso(session.get('created_at'))
+
+
+def order_key(session):
+    """Sessions are ordered by `created_at`, then `id` within the same second."""
+    return created(session), session['id']
+
+
+def active_until(session):
+    """Return the latest activity of `session` (its own or its visits' `last_seen_at`).
+
+    `Session.last_seen_at` is throttled, so the visits' `last_seen_at` refine it.
+    """
+    moments = [parse_iso(session.get('last_seen_at')) or created(session)]
+    moments += [parse_iso(v.get('last_seen_at')) for v in session.get('visits') or []
+                if v.get('last_seen_at')]
+    return max(moments)
+
+
+def nearby_ip(first, second):
+    """Return whether two IPs share an IPv4 /24 or an IPv6 /64."""
+    try:
+        a, b = ipaddress.ip_address(first or ''), ipaddress.ip_address(second or '')
+    except ValueError:
+        return False
+    if a.version != b.version:
+        return False
+    prefix = 24 if a.version == 4 else 64
+    return ipaddress.ip_network(f'{a}/{prefix}', strict=False) == \
+        ipaddress.ip_network(f'{b}/{prefix}', strict=False)
+
+
+def _seconds(later, earlier):
+    return (later - earlier).total_seconds()
+
+
+class _UnionFind:
+    """Joins session indexes into groups, remembering whether any link was low confidence."""
+
+    def __init__(self, size):
+        self.parent = list(range(size))
+        self.low = [False] * size
+
+    def find(self, index):
+        while self.parent[index] != index:
+            self.parent[index] = self.parent[self.parent[index]]
+            index = self.parent[index]
+        return index
+
+    def join(self, first, second, confidence):
+        root_a, root_b = self.find(first), self.find(second)
+        if root_a != root_b:
+            self.parent[root_b] = root_a
+            self.low[root_a] = self.low[root_a] or self.low[root_b]
+            root_b = root_a
+        if confidence == LOW:
+            self.low[root_a] = True
+
+
+@dataclass
+class Extra:
+    """One extra session of a group: its heuristic cause, its reason and the final cause."""
+
+    session: dict
+    sibling: dict
+    heuristic: str
+    reason: str
+    cause: str
+    pre_columns: bool
+    disagreement: bool
+
+
+@dataclass
+class Group:
+    """Sessions that probably belong to one visitor. The first one is the original."""
+
+    confidence: str
+    sessions: list
+    extras: list = field(default_factory=list)
+
+    @property
+    def original(self):
+        """Return the first session (by `created_at`, then `id`)."""
+        return self.sessions[0]
+
+
+@dataclass
+class SegmentAnalysis:
+    """The groups found in one segment (no ID reset inside it)."""
+
+    index: int
+    sessions: list
+    groups: list
+
+    @property
+    def extras(self):
+        """Return every extra session of the segment's groups."""
+        return [extra for group in self.groups for extra in group.extras]
+
+
+def _link_anonymous(sessions, uf, race_window):
+    """Low confidence: anonymous sessions with the same domain and IP, close in time."""
+    last = {}
+    for index, session in enumerate(sessions):
+        if session.get('user_id') is not None:
+            continue
+        key = (domain_key(session), session.get('ip'))
+        previous = last.get(key)
+        if previous is not None:
+            other = sessions[previous]
+            if (_seconds(created(session), created(other)) <= race_window
+                    or created(session) <= active_until(other)):
+                uf.join(previous, index, LOW)
+        last[key] = index
+
+
+def _link_users(sessions, uf):
+    """High confidence: the same (non-null) `user_id`."""
+    first = {}
+    for index, session in enumerate(sessions):
+        user = session.get('user_id')
+        if user is None:
+            continue
+        if user in first:
+            uf.join(first[user], index, HIGH)
+        else:
+            first[user] = index
+
+
+def _latest_before(sessions, index, accept):
+    """Return the index of the latest earlier session accepted by `accept`, or `None`."""
+    for candidate in range(index - 1, -1, -1):
+        if accept(sessions[candidate]):
+            return candidate
+    return None
+
+
+def _link_by_reason(sessions, uf, race_window):
+    """Low confidence links read from `creation_reason` (and its pre-columns fallback)."""
+    for index, session in enumerate(sessions):
+        reason = session.get('creation_reason')
+        moment, domain, ip = created(session), domain_key(session), session.get('ip')
+        target = None
+        if reason == 'ip_changed':
+            target = _latest_before(sessions, index, lambda other: (
+                domain_key(other) == domain and other.get('ip') != ip
+                and nearby_ip(other.get('ip'), ip)
+                and moment <= active_until(other) + timedelta(seconds=race_window)))
+            if target is None:
+                target = _latest_before(sessions, index, lambda other: (
+                    domain_key(other) == domain and other.get('ip') != ip
+                    and _seconds(moment, created(other)) <= race_window))
+        elif reason == 'domain_changed':
+            target = _latest_before(sessions, index, lambda other: (
+                other.get('ip') == ip and domain_key(other) != domain
+                and _seconds(moment, created(other)) <= race_window))
+        elif session.get('user_id') is not None and (
+                reason == 'login_rotation' or (reason is None and session.get('first_seen_logged')
+                                               is not False)):
+            # A login rotation: the anonymous session it rotated from, still active.
+            target = _latest_before(sessions, index, lambda other: (
+                other.get('user_id') is None and domain_key(other) == domain
+                and other.get('ip') == ip
+                and moment <= active_until(other) + timedelta(seconds=race_window)))
+        if target is not None:
+            uf.join(target, index, LOW)
+
+
+def group_sessions(sessions, race_window):
+    """Return the groups (two sessions or more) of one segment's sessions."""
+    ordered = sorted(sessions, key=order_key)
+    uf = _UnionFind(len(ordered))
+    _link_users(ordered, uf)
+    _link_anonymous(ordered, uf, race_window)
+    _link_by_reason(ordered, uf, race_window)
+    members = {}
+    for index in range(len(ordered)):
+        members.setdefault(uf.find(index), []).append(ordered[index])
+    groups = []
+    for root, group_sessions_ in members.items():
+        if len(group_sessions_) > 1:
+            groups.append(Group(confidence=LOW if uf.low[root] else HIGH,
+                                sessions=group_sessions_))
+    return sorted(groups, key=lambda group: order_key(group.original))
+
+
+def _only_unresolved(session):
+    """Return whether every path of `session` is the `unresolved` marker (bot-like)."""
+    paths = [session.get('first_path')] + [
+        path for visit in session.get('visits') or []
+        for path in (visit.get('first_path'), visit.get('last_path'))
+    ]
+    paths = [path for path in paths if path is not None]
+    return bool(paths) and all(path == UNRESOLVED_PATH for path in paths)
+
+
+def _single_hit(session):
+    visits = session.get('visits') or []
+    return len(visits) == 1 and visits[0].get('hits') == 1
+
+
+def heuristic_cause(session, earlier, later, race_window):
+    """Return the heuristic cause of an extra `session`.
+
+    `earlier` are its group's sessions before it (closest last) and `later` those after it.
+    """
+    sibling = earlier[-1]
+    moment = created(session)
+    window = timedelta(seconds=race_window)
+    if session.get('user_id') is not None and any(
+            other.get('user_id') is None and moment <= active_until(other) + window
+            for other in earlier):
+        return LOGIN_ROTATION
+    if (session.get('first_seen_logged') and sibling.get('user_id') is None
+            and not sibling.get('first_seen_logged')):
+        return LOGIN_ROTATION
+    if all(_seconds(moment, active_until(other)) > LEGITIMATE_GAP_SECONDS for other in earlier):
+        return LEGITIMATE  # a fresh start long after the visitor went quiet (logout, expiry)
+    if domain_key(session) != domain_key(sibling):
+        return DOMAIN_CHANGE
+    if session.get('ip') != sibling.get('ip'):
+        return IP_CHANGE
+    if _only_unresolved(session):
+        return LEGITIMATE
+    if any(domain_key(other) == domain_key(session) and other.get('ip') == session.get('ip')
+           and abs(_seconds(moment, created(other))) <= race_window
+           for other in earlier + later):
+        return RACE
+    if _single_hit(session) and any(active_until(other) > active_until(session)
+                                    for other in earlier + later):
+        return SINGLE_HIT_ORPHAN
+    return OTHER
+
+
+def cross_check(heuristic, reason):
+    """Return `(cause, disagreement)`: `creation_reason` is primary when set."""
+    if reason is None:
+        return heuristic, False
+    if reason not in KNOWN_REASONS:
+        return OTHER, True
+    if heuristic in COMPATIBLE_CAUSES[reason]:
+        return heuristic, False
+    return REASON_CAUSE[reason], True
+
+
+def classify_group(group, race_window):
+    """Fill `group.extras`: every session after the original, classified."""
+    group.extras = []
+    for position in range(1, len(group.sessions)):
+        session = group.sessions[position]
+        earlier, later = group.sessions[:position], group.sessions[position + 1:]
+        heuristic = heuristic_cause(session, earlier, later, race_window)
+        reason = session.get('creation_reason')
+        cause, disagreement = cross_check(heuristic, reason)
+        group.extras.append(Extra(
+            session=session, sibling=earlier[-1], heuristic=heuristic, reason=reason,
+            cause=cause, pre_columns=reason is None, disagreement=disagreement,
+        ))
+    return group
+
+
+def analyse_segment(segment, race_window):
+    """Group and classify one segment's sessions."""
+    groups = [classify_group(group, race_window)
+              for group in group_sessions(segment.sessions, race_window)]
+    return SegmentAnalysis(index=segment.index, sessions=segment.sessions, groups=groups)
+
+
+def analyse_segments(segments, race_window):
+    """Group and classify every segment separately (an ID reset never joins two segments)."""
+    return [analyse_segment(segment, race_window) for segment in segments]
 
 
 # ---------------------------------------------------------------------------
