@@ -54,7 +54,8 @@ majora/
 ├── dockerfiles/          # Dockerfiles for each service
 ├── docker_volumes/       # Bind-mounted volumes (static assets, proxy config)
 ├── docs/                 # Project documentation
-└── docker-compose.yml    # Full stack service definitions
+├── docker-compose.yml    # Full stack service definitions (no host ports)
+└── docker-compose.ports.yml  # Opt-in host-port mappings (used by make dev-up)
 ```
 
 ## Development Setup
@@ -90,6 +91,16 @@ The application will be available at:
 - **Full stack (proxy):** <http://localhost:3000>
 - **Backend API:** <http://localhost:3030>
 - **Frontend dev server:** <http://localhost:3010>
+
+These host ports are published only by `make dev-up`, through the opt-in
+`docker-compose.ports.yml`, and are bound to `127.0.0.1`. A plain
+`docker-compose run`/`up` publishes no host ports, so tests never clash with
+other local services. To run the stack headless (for tests or investigation
+scripts that reach services by name on the `majora_default` network):
+
+```bash
+make stack-up
+```
 
 ### Development Shells
 
