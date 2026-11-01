@@ -1115,18 +1115,210 @@ def format_anonymised(report):
     return '\n'.join(lines)
 
 
-def write_reports(report, text, reports_dir):
-    """Write `analyse-<timestamp>.json` and `.txt` in the git-ignored reports folder."""
+def write_reports(report, text, reports_dir, prefix='analyse'):
+    """Write `<prefix>-<timestamp>.json` and `.txt` in the git-ignored reports folder."""
     os.makedirs(reports_dir, exist_ok=True)
     stamp = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')
-    json_path = os.path.join(reports_dir, f'analyse-{stamp}.json')
-    text_path = os.path.join(reports_dir, f'analyse-{stamp}.txt')
+    json_path = os.path.join(reports_dir, f'{prefix}-{stamp}.json')
+    text_path = os.path.join(reports_dir, f'{prefix}-{stamp}.txt')
     with open(json_path, 'w', encoding='utf-8') as handle:
         json.dump(report, handle, indent=2)
         handle.write('\n')
     with open(text_path, 'w', encoding='utf-8') as handle:
         handle.write(text + '\n')
     return json_path, text_path
+
+
+# ---------------------------------------------------------------------------
+# Validation mode: recover what emulate.py produced, on the LOCAL export
+# ---------------------------------------------------------------------------
+
+SKIPPED_STATUS = 'SKIPPED'
+
+
+def load_emulate_report(path):
+    """Load an `emulate.py` JSON report; refuse anything that does not look like one."""
+    try:
+        with open(path, encoding='utf-8') as handle:
+            report = json.load(handle)
+    except (OSError, ValueError) as error:
+        raise Refused(f'cannot read the emulate report {path!r} ({error.__class__.__name__}).') \
+            from error
+    if not isinstance(report, dict) or not isinstance(report.get('scenarios'), list):
+        raise Refused(f'{path!r} is not an emulate.py JSON report.')
+    return report
+
+
+def check_expectation(expected, actual):
+    """Return the mismatches between `expected` (`exact` / `at_most`) and `actual` counts.
+
+    Same rule as `emulate.py`: exact counts must match, upper bounds must hold, and any other
+    reason must not appear.
+    """
+    exact, at_most = expected.get('exact') or {}, expected.get('at_most') or {}
+    mismatches = []
+    for reason, count in exact.items():
+        if actual.get(reason, 0) != count:
+            mismatches.append(f'{reason}: expected {count}, got {actual.get(reason, 0)}')
+    for reason, bound in at_most.items():
+        if actual.get(reason, 0) > bound:
+            mismatches.append(f'{reason}: expected at most {bound}, got {actual[reason]}')
+    allowed = set(exact) | set(at_most)
+    for reason, count in actual.items():
+        if reason not in allowed:
+            mismatches.append(f'{reason}: expected 0, got {count}')
+    return mismatches
+
+
+def reason_counts(sessions):
+    """Return `{creation_reason: count}`; `NULL` reasons are counted as `null`."""
+    counts = {}
+    for session in sessions:
+        reason = session.get('creation_reason') or 'null'
+        counts[reason] = counts.get(reason, 0) + 1
+    return dict(sorted(counts.items()))
+
+
+class WindowFetcher:
+    """Fetches the local export once per day range and filters it by scenario window."""
+
+    def __init__(self, reader):
+        """Store the reader; pages of a day range are fetched once."""
+        self.reader = reader
+        self._cache = {}
+
+    def sessions(self, start, end):
+        """Return the sessions whose `created_at` falls in `[start, end]` (UTC), by `id`."""
+        key = (start.date(), end.date())
+        if key not in self._cache:
+            self._cache[key] = self.reader.sessions(key[0], key[1], 'UTC')
+        return [s for s in self._cache[key] if start <= created(s) <= end]
+
+
+def validate_scenario(scenario, fetcher, config):
+    """Analyse one scenario's window and compare it with what the scenario produced."""
+    entry = {'name': scenario.get('name'), 'hypothesis': scenario.get('hypothesis')}
+    if scenario.get('status') == SKIPPED_STATUS or not scenario.get('window'):
+        return {**entry, 'status': SKIPPED_STATUS, 'problems': [],
+                'skipped': scenario.get('skipped') or 'no window'}
+    start = parse_iso(scenario['window']['filtered_from'])
+    end = parse_iso(scenario['window']['filtered_to'])
+    problems = []
+    if start.date() < config.from_date or end.date() > config.to_date:
+        problems.append('the scenario window is outside --from / --to')
+    rows = fetcher.sessions(start, end)
+    kept, self_check = split_self_sessions(rows)
+    if fetcher.reader.client.skips_tracking and self_check['self_sessions']:
+        problems.append(f'{self_check["self_sessions"]} session(s) opened by the script\'s own '
+                        'routes (self-pollution)')
+    segments, resets = split_at_resets(kept, config.race_window)
+    analyses = analyse_segments(segments, config.race_window)
+
+    expected_ids = sorted(s['id'] for s in scenario.get('sessions') or [])
+    found_ids = sorted(s['id'] for s in kept)
+    if found_ids != expected_ids:
+        problems.append(f'sessions: analysed {len(found_ids)}, emulate reported '
+                        f'{len(expected_ids)} (ids differ)')
+
+    extras = [extra for analysis in analyses for extra in analysis.extras]
+    groups = [group for analysis in analyses for group in analysis.groups]
+    expected_extras = max(len(expected_ids) - 1, 0)
+    if len(extras) != expected_extras:
+        problems.append(f'duplicates: found {len(extras)} extra(s), the scenario produced '
+                        f'{expected_extras}')
+    if len(kept) > 1 and not (len(groups) == 1 and len(groups[0].sessions) == len(kept)):
+        problems.append(f'grouping: the {len(kept)} sessions are not all in one group '
+                        f'({len(groups)} group(s))')
+
+    actual = reason_counts(kept)
+    reason_mismatches = check_expectation(scenario.get('expected') or {}, actual)
+    problems += [f'reason {mismatch}' for mismatch in reason_mismatches]
+    disagreements = [extra_entry(extra) for extra in extras if extra.disagreement]
+    problems += [f'disagreement: heuristic {d["heuristic"]} vs creation_reason '
+                 f'{d["creation_reason"]}' for d in disagreements]
+    if resets:
+        problems.append(f'{len(resets)} ID reset(s) inside the window')
+    return {
+        **entry,
+        'status': 'MATCH' if not problems else 'MISMATCH',
+        'problems': problems,
+        'emulate_status': scenario.get('status'),
+        'expected_reasons': {'exact': (scenario.get('expected') or {}).get('exact') or {},
+                             'at_most': (scenario.get('expected') or {}).get('at_most') or {}},
+        'recovered_reasons': actual,
+        'sessions': {'emulate': len(expected_ids), 'analysed': len(found_ids),
+                     'self_removed': self_check['self_sessions']},
+        'duplicates': {'produced': expected_extras, 'found': len(extras)},
+        'groups': [{'confidence': g.confidence, 'size': len(g.sessions)} for g in groups],
+        'causes': _count(extra.cause for extra in extras),
+        'disagreements': disagreements,
+    }
+
+
+def validate(config, reader, emulate_report, started, out=sys.stdout):
+    """Validate every scenario of `emulate_report`; return the validation report."""
+    fetcher = WindowFetcher(reader)
+    results = []
+    for scenario in emulate_report['scenarios']:
+        result = validate_scenario(scenario, fetcher, config)
+        results.append(result)
+        print(f'  - {result["name"]}: {result["status"].lower()}', file=out, flush=True)
+    counts = {status: sum(1 for r in results if r['status'] == status)
+              for status in ('MATCH', 'MISMATCH', SKIPPED_STATUS)}
+    return {
+        'tool': 'investigations/statistics-bug/analyse.py --validate',
+        'issue': 1703,
+        'started_at': _iso(started),
+        'finished_at': _iso(datetime.now(timezone.utc)),
+        'target': 'local',
+        'emulate_report': {'started_at': emulate_report.get('started_at'),
+                           'scenarios': len(emulate_report['scenarios'])},
+        'race_window_seconds': config.race_window,
+        'skip_header_sent': reader.client.skips_tracking,
+        'summary': counts,
+        'scenarios': results,
+    }
+
+
+def format_validation(report):
+    """Return the per-scenario match / mismatch lines (counts and reasons only)."""
+    lines = [f'Statistics bug analysis — validation against emulate.py '
+             f'({report["emulate_report"]["started_at"]}, local stack)', '',
+             f'{"scenario":38} {"hyp":4} {"status":9} duplicates  reasons recovered']
+    for result in report['scenarios']:
+        if result['status'] == SKIPPED_STATUS:
+            lines.append(f'{result["name"]:38} {result["hypothesis"] or "-":4} '
+                         f'{"skipped":9} ({result["skipped"]})')
+            continue
+        duplicates = f'{result["duplicates"]["found"]}/{result["duplicates"]["produced"]}'
+        lines.append(f'{result["name"]:38} {result["hypothesis"] or "-":4} '
+                     f'{result["status"].lower():9} {duplicates:11} '
+                     f'{_format_counts(result["recovered_reasons"])}')
+        if result['causes']:
+            lines.append(f'{"":53}causes: {_format_counts(result["causes"])}')
+        for problem in result['problems']:
+            lines.append(f'{"":53}! {problem}')
+    summary = report['summary']
+    lines += ['', f'{summary["MATCH"]} match, {summary["MISMATCH"]} mismatch, '
+                  f'{summary[SKIPPED_STATUS]} skipped (duplicates: found/produced).']
+    return '\n'.join(lines)
+
+
+def run_validation(config, secrets, out=sys.stdout):
+    """Authorize once, validate every scenario, write `validate-<stamp>`; return the exit code."""
+    emulate_report = load_emulate_report(config.validate_path)
+    started = datetime.now(timezone.utc)
+    _client, reader = authorize(config, secrets, out)
+    try:
+        print('Validating the emulate.py scenarios on the local export...', file=out, flush=True)
+        report = validate(config, reader, emulate_report, started, out)
+        text = format_validation(report)
+        print('\n' + text, file=out, flush=True)
+        for path in write_reports(report, text, config.reports_dir, prefix='validate'):
+            print(f'Report written: {path}', file=out, flush=True)
+    finally:
+        remind_revoke(config, out)
+    return EXIT_MISMATCH if report['summary']['MISMATCH'] else EXIT_OK
 
 
 # ---------------------------------------------------------------------------
@@ -1310,7 +1502,9 @@ def remind_revoke(config, out=sys.stdout):
 
 
 def run(config, secrets, out=sys.stdout):
-    """Authorize, fetch, analyse and report. Returns the exit code."""
+    """Authorize, fetch, analyse and report (or validate). Returns the exit code."""
+    if config.validate_path:
+        return run_validation(config, secrets, out)
     started = datetime.now(timezone.utc)
     _client, reader = authorize(config, secrets, out)
     # Everything is fetched and analysed before anything is written: a token rejected
