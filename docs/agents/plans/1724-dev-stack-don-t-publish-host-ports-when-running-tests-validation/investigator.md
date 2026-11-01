@@ -15,12 +15,15 @@ Main plan: [plan.md](plan.md)
 - `docs/agents/investigator.md` and `.claude/agents/investigator.md`: wherever emulation against the local stack is described, say to bring the stack up with `make stack-up`. Runners reach services by name on `majora_default` and never need host ports. Keep the existing statement that investigations have no Makefile targets of their own; `stack-up` is a root-stack target.
 
 ## Files to Change
+
 - `investigations/statistics-bug/README.md` — prerequisites use `make stack-up`.
 - `docs/agents/investigator.md` — local-stack guidance uses `make stack-up`.
 - `.claude/agents/investigator.md` — same guidance.
 
 ## CI Checks
+
 - Markdown: `docker-compose run --rm markdownlint` (CI job: `markdownlint`)
 
 ## Notes
+
 - Depends on infra's `stack-up` target existing. Docs only; no runner code changes.

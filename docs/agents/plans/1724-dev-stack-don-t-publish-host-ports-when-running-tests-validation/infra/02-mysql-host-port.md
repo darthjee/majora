@@ -7,5 +7,6 @@ Today `MAJORA_MYSQL_PORT` does two jobs. It sets the host-side mapping, and `bac
 - Leave `MAJORA_MYSQL_PORT` and `settings.py` unchanged.
 
 ## Files to Change
+
 - `.env.dev.sample` — add `MAJORA_MYSQL_HOST_PORT` with an explanatory comment.
 - `docker-compose.ports.yml` — reference `${MAJORA_MYSQL_HOST_PORT:-3306}` (done together with step 01).

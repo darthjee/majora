@@ -17,6 +17,7 @@ Say that host ports are opt-in, and use the new commands wherever docs show a se
 - `docs/agents/folder-structure.md`: list `docker-compose.ports.yml` next to `docker-compose.yml` if the root files are listed there.
 
 ## Files to Change
+
 - `AGENTS.md` — Development section (host ports opt-in, `make stack-up`, `crawler_navi_web` command).
 - `README.md` — Running the Application.
 - `.claude/agents/infra.md` — service and Makefile tables, new env var.

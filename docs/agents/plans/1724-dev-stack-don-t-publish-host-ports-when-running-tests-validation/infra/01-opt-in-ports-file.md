@@ -20,5 +20,6 @@
 Use a name docker-compose does **not** auto-load (not `docker-compose.override.yml`), so that bare commands, including the ones agents run, never publish ports.
 
 ## Files to Change
+
 - `docker-compose.yml` — drop all `ports:` blocks; add a pointer comment.
 - `docker-compose.ports.yml` — new; holds every host-port mapping, bound to `127.0.0.1`.

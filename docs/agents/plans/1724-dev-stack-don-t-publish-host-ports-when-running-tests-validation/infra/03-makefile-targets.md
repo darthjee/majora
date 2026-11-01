@@ -6,4 +6,5 @@
 - Add `stack-up` to `.PHONY`.
 
 ## Files to Change
+
 - `Makefile` — `dev-up` uses the ports file; new `stack-up` target; `.PHONY` updated.
