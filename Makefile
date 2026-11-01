@@ -1,4 +1,4 @@
-.PHONY: build-base push-base build push build-fe-base push-fe-base build-fe push-fe build-circleci-base push-circleci-base build-production-base push-production-base dev dev-up setup tests client client-install client-tests client-lint client-coverage
+.PHONY: build-base push-base build push build-fe-base push-fe-base build-fe push-fe build-circleci-base push-circleci-base build-production-base push-production-base dev dev-up setup tests stack-up client client-install client-tests client-lint client-coverage
 
 PROJECT?=majora
 IMAGE?=$(PROJECT)
@@ -7,6 +7,8 @@ FE_IMAGE?=$(DOCKER_ID_USER)/vite_$(PROJECT)
 PUSH_IMAGE=$(DOCKER_ID_USER)/$(PROJECT)
 DOCKER_FILE=dockerfiles/$(PROJECT)/Dockerfile
 DOCKER_FILE_FE=dockerfiles/vite_$(PROJECT)/Dockerfile
+# Host ports are opt-in (#1724): the base docker-compose.yml publishes none.
+COMPOSE_PORTS=-f docker-compose.yml -f docker-compose.ports.yml
 
 # ── Base images ────────────────────────────────────────────────────────────────
 
@@ -79,8 +81,14 @@ setup: .env
 dev:
 	docker-compose run $(PROJECT)_app /bin/bash
 
+# Interactive dev, with host ports (localhost:3000, 3030, 3010).
 dev-up:
-	docker-compose up $(PROJECT)_proxy $(PROJECT)_app $(PROJECT)_fe
+	docker-compose $(COMPOSE_PORTS) up $(PROJECT)_proxy $(PROJECT)_app $(PROJECT)_fe
+
+# Background stack with NO host ports, for tests and investigation runners that
+# reach services by name on the majora_default network.
+stack-up:
+	docker-compose up -d $(PROJECT)_proxy $(PROJECT)_app $(PROJECT)_fe
 
 tests:
 	docker-compose run $(PROJECT)_tests /bin/bash

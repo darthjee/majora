@@ -28,15 +28,30 @@ the `majora_client` docker-compose service, the `client*` Makefile targets, the
 
 | Service | Image | Port | Purpose |
 |---------|-------|------|---------|
-| `majora_app` | `darthjee/majora` | 3030 | Django dev server |
+| `majora_app` | `darthjee/majora` | 127.0.0.1:3030 | Django dev server |
 | `majora_tests` | `darthjee/majora` | — | Backend test runner |
-| `majora_fe` | built from `dockerfiles/vite_majora/` | 3010 | Vite dev server / build |
-| `majora_proxy` | `darthjee/tent:1.0.2` | 3000 | Reverse proxy (single entry point) |
-| `majora_mysql` | `mysql:9.3.0` | configurable | Database |
-| `majora_navi` | `darthjee/navi-hey:latest` | 3100 | Cache warmer (local) |
-| `majora_phpmyadmin` | `phpmyadmin/phpmyadmin` | 3050 | DB admin UI |
+| `majora_fe` | built from `dockerfiles/vite_majora/` | 127.0.0.1:3010 | Vite dev server / build |
+| `majora_proxy` | `darthjee/tent:1.0.2` | 127.0.0.1:3000 | Reverse proxy (single entry point) |
+| `majora_mysql` | `mysql:9.3.0` | 127.0.0.1:`${MAJORA_MYSQL_HOST_PORT:-3306}` | Database |
+| `majora_navi` | `darthjee/navi-hey:latest` | 127.0.0.1:3100 | Cache warmer (local) |
+| `majora_phpmyadmin` | `phpmyadmin/phpmyadmin` | 127.0.0.1:3050 | DB admin UI |
 | `crawler_navi_web` | built from `dockerfiles/navi_hey_loot_enqueue/` | 127.0.0.1:3110 | Lootstudios crawler interactive Enqueue UI (maintainer-run only, never deployed) |
 | `majora_client` | `darthjee/node:0.2.1` | — | Majora client (`client/`) lint/tests and manual CLI runs |
+
+### Host ports are opt-in
+
+The base `docker-compose.yml` publishes **no** host ports, so tests and validation runs
+(`docker-compose run ...`, `make stack-up`) never collide with other projects on the host.
+Every host-port mapping in the table above lives in the committed, opt-in
+`docker-compose.ports.yml` (also covering `majora_prod_app` on 127.0.0.1:3030), and every
+mapping is bound to `127.0.0.1`. docker-compose does not load that file automatically; opt in
+with `docker-compose -f docker-compose.yml -f docker-compose.ports.yml up <service...>` (which
+`make dev-up` does). Never add a `ports:` entry back to `docker-compose.yml` — put new host
+mappings in `docker-compose.ports.yml`, bound to `127.0.0.1`.
+
+`MAJORA_MYSQL_HOST_PORT` (default `3306`, in `.env.dev.sample`) is only the host-side MySQL
+port used by `docker-compose.ports.yml`; change it to dodge a host port clash.
+`MAJORA_MYSQL_PORT` must stay `3306` — it is the in-network port the app and tests connect on.
 
 ### Shared volumes
 
@@ -155,7 +170,8 @@ Usage: `scripts/bump_version.sh [X.Y.Z]` — if no version given, uses the Next 
 
 | Target | Command | Purpose |
 |--------|---------|---------|
-| `dev-up` | `docker-compose up majora_proxy majora_app majora_fe` | Start full dev stack |
+| `dev-up` | `docker-compose -f docker-compose.yml -f docker-compose.ports.yml up majora_proxy majora_app majora_fe` (via `COMPOSE_PORTS`) | Start full interactive dev stack with host ports (`localhost:3000`, `3030`, `3010`) |
+| `stack-up` | `docker-compose up -d majora_proxy majora_app majora_fe` | Start the stack in the background with **no** host ports, for tests and investigation runners that reach services by name on `majora_default` |
 | `dev` | `docker-compose run majora_app /bin/bash` | Open backend shell |
 | `tests` | `docker-compose run majora_tests /bin/bash` | Open test shell |
 | `setup` | `docker-compose run --rm majora_app poetry run python manage.py migrate` | Run migrations |

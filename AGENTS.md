@@ -30,8 +30,11 @@ Majora is an RPG campaign management system. It allows users to organize tableto
 ## Development
 
 ```bash
-# Start the full stack (proxy + backend + frontend)
+# Start the full stack (proxy + backend + frontend), with host ports
 make dev-up
+
+# Start the same stack in the background with NO host ports (tests, investigation runners)
+make stack-up
 
 # Open a backend shell
 make dev
@@ -43,7 +46,11 @@ make tests
 make setup
 ```
 
-Backend runs on port `3030`, frontend dev server on `3010`, full stack proxy on `3000`.
+Host ports are opt-in (#1724). Only `make dev-up` (or `docker-compose -f docker-compose.yml -f docker-compose.ports.yml up <service...>`)
+publishes them, through `docker-compose.ports.yml`, all bound to `127.0.0.1`: backend on port `3030`,
+frontend dev server on `3010`, full stack proxy on `3000`. A plain `docker-compose run`/`up` (including
+`make stack-up`, `make tests` and `make dev`) publishes nothing; services reach each other by name on the
+`majora_default` network. Set `MAJORA_MYSQL_HOST_PORT` in `.env` to change the host-side MySQL port.
 
 **Always run project commands through `docker-compose`.**
 
@@ -59,7 +66,8 @@ docker-compose run --rm majora_fe yarn lint
 docker-compose run --rm majora_tests pytest
 ```
 
-The `crawler_navi_web` service (`docker-compose up crawler_navi_web`) runs the
+The `crawler_navi_web` service
+(`docker-compose -f docker-compose.yml -f docker-compose.ports.yml up crawler_navi_web`) runs the
 Lootstudios crawler's interactive Enqueue UI, bound to `127.0.0.1:3110` — see
 [`crawler/RUNNING.md`](crawler/RUNNING.md). Its extension code is covered by
 the `crawler_extension_tests` CI job.

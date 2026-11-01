@@ -23,7 +23,11 @@ moves to `docs/agents/`.
 ## Prerequisites
 
 - The local stack is up (`majora_proxy`, `majora_app`, `majora_mysql`, `majora_fe`), started
-  from the root `docker-compose.yml`.
+  from the repository root with `make stack-up`. It publishes **no** host ports: the script
+  reaches the services by name on the project's Docker network (see [Network](#network)), so a
+  clash with another project's host port (for example `3306`) can't block a run (#1724).
+  `make dev-up` also works, but it binds host ports (on `127.0.0.1`), which the script doesn't
+  need.
 - A **local** staff user who can approve the device authorization in the local frontend.
 - The root `.env` holds the local secrets:
   - `STATISTICS_SKIP_SECRET` — lets the script's own reads skip tracking;

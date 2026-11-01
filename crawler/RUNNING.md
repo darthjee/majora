@@ -125,8 +125,10 @@ the whole catalog:
 1. Build the extension frontend: `crawler/navi-extension/dist/` (see
    `crawler/navi-extension/`'s own `package.json` for the build script).
 2. Start the derived `darthjee/navi-hey` image's compose service:
-   `docker compose up crawler_navi_web` — bound to `127.0.0.1:3110` only,
-   never a public interface.
+   `docker compose -f docker-compose.yml -f docker-compose.ports.yml up crawler_navi_web`
+   — bound to `127.0.0.1:3110` only, never a public interface. The host port
+   is published only by the opt-in `docker-compose.ports.yml` overlay; without
+   it the UI is not reachable on `127.0.0.1:3110`.
 3. Open `http://127.0.0.1:3110` in a browser, paste a Lootstudios collection
    URL (`https://app.lootstudios.com/bundle/<slug>/`), and click "Enqueue".
 4. Watch the job drain via Navi's stock Jobs/Logs screens
