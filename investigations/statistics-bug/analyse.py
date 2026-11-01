@@ -36,7 +36,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from dataclasses import dataclass, field
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 
 # ---------------------------------------------------------------------------
 # Safety: local hosts, or the configured production URL only
@@ -802,6 +802,334 @@ def analyse_segments(segments, race_window):
 
 
 # ---------------------------------------------------------------------------
+# Report: JSON + text in the git-ignored reports folder; console shows counts only
+# ---------------------------------------------------------------------------
+
+TOP_PATHS = 10
+SAMPLES_PER_CAUSE = 5
+SELF_SIDE_EFFECT_NOTE = (
+    'Production: the authorization create / poll requests are tracked (the export route is '
+    'not); the sessions they opened were removed from the analysis and are counted as self '
+    'sessions (authorization side effect).'
+)
+
+
+def _iso(moment):
+    return moment.isoformat().replace('+00:00', 'Z') if moment else None
+
+
+def _count(values):
+    """Return `{value: count}` sorted by count (descending), then value."""
+    counts = {}
+    for value in values:
+        key = 'null' if value is None else str(value)
+        counts[key] = counts.get(key, 0) + 1
+    return dict(sorted(counts.items(), key=lambda item: (-item[1], item[0])))
+
+
+def _logged(session):
+    return 'logged_in' if session.get('user_id') is not None else 'anonymous'
+
+
+def top_paths(sessions):
+    """Return the top `first_path` values per `creation_reason` (aggregated counts)."""
+    per_reason = {}
+    for session in sessions:
+        per_reason.setdefault(session.get('creation_reason') or 'null', []).append(
+            session.get('first_path'))
+    return {reason: dict(list(_count(paths).items())[:TOP_PATHS])
+            for reason, paths in sorted(per_reason.items())}
+
+
+def session_entry(session):
+    """Return the reported fields of one session (raw values: the report is git-ignored)."""
+    visits = session.get('visits') or []
+    return {
+        'id': session.get('id'),
+        'ip': session.get('ip'),
+        'domain': session.get('domain'),
+        'user_id': session.get('user_id'),
+        'created_at': session.get('created_at'),
+        'last_seen_at': session.get('last_seen_at'),
+        'creation_reason': session.get('creation_reason'),
+        'first_path': session.get('first_path'),
+        'first_seen_logged': session.get('first_seen_logged'),
+        'visit_count': len(visits),
+        'visits_truncated': session.get('visits_truncated'),
+        'visits': [
+            {key: visit.get(key) for key in
+             ('started_at', 'last_seen_at', 'hits', 'first_path', 'last_path')}
+            for visit in visits
+        ],
+    }
+
+
+def extra_entry(extra):
+    """Return the reported classification of one extra session."""
+    return {'session_id': extra.session.get('id'), 'sibling_id': extra.sibling.get('id'),
+            'heuristic': extra.heuristic, 'creation_reason': extra.reason,
+            'cause': extra.cause, 'pre_columns': extra.pre_columns,
+            'disagreement': extra.disagreement}
+
+
+def group_entry(segment_index, group):
+    """Return one sample group: its sessions (with visit paths) and its extras."""
+    return {'segment': segment_index, 'confidence': group.confidence,
+            'sessions': [session_entry(session) for session in group.sessions],
+            'extras': [extra_entry(extra) for extra in group.extras]}
+
+
+def summarize(analyses):
+    """Return the counts and breakdowns over every segment (no raw value inside)."""
+    sessions = [s for analysis in analyses for s in analysis.sessions]
+    groups = [g for analysis in analyses for g in analysis.groups]
+    extras = [e for analysis in analyses for e in analysis.extras]
+    pre_columns = [s for s in sessions if s.get('creation_reason') is None]
+    return {
+        'totals': {
+            'sessions': len(sessions),
+            'groups': {'all': len(groups),
+                       HIGH: sum(1 for g in groups if g.confidence == HIGH),
+                       LOW: sum(1 for g in groups if g.confidence == LOW)},
+            'extras': {'all': len(extras),
+                       HIGH: sum(len(g.extras) for g in groups if g.confidence == HIGH),
+                       LOW: sum(len(g.extras) for g in groups if g.confidence == LOW)},
+            'disagreements': sum(1 for e in extras if e.disagreement),
+        },
+        'extras_per_cause': {cause: sum(1 for e in extras if e.cause == cause)
+                             for cause in CAUSES},
+        'extras_per_heuristic': {cause: sum(1 for e in extras if e.heuristic == cause)
+                                 for cause in CAUSES},
+        'sessions_per_creation_reason': _count(s.get('creation_reason') for s in sessions),
+        'extras_per_creation_reason': _count(e.reason for e in extras),
+        'sessions_per_domain': _count(domain_key(s) for s in sessions),
+        'extras_per_domain': _count(domain_key(e.session) for e in extras),
+        'sessions_per_login': _count(_logged(s) for s in sessions),
+        'extras_per_login': _count(_logged(e.session) for e in extras),
+        'sessions_per_first_seen_logged': _count(s.get('first_seen_logged') for s in sessions),
+        'extras_per_first_seen_logged': _count(e.session.get('first_seen_logged')
+                                               for e in extras),
+        'top_first_paths_per_creation_reason': top_paths(sessions),
+        'top_first_paths_of_extras_per_creation_reason': top_paths(e.session for e in extras),
+        'pre_columns': {
+            'sessions': len(pre_columns),
+            'extras': sum(1 for e in extras if e.pre_columns),
+            'extras_per_heuristic': _count(e.heuristic for e in extras if e.pre_columns),
+        },
+        'segments': [{'segment': a.index, 'sessions': len(a.sessions), 'groups': len(a.groups),
+                      'extras': len(a.extras)} for a in analyses],
+    }
+
+
+def sample_groups(analyses):
+    """Return up to `SAMPLES_PER_CAUSE` groups per cause (a group counts for each cause)."""
+    samples = {cause: [] for cause in CAUSES}
+    for analysis in analyses:
+        for group in analysis.groups:
+            for cause in dict.fromkeys(extra.cause for extra in group.extras):
+                if len(samples[cause]) < SAMPLES_PER_CAUSE:
+                    samples[cause].append(group_entry(analysis.index, group))
+    return {cause: groups for cause, groups in samples.items() if groups}
+
+
+def build_report(config, started, dataset, analyses):
+    """Return the machine-readable report (raw values: local and git-ignored)."""
+    extras = [e for analysis in analyses for e in analysis.extras]
+    notes = [NAT_CAVEAT]
+    if config.production:
+        notes.append(SELF_SIDE_EFFECT_NOTE)
+    return {
+        'tool': 'investigations/statistics-bug/analyse.py',
+        'issue': 1703,
+        'started_at': _iso(started),
+        'finished_at': _iso(datetime.now(timezone.utc)),
+        'range': {'from': config.from_date.isoformat(), 'to': config.to_date.isoformat(),
+                  'tz': config.tz, 'domain': config.domain},
+        'target': 'production' if config.production else 'local',
+        'race_window_seconds': config.race_window,
+        'fetched_sessions': dataset.fetched,
+        'self_sessions': {**dataset.self_check, 'skip_header_sent': dataset.skip_header_sent},
+        'id_resets': dataset.reset_warnings,
+        'summary': summarize(analyses),
+        'disagreements': [extra_entry(e) for e in extras if e.disagreement],
+        'pre_columns_extras': [extra_entry(e) for e in extras if e.pre_columns],
+        'samples': sample_groups(analyses),
+        'notes': notes,
+    }
+
+
+def _format_counts(counts):
+    return ', '.join(f'{key}={value}' for key, value in counts.items() if value) or 'none'
+
+
+def format_summary(report):
+    """Return the console summary: counts and breakdowns only (no IP, id or sample)."""
+    summary, totals = report['summary'], report['summary']['totals']
+    rng = report['range']
+    self_check = report['self_sessions']
+    lines = [
+        f'Statistics bug analysis — {report["started_at"]} ({report["target"]})',
+        f'Range {rng["from"]}..{rng["to"]} tz={rng["tz"]}'
+        + (f' domain={rng["domain"]}' if rng['domain'] else '')
+        + f', race window {report["race_window_seconds"]:g}s',
+        f'Sessions: {report["fetched_sessions"]} read, {self_check["self_sessions"]} self '
+        f'session(s) removed (authorization side effect), {self_check["self_visits"]} visit(s) '
+        f'on the script\'s own routes; {totals["sessions"]} analysed in '
+        f'{len(summary["segments"])} segment(s)',
+        f'Groups: {totals["groups"]["all"]} ({totals["groups"][HIGH]} high, '
+        f'{totals["groups"][LOW]} low confidence); extras: {totals["extras"]["all"]} '
+        f'({totals["extras"][HIGH]} high, {totals["extras"][LOW]} low)',
+        f'ID resets: {len(report["id_resets"])}; disagreements: {totals["disagreements"]}; '
+        f'pre-columns sessions: {summary["pre_columns"]["sessions"]} '
+        f'({summary["pre_columns"]["extras"]} extra(s))',
+        '',
+        f'Extras per cause:              {_format_counts(summary["extras_per_cause"])}',
+        f'Extras per heuristic:          {_format_counts(summary["extras_per_heuristic"])}',
+        f'Sessions per creation_reason:  {_format_counts(summary["sessions_per_creation_reason"])}',
+        f'Extras per creation_reason:    {_format_counts(summary["extras_per_creation_reason"])}',
+        f'Sessions per domain id:        {_format_counts(summary["sessions_per_domain"])}',
+        f'Extras per domain id:          {_format_counts(summary["extras_per_domain"])}',
+        f'Sessions anonymous/logged:     {_format_counts(summary["sessions_per_login"])}',
+        f'Extras anonymous/logged:       {_format_counts(summary["extras_per_login"])}',
+        'Sessions per first_seen_logged: '
+        f'{_format_counts(summary["sessions_per_first_seen_logged"])}',
+        'Extras per first_seen_logged:   '
+        f'{_format_counts(summary["extras_per_first_seen_logged"])}',
+        f'Pre-columns extras per heuristic: '
+        f'{_format_counts(summary["pre_columns"]["extras_per_heuristic"])}',
+        '',
+        f'Top first_path per creation_reason (top {TOP_PATHS}):',
+    ]
+    for reason, paths in summary['top_first_paths_per_creation_reason'].items():
+        lines.append(f'  {reason}: {_format_counts(paths)}')
+    lines.append('Top first_path of extras per creation_reason:')
+    for reason, paths in summary['top_first_paths_of_extras_per_creation_reason'].items():
+        lines.append(f'  {reason}: {_format_counts(paths)}')
+    for warning in report['id_resets']:
+        lines.append(f'warning: ID reset between segments {warning["segment_before"]} and '
+                     f'{warning["segment_after"]}; analysed separately')
+    lines += ['', *[f'note: {note}' for note in report['notes']]]
+    return '\n'.join(lines)
+
+
+def _format_session_raw(session):
+    visits = '; '.join(f'{v["first_path"]} -> {v["last_path"]} ({v["hits"]} hit(s))'
+                       for v in session['visits'])
+    domain = (session['domain'] or {}).get('domain') if isinstance(session['domain'], dict) \
+        else session['domain']
+    return (f'      #{session["id"]} {session["created_at"]} ip={session["ip"]} '
+            f'domain={domain} user={session["user_id"]} '
+            f'reason={session["creation_reason"]} logged={session["first_seen_logged"]} '
+            f'first_path={session["first_path"]} visits: {visits or "none"}')
+
+
+def format_details(report):
+    """Return the detailed part of the text report (raw values: file only, never console)."""
+    lines = ['', 'Disagreements (heuristic vs creation_reason):']
+    lines += [f'  session #{d["session_id"]}: heuristic={d["heuristic"]} '
+              f'creation_reason={d["creation_reason"]} -> {d["cause"]}'
+              for d in report['disagreements']] or ['  none']
+    lines += ['', 'Pre-columns extras (heuristics only):']
+    lines += [f'  session #{d["session_id"]}: {d["heuristic"]}'
+              for d in report['pre_columns_extras']] or ['  none']
+    lines += ['', f'Sample groups (up to {SAMPLES_PER_CAUSE} per cause):']
+    for cause, groups in report['samples'].items():
+        lines.append(f'  {cause}:')
+        for group in groups:
+            lines.append(f'    segment {group["segment"]}, {group["confidence"]} confidence, '
+                         f'{len(group["sessions"])} session(s):')
+            lines += [_format_session_raw(session) for session in group['sessions']]
+    return '\n'.join(lines)
+
+
+def mask_ip(value):
+    """Mask an IP to `a.b.c.x` (IPv4) or its /64 plus `:x` (IPv6)."""
+    try:
+        address = ipaddress.ip_address(value or '')
+    except ValueError:
+        return 'x'
+    if address.version == 4:
+        return '.'.join(str(address).split('.')[:3] + ['x'])
+    return ':'.join(address.exploded.split(':')[:4]) + ':x'
+
+
+class Aliases:
+    """Per-run aliases (`s-1`, `user-1`, `domain-1`, ...) for the anonymised summary."""
+
+    def __init__(self):
+        self._maps = {}
+
+    def __call__(self, kind, value):
+        if value is None:
+            return 'none'
+        mapping = self._maps.setdefault(kind, {})
+        return mapping.setdefault(value, f'{kind}-{len(mapping) + 1}')
+
+
+def format_anonymised(report):
+    """Return a summary safe to paste in #1704 or a PR.
+
+    Counts and breakdowns (domains aliased), then sample groups with masked IPs, per-run
+    aliases for session / user / domain ids and no paths. Never a token or a URL.
+    """
+    alias = Aliases()
+    summary, totals = report['summary'], report['summary']['totals']
+
+    def domains(counts):
+        return _format_counts({k if k == 'unknown' else alias('domain', k): v
+                               for k, v in counts.items()})
+
+    lines = [
+        '--- anonymised summary (safe to paste) ---',
+        f'target={report["target"]} range={report["range"]["from"]}..{report["range"]["to"]} '
+        f'tz={report["range"]["tz"]} race_window={report["race_window_seconds"]:g}s',
+        f'sessions={totals["sessions"]} self_sessions_removed='
+        f'{report["self_sessions"]["self_sessions"]} id_resets={len(report["id_resets"])}',
+        f'groups={totals["groups"]["all"]} (high={totals["groups"][HIGH]}, '
+        f'low={totals["groups"][LOW]}) extras={totals["extras"]["all"]} '
+        f'(high={totals["extras"][HIGH]}, low={totals["extras"][LOW]}) '
+        f'disagreements={totals["disagreements"]} '
+        f'pre_columns_sessions={summary["pre_columns"]["sessions"]}',
+        f'extras per cause: {_format_counts(summary["extras_per_cause"])}',
+        f'sessions per creation_reason: {_format_counts(summary["sessions_per_creation_reason"])}',
+        f'extras per creation_reason: {_format_counts(summary["extras_per_creation_reason"])}',
+        f'sessions per domain: {domains(summary["sessions_per_domain"])}',
+        f'extras per domain: {domains(summary["extras_per_domain"])}',
+        f'sessions anonymous/logged: {_format_counts(summary["sessions_per_login"])}',
+        'sessions per first_seen_logged: '
+        f'{_format_counts(summary["sessions_per_first_seen_logged"])}',
+        'top first_path of extras per creation_reason (counts):',
+    ]
+    for reason, paths in summary['top_first_paths_of_extras_per_creation_reason'].items():
+        lines.append(f'  {reason}: {_format_counts(paths)}')
+    lines.append('sample groups (masked IPs, aliased ids, no paths):')
+    for cause, groups in report['samples'].items():
+        for group in groups:
+            members = ', '.join(
+                f'{alias("s", s["id"])}[{s["creation_reason"] or "null"} '
+                f'ip={mask_ip(s["ip"])} user={alias("user", s["user_id"])} '
+                f'visits={s["visit_count"]} hits={sum(v["hits"] or 0 for v in s["visits"])}]'
+                for s in group['sessions'])
+            lines.append(f'  {cause} ({group["confidence"]}): {members}')
+    lines.append('--- end ---')
+    return '\n'.join(lines)
+
+
+def write_reports(report, text, reports_dir):
+    """Write `analyse-<timestamp>.json` and `.txt` in the git-ignored reports folder."""
+    os.makedirs(reports_dir, exist_ok=True)
+    stamp = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')
+    json_path = os.path.join(reports_dir, f'analyse-{stamp}.json')
+    text_path = os.path.join(reports_dir, f'analyse-{stamp}.txt')
+    with open(json_path, 'w', encoding='utf-8') as handle:
+        json.dump(report, handle, indent=2)
+        handle.write('\n')
+    with open(text_path, 'w', encoding='utf-8') as handle:
+        handle.write(text + '\n')
+    return json_path, text_path
+
+
+# ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
 
@@ -822,6 +1150,7 @@ class Config:
     validate_path: str = None
     reports_dir: str = 'reports'
     dry_run: bool = False
+    anonymised: bool = False
     production: bool = False
     target: Target = None
 
@@ -880,6 +1209,9 @@ def build_parser(environ):
                         help="an emulate.py JSON report: validate against each scenario's window "
                              '(local only)')
     parser.add_argument('--reports-dir', default='reports')
+    parser.add_argument('--anonymised', action='store_true',
+                        help='also print an anonymised summary (masked IPs, aliased ids, no '
+                             'paths) safe to paste into an issue or a PR')
     parser.add_argument('--dry-run', action='store_true',
                         help='validate the configuration only; send nothing')
     return parser
@@ -893,7 +1225,8 @@ def parse_args(argv=None, environ=None):
         'username': args.username, 'from_date': args.from_date, 'to_date': args.to_date,
         'tz': args.tz, 'domain': args.domain, 'race_window': args.race_window,
         'validate_path': args.validate_path, 'reports_dir': args.reports_dir,
-        'dry_run': args.dry_run, 'production': args.production,
+        'dry_run': args.dry_run, 'anonymised': args.anonymised,
+        'production': args.production,
     }
     if args.production:
         if args.validate_path:
@@ -949,6 +1282,7 @@ class Dataset:
     reset_warnings: list
     self_check: dict
     fetched: int
+    skip_header_sent: bool = False
 
 
 def fetch(config, reader, from_date=None, to_date=None, out=sys.stdout):
@@ -964,7 +1298,8 @@ def fetch(config, reader, from_date=None, to_date=None, out=sys.stdout):
               f'{warning["segment_after"]} (created_at went back '
               f'{warning["backwards_seconds"]:.0f}s); analysed separately', file=out, flush=True)
     return Dataset(sessions=kept, segments=segments, reset_warnings=warnings,
-                   self_check=self_check, fetched=len(rows))
+                   self_check=self_check, fetched=len(rows),
+                   skip_header_sent=reader.client.skips_tracking)
 
 
 def remind_revoke(config, out=sys.stdout):
@@ -976,12 +1311,31 @@ def remind_revoke(config, out=sys.stdout):
 
 def run(config, secrets, out=sys.stdout):
     """Authorize, fetch, analyse and report. Returns the exit code."""
+    started = datetime.now(timezone.utc)
     _client, reader = authorize(config, secrets, out)
-    dataset = fetch(config, reader, out=out)
-    print(f'{dataset.fetched} session(s) read, {dataset.self_check["self_sessions"]} self '
-          f'session(s) removed, {len(dataset.segments)} segment(s).', file=out, flush=True)
-    remind_revoke(config, out)
+    # Everything is fetched and analysed before anything is written: a token rejected
+    # mid-run raises AuthorizationFailed and no partial report exists.
+    try:
+        dataset = fetch(config, reader, out=out)
+        analyse_and_report(config, started, dataset, out)
+    finally:
+        remind_revoke(config, out)
     return EXIT_OK
+
+
+def analyse_and_report(config, started, dataset, out=sys.stdout):
+    """Analyse `dataset`, print the counts (and the anonymised summary), write the reports."""
+    analyses = analyse_segments(dataset.segments, config.race_window)
+    report = build_report(config, started, dataset, analyses)
+    summary = format_summary(report)
+    print('\n' + summary, file=out, flush=True)
+    anonymised = format_anonymised(report)
+    if config.anonymised:
+        print('\n' + anonymised, file=out, flush=True)
+    text = '\n'.join([summary, format_details(report), '', anonymised])
+    for path in write_reports(report, text, config.reports_dir):
+        print(f'Report written: {path}', file=out, flush=True)
+    return report
 
 
 def main(argv=None, environ=None):
