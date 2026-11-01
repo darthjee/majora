@@ -27,12 +27,15 @@ Standard library only. It re-implements the small HTTP / authorization / export 
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import sys
+import time
 import urllib.error
 import urllib.parse
-from dataclasses import dataclass
-from datetime import date
+import urllib.request
+from dataclasses import dataclass, field
+from datetime import date, datetime
 
 # ---------------------------------------------------------------------------
 # Safety: local hosts, or the configured production URL only
@@ -50,6 +53,19 @@ DEFAULT_APPROVAL_URL = 'http://localhost:3000/#/account/authorization_requests'
 APPROVAL_FRAGMENT = '/#/account/authorization_requests'
 PROD_URL_VARIABLE = 'STATISTICS_PROD_URL'
 DEFAULT_RACE_WINDOW = 2
+
+EXPORT_PATH = '/staff/statistics/export.json'
+EXPORT_PER_PAGE = 100
+AUTH_CREATE_PATH = '/users/authorization_requests.json'
+AUTH_POLL_PATH = '/users/authorization_requests/{uuid}.json'
+# Route patterns (as stored in the tracking columns) of the script's own requests (same set
+# as emulate.py). In production the authorization create / poll requests are tracked.
+SELF_ROUTES = frozenset({
+    'users/authorization_requests.json',
+    'users/authorization_requests/<uuid:uuid>.json',
+    'staff/statistics/export.json',
+})
+USER_AGENT = 'majora-statistics-bug-analyse/1.0 (investigation, read-only)'
 
 # Exit codes (same as emulate.py, plus 1 for a validation mismatch).
 EXIT_OK, EXIT_MISMATCH, EXIT_REFUSED, EXIT_AUTH, EXIT_NETWORK = 0, 1, 2, 3, 4
@@ -158,6 +174,310 @@ class Secrets:
         return '<Secrets (values hidden)>'
 
     __str__ = __repr__
+
+
+# ---------------------------------------------------------------------------
+# HTTP primitives
+# ---------------------------------------------------------------------------
+
+
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    """Return redirects as responses instead of following them (never leave the target)."""
+
+    def redirect_request(self, *args, **kwargs):  # noqa: D102
+        return None
+
+
+_OPENER = urllib.request.build_opener(_NoRedirect)
+
+
+@dataclass
+class Response:
+    """One HTTP exchange."""
+
+    method: str
+    path: str
+    status: int
+    headers: dict
+    body: bytes
+
+    def json(self):
+        """Return the decoded JSON body, or `None`."""
+        try:
+            return json.loads(self.body.decode('utf-8'))
+        except (ValueError, UnicodeDecodeError):
+            return None
+
+    def header(self, name, default=None):
+        """Return a response header, case-insensitively."""
+        return self.headers.get(name.lower(), default)
+
+
+def send(target, base_url, method, path, headers=None, body=None, timeout=30):
+    """Send one request to an allowed target; return a `Response` (4xx/5xx included)."""
+    target.check('request', base_url)
+    url = base_url.rstrip('/') + path
+    data = None
+    headers = dict(headers or {})
+    headers.setdefault('User-Agent', USER_AGENT)
+    headers.setdefault('Accept', 'application/json')
+    if body is not None:
+        data = json.dumps(body).encode('utf-8')
+        headers.setdefault('Content-Type', 'application/json')
+    request = urllib.request.Request(url, data=data, method=method, headers=headers)
+    try:
+        raw = _OPENER.open(request, timeout=timeout)
+    except urllib.error.HTTPError as error:
+        raw = error
+    with raw:
+        content = raw.read()
+        status = raw.status if hasattr(raw, 'status') else raw.code
+        message = raw.headers
+    return Response(
+        method=method, path=path, status=status,
+        headers={key.lower(): value for key, value in message.items()}, body=content,
+    )
+
+
+# ---------------------------------------------------------------------------
+# The script's own requests: read-only, no cookie, token in memory
+# ---------------------------------------------------------------------------
+
+
+class Client:
+    """Sends the script's own requests: no cookie, `GET` only except the authorization `POST`.
+
+    Locally it adds `X-Statistics-Skip-Secret` when the secret is present; against production
+    it never does (the secret never leaves the server there).
+    """
+
+    ALLOWED_POSTS = frozenset({AUTH_CREATE_PATH})
+
+    def __init__(self, config, secrets):
+        """Read the skip secret for local targets only."""
+        self.config = config
+        self._skip = None if config.production else secrets.optional(Secrets.SKIP)
+        self._token = None
+
+    @property
+    def skips_tracking(self):
+        """Return whether the requests carry the skip header (local with the secret only)."""
+        return self._skip is not None
+
+    def set_token(self, token):
+        """Keep the scoped token in memory only."""
+        self._token = token
+
+    @property
+    def has_token(self):
+        """Return whether a token is held."""
+        return self._token is not None
+
+    def request(self, method, path, headers=None, body=None, authenticated=False):
+        """Send one read-only request (the only write allowed is the authorization POST)."""
+        if method != 'GET' and not (method == 'POST' and path in self.ALLOWED_POSTS):
+            raise Refused(f'analyse.py is read-only: {method} {path.split("?")[0]} refused.')
+        all_headers = {}
+        if self.config.host:
+            all_headers['Host'] = self.config.host
+        if self._skip is not None:
+            all_headers['X-Statistics-Skip-Secret'] = self._skip
+        if authenticated:
+            all_headers['Authorization'] = f'Bearer {self._token}'
+        all_headers.update(headers or {})
+        return send(self.config.target, self.config.base_url, method, path,
+                    headers=all_headers, body=body)
+
+    def __repr__(self):
+        """Never show the secret or the token."""
+        return '<Client (secrets hidden)>'
+
+
+class DeviceAuthorization:
+    """Gets a `statistics:read` scoped token through the device-authorization flow (#1708).
+
+    It has no timeout of its own: it polls until the request is approved, denied or expires
+    (1 hour after creation on the server).
+    """
+
+    POLL_INTERVAL_SECONDS = 3
+    SCOPES = ['statistics:read']
+
+    def __init__(self, client, config, out=sys.stdout):
+        """Store the client."""
+        self.client = client
+        self.config = config
+        self.out = out
+
+    def obtain(self):
+        """Create the request, print the approval link, poll; return the token (memory only)."""
+        uuid, poll_secret, expires_at = self._create()
+        where = 'production' if self.config.production else 'local'
+        print(
+            f'\nApprove the device authorization as the {where} staff user '
+            f'{self.config.username!r} at:\n\n    {self.config.approval_url}\n\n'
+            f'(waiting until {expires_at or "it expires"}; the request asks for '
+            f'{", ".join(self.SCOPES)} only)\n',
+            file=self.out, flush=True,
+        )
+        return self._poll(uuid, poll_secret)
+
+    def _create(self):
+        response = self.client.request(
+            'POST', AUTH_CREATE_PATH,
+            body={'username': self.config.username, 'scopes': self.SCOPES},
+        )
+        payload = response.json() or {}
+        if response.status != 201 or 'uuid' not in payload or 'token' not in payload:
+            raise AuthorizationFailed(
+                f'could not create the authorization request (HTTP {response.status}, '
+                f'{_error_code(payload)})'
+            )
+        return payload['uuid'], payload['token'], payload.get('expiration')
+
+    def _poll(self, uuid, poll_secret):
+        path = AUTH_POLL_PATH.format(uuid=urllib.parse.quote(uuid))
+        headers = {'X-Authorize-Token': poll_secret, 'X-Skip-Cache': 'true'}
+        while True:
+            response = self.client.request('GET', path, headers=headers)
+            payload = response.json() or {}
+            if response.status == 202 and payload.get('status') == 'approved':
+                token = payload.get('token') or ''
+                if not token.startswith('mjr_'):
+                    raise AuthorizationFailed('the approval did not issue a scoped mjr_ token')
+                print('Authorization approved; token kept in memory only.', file=self.out,
+                      flush=True)
+                return token
+            if response.status == 200 and payload.get('status') == 'open':
+                time.sleep(self.POLL_INTERVAL_SECONDS)
+                continue
+            if response.status == 422:
+                raise AuthorizationFailed('the authorization request expired')
+            if response.status == 403:
+                raise AuthorizationFailed('the authorization request was denied or consumed')
+            raise AuthorizationFailed(f'unexpected poll response (HTTP {response.status})')
+
+
+def _error_code(payload):
+    """Return a short, safe description of an error payload."""
+    if isinstance(payload, dict):
+        if 'error' in payload:
+            return str(payload['error'])
+        if 'errors' in payload:
+            return json.dumps(payload['errors'])[:200]
+    return 'no error code'
+
+
+# ---------------------------------------------------------------------------
+# Export reader
+# ---------------------------------------------------------------------------
+
+
+def parse_iso(value):
+    """Parse an ISO 8601 UTC timestamp from the export."""
+    if value is None:
+        return None
+    return datetime.fromisoformat(value.replace('Z', '+00:00'))
+
+
+class ExportReader:
+    """Pages sequentially through `GET /staff/statistics/export.json` with the token.
+
+    One request at a time, `per_page=100`, following the `pages` header. Any non-200
+    response (a 401 `token_invalid` mid-run: revoked or expired) is `AuthorizationFailed`,
+    so the run stops with no partial report.
+    """
+
+    def __init__(self, client, out=sys.stdout):
+        """Store the authenticated client."""
+        self.client = client
+        self.out = out
+
+    def sessions(self, from_date, to_date, tz='UTC', domain=None):
+        """Return every session of the range, sorted by `id`."""
+        rows = list(self._all_pages(from_date, to_date, tz, domain))
+        return sorted(rows, key=lambda session: session['id'])
+
+    def _all_pages(self, from_date, to_date, tz, domain):
+        page, pages = 1, 1
+        while page <= pages:
+            params = {'from': from_date.isoformat(), 'to': to_date.isoformat(), 'tz': tz,
+                      'page': page, 'per_page': EXPORT_PER_PAGE}
+            if domain:
+                params['domain'] = domain
+            query = urllib.parse.urlencode(params)
+            response = self.client.request('GET', f'{EXPORT_PATH}?{query}', authenticated=True)
+            if response.status != 200:
+                raise AuthorizationFailed(
+                    f'export refused (HTTP {response.status}, '
+                    f'{_error_code(response.json())})'
+                )
+            rows = response.json()
+            if not isinstance(rows, list):
+                raise AuthorizationFailed('export returned an unexpected payload')
+            pages = int(response.header('pages', '1') or 1)
+            print(f'  export page {page}/{pages}: {len(rows)} session(s)', file=self.out,
+                  flush=True)
+            yield from rows
+            page += 1
+
+
+# ---------------------------------------------------------------------------
+# Self-tracking filter and ID reset detection
+# ---------------------------------------------------------------------------
+
+
+def split_self_sessions(sessions):
+    """Return `(kept, self_check)`: sessions minus those opened by the script's own routes.
+
+    In production the authorization create / poll requests are tracked (the bounded side
+    effect); locally with the skip secret the counts must be 0.
+    """
+    own = [s for s in sessions if s.get('first_path') in SELF_ROUTES]
+    kept = [s for s in sessions if s.get('first_path') not in SELF_ROUTES]
+    own_visits = sum(
+        1 for session in sessions for visit in session.get('visits') or []
+        if visit.get('first_path') in SELF_ROUTES or visit.get('last_path') in SELF_ROUTES
+    )
+    return kept, {'self_sessions': len(own), 'self_visits': own_visits}
+
+
+@dataclass
+class Segment:
+    """A run of sessions with no ID reset inside it (analysed separately)."""
+
+    index: int
+    sessions: list = field(default_factory=list)
+
+
+def split_at_resets(sessions, race_window):
+    """Split id-ordered `sessions` wherever ids and `created_at` disagree (a #1684 clear).
+
+    A reset point is where, walking by `id`, `created_at` goes backwards by more than
+    `race_window` seconds. Returns `(segments, warnings)`; a reset never fails the run.
+    """
+    segments, warnings = [], []
+    current = Segment(index=0)
+    previous_created, previous_raw = None, None
+    for session in sessions:
+        created = parse_iso(session.get('created_at'))
+        if previous_created is not None and created is not None:
+            gap = (previous_created - created).total_seconds()
+            if gap > race_window:
+                warnings.append({
+                    'segment_before': current.index, 'segment_after': current.index + 1,
+                    'created_at_before': previous_raw,
+                    'created_at_after': session.get('created_at'),
+                    'backwards_seconds': gap,
+                })
+                segments.append(current)
+                current = Segment(index=current.index + 1)
+        current.sessions.append(session)
+        if created is not None:
+            previous_created, previous_raw = created, session.get('created_at')
+    if current.sessions or not segments:
+        segments.append(current)
+    return segments, warnings
 
 
 # ---------------------------------------------------------------------------
@@ -290,9 +610,57 @@ def describe_dry_run(config, secrets):
             'Nothing sent.')
 
 
+def authorize(config, secrets, out=sys.stdout):
+    """Return `(client, reader)`: a client holding a `statistics:read` token in memory."""
+    if not config.username:
+        raise Refused('no staff username: pass --username or set MAJORA_USERNAME.')
+    client = Client(config, secrets)
+    client.set_token(DeviceAuthorization(client, config, out).obtain())
+    return client, ExportReader(client, out)
+
+
+@dataclass
+class Dataset:
+    """The fetched range: the analysed sessions, split at ID resets, and the self check."""
+
+    sessions: list
+    segments: list
+    reset_warnings: list
+    self_check: dict
+    fetched: int
+
+
+def fetch(config, reader, from_date=None, to_date=None, out=sys.stdout):
+    """Read the range sequentially, drop the script's own sessions, split at ID resets."""
+    from_date = from_date or config.from_date
+    to_date = to_date or config.to_date
+    print(f'Reading the export {from_date}..{to_date} (tz {config.tz})...', file=out, flush=True)
+    rows = reader.sessions(from_date, to_date, config.tz, config.domain)
+    kept, self_check = split_self_sessions(rows)
+    segments, warnings = split_at_resets(kept, config.race_window)
+    for warning in warnings:
+        print(f'  warning: ID reset between segments {warning["segment_before"]} and '
+              f'{warning["segment_after"]} (created_at went back '
+              f'{warning["backwards_seconds"]:.0f}s); analysed separately', file=out, flush=True)
+    return Dataset(sessions=kept, segments=segments, reset_warnings=warnings,
+                   self_check=self_check, fetched=len(rows))
+
+
+def remind_revoke(config, out=sys.stdout):
+    """Remind the user to revoke the token (the script never revokes it)."""
+    print('\nReminder: revoke the "Device authorization" token from your account page '
+          f'({"production" if config.production else "local"} API tokens); analyse.py does not '
+          'revoke it.', file=out, flush=True)
+
+
 def run(config, secrets, out=sys.stdout):
     """Authorize, fetch, analyse and report. Returns the exit code."""
-    raise Refused('not implemented yet')
+    _client, reader = authorize(config, secrets, out)
+    dataset = fetch(config, reader, out=out)
+    print(f'{dataset.fetched} session(s) read, {dataset.self_check["self_sessions"]} self '
+          f'session(s) removed, {len(dataset.segments)} segment(s).', file=out, flush=True)
+    remind_revoke(config, out)
+    return EXIT_OK
 
 
 def main(argv=None, environ=None):
