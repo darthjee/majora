@@ -38,6 +38,10 @@ docker-compose -f investigations/<topic>/docker-compose.yml run --rm <service> <
 
 There are no Makefile targets and no root docker-compose service for investigations.
 
+Emulation needs the local stack: bring it up with `make stack-up` (a root-stack target, not an
+investigation one). It publishes no host ports; runners reach the services by name on
+`majora_default` and never need a host port. `make dev-up` also works but binds host ports.
+
 ## Rules
 
 - **Production data is read-only**, and is accessed only after explicit authorization by the

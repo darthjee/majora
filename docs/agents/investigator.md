@@ -58,5 +58,10 @@ These are the reference rules; the agent file repeats them.
   anonymised — no real IPs, user IDs, session IDs, token values or secret values.
 - Exploitable security findings are reported privately to the repository owner before any
   public write-up (see [Security Guidelines](security-guidelines.md)).
-- Emulation runs only against the local stack, never against production.
+- Emulation runs only against the local stack, never against production. Bring the stack up
+  with `make stack-up`, which publishes no host ports: runners reach the services by name on
+  `majora_default` and never need a host port, so a clash with another project's port can't
+  block validation. `stack-up` is a root-stack target, not an investigation target
+  (investigations still have no Makefile targets of their own); `make dev-up` also works but
+  binds host ports.
 - Everything runs through docker-compose; no language runtime runs on the host.
