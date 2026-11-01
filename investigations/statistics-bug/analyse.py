@@ -665,33 +665,46 @@ def _latest_before(sessions, index, accept):
     return None
 
 
+def _reason_target(sessions, index, race_window):
+    """Return the index of the session `sessions[index]` is linked to by its reason, or `None`."""
+    session = sessions[index]
+    reason = session.get('creation_reason')
+    moment, domain, ip = created(session), domain_key(session), session.get('ip')
+    window = timedelta(seconds=race_window)
+
+    def active_nearby(other):
+        return (domain_key(other) == domain and other.get('ip') != ip
+                and nearby_ip(other.get('ip'), ip) and moment <= active_until(other) + window)
+
+    def recent_other_ip(other):
+        return (domain_key(other) == domain and other.get('ip') != ip
+                and _seconds(moment, created(other)) <= race_window)
+
+    def recent_other_domain(other):
+        return (other.get('ip') == ip and domain_key(other) != domain
+                and _seconds(moment, created(other)) <= race_window)
+
+    def active_anonymous(other):
+        return (other.get('user_id') is None and domain_key(other) == domain
+                and other.get('ip') == ip and moment <= active_until(other) + window)
+
+    if reason == 'ip_changed':
+        target = _latest_before(sessions, index, active_nearby)
+        return target if target is not None else _latest_before(sessions, index, recent_other_ip)
+    if reason == 'domain_changed':
+        return _latest_before(sessions, index, recent_other_domain)
+    if session.get('user_id') is not None and (
+            reason == 'login_rotation'
+            or (reason is None and session.get('first_seen_logged') is not False)):
+        # A login rotation: the anonymous session it rotated from, still active.
+        return _latest_before(sessions, index, active_anonymous)
+    return None
+
+
 def _link_by_reason(sessions, uf, race_window):
     """Low confidence links read from `creation_reason` (and its pre-columns fallback)."""
-    for index, session in enumerate(sessions):
-        reason = session.get('creation_reason')
-        moment, domain, ip = created(session), domain_key(session), session.get('ip')
-        target = None
-        if reason == 'ip_changed':
-            target = _latest_before(sessions, index, lambda other: (
-                domain_key(other) == domain and other.get('ip') != ip
-                and nearby_ip(other.get('ip'), ip)
-                and moment <= active_until(other) + timedelta(seconds=race_window)))
-            if target is None:
-                target = _latest_before(sessions, index, lambda other: (
-                    domain_key(other) == domain and other.get('ip') != ip
-                    and _seconds(moment, created(other)) <= race_window))
-        elif reason == 'domain_changed':
-            target = _latest_before(sessions, index, lambda other: (
-                other.get('ip') == ip and domain_key(other) != domain
-                and _seconds(moment, created(other)) <= race_window))
-        elif session.get('user_id') is not None and (
-                reason == 'login_rotation' or (reason is None and session.get('first_seen_logged')
-                                               is not False)):
-            # A login rotation: the anonymous session it rotated from, still active.
-            target = _latest_before(sessions, index, lambda other: (
-                other.get('user_id') is None and domain_key(other) == domain
-                and other.get('ip') == ip
-                and moment <= active_until(other) + timedelta(seconds=race_window)))
+    for index in range(len(sessions)):
+        target = _reason_target(sessions, index, race_window)
         if target is not None:
             uf.join(target, index, LOW)
 
