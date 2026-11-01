@@ -1,5 +1,11 @@
 version: '3.8'
 
+# This file publishes no host ports, so tests and validation runs never bind
+# host ports (#1724). Host-port mappings live in docker-compose.ports.yml and
+# are opt-in:
+#   docker-compose -f docker-compose.yml -f docker-compose.ports.yml up <service...>
+# (or `make dev-up`).
+
 services:
   majora_mysql:
     image: mysql:9.3.0
@@ -10,8 +16,6 @@ services:
       MYSQL_USER: majora
       MYSQL_PASSWORD: majora
       MYSQL_ROOT_PASSWORD: majora
-    ports:
-      - 0.0.0.0:$MAJORA_MYSQL_PORT:3306
     volumes:
       - ./docker_volumes/mysql_data:/var/lib/mysql
 
@@ -54,8 +58,6 @@ services:
       - base_build
       - majora_mysql
       - majora_phpmyadmin
-    ports:
-      - 0.0.0.0:3030:8080
     environment:
       - MAJORA_MYSQL_PORT=3306
 
@@ -71,8 +73,6 @@ services:
     depends_on:
       - base_prod_build
       - majora_mysql
-    ports:
-      - 0.0.0.0:3030:8080
     environment:
       - MAJORA_MYSQL_PORT=3306
       - STAGE=production
@@ -86,8 +86,6 @@ services:
       - ./frontend:/home/node/app
       - ./docker_volumes/node_modules:/home/node/app/node_modules
       - ./docker_volumes/static:/home/node/app/dist
-    ports:
-      - 0.0.0.0:3010:8080
     env_file: .env
 
   majora_proxy:
@@ -108,8 +106,6 @@ services:
     depends_on:
       - majora_app
       - majora_fe
-    ports:
-      - 0.0.0.0:3000:80
 
   proxy_tests:
     image: darthjee/tent-test:1.0.2
@@ -128,8 +124,6 @@ services:
       - STATISTICS_SKIP_SECRET=$STATISTICS_SKIP_SECRET
       - NAVI_PORT=3000
       - NAVI_NAMEPACE=$NAVI_NAMEPACE
-    ports:
-      - 0.0.0.0:3100:3000
 
   crawler_navi_web:
     build:
@@ -140,8 +134,6 @@ services:
       - MAJORA_API_BASE_URL=$MAJORA_API_BASE_URL
       - LOOTSTUDIOS_SESSION_COOKIE=$LOOTSTUDIOS_SESSION_COOKIE
       - NAVI_API_TOKEN=$NAVI_API_TOKEN
-    ports:
-      - 127.0.0.1:3110:3000
 
   markdownlint:
     container_name: majora_markdownlint
@@ -177,6 +169,4 @@ services:
       MYSQL_USER: root
       MYSQL_ROOT_PASSWORD: majora
       MYSQL_PASSWORD: majora
-    ports:
-      - 0.0.0.0:3050:80
 

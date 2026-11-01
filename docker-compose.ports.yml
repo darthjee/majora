@@ -1,0 +1,44 @@
+# Opt-in host-port mappings for the dev stack (#1724).
+#
+# docker-compose does NOT load this file automatically. Use it only when you
+# want services reachable from the host:
+#
+#   docker-compose -f docker-compose.yml -f docker-compose.ports.yml up <service...>
+#
+# (`make dev-up` does this for you.) Tests and validation runs use the base
+# docker-compose.yml alone, so they never bind host ports and never collide
+# with whatever else is running on the host. Every mapping is bound to
+# 127.0.0.1, so nothing is exposed to the LAN.
+
+services:
+  majora_mysql:
+    ports:
+      - 127.0.0.1:${MAJORA_MYSQL_HOST_PORT:-3306}:3306
+
+  majora_app:
+    ports:
+      - 127.0.0.1:3030:8080
+
+  majora_prod_app:
+    ports:
+      - 127.0.0.1:3030:8080
+
+  majora_fe:
+    ports:
+      - 127.0.0.1:3010:8080
+
+  majora_proxy:
+    ports:
+      - 127.0.0.1:3000:80
+
+  majora_navi:
+    ports:
+      - 127.0.0.1:3100:3000
+
+  majora_phpmyadmin:
+    ports:
+      - 127.0.0.1:3050:80
+
+  crawler_navi_web:
+    ports:
+      - 127.0.0.1:3110:3000
