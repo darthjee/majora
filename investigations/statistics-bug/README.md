@@ -3,7 +3,9 @@
 Temporary tooling for [Epic #1696](https://github.com/darthjee/majora/issues/1696): duplicated
 statistics sessions. Issue #1702 adds `emulate.py`, which replays navigation scenarios against
 the **local** stack and reports the statistics sessions and visits each scenario created, with
-their tracking columns, flagging unexpected creation reasons.
+their tracking columns, flagging unexpected creation reasons. Issue #1703 adds `analyse.py`,
+which reads the statistics export, groups the sessions that probably belong to one visitor and
+classifies every extra session (see [analyse.py](#analysepy)).
 
 Specs:
 
@@ -172,3 +174,120 @@ refused (no report); `4` the local stack is unreachable (no report).
 
 The JSON report holds local IPs and ids: it stays in `reports/`. Anything copied from a report
 into the repository or an issue is aggregated or anonymised (see the Privacy spec).
+
+## analyse.py
+
+Reads the statistics export (`GET /staff/statistics/export.json`) for a date range, groups the
+sessions that probably belong to the same visitor and classifies every extra session of a group.
+Standard library only; it runs through this folder's compose file like `emulate.py`.
+
+### Safety
+
+- **Read-only.** Its only requests are the device-authorization create (`POST`) and poll, and
+  the export pages, fetched **sequentially** (`per_page` 100). Any other method is refused.
+- **Targets.** Without `--production` every URL must be local (same list as `emulate.py`).
+  With `--production` the only target is `STATISTICS_PROD_URL` from the root `.env` (https,
+  never an argument value, never printed). Any other host is refused; there is no override.
+- **Secrets.** `STATISTICS_SKIP_SECRET` is optional and only sent to local targets, never to
+  production.
+- **Token.** The `statistics:read` token is kept in memory only: never printed, logged or
+  written. At the end the script reminds you to revoke it from your account page (API tokens);
+  it does not revoke it itself.
+- **Clean stop.** A denied or expired authorization, or a token rejected later (401
+  `token_invalid`: revoked or expired), stops the run with **no partial report** (exit 3).
+
+### Commands
+
+From the repository root. `--from` / `--to` (`YYYY-MM-DD`) are **required**; there is no
+default range, so every run is deliberate and narrow.
+
+```bash
+# local export (the local stack must be up)
+docker-compose -f investigations/statistics-bug/docker-compose.yml run --rm analyse \
+  --from 2026-01-01 --to 2026-01-01 --username <local staff user>
+
+# validation against an emulate.py report (local only)
+docker-compose -f investigations/statistics-bug/docker-compose.yml run --rm analyse \
+  --from <day> --to <day> --username <local staff user> \
+  --validate reports/emulate-<timestamp>.json
+
+# production (#1704 only)
+docker-compose -f investigations/statistics-bug/docker-compose.yml run --rm analyse-prod \
+  --from <day> --to <day> --username <staff user>
+```
+
+The **production run belongs to #1704**: it needs the user's go-ahead, their approval of the
+token, and enough data collected after the #1701 release. `analyse-prod` adds `--production`
+itself and stays off the local Docker network.
+
+Options: `--tz` (default `UTC`), `--domain` (a `Domain` id or `unknown`), `--race-window`
+(seconds, default 2), `--username` / `MAJORA_USERNAME`, `--reports-dir` (default `reports`),
+`--anonymised` (also print the anonymised summary) and `--dry-run` (validate the configuration
+only; it says whether the production URL is present, never what it is).
+
+### Authorization
+
+The script creates a device-authorization request asking for `statistics:read` only, prints
+the approval link (`<site>/#/account/authorization_requests`) and polls every 3 seconds. It has
+no timeout of its own: it waits until the request is approved, denied or expires, **1 hour**
+after creation on the server.
+
+**Production side effect:** the export route is untracked, but the authorization create and
+poll requests are tracked like any client, so they open a few statistics sessions. Those
+sessions (`first_path` on the script's own routes) are removed from the analysis and counted as
+"self sessions (authorization side effect)". Locally, with the skip secret, that count is 0.
+
+### Analysis
+
+- **ID resets (#1684):** walking the sessions by `id`, a `created_at` going back by more than
+  the race window marks a statistics Clear; the data is split there and each segment is
+  analysed separately. A reset is a warning, not a failure.
+- **Grouping:** the same `user_id` (high confidence); anonymous sessions on the same domain and
+  IP, each created within the race window of the previous one or during its activity (low
+  confidence: unrelated visitors behind the same NAT can share an IP); and links read from the
+  creation reason (`ip_changed` to a nearby IP, /24 or /64, on the same domain;
+  `domain_changed` from the same IP; a login rotation to the anonymous session it came from).
+  The first session of a group (by `created_at`, then `id`) is the original; the others are
+  extras.
+- **Classification of each extra:** `race`, `login_rotation`, `ip_change`, `domain_change`,
+  `single_hit_orphan`, `legitimate` (a fresh start more than 30 minutes after the visitor went
+  quiet, or a bot-like session on `unresolved` paths only) or `other`. `creation_reason` is the
+  primary signal: the heuristic is cross-checked against it and every disagreement is reported.
+  Sessions with `NULL` tracking columns (before #1701) use the heuristics only and are counted
+  in a separate pre-columns bucket.
+
+### Reports
+
+A run writes `analyse-<timestamp>.json` / `.txt` to the git-ignored `reports/` folder: the
+range and target kind (never the production URL), totals (sessions, groups and extras by
+confidence, self sessions removed, ID resets), counts per cause and per `creation_reason`, per
+domain, anonymous vs. logged in and per `first_seen_logged`, the top 10 `first_path` values per
+`creation_reason`, the disagreements, the pre-columns bucket and up to 5 sample groups per cause
+with each visit's `first_path` / `last_path`.
+
+The files keep raw values (IPs, ids): they stay in `reports/`. The **console** shows counts and
+breakdowns only. The **anonymised summary** (`--anonymised`, also at the end of the `.txt`)
+masks IPs (`203.0.113.x`), replaces session, user and domain ids with per-run aliases (`s-1`,
+`user-1`, `domain-1`) and shows paths only as counts: it is the only part safe to paste into an
+issue or a PR.
+
+### Validation mode
+
+`--validate <emulate report.json>` (local only; refused with `--production`) authorizes once,
+then, for every scenario that was not skipped, reads the local export for the scenario's window
+(`window.filtered_from` / `filtered_to`, `tz=UTC`, filtered by `created_at`) and analyses those
+sessions only. Per scenario it checks that:
+
+- the analysed session ids equal the scenario's `sessions`;
+- the extras found equal the scenario's session count minus 1, all in one group (a scenario is
+  one visitor);
+- the recovered `creation_reason` counts satisfy the scenario's `expected` (same rule as
+  `emulate.py`), with no disagreement;
+- with the skip secret, no session was opened by the script's own routes.
+
+It prints one `match` / `mismatch` line per scenario and writes `validate-<timestamp>.json` /
+`.txt` to `reports/`. Exit codes: `0` every scenario matches, `1` a mismatch, `2` refused, `3`
+authorization or export failed (no report), `4` network failure (no report).
+
+A mismatch inherited from `emulate.py` (a scenario producing an unexpected reason) is a finding
+for #1704, not something to tune away.

@@ -1,17 +1,27 @@
-# Standalone runner for the statistics-bug investigation (Epic #1696, issue #1702).
+# Standalone runner for the statistics-bug investigation (Epic #1696, issues #1702, #1703).
 #
 # Not part of the project's compose file. Run from the repository root:
 #
+#   # emulation against the LOCAL stack (#1702)
 #   docker-compose -f investigations/statistics-bug/docker-compose.yml run --rm emulate
 #
-# The service joins the project's Docker network (created by the root
-# docker-compose.yml, `<project folder>_default`, i.e. `majora_default`) so it
-# reaches the proxy (`majora_proxy`, port 80) and the backend (`majora_app`,
-# port 8080) by name. Override the network with MAJORA_DOCKER_NETWORK when the
-# project folder has another name.
+#   # analysis of the LOCAL export, or validation against an emulate.py report (#1703)
+#   docker-compose -f investigations/statistics-bug/docker-compose.yml run --rm analyse \
+#     --from 2026-01-01 --to 2026-01-01 [--validate reports/emulate-<timestamp>.json]
 #
-# Secrets (PROXY_SECRET, STATISTICS_SKIP_SECRET) come from the root `.env` (or
-# from the shell with `run -e NAME`); their values are never copied here.
+#   # analysis of the PRODUCTION export (#1704 only, after the user's go-ahead)
+#   docker-compose -f investigations/statistics-bug/docker-compose.yml run --rm analyse-prod \
+#     --from 2026-01-01 --to 2026-01-01
+#
+# `emulate` and `analyse` join the project's Docker network (created by the root
+# docker-compose.yml, `<project folder>_default`, i.e. `majora_default`) so they reach the
+# proxy (`majora_proxy`, port 80) and the backend (`majora_app`, port 8080) by name. Override
+# the network with MAJORA_DOCKER_NETWORK when the project folder has another name.
+# `analyse-prod` stays on its own default network: it never needs the local stack.
+#
+# Secrets (PROXY_SECRET, STATISTICS_SKIP_SECRET) and the production URL (STATISTICS_PROD_URL)
+# come from the root `.env` (or from the shell with `run -e NAME`); their values are never
+# copied here.
 
 services:
   emulate:
@@ -30,6 +40,38 @@ services:
     networks:
       - majora
     entrypoint: ["python", "-I", "-B", "emulate.py"]
+
+  analyse:
+    image: python:3.12.7-slim
+    working_dir: /investigation
+    volumes:
+      - ./:/investigation
+    env_file:
+      - path: ../../.env
+        required: false
+    environment:
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+      - MAJORA_BASE_URL=${MAJORA_BASE_URL:-http://majora_proxy}
+      - MAJORA_HOST=${MAJORA_HOST:-localhost:3000}
+    networks:
+      - majora
+    entrypoint: ["python", "-I", "-B", "analyse.py"]
+
+  analyse-prod:
+    image: python:3.12.7-slim
+    working_dir: /investigation
+    volumes:
+      - ./:/investigation
+    env_file:
+      - path: ../../.env
+        required: false
+    environment:
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+      # Passed through from the root .env / the shell; never written here.
+      - STATISTICS_PROD_URL
+    entrypoint: ["python", "-I", "-B", "analyse.py", "--production"]
 
 networks:
   majora:
