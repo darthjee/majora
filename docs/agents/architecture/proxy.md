@@ -12,6 +12,8 @@ proxy/
 │       ├── frontend.php
 │       └── redirects.php
 ├── prod_configuration/
+├── prod_htaccess/
+│   └── .htaccess
 └── custom/
     ├── extend/
     └── tests/
@@ -24,6 +26,14 @@ proxy/
 - Both modes: `*.json` paths route to the Django backend (cached via `default_proxy`); unmatched paths redirect to the SPA hash-routing entrypoint (`/#/<path>`).
 
 See proxy/dev_configuration/rules/ and proxy/prod_configuration/ for exact rule definitions.
+
+## Production `.htaccess` (`proxy/prod_htaccess/`)
+
+Production runs PHP under mod_fcgid, which does not pass the `Authorization` request header to PHP, so Tent (which builds request headers with `getallheaders()`) would forward requests without it and every scoped API token (`Authorization: Bearer mjr_...`) would get `401 authentication_required` (#1729).
+
+- `proxy/prod_htaccess/.htaccess` is the versioned production `.htaccess`. Before the `index.php` rewrite it copies the header into `HTTP_AUTHORIZATION` (`RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]`), so PHP sees it and Tent forwards it to the backend unchanged.
+- CI deploys it to the release root as `.htaccess` (next to `index.php`) in the `copy_proxy_configuration` job, which runs after `upload_proxy_files` and so overwrites the Tent image's default `.htaccess`. Any server-side change must be made in this file in the repo; edits on the server are lost on the next release.
+- To verify after a release: a request with a fake Bearer token must answer `401` with `token_invalid` and `WWW-Authenticate: Bearer realm="api", error="invalid_token"` (not `authentication_required`).
 
 ## Response-driven cache invalidation (`X-Cache-Clear`)
 
