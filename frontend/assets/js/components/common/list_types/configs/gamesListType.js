@@ -1,5 +1,9 @@
 import GameListItem from '../GameListItem.js';
 import fetchRequestStoreList, { buildListQuery } from '../fetchRequestStoreList.js';
+import HttpResponseError from '../../../../utils/http/HttpResponseError.js';
+import Translator from '../../../../i18n/Translator.js';
+
+const DOMAIN_NOT_RECOGNIZED = 'domain_not_recognized';
 
 /**
  * Fetch a page of the top-level games list through `RequestStore` (`game.collection`). Unlike
@@ -55,6 +59,27 @@ function buildItemHref(item) {
 }
 
 /**
+ * Map a games list fetch failure to a page-level message: a `404` whose body carries
+ * `domain_not_recognized` (no `Domain` registered for the current host) becomes a translated
+ * warning; any other failure is left to `ListPageController`'s generic error.
+ *
+ * @param {Error} error - The error the list fetch rejected with.
+ * @returns {{message: string, variant: string}|null} The warning to show, or `null` to fall
+ *   back to the generic error message.
+ */
+function resolveErrorMessage(error) {
+  const isDomainError = error instanceof HttpResponseError
+    && error.status === 404
+    && error.hasErrorCode(DOMAIN_NOT_RECOGNIZED);
+
+  if (!isDomainError) {
+    return null;
+  }
+
+  return { message: Translator.t('games_page.domain_not_recognized'), variant: 'warning' };
+}
+
+/**
  * `listTypeConfig` entry for the top-level games list (`'games'`).
  */
 const gamesListType = {
@@ -69,6 +94,7 @@ const gamesListType = {
   itemsPerRow: 4,
   cardPhotoClassName: 'card-photo-rect',
   flexibleColumns: true,
+  resolveErrorMessage,
 };
 
 export default gamesListType;

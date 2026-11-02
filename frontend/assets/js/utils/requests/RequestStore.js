@@ -7,6 +7,7 @@ import Request from './Request.js';
 import RequestStoreLogging from './RequestStoreLogging.js';
 import RequestMutationClient from './RequestMutationClient.js';
 import resolveVariant from './resolveVariant.js';
+import Noop from '../Noop.js';
 
 const requests = new Map();
 const mutationClient = new RequestMutationClient();
@@ -150,7 +151,8 @@ export default class RequestStore {
       if (entry.request.isOngoing()) {
         entry.request.restart();
         RequestPermissionResolvers.resolve(entry.resource, entry.quantityType, entry.params)
-          .then((permissions) => entry.request.ensure({ permissions, params: entry.params, query: entry.query }));
+          .then((permissions) => entry.request.ensure({ permissions, params: entry.params, query: entry.query }))
+          .catch(Noop.noop);
         return;
       }
 
@@ -169,7 +171,8 @@ export default class RequestStore {
   static resyncPermissions() {
     requests.forEach((entry) => {
       RequestPermissionResolvers.resolve(entry.resource, entry.quantityType, entry.params)
-        .then((permissions) => entry.request.ensure({ permissions, params: entry.params, query: entry.query }));
+        .then((permissions) => entry.request.ensure({ permissions, params: entry.params, query: entry.query }))
+        .catch(Noop.noop);
     });
   }
 

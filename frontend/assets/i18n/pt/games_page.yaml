@@ -2,3 +2,4 @@ games_page:
   loading: Carregando jogos...
   back_href_label: Voltar
   new_game: Novo Jogo
+  domain_not_recognized: Este domínio não está configurado, então nenhum jogo pode ser listado.

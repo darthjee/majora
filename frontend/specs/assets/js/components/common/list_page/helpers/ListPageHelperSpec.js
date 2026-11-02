@@ -238,5 +238,19 @@ describe('ListPageHelper', function() {
       expect(html).toContain('Something went wrong');
       expect(html).toContain('alert');
     });
+
+    it('renders a string error as a danger alert', function() {
+      const html = renderToStaticMarkup(ListPageHelper.renderError('Something went wrong'));
+      expect(html).toContain('alert-danger');
+    });
+
+    it('renders a {message, variant} error with its variant', function() {
+      const html = renderToStaticMarkup(
+        ListPageHelper.renderError({ message: 'Domain missing', variant: 'warning' }),
+      );
+      expect(html).toContain('Domain missing');
+      expect(html).toContain('alert-warning');
+      expect(html).not.toContain('alert-danger');
+    });
   });
 });

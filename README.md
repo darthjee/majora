@@ -72,10 +72,14 @@ majora/
    cd majora
    ```
 
-2. Create the `.env` file and run database migrations:
+2. Create the `.env` file, run Django migrations and seed the local dev domains (`localhost`, `127.0.0.1`):
    ```bash
    make setup
    ```
+
+   `make dev-up` also seeds the dev domains by itself on boot. If the app is already running when
+   you run `make setup`, restart it so it picks up the newly seeded rows (they are cached in memory
+   per process).
 
 3. Review and adjust `.env` values if needed.
 

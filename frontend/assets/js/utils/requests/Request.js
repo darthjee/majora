@@ -37,6 +37,7 @@ export default class Request {
   #activeKey = null;
   #promise = null;
   #resolve = null;
+  #reject = null;
   #current;
 
   /**
@@ -80,8 +81,9 @@ export default class Request {
     this.#activeKey = key;
 
     if (!this.#promise) {
-      this.#promise = new Promise((resolve) => {
+      this.#promise = new Promise((resolve, reject) => {
         this.#resolve = resolve;
+        this.#reject = reject;
       });
     }
 
@@ -90,7 +92,9 @@ export default class Request {
     this.#cache
       .ensure(
         key,
-        (signal) => this.#client.fetchResource(variant.path(params), query, signal, variant.skipCache),
+        (signal) => Request.#captureFailure(
+          this.#client.fetchResource(variant.path(params), query, signal, variant.skipCache),
+        ),
         undefined,
       )
       .then((result) => this.#settle(key, result));
@@ -111,6 +115,7 @@ export default class Request {
     this.#activeKey = null;
     this.#promise = null;
     this.#resolve = null;
+    this.#reject = null;
     this.#current = undefined;
   }
 
@@ -146,10 +151,53 @@ export default class Request {
       return;
     }
 
+    if (!result || result.failure) {
+      this.#fail(result?.error);
+      return;
+    }
+
     this.#current = { data: result.data, pagination: result.pagination };
     this.#resolve?.(this.#current);
+    this.#clearPending();
+  }
+
+  /**
+   * Reject the handed-out promise with the fetch's original error (e.g. an `HttpResponseError`),
+   * and forget the failed key so the next `ensure()` call retries instead of replaying it.
+   *
+   * @param {Error} [error] - The error the fetch rejected with.
+   * @returns {void}
+   */
+  #fail(error) {
+    const reject = this.#reject;
+
+    this.#cache.reset();
+    this.#activeKey = null;
+    this.#clearPending();
+    reject?.(error ?? new Error(`request failed: ${this.#resource}.${this.#quantityType}`));
+  }
+
+  #clearPending() {
     this.#promise = null;
     this.#resolve = null;
+    this.#reject = null;
+  }
+
+  /**
+   * Turn a fetch rejection into a `{failure, error}` result, since {@link AccessCache} swallows
+   * rejections; aborts are re-thrown so `AccessCache` keeps handling them as before.
+   *
+   * @param {Promise<object>} fetchPromise - The client fetch promise.
+   * @returns {Promise<object>} The fetch result, or `{failure: true, error}` on failure.
+   */
+  static #captureFailure(fetchPromise) {
+    return fetchPromise.catch((error) => {
+      if (error?.name === 'AbortError') {
+        throw error;
+      }
+
+      return { failure: true, error };
+    });
   }
 
   static #buildKey(resource, quantityType, variantName, params, query) {
