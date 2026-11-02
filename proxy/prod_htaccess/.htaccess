@@ -1,0 +1,13 @@
+RewriteEngine On
+
+# Pass the Authorization header to PHP under FastCGI (mod_fcgid), so scoped
+# API tokens (Authorization: Bearer ...) reach the backend.
+RewriteCond %{HTTP:Authorization} .
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+# Redirect ALL requests to index.php
+RewriteRule ^(.*)$ index.php [QSA,L]
+
+# Never mark token-authenticated (Authorization: Bearer ...) responses as public,
+# so shared caches don't store them; the backend's no-store is kept.
+Header set Cache-Control "max-age=10, public" "expr=-z %{req:Authorization}"
