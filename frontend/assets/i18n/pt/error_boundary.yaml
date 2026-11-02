@@ -1,0 +1,4 @@
+error_boundary:
+  title: Algo deu errado
+  message: Ocorreu um erro inesperado ao exibir esta página.
+  reload: Recarregar página
