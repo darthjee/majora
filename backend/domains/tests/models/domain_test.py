@@ -55,7 +55,9 @@ class TestDomain:
         with pytest.raises(IntegrityError):
             Domain.objects.create(domain='foo.majora.app', domain_group=None)
 
-    @pytest.mark.parametrize('domain', ['foo.majora.app', 'example.com'])
+    @pytest.mark.parametrize(
+        'domain', ['foo.majora.app', 'example.com', 'localhost', 'LOCALHOST', '127.0.0.1']
+    )
     def test_domain_accepts_valid_hostnames(self, domain):
         """Test that plausible hostnames pass validation."""
         game_domain = Domain(domain=domain, domain_group=self.group)
@@ -63,7 +65,10 @@ class TestDomain:
 
     @pytest.mark.parametrize(
         'domain',
-        ['example .com', 'example\tcom', '*.evil.com', 'example.com\n', 'exa\x00mple.com'],
+        [
+            'example .com', 'example\tcom', '*.evil.com', 'example.com\n', 'exa\x00mple.com',
+            'majora_proxy', 'foo', 'local host', 'localhost.', 'localhost\n',
+        ],
     )
     def test_domain_rejects_invalid_hostnames(self, domain):
         """Test that whitespace, control characters and wildcards fail validation."""
