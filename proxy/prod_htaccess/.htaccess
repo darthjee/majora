@@ -8,4 +8,6 @@ RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 # Redirect ALL requests to index.php
 RewriteRule ^(.*)$ index.php [QSA,L]
 
-Header set Cache-Control "max-age=10, public"
+# Never mark token-authenticated (Authorization: Bearer ...) responses as public,
+# so shared caches don't store them; the backend's no-store is kept.
+Header set Cache-Control "max-age=10, public" "expr=-z %{req:Authorization}"

@@ -32,8 +32,9 @@ See proxy/dev_configuration/rules/ and proxy/prod_configuration/ for exact rule 
 Production runs PHP under mod_fcgid, which does not pass the `Authorization` request header to PHP, so Tent (which builds request headers with `getallheaders()`) would forward requests without it and every scoped API token (`Authorization: Bearer mjr_...`) would get `401 authentication_required` (#1729).
 
 - `proxy/prod_htaccess/.htaccess` is the versioned production `.htaccess`. Before the `index.php` rewrite it copies the header into `HTTP_AUTHORIZATION` (`RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]`), so PHP sees it and Tent forwards it to the backend unchanged.
+- It sets `Cache-Control: max-age=10, public` only when the request has no `Authorization` header (`Header set ... "expr=-z %{req:Authorization}"`, Apache 2.4 `ap_expr`). `public` lets shared caches store responses to authenticated requests (RFC 9111 §3.5), and `set` would replace the backend's `Cache-Control: no-store`, so Bearer responses keep the backend's value. Anonymous and cookie requests are unchanged.
 - CI deploys it to the release root as `.htaccess` (next to `index.php`) in the `copy_proxy_configuration` job, which runs after `upload_proxy_files` and so overwrites the Tent image's default `.htaccess`. Any server-side change must be made in this file in the repo; edits on the server are lost on the next release.
-- To verify after a release: a request with a fake Bearer token must answer `401` with `token_invalid` and `WWW-Authenticate: Bearer realm="api", error="invalid_token"` (not `authentication_required`).
+- To verify after a release: a request with a fake Bearer token must answer `401` with `token_invalid` and `WWW-Authenticate: Bearer realm="api", error="invalid_token"` (not `authentication_required`). That response, like any Bearer response, must not carry `Cache-Control: max-age=10, public`; the backend's `no-store` is kept.
 
 ## Response-driven cache invalidation (`X-Cache-Clear`)
 

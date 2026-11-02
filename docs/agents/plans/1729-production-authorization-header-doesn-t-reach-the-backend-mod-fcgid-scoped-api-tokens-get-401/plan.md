@@ -36,7 +36,9 @@ hotfix.
   # Redirect ALL requests to index.php
   RewriteRule ^(.*)$ index.php [QSA,L]
 
-  Header set Cache-Control "max-age=10, public"
+  # Never mark token-authenticated (Authorization: Bearer ...) responses as public,
+  # so shared caches don't store them; the backend's no-store is kept.
+  Header set Cache-Control "max-age=10, public" "expr=-z %{req:Authorization}"
   ```
 
 ## Verification (after the next tagged release)
@@ -44,5 +46,7 @@ hotfix.
 - Fake Bearer token → `401` with `token_invalid` and
   `WWW-Authenticate: Bearer realm="api", error="invalid_token"`.
 - Real scoped token (`statistics:read`) → `GET /staff/statistics/export.json` succeeds.
+- Bearer request → response does not carry `Cache-Control: max-age=10, public` (the
+  backend's `no-store` is kept).
 - If the header is still missing, open a follow-up for a proxy-extension fallback mapping
   `REDIRECT_HTTP_AUTHORIZATION` to `Authorization` (out of scope here).
