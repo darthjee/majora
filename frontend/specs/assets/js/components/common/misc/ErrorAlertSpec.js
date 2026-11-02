@@ -24,4 +24,12 @@ describe('ErrorAlert', function() {
     );
     expect(html).toContain('container');
   });
+
+  it('renders the given variant', function() {
+    const html = renderToStaticMarkup(
+      React.createElement(ErrorAlert, { error: 'Careful', variant: 'warning' })
+    );
+    expect(html).toContain('alert-warning');
+    expect(html).not.toContain('alert-danger');
+  });
 });

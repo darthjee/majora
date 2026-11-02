@@ -1,7 +1,11 @@
 import listTypeConfig from '../../../../../../../assets/js/components/common/list_types/listTypeConfig.js';
 import GameListItem from '../../../../../../../assets/js/components/common/list_types/GameListItem.js';
 import RequestStore from '../../../../../../../assets/js/utils/requests/RequestStore.js';
+import HttpResponseError from '../../../../../../../assets/js/utils/http/HttpResponseError.js';
+import Translator from '../../../../../../../assets/js/i18n/Translator.js';
 import { buildGame } from '../../../../../../support/factories.js';
+
+const DOMAIN_BODY = { errors: { detail: ['domain_not_recognized'] } };
 
 function fakeHashResolver() {
   return { getPaginationParams: () => new URLSearchParams() };
@@ -60,6 +64,40 @@ describe('listTypeConfig', function() {
         const item = new GameListItem(buildGame());
 
         expect(games.buildInfoBarItems(item)).toEqual([]);
+      });
+    });
+
+    describe('.resolveErrorMessage', function() {
+      it('returns a translated warning for a 404 domain_not_recognized', function() {
+        const error = new HttpResponseError('request failed', 404, DOMAIN_BODY);
+
+        expect(games.resolveErrorMessage(error)).toEqual({
+          message: Translator.t('games_page.domain_not_recognized'),
+          variant: 'warning',
+        });
+      });
+
+      it('uses the games_page translation', function() {
+        const error = new HttpResponseError('request failed', 404, DOMAIN_BODY);
+
+        expect(games.resolveErrorMessage(error).message)
+          .toBe('This domain is not configured, so no games can be listed.');
+      });
+
+      it('returns null for a 404 without the domain error code', function() {
+        const error = new HttpResponseError('request failed', 404, { errors: { detail: ['other'] } });
+
+        expect(games.resolveErrorMessage(error)).toBeNull();
+      });
+
+      it('returns null for a non-404 status carrying the domain error code', function() {
+        const error = new HttpResponseError('request failed', 500, DOMAIN_BODY);
+
+        expect(games.resolveErrorMessage(error)).toBeNull();
+      });
+
+      it('returns null for a plain Error', function() {
+        expect(games.resolveErrorMessage(new Error('boom'))).toBeNull();
       });
     });
 

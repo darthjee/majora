@@ -4,6 +4,8 @@ import HashRouteResolver from '../../../../utils/routing/HashRouteResolver.js';
 import listTypeConfig from '../../list_types/listTypeConfig.js';
 import Noop from '../../../../utils/Noop.js';
 
+const GENERIC_ERROR = 'Unable to load list.';
+
 /**
  * Controller for the shared `ListPage` component, delegating data fetching to
  * `listTypeConfig[type].fetchList` instead of hardcoding a client call, so a single controller
@@ -55,12 +57,25 @@ export default class ListPageController extends BasePageController {
           safeSet(this.setPagination, pagination);
           safeSet(this.setCanEdit, Boolean(canEdit));
         })
-        .catch(() => safeSet(this.setError, 'Unable to load list.'))
+        .catch((error) => safeSet(this.setError, this.resolveError(error)))
         .finally(() => safeSet(this.setLoading, false));
 
       return () => {
         mounted = false;
       };
     };
+  }
+
+  /**
+   * Resolve the error state for a failed fetch.
+   *
+   * @description Asks the list type's optional `resolveErrorMessage(error)` hook first (e.g.
+   *   the games list turns `domain_not_recognized` into a warning), falling back to the generic
+   *   'Unable to load list.' message when the hook is absent or returns nothing.
+   * @param {Error} error - The error the list fetch rejected with.
+   * @returns {string|{message: string, variant: string}} Error state for `ListPage`.
+   */
+  resolveError(error) {
+    return listTypeConfig[this.type].resolveErrorMessage?.(error) || GENERIC_ERROR;
   }
 }
