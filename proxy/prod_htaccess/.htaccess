@@ -1,0 +1,11 @@
+RewriteEngine On
+
+# Pass the Authorization header to PHP under FastCGI (mod_fcgid), so scoped
+# API tokens (Authorization: Bearer ...) reach the backend.
+RewriteCond %{HTTP:Authorization} .
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+# Redirect ALL requests to index.php
+RewriteRule ^(.*)$ index.php [QSA,L]
+
+Header set Cache-Control "max-age=10, public"
