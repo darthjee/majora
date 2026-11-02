@@ -60,6 +60,7 @@ services:
       - majora_phpmyadmin
     environment:
       - MAJORA_MYSQL_PORT=3306
+      - SEED_DEV_DOMAINS=true
 
   majora_tests:
     <<: *base

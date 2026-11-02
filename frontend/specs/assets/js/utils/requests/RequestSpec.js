@@ -36,6 +36,46 @@ describe('Request', function() {
   });
 
   describe('#ensure', function() {
+    it('rejects with the original client error when the fetch fails', async function() {
+      const error = new Error('request failed');
+      client.fetchResource.and.returnValue(Promise.reject(error));
+
+      await expectAsync(request.ensure({ params: { gameSlug: 'demo' } })).toBeRejectedWith(error);
+      expect(request.isOngoing()).toBe(false);
+    });
+
+    it('retries on the next ensure() call after a failure', async function() {
+      client.fetchResource.and.returnValues(
+        Promise.reject(new Error('request failed')), Promise.resolve(clientResult({ id: 1 })),
+      );
+
+      await expectAsync(request.ensure({ params: { gameSlug: 'demo' } })).toBeRejected();
+      const result = await request.ensure({ params: { gameSlug: 'demo' } });
+
+      expect(client.fetchResource).toHaveBeenCalledTimes(2);
+      expect(result).toEqual({ data: { id: 1 }, pagination: PAGINATION });
+    });
+
+    it('rejects with a generic error when the fetch settles with no result', async function() {
+      client.fetchResource.and.returnValue(Promise.resolve(undefined));
+
+      await expectAsync(request.ensure({ params: { gameSlug: 'demo' } }))
+        .toBeRejectedWithError('request failed: npc.collection');
+    });
+
+    it('does not reject when the fetch is aborted by a key change', async function() {
+      const abortError = new Error('aborted');
+      abortError.name = 'AbortError';
+      client.fetchResource.and.returnValues(
+        Promise.reject(abortError), Promise.resolve(clientResult({ id: 2 })),
+      );
+
+      const first = request.ensure({ params: { gameSlug: 'demo' } });
+      request.ensure({ params: { gameSlug: 'other' } });
+
+      expect(await first).toEqual({ data: { id: 2 }, pagination: PAGINATION });
+    });
+
     it('starts a new fetch and resolves with the wrapped data and pagination', async function() {
       client.fetchResource.and.returnValue(Promise.resolve(clientResult({ id: 1 })));
 

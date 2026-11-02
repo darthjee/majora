@@ -76,7 +76,7 @@ client-coverage:
 # ── Development ───────────────────────────────────────────────────────────────
 
 setup: .env
-	docker-compose run --rm $(PROJECT)_app poetry run python manage.py migrate
+	docker-compose run --rm $(PROJECT)_app bin/configure_database.sh setup
 
 dev:
 	docker-compose run $(PROJECT)_app /bin/bash

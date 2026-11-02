@@ -42,7 +42,7 @@ make dev
 # Open a test shell
 make tests
 
-# Run Django migrations
+# Run Django migrations and seed the local dev domains (`localhost`, `127.0.0.1`)
 make setup
 ```
 
@@ -51,6 +51,10 @@ publishes them, through `docker-compose.ports.yml`, all bound to `127.0.0.1`: ba
 frontend dev server on `3010`, full stack proxy on `3000`. A plain `docker-compose run`/`up` (including
 `make stack-up`, `make tests` and `make dev`) publishes nothing; services reach each other by name on the
 `majora_default` network. Set `MAJORA_MYSQL_HOST_PORT` in `.env` to change the host-side MySQL port.
+
+`make setup` runs `bin/configure_database.sh setup` on `majora_app` (which sets `SEED_DEV_DOMAINS=true`),
+so it migrates and seeds the `localhost` / `127.0.0.1` domains. `make dev-up` seeds them by itself on boot;
+a running app must be restarted to pick up rows seeded by `make setup` (per-process in-memory caches).
 
 **Always run project commands through `docker-compose`.**
 

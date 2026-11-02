@@ -1,6 +1,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.jsx';
+import AppErrorBoundary from './components/common/misc/AppErrorBoundary.jsx';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import 'bootstrap-icons/font/bootstrap-icons.css';
@@ -8,14 +9,17 @@ import '../css/styles.css';
 import '../css/main.scss';
 
 /**
- * Build the root React tree for the frontend application.
+ * Build the root React tree for the frontend application, guarded by an app-wide error
+ * boundary so a render error shows a fallback instead of a blank page.
  *
  * @returns {React.ReactElement} The application tree.
  */
 export function createAppElement() {
   return (
     <React.StrictMode>
-      <App />
+      <AppErrorBoundary>
+        <App />
+      </AppErrorBoundary>
     </React.StrictMode>
   );
 }

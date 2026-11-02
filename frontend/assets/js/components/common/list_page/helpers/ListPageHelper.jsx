@@ -60,11 +60,16 @@ export default class ListPageHelper {
   /**
    * Render the error state.
    *
-   * @param {string} error - Error message.
+   * @param {string|{message: string, variant: string}} error - Error message, or a message with
+   *   its Bootstrap alert variant (as resolved by a list type's `resolveErrorMessage` hook).
    * @returns {React.ReactElement} Error alert.
    */
   static renderError(error) {
-    return <ErrorAlert error={error} />;
+    if (typeof error === 'string') {
+      return <ErrorAlert error={error} />;
+    }
+
+    return <ErrorAlert error={error.message} variant={error.variant} />;
   }
 
   static #renderItem(rawItem, config, context, itemsCount) {

@@ -1,0 +1,4 @@
+error_boundary:
+  title: Something went wrong
+  message: An unexpected error occurred while rendering this page.
+  reload: Reload page

@@ -23,9 +23,18 @@ migrate() {
   poetry run python manage.py migrate
 }
 
+seed() {
+  echo "Seeding dev domains..."
+  poetry run python manage.py seed_dev_domains
+}
+
 all() {
   wait_for_db
   migrate
+}
+
+setup() {
+  wait_for_db && migrate && seed
 }
 
 case "$1" in
@@ -38,7 +47,13 @@ case "$1" in
   all)
     all
     ;;
+  seed)
+    seed
+    ;;
+  setup)
+    setup
+    ;;
   *)
-    echo "Usage: $0 {wait|migrate|all}"
+    echo "Usage: $0 {wait|migrate|all|seed|setup}"
     ;;
 esac

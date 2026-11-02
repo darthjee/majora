@@ -1,6 +1,8 @@
 import ListPageController from '../../../../../../../assets/js/components/common/list_page/controllers/ListPageController.js';
 import listTypeConfig from '../../../../../../../assets/js/components/common/list_types/listTypeConfig.js';
 import Noop from '../../../../../../../assets/js/utils/Noop.js';
+import HttpResponseError from '../../../../../../../assets/js/utils/http/HttpResponseError.js';
+import Translator from '../../../../../../../assets/js/i18n/Translator.js';
 
 describe('ListPageController', function() {
   let fetchListSpy;
@@ -51,10 +53,62 @@ describe('ListPageController', function() {
     const cleanup = controller.buildEffect()();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(setError).toHaveBeenCalled();
+    expect(setError).toHaveBeenCalledWith('Unable to load list.');
     expect(setLoading).toHaveBeenCalledWith(false);
 
     cleanup();
+  });
+
+  describe('when the list type has a resolveErrorMessage hook', function() {
+    const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+    function runGames(error) {
+      const setError = jasmine.createSpy('setError');
+
+      spyOn(listTypeConfig.games, 'fetchList').and.returnValue(Promise.reject(error));
+
+      const controller = new ListPageController(
+        'games', undefined, Noop.noop, Noop.noop, Noop.noop, setError,
+      );
+      const cleanup = controller.buildEffect()();
+
+      return { setError, cleanup };
+    }
+
+    it('shows the translated warning for a domain_not_recognized 404', async function() {
+      const error = new HttpResponseError('request failed', 404, {
+        errors: { detail: ['domain_not_recognized'] },
+      });
+      const { setError, cleanup } = runGames(error);
+      await flush();
+
+      expect(setError).toHaveBeenCalledWith({
+        message: Translator.t('games_page.domain_not_recognized'),
+        variant: 'warning',
+      });
+
+      cleanup();
+    });
+
+    it('falls back to the generic message for other failures', async function() {
+      const { setError, cleanup } = runGames(new HttpResponseError('request failed', 500, null));
+      await flush();
+
+      expect(setError).toHaveBeenCalledWith('Unable to load list.');
+
+      cleanup();
+    });
+  });
+
+  it('uses the generic message for list types without the hook', function() {
+    const controller = new ListPageController(
+      'treasures', 'demo', Noop.noop, Noop.noop, Noop.noop, Noop.noop,
+    );
+
+    expect(listTypeConfig.treasures.resolveErrorMessage).toBeUndefined();
+    expect(controller.resolveError(new HttpResponseError('x', 404, {
+      errors: { detail: ['domain_not_recognized'] },
+    }))).toBe('Unable to load list.');
   });
 
   it('does not update state after the effect is cleaned up (unmounted)', async function() {

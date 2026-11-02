@@ -11,11 +11,11 @@ validate_schemes = RegexValidator(
 
 validate_domain = RegexValidator(
     regex=(
-        r'\A([A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?)'
-        r'(\.[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?)+\Z'
+        r'\A((?i:localhost)|([A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?)'
+        r'(\.[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?)+)\Z'
     ),
-    message='domain must be a valid hostname (labels of letters, digits and hyphens '
-    'separated by dots, no wildcards or whitespace).',
+    message='domain must be "localhost" or a valid hostname (labels of letters, digits and '
+    'hyphens separated by dots, no wildcards or whitespace).',
 )
 
 
