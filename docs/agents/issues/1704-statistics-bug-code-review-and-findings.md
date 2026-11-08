@@ -75,7 +75,7 @@ anonymised evidence before it is merged.
 
 ### Depends on
 
-#1701 (1.5.0 release), #1702 (`emulate.py`) and #1703 (`analyse.py`), all merged.
+Issues #1701 (1.5.0 release), #1702 (`emulate.py`) and #1703 (`analyse.py`), all merged.
 
 ### Responsible agents
 
