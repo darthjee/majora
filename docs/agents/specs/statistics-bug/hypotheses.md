@@ -28,7 +28,7 @@ heuristic *Production pattern* applies.
   fixed proxy IP, created close in time.
 - **Tracking evidence:** `ip_changed` sessions whose `first_path` is a route served by a custom
   handler (`cache.php`, `delete.php`, `uploads.php` routes).
-- **Status:** open.
+- **Status:** confirmed in code and reproduced locally, low volume in production (see [Findings](findings.md#1-ip-flip-from-tent-custom-handlers--confirmed-in-code-low-volume)).
 
 ## 2. Refresh + parallel requests
 
@@ -52,7 +52,7 @@ A page refresh fires several API requests at once. Three variants:
   - 2b: several `login_rotation` sessions for one user at the same instant;
   - 2c: no reason of its own (the older session is reused); visits whose `last_path` alternates
     between two sessions, or `cookie_session_not_found` if the older one was deleted.
-- **Status:** open.
+- **Status:** 2a and 2b reproduced locally (2a amplified by cache hits never setting the cookie), 2c not observed (see [Findings](findings.md#2-refresh--parallel-requests)).
 
 ## 3. Other IP change
 
@@ -63,7 +63,7 @@ A page refresh fires several API requests at once. Three variants:
 - **Emulation:** an IP change through `X-Forwarded-For` (local stack only).
 - **Production pattern:** consecutive sessions of the same user on different IPs, no burst.
 - **Tracking evidence:** `ip_changed` with an ordinary `first_path`, no burst.
-- **Status:** open. A real client IP change is a [legitimate new session](symptom.md#legitimate-new-sessions);
+- **Status:** **confirmed: root cause** (missing proxy secret, infrastructure IP recorded; see [Findings](findings.md#root-cause)). A real client IP change is a [legitimate new session](symptom.md#legitimate-new-sessions);
   only an IP change caused by the infrastructure counts as the bug.
 
 ## 4. Domain mismatch
@@ -74,7 +74,7 @@ A page refresh fires several API requests at once. Three variants:
 - **Emulation:** a host change mid-navigation.
 - **Production pattern:** sessions of the same visitor on different domains (or "unknown").
 - **Tracking evidence:** `domain_changed`.
-- **Status:** open.
+- **Status:** ruled out (no `domain_changed` session in production).
 
 ## 5. Proxy/cache replaying `Set-Cookie`
 
@@ -87,7 +87,7 @@ A page refresh fires several API requests at once. Three variants:
   never comes back.
 - **Tracking evidence:** `ip_changed`, or one session shared by unrelated visitors, whose
   `first_path` is a cached route.
-- **Status:** open. If confirmed, it is reported privately first (see
+- **Status:** ruled out for Tent's cache, which strips `Set-Cookie` before storing; header hardening tracked in #1733. Exploitable findings are reported privately first (see
   [Privacy](privacy.md#exploitable-findings)).
 
 ## 6. Cookie not stored or not sent
@@ -99,4 +99,4 @@ A page refresh fires several API requests at once. Three variants:
 - **Production pattern:** a stream of single-hit sessions from one IP and domain.
 - **Tracking evidence:** a stream of `no_cookie` sessions whose `first_path` is not an entry
   page.
-- **Status:** open.
+- **Status:** ruled out (see [Findings](findings.md#6-cookie-not-stored-or-not-sent--ruled-out)).
