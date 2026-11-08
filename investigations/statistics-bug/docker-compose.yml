@@ -69,8 +69,9 @@ services:
     environment:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
-      # Passed through from the root .env / the shell; never written here.
-      - STATISTICS_PROD_URL
+    # STATISTICS_PROD_URL comes from the root .env via env_file (or `run -e STATISTICS_PROD_URL`);
+    # never written here. Do not list it bare under `environment:`: an unset shell variable
+    # would resolve to null and mask the env_file value.
     entrypoint: ["python", "-I", "-B", "analyse.py", "--production"]
 
 networks:
