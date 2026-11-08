@@ -63,7 +63,7 @@ A page refresh fires several API requests at once. Three variants:
 - **Emulation:** an IP change through `X-Forwarded-For` (local stack only).
 - **Production pattern:** consecutive sessions of the same user on different IPs, no burst.
 - **Tracking evidence:** `ip_changed` with an ordinary `first_path`, no burst.
-- **Status:** **confirmed: root cause** (missing proxy secret, infrastructure IP recorded; see [Findings](findings.md#root-cause)). A real client IP change is a [legitimate new session](symptom.md#legitimate-new-sessions);
+- **Status:** **confirmed: root cause** (the hosting's rotating internal IP recorded on a public host that bypasses the proxy, and on the main site while the proxy secret was missing; see [Findings](findings.md#root-cause)). A real client IP change is a [legitimate new session](symptom.md#legitimate-new-sessions);
   only an IP change caused by the infrastructure counts as the bug.
 
 ## 4. Domain mismatch

@@ -12,46 +12,54 @@ request to request.** `StatisticsSessionMiddleware._load_or_create_session` only
 cookie-borne session while `session.ip` matches the request's IP, so almost every request opened
 a new session with `creation_reason=ip_changed`.
 
-How it happened:
+`common/client_ip.py` only trusts `X-Forwarded-For` when the request carries the proxy's
+`X-Proxy-Secret`; otherwise it records `REMOTE_ADDR`. On the backend's hosting, `REMOTE_ADDR` is
+an internal load-balancer address (private range) that rotates between requests. Two paths led
+there:
 
-1. The proxy's `$proxySecret` (server-side `configuration/locals.php`) and the backend's
-   `PROXY_SECRET` were both unset in production. `$proxySecret` was added to
-   `locals.php.sample` in #1501, but CI carries the server's existing `locals.php` into each
-   release, so the key never reached production.
-2. Without a matching secret, `SetClientIpMiddleware` sends no `X-Proxy-Secret` and
-   `common/client_ip.py` ignores `X-Forwarded-For`, falling back to `REMOTE_ADDR`.
-3. On the backend host, `REMOTE_ADDR` is an internal load-balancer address (private range) that
-   rotates between requests.
-4. Every request presenting a valid cookie with a different IP created a new session.
+1. **A public host that reaches the backend directly (main cause).** Besides the main site,
+   which goes through the Tent proxy, a second public host (registered as a `Domain`) is a custom
+   domain routed straight to the backend's hosting. Requests to it never pass through Tent, so
+   they never carry `X-Proxy-Secret` and always record the rotating internal IP. This host
+   accounts for almost all sessions in every production run (343 of 344 before the hotfix below,
+   198 of 205 after it).
+2. **The proxy secret was missing.** The proxy's `$proxySecret` (server-side
+   `configuration/locals.php`) and the backend's `PROXY_SECRET` were both unset in production.
+   `$proxySecret` was added to `locals.php.sample` in #1501, but CI carries the server's existing
+   `locals.php` into each release, so the key never reached production. Requests through the
+   main site were therefore recorded with the internal IP too.
 
-The volume was amplified by **automated traffic**: most inflated sessions were anonymous, had one
-or two hits, and their only path was `unresolved`, i.e. requests to `.json` paths that match no
-route. Such requests still reach the backend (404) and are tracked, and clients that keep cookies
+The volume comes from **automated traffic**: the inflated sessions are anonymous, have one or two
+hits, and their only path is `unresolved`, i.e. requests to `.json` paths that match no route.
+Such requests still reach the backend (404) and are tracked, and clients that keep cookies
 produced one new session per request while the IP rotated.
 
-Hotfix (2026-11-02): the secret was set on both sides with matching values. Sessions created
-afterwards record the visitor's public IP and are reused across requests. Preventing a silent
-regression is tracked in #1732.
+Hotfix (2026-11-02): the proxy secret was set on both sides with matching values. Main-site
+sessions created afterwards record the visitor's public IP and are reused across requests
+(preventing a silent regression is tracked in #1732). The direct host is not affected by the
+hotfix and keeps producing `ip_changed` sessions.
 
 ## Evidence per hypothesis
 
 Production numbers come from `analyse.py --production --anonymised`.
 
-**Before the hotfix (2026-10-31..2026-11-01, after the #1701 tracking columns):**
+| Metric | Before the hotfix (2026-10-31..2026-11-01) | After the hotfix (2026-11-03..2026-11-07) |
+|---|---|---|
+| Sessions analysed | 344 (all anonymous) | 205 (all anonymous) |
+| Sessions on the direct host | 343 | 198 |
+| Sessions per creation reason | `ip_changed` 250, `no_cookie` 93, `cookie_session_not_found` 1 | `ip_changed` 175, `no_cookie` 30 |
+| Extra sessions (same visitor, grouped) | 237: `ip_change` 226, legitimate 10, other 1 | 175: `ip_change` 173, race 1, legitimate 1 |
+| `first_path` of `ip_changed` sessions | `unresolved` 247, admin route 3 | `unresolved` 174, admin route 1 |
+| Recorded IPs | private range, rotating | private range on the direct host, public on the main site |
+| `domain_changed` sessions | 0 | 0 |
 
-| Metric | Value |
-|---|---|
-| Sessions analysed | 344 (all anonymous) |
-| Sessions per creation reason | `ip_changed` 250, `no_cookie` 93, `cookie_session_not_found` 1 |
-| Extra sessions (same visitor, grouped) | 237: `ip_change` 226, legitimate 10, other 1 |
-| `first_path` of `ip_changed` sessions | `unresolved` 247, admin route 3 |
-| Recorded IPs | all private-range, rotating across about four subnets |
-| `domain_changed` sessions | 0 |
+After the hotfix, 176 of the direct-host sessions were created within about two minutes on a
+single day: one automated client, split into one session per request.
 
-**After the hotfix (2026-11-02, check run):** sessions created after the change record a public
-client IP that stays stable across requests; one session collected 10 hits. The first request of
-an existing visitor opens one `ip_changed` session (its cookie still points at a session
-recorded with the old private IP); this is a one-off transition.
+**Main site after the hotfix (2026-11-02, check run):** sessions created after the change record
+a public client IP that stays stable across requests; one session collected 10 hits. The first
+request of an existing visitor opens one `ip_changed` session (its cookie still points at a
+session recorded with the old private IP); this is a one-off transition.
 
 ### 1. IP flip from Tent custom handlers — confirmed in code, low volume
 
@@ -76,8 +84,8 @@ inflated sessions above starts on one of those routes.
 
 ### 3. Other IP change — confirmed: root cause
 
-See [Root cause](#root-cause). The edge in front of the proxy is not involved: after the hotfix
-the recorded IPs are the visitors' own, not edge addresses.
+See [Root cause](#root-cause): an IP change caused by the infrastructure (the hosting's rotating internal IP, on the direct host and, before the hotfix, on the main site). The edge in front of the proxy is not involved: after the hotfix
+main-site sessions record the visitors' own IPs, not edge addresses.
 
 ### 4. Domain mismatch — ruled out
 
@@ -115,7 +123,7 @@ not affect storage over HTTPS; it is tracked in #1733.
 
 **Root-cause scenario:** `ip_change`. One cookie jar whose client IP changes between requests
 creates an `ip_changed` session per change; in production the IP changed on almost every request
-because the infrastructure IP was recorded.
+because the infrastructure IP was recorded (on the direct host, it still does).
 
 ## Proposed solution direction
 
@@ -125,7 +133,13 @@ For the fix issue created by #1705:
    `.json` paths) should not create or touch a statistics session.
 2. **Custom handlers forward the signed client IP.** `BackendClient` sets `X-Forwarded-For` and
    `X-Proxy-Secret` the same way `SetClientIpMiddleware` does, so every route records the same IP.
-3. **Reconsider splitting a session on an IP change alone.** A valid signed cookie already
+3. **Requests that bypass the proxy record a usable client IP, or are not exposed.** The direct
+   host must stop recording the hosting's internal IP. Options: route that host through the
+   proxy (or redirect it to the main site); derive the client IP from the hosting edge's own
+   trusted header for requests that do not come from Tent; or do not track requests that carry
+   no trusted client IP. Which one depends on whether the direct host has a legitimate use
+   (for example API clients); the owner decides.
+4. **Reconsider splitting a session on an IP change alone.** A valid signed cookie already
    identifies the visitor; creating a new session whenever the IP differs is what turned the
    infrastructure IP into the inflation. Options: reuse the session and update its IP (keeping
    the change visible, e.g. on the `Visit`), or only split after a gap. The trade-off is losing
@@ -137,7 +151,7 @@ Operational safeguards (not part of the code fix): #1732 (proxy secret check) an
 ## Regression test scenario
 
 For the fix issue: a backend test where one signed cookie is presented on consecutive requests
-with different trusted client IPs (and, separately, with the proxy secret missing) must reuse a
+with different client IPs (trusted through the proxy, and separately untrusted, as on the direct host) must reuse a
 single session instead of creating `ip_changed` sessions; a request to an unresolved route must
 not create a session; parallel authenticated requests with one anonymous cookie must create at
 most one `login_rotation` session.
