@@ -48,35 +48,35 @@ class TestAttachUser:
         session.refresh_from_db()
         assert session.user_id == other_user.id
 
-    def test_rotates_to_a_new_session_when_re_attaching_the_same_user(self):
-        """Test that a session already tied to the same user still rotates."""
+    def test_reuses_a_session_already_tied_to_the_same_user(self):
+        """Test that a session already tied to the same user is reused, with no new row."""
         session = Session.objects.create(ip='1.2.3.4', user=self.user)
 
         result = attach_user(session, self.user)
 
-        assert result.id != session.id
-        assert result.user_id == self.user.id
-        assert Session.objects.count() == 2
+        assert result is session
+        assert Session.objects.count() == 1
 
-    def test_always_rotate_creates_new_session_even_when_anonymous(self):
-        """Test that `always_rotate=True` rotates even when the session had no user yet."""
-        session = Session.objects.create(ip='1.2.3.4')
-
-        result = attach_user(session, self.user, always_rotate=True)
-
-        assert result.id != session.id
-        assert result.user_id == self.user.id
-        assert result.ip == session.ip
-        session.refresh_from_db()
-        assert session.user_id is None
-
-    def test_rotation_carries_the_original_sessions_domain_forward(self):
-        """Test that a rotated session keeps the original session's `domain`."""
+    def test_attaches_a_pre_existing_anonymous_session_without_rotation(self):
+        """Test that an earlier anonymous session is attached in place, no `login_rotation`."""
         session = Session.objects.create(ip='1.2.3.4', domain=self.domain)
 
-        result = attach_user(session, self.user, always_rotate=True)
+        result = attach_user(session, self.user, first_path='games.json')
+
+        assert result is session
+        assert session.user_id == self.user.id
+        assert not Session.objects.filter(creation_reason='login_rotation').exists()
+
+    def test_rotation_carries_the_original_sessions_domain_forward(self):
+        """Test that a rotated session keeps the original session's IP and `domain`."""
+        session = Session.objects.create(
+            ip='1.2.3.4', domain=self.domain, user=UserFactory(username='bob'),
+        )
+
+        result = attach_user(session, self.user)
 
         assert result.id != session.id
+        assert result.ip == session.ip
         assert result.domain_id == self.domain.id
 
     def test_rotates_when_in_place_update_loses_a_race(self):
@@ -93,6 +93,26 @@ class TestAttachUser:
         session.refresh_from_db()
         assert session.user_id == other_user.id
 
+    def test_reuses_the_row_when_the_lost_race_was_won_by_the_same_user(self):
+        """Test that a lost attach re-reads the row and reuses it when tied to the same user."""
+        session = Session.objects.create(ip='1.2.3.4')
+        # Another request claims this row for the same user; the instance still says `None`.
+        Session.objects.filter(pk=session.pk).update(user=self.user)
+
+        result = attach_user(session, self.user)
+
+        assert result is session
+        assert session.user_id == self.user.id
+        assert Session.objects.count() == 1
+
+    def test_lost_race_re_reads_the_owner(self, django_assert_num_queries):
+        """Test that a lost attach costs exactly one extra query to re-read the owner."""
+        session = Session.objects.create(ip='1.2.3.4')
+        Session.objects.filter(pk=session.pk).update(user=self.user)
+
+        with django_assert_num_queries(2):
+            attach_user(session, self.user)
+
     def test_rotates_to_a_new_session_when_the_session_was_deleted(self):
         """Test that a deleted anonymous session falls through to a new user-tied session."""
         session = self._deleted_session()
@@ -101,13 +121,14 @@ class TestAttachUser:
 
         self._assert_rotated_from(result, session)
 
-    def test_always_rotate_creates_a_new_session_when_the_session_was_deleted(self):
-        """Test that `always_rotate=True` on a deleted session creates a new user-tied one."""
+    def test_deleted_session_created_in_request_rotates(self):
+        """Test that a deleted session created this request also yields a new user-tied one."""
         session = self._deleted_session()
 
-        result = attach_user(session, self.user, always_rotate=True)
+        result = attach_user(session, self.user, created_in_request=True)
 
         self._assert_rotated_from(result, session)
+        assert result.creation_reason == 'login_rotation'
 
     def test_in_place_attach_in_the_creating_request_marks_logged(self):
         """Test that an in-place attach to a session created this request records `true`."""
@@ -138,11 +159,9 @@ class TestAttachUser:
 
     def test_rotation_records_login_rotation(self):
         """Test that a rotated row records `login_rotation`, `true` and the rotating route."""
-        session = Session.objects.create(ip='1.2.3.4')
+        session = Session.objects.create(ip='1.2.3.4', user=UserFactory(username='bob'))
 
-        result = attach_user(
-            session, self.user, always_rotate=True, first_path='users/login.json',
-        )
+        result = attach_user(session, self.user, first_path='users/login.json')
 
         result.refresh_from_db()
         assert result.creation_reason == 'login_rotation'

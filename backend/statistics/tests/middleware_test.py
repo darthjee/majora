@@ -1,5 +1,6 @@
 """Tests for `StatisticsSessionMiddleware`."""
 
+import threading
 from datetime import timedelta
 from unittest.mock import patch
 
@@ -7,7 +8,7 @@ import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.db import connection
 from django.http import HttpResponse
-from django.test import RequestFactory, override_settings
+from django.test import Client, RequestFactory, override_settings
 from django.test.utils import CaptureQueriesContext
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
@@ -20,6 +21,15 @@ from statistics.middleware import StatisticsSessionMiddleware
 from statistics.models import Session, Visit
 from statistics.session_attachment import attach_user
 from statistics.visit_tracking import track_visit
+
+
+def _claimed_by_another_user(function):
+    """Wrap `function` so another user claims its `session` row first (a lost race)."""
+    def wrapper(session, *args, **kwargs):
+        Session.objects.filter(pk=session.pk).update(user=UserFactory(username='bob'))
+        return function(session, *args, **kwargs)
+
+    return wrapper
 
 
 @pytest.mark.django_db
@@ -259,7 +269,7 @@ class TestStatisticsSessionMiddleware:
         assert session.ip == '2.2.2.2'
 
     def test_backfills_user_on_anonymous_session_when_request_is_authenticated(self, client):
-        """Test that an authenticated request rotates an anonymous session to a new one."""
+        """Test that an authenticated request attaches the user to an anonymous session."""
         user = UserFactory(username='alice')
         token = Token.objects.create(user=user)
         session = Session.objects.create(ip='1.2.3.4', domain=self.domain)
@@ -271,22 +281,34 @@ class TestStatisticsSessionMiddleware:
             HTTP_AUTHORIZATION=f'Token {token.key}',
         )
 
-        assert Session.objects.count() == 2
+        assert Session.objects.count() == 1
         post_cookie = response.cookies[cookies.COOKIE_NAME].value
-        new_token = cookies.unsign(post_cookie)
-        assert new_token != session.token
-        new_session = Session.objects.get(token=new_token)
-        assert new_session.user_id == user.id
-        assert new_session.ip == '1.2.3.4'
+        assert cookies.unsign(post_cookie) == session.token
         session.refresh_from_db()
-        assert session.user_id is None
+        assert session.user_id == user.id
+        assert session.creation_reason is None
+
+    def test_reuses_a_session_already_tied_to_the_same_user(self, client):
+        """Test that an authenticated request reuses a session already tied to its user."""
+        user = UserFactory(username='alice')
+        token = Token.objects.create(user=user)
+        session = Session.objects.create(ip='1.2.3.4', domain=self.domain, user=user)
+        client.cookies[cookies.COOKIE_NAME] = cookies.sign(session.token)
+
+        response = client.get(
+            '/games.json', REMOTE_ADDR='1.2.3.4', HTTP_AUTHORIZATION=f'Token {token.key}',
+        )
+
+        assert Session.objects.count() == 1
+        assert cookies.unsign(response.cookies[cookies.COOKIE_NAME].value) == session.token
 
     def test_login_rotation_keeps_the_hit_on_the_anonymous_session(self, client):
-        """Test that the login request counts on the old session's visit, not the rotated one."""
+        """Test that a rotating request counts on the old session's visit, not the rotated one."""
         session = Session.objects.create(ip='1.2.3.4', domain=self.domain)
         client.cookies[cookies.COOKIE_NAME] = cookies.sign(session.token)
 
-        response = self._authenticated_get(client, REMOTE_ADDR='1.2.3.4')
+        with patch('statistics.middleware.attach_user', _claimed_by_another_user(attach_user)):
+            response = self._authenticated_get(client, REMOTE_ADDR='1.2.3.4')
 
         assert session.visits.get().hits == 1
         assert self._session_from_response(response).visits.count() == 0
@@ -295,7 +317,8 @@ class TestStatisticsSessionMiddleware:
         """Test that the next request carrying the rotated cookie opens a visit on it."""
         session = Session.objects.create(ip='1.2.3.4', domain=self.domain)
         client.cookies[cookies.COOKIE_NAME] = cookies.sign(session.token)
-        response = self._authenticated_get(client, REMOTE_ADDR='1.2.3.4')
+        with patch('statistics.middleware.attach_user', _claimed_by_another_user(attach_user)):
+            response = self._authenticated_get(client, REMOTE_ADDR='1.2.3.4')
         new_session = self._session_from_response(response)
 
         client.get('/ready.json', REMOTE_ADDR='1.2.3.4')
@@ -311,16 +334,18 @@ class TestStatisticsSessionMiddleware:
         assert Session.objects.count() == 1
         assert user_session.visits.get().hits == 1
 
-    def test_ties_new_session_to_user_when_ip_changes_on_authenticated_request(self, client):
-        """Test that a logged-in request with a changed IP creates one user-tied session."""
-        old_session = Session.objects.create(ip='1.2.3.4', domain=self.domain)
+    def test_ties_the_cookie_session_to_user_when_ip_changes_on_authenticated_request(
+        self, client
+    ):
+        """Test that a logged-in request with a changed IP ties the cookie session in place."""
+        old_session = Session.objects.create(ip='192.0.2.1', domain=self.domain)
         client.cookies[cookies.COOKIE_NAME] = cookies.sign(old_session.token)
 
-        response = self._authenticated_get(client, REMOTE_ADDR='9.9.9.9')
+        response = self._authenticated_get(client, REMOTE_ADDR='198.51.100.7')
 
-        assert Session.objects.count() == 2
-        assert Session.objects.filter(user__isnull=True).get() == old_session
-        self._assert_single_user_session(response, ip='9.9.9.9')
+        assert Session.objects.count() == 1
+        assert Session.objects.get(user=self.user) == old_session
+        self._assert_single_user_session(response, ip='198.51.100.7')
 
     def test_ties_new_session_to_user_when_domain_changes_on_authenticated_request(self, client):
         """Test that a logged-in request with a changed domain creates one user-tied session."""
@@ -902,11 +927,27 @@ class TestStatisticsSessionMiddlewareCreationTracking:
         assert session.creation_reason == 'no_cookie'
         assert session.first_seen_logged is True
 
+    def test_backfill_on_an_earlier_session_attaches_in_place(self, client):
+        """Test that a back-fill on an earlier anonymous session creates no `login_rotation`."""
+        old_session = Session.objects.create(
+            ip='1.2.3.4', domain=self.domain, first_seen_logged=False,
+        )
+        client.cookies[cookies.COOKIE_NAME] = cookies.sign(old_session.token)
+
+        response = self._token_get(client, REMOTE_ADDR='1.2.3.4')
+
+        assert self._new_session(response).pk == old_session.pk
+        old_session.refresh_from_db()
+        assert old_session.user_id is not None
+        assert old_session.first_seen_logged is False
+        assert not Session.objects.filter(creation_reason='login_rotation').exists()
+
     def test_backfill_rotation_records_login_rotation(self, client):
         """Test that a back-fill rotation records `login_rotation`, `true` and its route."""
         old_session = self._cookie_for(client, ip='1.2.3.4', domain=self.domain)
 
-        response = self._token_get(client, REMOTE_ADDR='1.2.3.4')
+        with patch('statistics.middleware.attach_user', _claimed_by_another_user(attach_user)):
+            response = self._token_get(client, REMOTE_ADDR='1.2.3.4')
 
         rotated = self._new_session(response)
         assert rotated.pk != old_session.pk
@@ -915,16 +956,17 @@ class TestStatisticsSessionMiddlewareCreationTracking:
         assert rotated.first_path == 'games.json'
 
     def test_backfill_rotation_leaves_the_earlier_session_untouched(self, client):
-        """Test that the rotated-away anonymous session keeps its own tracking columns."""
+        """Test that a session lost to another user keeps its owner and tracking columns."""
         old_session = Session.objects.create(
             ip='1.2.3.4', domain=self.domain, first_seen_logged=False,
         )
         client.cookies[cookies.COOKIE_NAME] = cookies.sign(old_session.token)
 
-        self._token_get(client, REMOTE_ADDR='1.2.3.4')
+        with patch('statistics.middleware.attach_user', _claimed_by_another_user(attach_user)):
+            self._token_get(client, REMOTE_ADDR='1.2.3.4')
 
         old_session.refresh_from_db()
-        assert old_session.user_id is None
+        assert old_session.user.username == 'bob'
         assert old_session.first_seen_logged is False
 
     def test_visit_records_first_and_last_route(self, client):
@@ -974,3 +1016,50 @@ class TestStatisticsSessionMiddlewareCreationTracking:
         """Return the `Session` whose token is carried by `response`'s statistics cookie."""
         token = cookies.unsign(response.cookies[cookies.COOKIE_NAME].value)
         return Session.objects.get(token=token)
+
+
+@pytest.mark.django_db(transaction=True)
+class TestStatisticsSessionMiddlewareLoginBurst:
+    """Tests for parallel authenticated requests carrying one anonymous cookie (race 2b)."""
+
+    THREADS = 4
+
+    def setup_method(self):
+        """Register 'testserver', a user with a token, and one anonymous cookie session."""
+        memory_cache.clear()
+        self.domain = DomainFactory(domain='testserver')
+        self.user = UserFactory(username='alice')
+        self.token = Token.objects.create(user=self.user)
+        self.session = Session.objects.create(ip='192.0.2.1', domain=self.domain)
+        self.statuses = []
+
+    def test_parallel_burst_creates_no_login_rotation(self):
+        """Test that a parallel burst creates no `login_rotation` and ties the one session."""
+        barrier = threading.Barrier(self.THREADS)
+        threads = [
+            threading.Thread(target=self._request, args=(barrier,))
+            for _ in range(self.THREADS)
+        ]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+
+        assert self.statuses == [200] * self.THREADS
+        assert not Session.objects.filter(creation_reason='login_rotation').exists()
+        assert Session.objects.get() == self.session
+        assert Session.objects.get().user_id == self.user.id
+
+    def _request(self, barrier):
+        """Wait for every thread, send one authenticated request, release the connection."""
+        client = Client()
+        client.cookies[cookies.COOKIE_NAME] = cookies.sign(self.session.token)
+        barrier.wait()
+        try:
+            response = client.get(
+                '/games.json', REMOTE_ADDR='192.0.2.1',
+                HTTP_AUTHORIZATION=f'Token {self.token.key}',
+            )
+            self.statuses.append(response.status_code)
+        finally:
+            connection.close()

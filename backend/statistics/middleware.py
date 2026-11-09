@@ -159,15 +159,17 @@ class StatisticsSessionMiddleware:
         time `self.get_response(request)` has returned, `request.user` here reflects the
         real authenticated user, even though it was unresolved (anonymous) before dispatch.
 
-        A session created during this very request cannot belong to anyone else, so the
-        user is attached to it in place (no anonymous ghost row is left behind). A session
-        that pre-existed the request is instead always rotated to a brand-new `Session`
-        row, so an anonymous session lingering on a shared device is never silently
-        claimed by whichever authenticated request happens to hit it first.
+        An anonymous session is claimed in place by the first authenticated request (atomic
+        `UPDATE … WHERE user_id IS NULL`), whether it was created during this request or
+        earlier; concurrent requests carrying the same cookie then find it tied to the same
+        user and reuse it, so a parallel burst creates no `login_rotation` session. The
+        shared-device protection of always rotating a pre-existing session is dropped on
+        purpose (accepted trade-off): anonymous visits made on a shared device before a login
+        are attributed to the user who authenticates first, as the login view already does.
+        Only a session lost to a different user, or deleted mid-request, rotates. A session
+        already tied to a user when the request arrived is left untouched.
 
-        Visits are never moved on rotation: this request's visit stays on the original
-        session, and the rotated session opens its first visit on the next request carrying
-        its cookie. An in-place attach keeps the visit on the same session.
+        Visits are never moved: this request's visit stays on the session it was tracked on.
         """
         session = request.statistics_session
         if session is None:
@@ -175,10 +177,10 @@ class StatisticsSessionMiddleware:
         if session.user_id is not None or not request.user.is_authenticated:
             return
 
-        created_in_request = self._created_during_request(request, session)
         request.statistics_session = attach_user(
-            session, request.user, always_rotate=not created_in_request,
-            created_in_request=created_in_request, first_path=request.statistics_route,
+            session, request.user,
+            created_in_request=self._created_during_request(request, session),
+            first_path=request.statistics_route,
         )
 
     def _created_during_request(self, request, session):

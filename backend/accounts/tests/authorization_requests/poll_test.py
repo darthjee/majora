@@ -241,7 +241,9 @@ class TestAuthorizationRequestPollStatisticsSession:
 
     def test_poll_rotation_records_login_rotation_without_uuid(self, client):
         """Test that a poll rotation records `login_rotation` and a route without the `uuid`."""
-        existing_session = Session.objects.create(ip='127.0.0.1', user=self.user)
+        existing_session = Session.objects.create(
+            ip='127.0.0.1', user=UserFactory(username='bob'),
+        )
         client.cookies[cookies.COOKIE_NAME] = cookies.sign(existing_session.token)
 
         response = _poll(client, self.authorization_request, self.raw_token)
