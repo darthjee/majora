@@ -784,13 +784,14 @@ class RefreshBurstLoggedIn(Scenario):
     """Refresh while logged in (frontend token) but carrying an anonymous cookie.
 
     The token comes from an untracked side login, so the jar keeps its anonymous statistics
-    cookie, as when the frontend still holds a token after the cookie was reset. Each
-    authenticated request of the burst may rotate that same anonymous session.
+    cookie, as when the frontend still holds a token after the cookie was reset. Before #1737
+    each authenticated request of the burst rotated that same anonymous session (race 2b);
+    since #1737 the first one attaches the user in place and the others reuse the session.
     """
 
     name = 'refresh_burst_with_cookie_logged_in'
     hypothesis = '2b'
-    expect = Expect(at_most={'login_rotation': 1}, text='at most one login_rotation session')
+    expect = Expect(text='no new session (in-place attach)')
 
     def skip_reason(self, ctx):
         if not ctx.can_login:
@@ -808,11 +809,16 @@ class RefreshBurstLoggedIn(Scenario):
 
 
 class MixedHandlers(Scenario):
-    """Standard-rule requests interleaved with Tent custom-handler requests, one cookie jar."""
+    """Standard-rule requests interleaved with Tent custom-handler requests, one cookie jar.
+
+    Before #1737 an IP flip between the two kinds of route opened `ip_changed` sessions
+    (hypothesis 1). Since #1737 a valid cookie is reused whatever the IP; #1738 also stops the
+    IP flip itself.
+    """
 
     name = 'mixed_handlers'
     hypothesis = '1'
-    expect = Expect(text='no new session (an ip_changed session confirms hypothesis 1)')
+    expect = Expect(text='no new session (no ip_changed session: the cookie is reused)')
 
     def setup(self, ctx, browser, result):
         self.visit(ctx, browser, STANDARD_CALLS[:1])
@@ -831,11 +837,16 @@ class MixedHandlers(Scenario):
 
 
 class LoginMidNavigation(Scenario):
-    """Anonymous navigation, then a login in the same browser, then navigation logged in."""
+    """Anonymous navigation, then a login in the same browser, then navigation logged in.
+
+    The login view attaches the user to the anonymous session in place (no `always_rotate`),
+    and the following authenticated requests reuse it: no `login_rotation` session was ever
+    expected on this path (#1737).
+    """
 
     name = 'login_mid_navigation'
     hypothesis = '2b'
-    expect = Expect(exact={'login_rotation': 1}, text='one login_rotation session')
+    expect = Expect(text='no new session (login attaches the user in place)')
 
     def skip_reason(self, ctx):
         if not ctx.can_login:
@@ -862,12 +873,13 @@ class IpChange(Scenario):
 
     Tent's `SetClientIpMiddleware` overwrites `X-Forwarded-For`, so these requests go to the
     backend directly with `X-Proxy-Secret` and an `X-Forwarded-For` from the RFC 5737
-    documentation ranges.
+    documentation ranges. Since #1737 a valid cookie is reused across IPs (the change is
+    recorded on the visit as `first_ip` / `last_ip`).
     """
 
     name = 'ip_change'
     hypothesis = '3'
-    expect = Expect(exact={'ip_changed': 1}, text='one ip_changed session')
+    expect = Expect(text='the same session reused; no ip_changed session')
 
     def skip_reason(self, ctx):
         if not ctx.secrets.available(Secrets.PROXY):
