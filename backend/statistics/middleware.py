@@ -10,7 +10,7 @@ from common.secret_compare import secret_matches
 from domains.models import Domain
 from statistics import cookies
 from statistics.models import Session
-from statistics.route_pattern import route_pattern
+from statistics.route_pattern import UNRESOLVED, route_pattern
 from statistics.session_attachment import attach_user
 from statistics.settings import Settings
 from statistics.visit_tracking import track_visit
@@ -20,8 +20,9 @@ class StatisticsSessionMiddleware:
     """Load/create a statistics `Session` per request and write its cookie back.
 
     Same `__init__(self, get_response)` / `__call__(self, request)` shape as
-    `games.middleware.CacheControlMiddleware`. Requests to `UNTRACKED_PATHS` (exact paths,
-    never prefixes) are not tracked, like requests carrying a valid statistics-skip header.
+    `games.middleware.CacheControlMiddleware`. A request is not tracked (no session lookup, no
+    visit, no cookie) when its path is exactly one of `UNTRACKED_PATHS` (never a prefix), when
+    it carries a valid statistics-skip header, or when its path matches no route.
     """
 
     # The raw statistics export reads the data this middleware writes: tracking its own
@@ -40,7 +41,6 @@ class StatisticsSessionMiddleware:
             request.statistics_session = None
             return self.get_response(request)
 
-        request.statistics_route = route_pattern(request)
         ip = client_ip(request)
         domain = self._domain_for_request(request)
         request.statistics_session = self._load_or_create_session(request, ip, domain)
@@ -54,8 +54,19 @@ class StatisticsSessionMiddleware:
         return response
 
     def _skip_requested(self, request):
-        """Return whether this request is exempt from tracking (exact path or skip header)."""
-        return self._untracked_path(request) or self._skip_header(request)
+        """Return whether this request is exempt from tracking.
+
+        Exempt: an exact untracked path, a valid skip header, or a path matching no route. The
+        route is only computed (and stored on `request.statistics_route`) for the last check.
+        """
+        if self._untracked_path(request) or self._skip_header(request):
+            return True
+        return self._unresolved_route(request)
+
+    def _unresolved_route(self, request):
+        """Store the request's route pattern and return whether it matches no route."""
+        request.statistics_route = route_pattern(request)
+        return request.statistics_route == UNRESOLVED
 
     def _untracked_path(self, request):
         """Return whether the request path is exactly one of `UNTRACKED_PATHS`."""

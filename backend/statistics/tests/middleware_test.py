@@ -384,16 +384,55 @@ class TestStatisticsSessionMiddleware:
 
     @pytest.mark.parametrize('path', [
         '/staff/statistics/visits.json',
+        '/staff/statistics.json',
+    ])
+    def test_exemption_is_exact(self, client, path):
+        """Test that a resolved sibling of the export path is still tracked."""
+        client.get(path, REMOTE_ADDR='192.0.2.1')
+
+        assert Session.objects.count() == 1
+        assert Visit.objects.count() == 1
+
+    @pytest.mark.parametrize('path', [
+        '/staff/statistics/visits.json',
         '/staff/statistics/export.json/',
         '/staff/statistics/export.jsonx',
         '/staff/statistics/export',
         '/staff/statistics.json',
     ])
-    def test_exemption_is_exact(self, client, path):
-        """Test that only the exact export path escapes tracking, never a sibling or variant."""
-        client.get(path, REMOTE_ADDR='192.0.2.1')
+    def test_untracked_path_match_is_exact(self, path):
+        """Test that only the exact export path is an untracked path, never a variant."""
+        request = RequestFactory().get(path)
+        middleware = StatisticsSessionMiddleware(lambda request: HttpResponse())
 
-        assert Session.objects.count() == 1
+        assert middleware._untracked_path(request) is False
+
+    def test_unresolved_route_creates_no_session(self, client):
+        """Test that an unknown `.json` path creates no session, no visit and no cookie."""
+        response = client.get('/no/such/path.json', REMOTE_ADDR='192.0.2.1')
+
+        assert response.status_code == 404
+        assert Session.objects.count() == 0
+        assert Visit.objects.count() == 0
+        assert cookies.COOKIE_NAME not in response.cookies
+
+    def test_unresolved_route_leaves_the_cookie_session_untouched(self, client):
+        """Test that an unresolved request with a cookie leaves its session and visit as is."""
+        session = self._stale_session(seconds_ago=120, ip='192.0.2.1')
+        track_visit(session, path='ready.json')
+        client.cookies[cookies.COOKIE_NAME] = cookies.sign(session.token)
+
+        response = client.get('/no/such/path.json', REMOTE_ADDR='198.51.100.7')
+
+        assert cookies.COOKIE_NAME not in response.cookies
+        self._assert_session_untouched(session)
+
+    def test_resolved_route_returning_404_is_still_tracked(self, client):
+        """Test that a resolved route whose view returns 404 (unknown game) is tracked."""
+        response = client.get('/games/no-such-game.json', REMOTE_ADDR='192.0.2.1')
+
+        assert response.status_code == 404
+        assert Session.objects.get().first_path == 'games/<slug:game_slug>.json'
         assert Visit.objects.count() == 1
 
     def test_skipped_request_does_not_extend_an_existing_visit(self, client, monkeypatch):
@@ -547,9 +586,19 @@ class TestStatisticsSessionMiddleware:
         """Delete `session`'s row while keeping the in-memory instance and its pk."""
         Session.objects.filter(pk=session.pk).delete()
 
-    def _stale_session(self, seconds_ago):
-        """Return a session for '1.2.3.4' on `self.domain` last seen `seconds_ago` seconds ago."""
-        session = Session.objects.create(ip='1.2.3.4', domain=self.domain)
+    def _assert_session_untouched(self, session):
+        """Assert `session`'s row and its single visit match their in-memory state."""
+        stored = Session.objects.get(pk=session.pk)
+        assert stored.last_seen_at == session.last_seen_at
+        assert stored.ip == session.ip
+        visit = Visit.objects.get()
+        assert visit.session_id == session.pk
+        assert visit.hits == 1
+        assert visit.last_path == 'ready.json'
+
+    def _stale_session(self, seconds_ago, ip='1.2.3.4'):
+        """Return a session for `ip` on `self.domain` last seen `seconds_ago` seconds ago."""
+        session = Session.objects.create(ip=ip, domain=self.domain)
         seen_at = timezone.now() - timedelta(seconds=seconds_ago)
         Session.objects.filter(pk=session.pk).update(last_seen_at=seen_at)
         session.refresh_from_db()
@@ -669,12 +718,31 @@ class TestStatisticsSessionMiddlewareCreationTracking:
 
         assert self._new_session(response).first_path == 'ready.json'
 
-    def test_first_path_is_unresolved_for_a_404(self, client):
-        """Test that a path matching no route stores the `unresolved` marker."""
+    def test_unresolved_path_creates_no_session(self, client):
+        """Test that a path matching no route creates no session (no `unresolved` row)."""
         response = client.get('/no/such/path.php', REMOTE_ADDR='1.2.3.4')
 
         assert response.status_code == 404
-        assert self._new_session(response).first_path == 'unresolved'
+        assert Session.objects.count() == 0
+
+    def test_unresolved_path_keeps_the_route_marker(self):
+        """Test that an unresolved request still exposes the `unresolved` route marker."""
+        request = self.factory.get('/no/such/path.php')
+        middleware = StatisticsSessionMiddleware(lambda request: HttpResponse())
+
+        middleware(request)
+
+        assert request.statistics_route == 'unresolved'
+        assert request.statistics_session is None
+        assert request.statistics_session_created is None
+
+    def test_unresolved_path_queries_nothing(self, django_assert_num_queries):
+        """Test that an unresolved request issues no domain or session query."""
+        request = self.factory.get('/no/such/path.php')
+        middleware = StatisticsSessionMiddleware(lambda request: HttpResponse())
+
+        with django_assert_num_queries(0):
+            middleware(request)
 
     def test_anonymous_creation_is_not_logged(self, client):
         """Test that a session created for an anonymous request records `false`."""
@@ -781,12 +849,12 @@ class TestStatisticsSessionMiddlewareCreationTracking:
     def test_visit_records_first_and_last_route(self, client):
         """Test that the request's visit stores the first and latest route patterns."""
         client.get('/ready.json?fake=1', REMOTE_ADDR='1.2.3.4')
-        client.get('/no/such/path.php', REMOTE_ADDR='1.2.3.4')
+        client.get('/games.json', REMOTE_ADDR='1.2.3.4')
 
         visit = Visit.objects.get()
         assert visit.hits == 2
         assert visit.first_path == 'ready.json'
-        assert visit.last_path == 'unresolved'
+        assert visit.last_path == 'games.json'
 
     def _token_get(self, client, **extra):
         """Issue a token-authenticated GET to `/games.json` as a fresh user."""
