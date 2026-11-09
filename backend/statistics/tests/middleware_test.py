@@ -5,8 +5,10 @@ from unittest.mock import patch
 
 import pytest
 from django.contrib.auth.models import AnonymousUser
+from django.db import connection
 from django.http import HttpResponse
 from django.test import RequestFactory, override_settings
+from django.test.utils import CaptureQueriesContext
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
 
@@ -135,32 +137,58 @@ class TestStatisticsSessionMiddleware:
 
         assert Visit.objects.count() == 2
 
-    def test_ip_change_opens_a_visit_on_the_new_session(self, client):
-        """Test that a rotated (IP-changed) session gets its own new visit."""
-        client.get('/ready.json', REMOTE_ADDR='1.2.3.4')
+    def test_ip_change_extends_the_same_visit(self, client):
+        """Test that a visit opened and extended from two IPs records both, on one session."""
+        client.get('/ready.json', REMOTE_ADDR='192.0.2.1')
 
-        response = client.get('/ready.json', REMOTE_ADDR='9.9.9.9')
+        response = client.get('/ready.json', REMOTE_ADDR='198.51.100.7')
 
-        new_session = self._session_from_response(response)
-        assert new_session.ip == '9.9.9.9'
-        assert new_session.visits.get().hits == 1
-        assert Visit.objects.count() == 2
+        session = self._session_from_response(response)
+        assert session.ip == '198.51.100.7'
+        visit = Visit.objects.get()
+        assert visit.session_id == session.pk
+        assert visit.hits == 2
+        assert visit.first_ip == '192.0.2.1'
+        assert visit.last_ip == '198.51.100.7'
 
-    def test_creates_new_session_when_cookie_ip_differs(self, client):
-        """Test that a valid cookie with a mismatched IP rotates to a brand-new session."""
-        old_session = Session.objects.create(ip='1.2.3.4', domain=self.domain)
+    def test_reuses_session_when_cookie_ip_differs(self, client):
+        """Test that a valid cookie with another IP reuses its session and stores the new IP."""
+        old_session = Session.objects.create(ip='192.0.2.1', domain=self.domain)
         client.cookies[cookies.COOKIE_NAME] = cookies.sign(old_session.token)
 
-        response = client.get('/ready.json', REMOTE_ADDR='9.9.9.9')
+        response = client.get('/ready.json', REMOTE_ADDR='198.51.100.7')
 
-        assert Session.objects.count() == 2
+        assert Session.objects.count() == 1
+        assert self._session_from_response(response).pk == old_session.pk
         old_session.refresh_from_db()
-        assert old_session.ip == '1.2.3.4'
-        new_signed_value = response.cookies[cookies.COOKIE_NAME].value
-        new_token = cookies.unsign(new_signed_value)
-        assert new_token != old_session.token
-        new_session = Session.objects.get(token=new_token)
-        assert new_session.ip == '9.9.9.9'
+        assert old_session.ip == '198.51.100.7'
+
+    def test_one_cookie_across_untrusted_ips_reuses_one_session(self, client):
+        """Test that consecutive `REMOTE_ADDR`-only requests from new IPs share one session."""
+        for ip in ('192.0.2.1', '198.51.100.7', '203.0.113.9'):
+            client.get('/ready.json', REMOTE_ADDR=ip)
+
+        session = Session.objects.get()
+        assert session.ip == '203.0.113.9'
+        assert session.visits.get().hits == 3
+        assert not Session.objects.filter(creation_reason='ip_changed').exists()
+
+    def test_one_cookie_across_trusted_forwarded_ips_reuses_one_session(
+        self, client, monkeypatch
+    ):
+        """Test that consecutive trusted forwarded requests from new IPs share one session."""
+        monkeypatch.setenv('PROXY_SECRET', 'tent-secret')
+        for ip in ('192.0.2.1', '198.51.100.7', '203.0.113.9'):
+            client.get(
+                '/ready.json', REMOTE_ADDR='192.0.2.250',
+                HTTP_X_FORWARDED_FOR=ip, HTTP_X_PROXY_SECRET='tent-secret',
+            )
+
+        session = Session.objects.get()
+        assert session.ip == '203.0.113.9'
+        visit = session.visits.get()
+        assert (visit.first_ip, visit.last_ip) == ('192.0.2.1', '203.0.113.9')
+        assert not Session.objects.filter(creation_reason='ip_changed').exists()
 
     def test_creates_new_session_when_cookie_domain_differs(self, client):
         """Test that a valid cookie with a mismatched domain rotates to a brand-new session."""
@@ -538,6 +566,24 @@ class TestStatisticsSessionMiddleware:
         assert response.status_code == 200
         assert not Visit.objects.filter(session_id=session.pk).exists()
 
+    def test_session_deleted_before_the_ip_update_does_not_fail(self, client):
+        """Test that a cookie session deleted before its IP update yields 200 and no visit."""
+        session = Session.objects.create(ip='192.0.2.1', domain=self.domain)
+        client.cookies[cookies.COOKIE_NAME] = cookies.sign(session.token)
+        original = StatisticsSessionMiddleware._session_from_cookie
+
+        def load_then_delete(middleware, request):
+            loaded, reason = original(middleware, request)
+            self._delete_session_row(loaded)
+            return loaded, reason
+
+        with patch.object(StatisticsSessionMiddleware, '_session_from_cookie', load_then_delete):
+            response = client.get('/ready.json', REMOTE_ADDR='198.51.100.7')
+
+        assert response.status_code == 200
+        assert not Session.objects.filter(pk=session.pk).exists()
+        assert not Visit.objects.filter(session_id=session.pk).exists()
+
     def test_session_deleted_before_the_track_does_not_fail(self, client):
         """Test that a cookie session deleted right before visit tracking yields 200, no visit."""
         session = Session.objects.create(ip='1.2.3.4', domain=self.domain)
@@ -668,13 +714,14 @@ class TestStatisticsSessionMiddlewareCreationTracking:
 
         assert self._new_session(response).creation_reason == 'domain_changed'
 
-    def test_ip_changed_reason(self, client):
-        """Test that a same-domain cookie session with another IP records `ip_changed`."""
-        self._cookie_for(client, ip='1.2.3.4', domain=self.domain)
+    def test_ip_change_records_no_ip_changed_session(self, client):
+        """Test that a same-domain cookie session with another IP is reused, not `ip_changed`."""
+        old_session = self._cookie_for(client, ip='192.0.2.1', domain=self.domain)
 
-        response = client.get('/ready.json', REMOTE_ADDR='9.9.9.9')
+        response = client.get('/ready.json', REMOTE_ADDR='198.51.100.7')
 
-        assert self._new_session(response).creation_reason == 'ip_changed'
+        assert self._new_session(response).pk == old_session.pk
+        assert not Session.objects.filter(creation_reason='ip_changed').exists()
 
     def test_domain_and_ip_changed_records_domain_changed(self, client):
         """Test that both the domain and the IP differing records `domain_changed`."""
@@ -787,6 +834,40 @@ class TestStatisticsSessionMiddlewareCreationTracking:
         with django_assert_num_queries(4):
             middleware(request)
 
+    def test_same_ip_and_fresh_session_writes_no_session(self):
+        """Test that a reused session with the same IP and no touch due gets no `UPDATE`."""
+        session = Session.objects.create(ip='192.0.2.1', domain=self.domain)
+
+        queries = self._run_with_cookie(session, ip='192.0.2.1')
+
+        assert self._session_updates(queries) == []
+
+    def test_ip_change_writes_the_session_ip_alone(self):
+        """Test that a changed IP with no touch due is a single `UPDATE` of the IP only."""
+        session = Session.objects.create(ip='192.0.2.1', domain=self.domain)
+        last_seen_at = session.last_seen_at
+
+        updates = self._session_updates(self._run_with_cookie(session, ip='198.51.100.7'))
+
+        session.refresh_from_db()
+        assert len(updates) == 1
+        assert session.ip == '198.51.100.7'
+        assert session.last_seen_at == last_seen_at
+
+    def test_ip_change_and_due_touch_share_one_update(self):
+        """Test that a changed IP and a due touch are written in the same `UPDATE`."""
+        session = Session.objects.create(ip='192.0.2.1', domain=self.domain)
+        stale_at = timezone.now() - timedelta(seconds=120)
+        Session.objects.filter(pk=session.pk).update(last_seen_at=stale_at)
+        session.refresh_from_db()
+
+        updates = self._session_updates(self._run_with_cookie(session, ip='198.51.100.7'))
+
+        session.refresh_from_db()
+        assert len(updates) == 1
+        assert session.ip == '198.51.100.7'
+        assert session.last_seen_at > stale_at
+
     def test_skipped_request_computes_no_route(self, monkeypatch):
         """Test that a skip-header request neither computes nor stores a route."""
         monkeypatch.setenv('STATISTICS_SKIP_SECRET', 'shh')
@@ -855,6 +936,23 @@ class TestStatisticsSessionMiddlewareCreationTracking:
         assert visit.hits == 2
         assert visit.first_path == 'ready.json'
         assert visit.last_path == 'games.json'
+
+    def _run_with_cookie(self, session, ip):
+        """Run the middleware on an anonymous request from `ip` carrying `session`'s cookie."""
+        request = self._anonymous_request(self.factory.get('/ready.json', REMOTE_ADDR=ip))
+        request.COOKIES[cookies.COOKIE_NAME] = cookies.sign(session.token)
+        middleware = StatisticsSessionMiddleware(lambda request: HttpResponse())
+        with CaptureQueriesContext(connection) as queries:
+            middleware(request)
+        return queries
+
+    def _session_updates(self, queries):
+        """Return the captured SQL statements updating the statistics session table."""
+        table = Session._meta.db_table
+        return [
+            query['sql'] for query in queries.captured_queries
+            if query['sql'].startswith(f'UPDATE `{table}`')
+        ]
 
     def _token_get(self, client, **extra):
         """Issue a token-authenticated GET to `/games.json` as a fresh user."""

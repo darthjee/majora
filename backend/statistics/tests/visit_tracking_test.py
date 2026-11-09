@@ -120,6 +120,40 @@ class TestTrackVisit:
         assert visit.first_path == 'games.json'
         assert visit.last_path == 'games/<slug:game_slug>.json'
 
+    def test_opened_visit_stores_the_ip_as_first_and_last(self):
+        """Test that an opened visit records `ip` as both `first_ip` and `last_ip`."""
+        track_visit(self.session, ip='192.0.2.1')
+
+        visit = self.session.visits.get()
+        assert visit.first_ip == '192.0.2.1'
+        assert visit.last_ip == '192.0.2.1'
+
+    def test_extended_visit_from_another_ip_updates_only_the_last_ip(self):
+        """Test that extending from a new IP moves `last_ip`, keeps `first_ip`, opens no visit."""
+        track_visit(self.session, ip='192.0.2.1')
+
+        track_visit(self.session, ip='198.51.100.7')
+
+        visit = self.session.visits.get()
+        assert visit.hits == 2
+        assert visit.first_ip == '192.0.2.1'
+        assert visit.last_ip == '198.51.100.7'
+
+    def test_ip_defaults_to_none(self):
+        """Test that a visit tracked without an IP keeps `first_ip` and `last_ip` empty."""
+        track_visit(self.session)
+
+        visit = self.session.visits.get()
+        assert visit.first_ip is None
+        assert visit.last_ip is None
+
+    def test_extend_with_ip_keeps_its_query_count(self, django_assert_num_queries):
+        """Test that extending with an IP is still one lookup plus one `UPDATE`."""
+        track_visit(self.session, ip='192.0.2.1')
+
+        with django_assert_num_queries(2):
+            track_visit(self.session, ip='198.51.100.7')
+
     def test_extend_path_keeps_its_query_count(self, django_assert_num_queries):
         """Test that extending with a path is still one lookup plus one `UPDATE`."""
         track_visit(self.session, path='games.json')
@@ -154,7 +188,7 @@ class TestTrackVisitConcurrency:
         track_visit(self.session, path='games.json')
 
     def test_concurrent_extends_lose_no_hit(self):
-        """Test that simultaneous extends with paths still count every hit."""
+        """Test that simultaneous extends with paths and IPs still count every hit."""
         barrier = threading.Barrier(self.THREADS)
         threads = [
             threading.Thread(target=self._extend, args=(barrier,)) for _ in range(self.THREADS)
@@ -167,11 +201,14 @@ class TestTrackVisitConcurrency:
         visit = self.session.visits.get()
         assert visit.hits == 1 + self.THREADS
         assert visit.last_path == 'ready.json'
+        assert visit.last_ip == '198.51.100.7'
 
     def _extend(self, barrier):
         """Wait for every thread, extend the visit, then release this thread's connection."""
         barrier.wait()
         try:
-            track_visit(Session.objects.get(pk=self.session.pk), path='ready.json')
+            track_visit(
+                Session.objects.get(pk=self.session.pk), path='ready.json', ip='198.51.100.7',
+            )
         finally:
             connection.close()

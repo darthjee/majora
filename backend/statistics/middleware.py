@@ -44,7 +44,7 @@ class StatisticsSessionMiddleware:
         ip = client_ip(request)
         domain = self._domain_for_request(request)
         request.statistics_session = self._load_or_create_session(request, ip, domain)
-        self._track_visit(request)
+        self._track_visit(request, ip)
 
         response = self.get_response(request)
         self._backfill_user(request)
@@ -83,22 +83,21 @@ class StatisticsSessionMiddleware:
         return Domain.objects.filter(domain=host).first()
 
     def _load_or_create_session(self, request, ip, domain):
-        """Return the current request's session, reusing a valid cookie-borne one if possible."""
+        """Return the current request's session, reusing a valid cookie-borne one if possible.
+
+        A cookie session of the same domain is reused whatever the client IP (the per-IP
+        session boundary is given up on purpose); the IP change is recorded on the session
+        (`Session.ip` is the last seen IP) and on the visit (`first_ip` / `last_ip`).
+        """
         session, reason = self._session_from_cookie(request)
         domain_id = domain.id if domain is not None else None
 
-        if session is not None and session.ip == ip and session.domain_id == domain_id:
-            self._touch_session(session)
+        if session is not None and session.domain_id == domain_id:
+            self._touch_session(session, ip)
             return session
 
-        reason = reason or self._mismatch_reason(session, domain_id)
+        reason = reason or Session.CreationReason.DOMAIN_CHANGED
         return self._create_session(request, ip, domain, reason)
-
-    def _mismatch_reason(self, session, domain_id):
-        """Return why a found cookie session was not reused; the domain is checked first."""
-        if session.domain_id != domain_id:
-            return Session.CreationReason.DOMAIN_CHANGED
-        return Session.CreationReason.IP_CHANGED
 
     def _create_session(self, request, ip, domain, reason):
         """Create the request's session in a single `INSERT`, recording why and where."""
@@ -110,21 +109,38 @@ class StatisticsSessionMiddleware:
         request.statistics_session_created = created
         return created
 
-    def _touch_session(self, session):
-        """Write `session.last_seen_at` only when stale beyond the configured touch interval.
+    def _touch_session(self, session, ip):
+        """Write the reused session's changed IP and stale `last_seen_at` in one `UPDATE`.
 
-        `Visit` carries per-request activity, so the session row is throttled to keep the
-        per-request write cost at about one row. A filtered `UPDATE` is used so a session
-        deleted after being loaded (e.g. by a statistics clear) is tolerated: it matches no
-        rows and nothing raises.
+        `Visit` carries per-request activity, so `last_seen_at` is throttled to the configured
+        touch interval, and `ip` is only written when it differs from the stored one: normal
+        traffic (same IP, touch not due) writes nothing. Concurrent IP updates are last write
+        wins. A filtered `UPDATE` is used so a session deleted after being loaded (e.g. by a
+        statistics clear) is tolerated: it matches no rows and nothing raises.
         """
-        interval = timedelta(seconds=Settings.session_touch_interval_seconds())
-        now = timezone.now()
-        if now - session.last_seen_at >= interval:
-            Session.objects.filter(pk=session.pk).update(last_seen_at=now)
-            session.last_seen_at = now
+        fields = self._session_changes(session, ip)
+        if not fields:
+            return
 
-    def _track_visit(self, request):
+        Session.objects.filter(pk=session.pk).update(**fields)
+        for name, value in fields.items():
+            setattr(session, name, value)
+
+    def _session_changes(self, session, ip):
+        """Return the session fields to write: a changed `ip` and/or a due `last_seen_at`."""
+        fields = {}
+        if session.ip != ip:
+            fields['ip'] = ip
+        now = timezone.now()
+        if now - session.last_seen_at >= self._touch_interval():
+            fields['last_seen_at'] = now
+        return fields
+
+    def _touch_interval(self):
+        """Return the configured minimum delay between two `last_seen_at` writes."""
+        return timedelta(seconds=Settings.session_touch_interval_seconds())
+
+    def _track_visit(self, request, ip):
         """Attribute this request to a `Visit` of the resolved session, before the view runs.
 
         Running before dispatch means a login request counts on the pre-rotation session.
@@ -132,7 +148,7 @@ class StatisticsSessionMiddleware:
         session = request.statistics_session
         track_visit(
             session, new_session=self._created_during_request(request, session),
-            path=request.statistics_route,
+            path=request.statistics_route, ip=ip,
         )
 
     def _backfill_user(self, request):
