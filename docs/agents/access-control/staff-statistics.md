@@ -63,11 +63,13 @@ visits for the statistics investigation script (Epic #1696). Contract and access
   by `created_at`, then `id` (fixed, not a param). Paginated: a plain JSON array with the
   `page` / `pages` / `per_page` / `total` headers. Each row is `{"id", "ip", "domain": {"id",
   "domain"}, "user_id", "created_at", "last_seen_at", "visits": [{"started_at",
-  "last_seen_at", "hits", "first_path", "last_path"}], "visits_truncated", "first_path",
+  "last_seen_at", "hits", "first_path", "last_path", "first_ip", "last_ip"}],
+  "visits_truncated", "first_path",
   "first_seen_logged", "creation_reason"}`; a session without a domain gives
   `{"id": "unknown", "domain": null}`, an anonymous one `user_id: null`. The tracking fields
   (#1713) are `null` for rows from before the tracking columns; paths are route patterns, never
-  a raw path, and `creation_reason` is the raw stored value.
+  a raw path, and `creation_reason` is the raw stored value. The session `ip` is its last seen
+  IP; the visit `first_ip` / `last_ip` (#1737) are `null` for visits recorded before.
 - **Visits:** only those whose `started_at` falls in the range, earliest first, at most
   **100 per session** (`visits_truncated: true` when cut off). They are read in one windowed
   query for the whole page (no N+1).
@@ -188,13 +190,16 @@ the user identity (id, username, display name, email). The session cookie token
   descending; ordered and sliced in the database; anything else, including an empty `sort=`,
   is `invalid_sort`). Paginated: a plain JSON array (no envelope, no totals) with the
   `page` / `pages` / `per_page` / `total` headers (`per_page ≤ 100`). Each row is `{"id",
-  "started_at", "last_seen_at", "duration_seconds", "hits", "ongoing", "ip", "domain": {"id",
+  "started_at", "last_seen_at", "duration_seconds", "hits", "ongoing", "ip", "first_ip",
+  "last_ip", "domain": {"id",
   "domain"}, "session_id", "user": {"id", "name", "display_name", "email"} | null,
   "first_path", "last_path", "session_first_path", "session_creation_reason",
   "session_first_seen_logged"}`; a session without a domain gives
   `{"id": "unknown", "domain": null}` and anonymous (or deleted-user) visits give `user: null`.
   The tracking fields (#1713) are the visit's paths and its session's creation columns, `null`
-  for rows from before the tracking columns; paths are route patterns, never a raw path. It **exposes raw IPs, statistics session ids and user
+  for rows from before the tracking columns; paths are route patterns, never a raw path.
+  `first_ip` / `last_ip` (#1737) are the visit's own IPs (`null` for older visits); `ip` is the
+  visit's `last_ip`, falling back to the session's (last seen) IP. It **exposes raw IPs, statistics session ids and user
   identities** to staff, and never the session token. Not warmed by Navi; sets
   `X-Skip-Cache: true`.
 - **`GET /staff/statistics/domains/summary.json`** — per-domain comparison of the visits

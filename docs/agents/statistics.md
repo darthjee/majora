@@ -39,10 +39,20 @@ The filter bar's domain select is fed by a shared support endpoint, `domains.jso
 
 `statistics.Session` (recorded by `StatisticsSessionMiddleware` in `backend/statistics`) is
 long-lived: the signed `majora_statistics` cookie lasts 2 years
-(`MAJORA_STATISTICS_COOKIE_MAX_AGE_SECONDS`), and the middleware reuses the session only while
-the IP and domain match (an IP or domain change starts a new `Session`). Sessions are therefore the **visitor (device/browser) identity**, never
+(`MAJORA_STATISTICS_COOKIE_MAX_AGE_SECONDS`), and the middleware reuses the cookie's session
+while its domain matches the request's, **whatever the client IP** (#1737; a domain change
+starts a new `Session`). Sessions are therefore the **visitor (device/browser) identity**, never
 visits: counting sessions by `created_at` measures new sessions, and
 `last_seen_at - created_at` measures cookie age.
+
+`Session.ip` is the **last seen IP**: when a reused session is hit from another IP, the
+middleware writes the new IP with a filtered `UPDATE`, folded into the `last_seen_at` touch
+when that one is due too. Normal traffic (same IP, touch not due) writes nothing. Concurrent
+requests from different IPs are last write wins (no locking). The per-IP session boundary is
+given up on purpose: infrastructure IPs rotating between requests used to open one session per
+request (#1704). The IP change stays visible on the [visit](#visit-is-the-activity)
+(`first_ip` / `last_ip`). A stolen cookie therefore works from any IP, but it only lets the
+holder add visits to the victim's statistics (the session grants no authorization).
 
 `Session.last_seen_at` is **throttled**: it is only rewritten when at least 60 seconds stale
 (`Settings.session_touch_interval_seconds()`, env
@@ -66,28 +76,56 @@ nullable with no backfill: rows created before #1712 stay `NULL` (unknown).
 | `no_cookie` | The request carried no statistics cookie |
 | `invalid_cookie` | The cookie failed to unsign |
 | `cookie_session_not_found` | Valid token, but no row (deleted, cleared) |
-| `domain_changed` | The token's session exists for another domain (wins when the IP also changed) |
-| `ip_changed` | The token's session exists for the same domain, but the IP differs |
-| `login_rotation` | `attach_user` created a new row (always-rotate or lost in-place race) |
+| `domain_changed` | The token's session exists for another domain |
+| `ip_changed` | Legacy (before #1737): the token's session existed for the same domain, but the IP differed. No longer produced, kept readable for existing rows |
+| `login_rotation` | `attach_user` created a new row (session tied to a different user, or deleted mid-request) |
 
 The middleware looks the cookie session up **by token only** (the token is unique, so it is
-still one query) and derives the reason by comparing domain first, then IP. The reuse rule is
-unchanged: a session is reused only when both IP and domain match.
+still one query) and reuses it when its domain matches; otherwise the reason is
+`domain_changed`.
 
 A `login_rotation` row stores the rotating request's route (login, device-authorization poll or
 any authenticated request through the middleware back-fill). As before, it gets no visit until
 the next request carrying its cookie.
+
+### User attachment
+
+`attach_user` (`backend/statistics/session_attachment.py`) is shared by the middleware
+back-fill (`_backfill_user`, an authenticated request on an anonymous session), the login view
+and the device-authorization poll:
+
+- **Anonymous session:** the user is attached **in place** with one atomic
+  `UPDATE … WHERE user_id IS NULL`, whether the session was created in this request or earlier.
+- **Lost race:** when that `UPDATE` matches nothing, the row's `user_id` is **re-read** (never
+  trusted from the stale in-memory `NULL`). A row now tied to the same user is reused; this is
+  how a parallel burst of authenticated requests carrying one anonymous cookie ends with one
+  session and no `login_rotation` (race 2b, #1737).
+- **Session already tied to the same user:** reused (e.g. a same-user re-login).
+- **Session tied to a different user, or deleted mid-request:** rotated to a new
+  `login_rotation` row copying the IP (the last seen one) and domain.
+
+The middleware back-fill leaves a session that was already tied to a user when the request
+arrived untouched. Before #1737 it always rotated a pre-existing anonymous session; that
+shared-device protection is dropped on purpose. **Accepted trade-off:** on a shared device,
+anonymous visits made before a login are attributed to the user who authenticates first. The
+login view already claimed the anonymous session in place, so this adds no new vector.
 
 ### Route pattern values
 
 Path columns never store the raw path. They store the matched URL route pattern,
 `resolve(request.path_info).route` (e.g. `games/<slug:game_slug>/documents/<int:id>.json`), so
 no URL parameter, token or secret is stored: the device-authorization poll stores
-`users/authorization_requests/<uuid:uuid>.json`, never its `uuid`. A path matching no route
-(404s, bots) stores the fixed marker `unresolved`. The query string is never stored, and values
-are truncated to 255 characters. Resolution is in-memory URL matching done once per tracked
-request by the middleware (`request.statistics_route`); untracked paths and skip-header
-requests compute and store nothing.
+`users/authorization_requests/<uuid:uuid>.json`, never its `uuid`. The query string is never
+stored, and values are truncated to 255 characters. Resolution is in-memory URL matching done
+once per request by the middleware (`request.statistics_route`); untracked paths and
+skip-header requests compute nothing.
+
+A path matching no route (404s on unknown paths, bots) is **not tracked** since #1737:
+`route_pattern()` returns the `unresolved` marker and the middleware stops there (no domain or
+session query, no visit, no cookie; a session carried by the cookie is not touched).
+`unresolved` is no longer written but stays readable on older rows (and in `analyse.py`). A
+route that resolves but whose view returns 404 (e.g. an unknown game slug) is still tracked.
+With `APPEND_SLASH`, the slash-less request is skipped and the redirected one is tracked.
 
 **Hot path:** none of these columns adds a query per request. The creation columns ride on the
 session `INSERT`, the logged state on the attach `UPDATE`, the visit paths on the visit
@@ -107,19 +145,25 @@ session `INSERT`, the logged state on the attach `UPDATE`, the visit paths on th
   `hits` is exact under concurrency. Two requests arriving just after the window expires may
   both open a visit; this rare duplicate is accepted.
 - `hits` counts **uncached backend requests, not page views**. Every request that reaches
-  Django's middleware stack is tracked (any path, method or status, admin and the statistics
-  endpoints included, no bot filtering); the only exclusions are a valid
-  `X-Statistics-Skip-Secret` header (`STATISTICS_SKIP_SECRET`; empty disables skipping) and the
-  exact paths in `StatisticsSessionMiddleware.UNTRACKED_PATHS` (today only
-  `/staff/statistics/export.json`, see [Export endpoint](#export-endpoint)).
-- **Login is a visit boundary.** When an anonymous session is rotated to a new user-tied
-  `Session`, the login request counts on the anonymous visit, which ends; the next request
-  opens a visit on the new session. When the user is attached in place (session created in
-  the same request), the visit stays on that session. Visits are never moved between sessions.
+  Django's middleware stack is tracked (any resolved path, method or status, admin and the
+  statistics endpoints included, no bot filtering); the only exclusions (**untracked
+  requests**) are the exact paths in `StatisticsSessionMiddleware.UNTRACKED_PATHS` (today only
+  `/staff/statistics/export.json`, see [Export endpoint](#export-endpoint)), a valid
+  `X-Statistics-Skip-Secret` header (`STATISTICS_SKIP_SECRET`; empty disables skipping) and a
+  path matching no route (see [Route pattern values](#route-pattern-values)).
+- **Login and visits.** When the user is attached in place (the usual case, see
+  [User attachment](#user-attachment)), the visit stays on that session. When a session is
+  rotated to a new user-tied `Session`, the rotating request counts on the old visit, which
+  ends; the next request opens a visit on the new session. Visits are never moved between
+  sessions.
 - **No backfill:** visit data starts at the #1478 deploy.
 - `first_path` / `last_path` store the [route pattern](#route-pattern-values) of the request
   that opened the visit and of the latest request. `last_path` is written by the same atomic
   extend `UPDATE`, so it adds no query.
+- `first_ip` / `last_ip` (#1737, nullable, `NULL` for visits recorded before) store the client
+  IP of the request that opened the visit and of the latest request, the same way (`last_ip`
+  rides in the extend `UPDATE`). An IP change inside a visit shows as `first_ip ≠ last_ip`;
+  intermediate IPs are not kept. An IP change never opens or closes a visit.
 
 Visit **duration** is `last_seen_at - started_at` in whole seconds; **hits per visit** is
 `hits`. Durations measure the first to the last backend request, so they are a lower bound of
@@ -141,14 +185,15 @@ that user.
   their current `last_seen_at`, duration and hits.
 - **Proxy-cached responses are invisible.** Requests served from the Tent cache never reach
   Django, so anonymous traffic on cached public routes is undercounted.
-- **"Unique visitors" is an estimate.** An anonymous visitor whose IP changes, or a visitor
-  who logs in or out, counts as more than one visitor.
+- **"Unique visitors" is an estimate.** An anonymous visitor on several devices or
+  browsers, or one whose cookie was reset, counts as more than one visitor. Since #1737 an
+  anonymous visitor whose IP changes keeps their session and counts once.
 - **Null domains** (unrecognized host) are shown as an **"unknown"** domain, never dropped.
   Deleting a `Domain` sets its sessions' domain to `NULL`, moving their history to "unknown".
 - **Deleted users** leave sessions with `user = NULL`, counted as anonymous.
 - **Staff traffic is counted**, including the statistics page itself. Requests carrying a
-  valid `X-Statistics-Skip-Secret` (e.g. Navi) and requests to the
-  [export endpoint](#export-endpoint) create or update nothing.
+  valid `X-Statistics-Skip-Secret` (e.g. Navi), requests to the
+  [export endpoint](#export-endpoint) and requests to unresolved paths create or update nothing.
 - **Times are stored in UTC**; ranges and buckets use the browser's time zone.
 
 ## Metrics
@@ -241,8 +286,9 @@ and `domains` (distinct domains, by hostname, "unknown" last). Rows carry the us
 ### Visit list
 
 One row per matched visit: `id`, `started_at`, `last_seen_at`, `duration_seconds`, `hits`,
-`ongoing`, `ip`, `domain`, `session_id`, `user` (`null` for anonymous and deleted-user
-visits), the visit's `first_path` / `last_path` and its session's `session_first_path`,
+`ongoing`, `ip`, `first_ip`, `last_ip`, `domain`, `session_id`, `user` (`null` for anonymous
+and deleted-user visits), the visit's `first_path` / `last_path` and its session's
+`session_first_path`,
 `session_creation_reason` and `session_first_seen_logged` (#1713). Paths are
 [route patterns](#route-pattern-values); the reason is the raw
 [creation reason](#session-tracking-columns) value, without labels. The tracking fields are
@@ -253,12 +299,14 @@ cookie token is never exposed.
   `now - last_seen_at` is below the inactivity window.
 - **Ordering:** `sort` = `started_at` (default), `last_seen`, `duration` or `hits`; always
   descending, ties broken by visit id descending. Ordering and slicing run in the database.
-- A session's IP and domain are fixed, so every visit of a session shows the same IP and
-  domain, and the anonymous visitor id (`session_id`) repeats across rows.
+- `first_ip` / `last_ip` are the visit's own IPs (`null` before #1737). `ip` is kept for the
+  current frontend (until #1745): the visit's `last_ip`, falling back to the session's IP (its
+  last seen IP) for older visits. A session's domain is fixed, so every visit of a session shows
+  the same domain, and the anonymous visitor id (`session_id`) repeats across rows.
 
 The Visit list tab (#1714) adds two non-sortable columns after Hits. **Paths** shows the visit's
 first and last paths; **Session** shows the session's first path, its creation reason and
-whether it was logged in at creation (yes / no). Route patterns (or `unresolved`) are shown
+whether it was logged in at creation (yes / no). Route patterns (or a legacy `unresolved`) are shown
 as-is, monospace and truncated, with the full value on hover (`title`). The creation reason is
 translated under `staff_statistics_page.visit_list.creation_reasons.<value>`, falling back to
 the raw value for a reason the frontend does not know. A `null` tracking field is shown as
@@ -360,7 +408,8 @@ URL filters into the API query (resolving `range` into `from` / `to` and adding 
 session, `visits_truncated` when cut off), for the statistics investigation script. It reads
 `from` / `to` / `tz` / `domain` / `page` / `per_page`. Sessions carry their
 [tracking columns](#session-tracking-columns) (`first_path`, `first_seen_logged`,
-`creation_reason`) and visits their `first_path` / `last_path` (#1713); `null` for older rows.
+`creation_reason`) and visits their `first_path` / `last_path` (#1713) and `first_ip` /
+`last_ip` (#1737); `null` for older rows. The session's `ip` is its last seen IP.
 It is the only statistics route a scoped API token (`statistics:read`, staff owner) can reach. Access, payload and validation:
 [Staff Statistics](access-control/staff-statistics.md#export) and the
 [export endpoint spec](specs/statistics-bug/export-endpoint.md).
@@ -504,8 +553,10 @@ served normally and never returns a `500`. Its visit is just not recorded.
 - **Track:** opening a `Visit` runs inside a savepoint and catches only the foreign-key
   `IntegrityError`, so the enclosing transaction stays usable. Extending a visit is an `UPDATE`
   that matches no rows.
-- **User attachment:** `attach_user`'s in-place `UPDATE` matches no rows and falls through to
-  rotation, which creates a new user-tied `Session`.
+- **IP update:** a changed `Session.ip` is written by the same filtered `UPDATE` as the touch,
+  which matches no rows for a deleted session.
+- **User attachment:** `attach_user`'s in-place `UPDATE` matches no rows, the re-read finds no
+  row, and it falls through to rotation, which creates a new user-tied `Session`.
 - **Old cookies:** after a Clear every cookie points to a deleted `Session`.
   `_session_from_cookie` finds nothing, so the next request creates a new session.
 
