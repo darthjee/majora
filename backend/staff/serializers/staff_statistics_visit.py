@@ -18,6 +18,10 @@ class StaffStatisticsVisitSerializer(serializers.ModelSerializer):
     fields are read. Tracking fields are flat: the visit's `first_path` / `last_path` and the
     session's `session_first_path`, raw `session_creation_reason` and
     `session_first_seen_logged`. Paths are route patterns, never raw paths.
+
+    `first_ip` / `last_ip` are the visit's own client IPs (`null` for visits recorded before
+    they were tracked). `ip` is kept for the current frontend: the visit's `last_ip`, falling
+    back to the session's IP (its last seen IP) for those older visits.
     """
 
     UNKNOWN_DOMAIN = {'id': StatisticsFilters.UNKNOWN_DOMAIN, 'domain': None}
@@ -26,7 +30,7 @@ class StaffStatisticsVisitSerializer(serializers.ModelSerializer):
     last_seen_at = serializers.SerializerMethodField()
     duration_seconds = serializers.SerializerMethodField()
     ongoing = serializers.SerializerMethodField()
-    ip = serializers.CharField(source='session.ip', read_only=True)
+    ip = serializers.SerializerMethodField()
     domain = serializers.SerializerMethodField()
     session_id = serializers.IntegerField(read_only=True)
     user = serializers.SerializerMethodField()
@@ -46,7 +50,7 @@ class StaffStatisticsVisitSerializer(serializers.ModelSerializer):
         model = Visit
         fields = [
             'id', 'started_at', 'last_seen_at', 'duration_seconds', 'hits', 'ongoing',
-            'ip', 'domain', 'session_id', 'user', 'first_path', 'last_path',
+            'ip', 'first_ip', 'last_ip', 'domain', 'session_id', 'user', 'first_path', 'last_path',
             'session_first_path', 'session_creation_reason', 'session_first_seen_logged',
         ]
 
@@ -65,6 +69,10 @@ class StaffStatisticsVisitSerializer(serializers.ModelSerializer):
     def get_ongoing(self, visit):
         """Return whether the visit's last hit is still inside the inactivity window."""
         return self.context['now'] - visit.last_seen_at < self._inactivity_window()
+
+    def get_ip(self, visit):
+        """Return the visit's `last_ip`, or the session's IP when the visit predates it."""
+        return visit.last_ip or visit.session.ip
 
     def get_domain(self, visit):
         """Return the session's `{id, domain}`, or the unknown entry when it has none."""

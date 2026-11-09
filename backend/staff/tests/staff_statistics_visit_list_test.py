@@ -22,7 +22,7 @@ URL = '/staff/statistics/visit-list.json'
 RANGE = {'from': '2026-01-01', 'to': '2026-01-03', 'tz': 'UTC'}
 ROW_KEYS = [
     'id', 'started_at', 'last_seen_at', 'duration_seconds', 'hits', 'ongoing',
-    'ip', 'domain', 'session_id', 'user', 'first_path', 'last_path',
+    'ip', 'first_ip', 'last_ip', 'domain', 'session_id', 'user', 'first_path', 'last_path',
     'session_first_path', 'session_creation_reason', 'session_first_seen_logged',
 ]
 TRACKING_KEYS = ROW_KEYS[-5:]
@@ -82,6 +82,7 @@ class _VisitListViewSetup:
         self.v_aria = _visit(
             self.aria_session, _at(1), seconds=100, hits=5,
             first_path=GAME_PATTERN, last_path='games.json',
+            first_ip='192.0.2.1', last_ip='198.51.100.7',
         )
         self.v_borin = _visit(_session(user=self.borin), _at(2), seconds=10, hits=2)
         self.v_anonymous = _visit(_session(domain=self.alpha), _at(3), seconds=0, hits=1)
@@ -157,7 +158,9 @@ class TestStaffStatisticsVisitListResponse(_VisitListViewSetup):
             'duration_seconds': 100,
             'hits': 5,
             'ongoing': False,
-            'ip': '203.0.113.7',
+            'ip': '198.51.100.7',
+            'first_ip': '192.0.2.1',
+            'last_ip': '198.51.100.7',
             'domain': {'id': self.zeta.id, 'domain': 'zeta.example.com'},
             'session_id': self.aria_session.id,
             'user': {
@@ -175,6 +178,12 @@ class TestStaffStatisticsVisitListResponse(_VisitListViewSetup):
         """Test that a legacy visit and session give null for every tracking field."""
         row = self._row(client, self.v_borin)
         assert [row[key] for key in TRACKING_KEYS] == [None] * 5
+
+    def test_legacy_visit_ip_falls_back_to_the_session_ip(self, client):
+        """Test that a visit without recorded IPs gives null IPs and the session's `ip`."""
+        row = self._row(client, self.v_borin)
+        assert (row['first_ip'], row['last_ip']) == (None, None)
+        assert row['ip'] == '10.0.0.1'
 
     @pytest.mark.parametrize('reason', Session.CreationReason.values)
     def test_session_creation_reason_is_raw(self, client, reason):

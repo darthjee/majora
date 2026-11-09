@@ -9,7 +9,8 @@ from statistics.models import Visit
 class StaffStatisticsExportVisitSerializer(serializers.ModelSerializer):
     """Serializes one visit of an exported session: its start, last hit and hit count.
 
-    Also carries the visit's `first_path` / `last_path` (route patterns, never raw paths).
+    Also carries the visit's `first_path` / `last_path` (route patterns, never raw paths) and
+    its `first_ip` / `last_ip` (`null` for visits recorded before they were tracked).
     """
 
     started_at = serializers.SerializerMethodField()
@@ -19,7 +20,9 @@ class StaffStatisticsExportVisitSerializer(serializers.ModelSerializer):
         """Metadata for the StaffStatisticsExportVisitSerializer."""
 
         model = Visit
-        fields = ['started_at', 'last_seen_at', 'hits', 'first_path', 'last_path']
+        fields = [
+            'started_at', 'last_seen_at', 'hits', 'first_path', 'last_path', 'first_ip', 'last_ip',
+        ]
 
     def get_started_at(self, visit):
         """Return the visit start as an ISO 8601 UTC timestamp."""

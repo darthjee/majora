@@ -18,7 +18,9 @@ SESSION_KEYS = [
     'id', 'ip', 'domain', 'user_id', 'created_at', 'last_seen_at', 'visits', 'visits_truncated',
     'first_path', 'first_seen_logged', 'creation_reason',
 ]
-VISIT_KEYS = ['started_at', 'last_seen_at', 'hits', 'first_path', 'last_path']
+VISIT_KEYS = [
+    'started_at', 'last_seen_at', 'hits', 'first_path', 'last_path', 'first_ip', 'last_ip',
+]
 GAME_PATTERN = 'games/<slug:game_slug>.json'
 
 
@@ -63,6 +65,7 @@ class TestStaffStatisticsExportPayload(_ExportSetup):
         make_visit(
             self.first, at(1, 10), seconds=100, hits=5,
             first_path=GAME_PATTERN, last_path='games.json',
+            first_ip='192.0.2.1', last_ip='198.51.100.7',
         )
         assert self._row(self.first) == {
             'id': self.first.id,
@@ -77,6 +80,8 @@ class TestStaffStatisticsExportPayload(_ExportSetup):
                 'hits': 5,
                 'first_path': GAME_PATTERN,
                 'last_path': 'games.json',
+                'first_ip': '192.0.2.1',
+                'last_ip': '198.51.100.7',
             }],
             'visits_truncated': False,
             'first_path': GAME_PATTERN,
@@ -89,7 +94,7 @@ class TestStaffStatisticsExportPayload(_ExportSetup):
         make_visit(self.second, at(2, 9))
         row = self._row(self.second)
         assert [row[key] for key in SESSION_KEYS[-3:]] == [None, None, None]
-        assert [row['visits'][0][key] for key in VISIT_KEYS[-2:]] == [None, None]
+        assert [row['visits'][0][key] for key in VISIT_KEYS[-4:]] == [None] * 4
 
     @pytest.mark.parametrize('reason', Session.CreationReason.values)
     def test_creation_reason_is_raw(self, reason):
