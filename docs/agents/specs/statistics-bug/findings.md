@@ -155,3 +155,18 @@ with different client IPs (trusted through the proxy, and separately untrusted, 
 single session instead of creating `ip_changed` sessions; a request to an unresolved route must
 not create a session; parallel authenticated requests with one anonymous cookie must create at
 most one `login_rotation` session.
+
+## Fix
+
+Fix Epic: #1736, created by #1705. Owner's decisions:
+
+- **Direct host:** it stops being exposed. Its custom domain is removed from the hosting (or
+  redirected to the main site) and its `Domain` record is removed; an ops change, with no
+  backend code for that host.
+- **IP change with a valid cookie:** the session is reused and its IP updated, instead of
+  creating an `ip_changed` session; the IP change stays visible. The per-IP session boundary is
+  given up on purpose.
+- **`statistics:read` scope and export endpoint:** removed in the Epic's cleanup sub-issue, after
+  the post-fix check, in their own release.
+
+Race 2a is known and not addressed by the fix Epic.

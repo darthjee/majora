@@ -50,6 +50,8 @@ pages it follows.
 | #1713 | Session tracking columns in the staff statistics API (backend) | [Tracking columns](statistics-bug/tracking-columns.md), [Export endpoint](statistics-bug/export-endpoint.md) |
 | #1714 | Session tracking columns on the staff visits page (frontend) | [Tracking columns](statistics-bug/tracking-columns.md) |
 
+The fix is tracked by its own Epic, #1736, created by #1705.
+
 Sub-issues are referenced by number. #1699 covers the scope and the export endpoint; scoped
 device authorization moved to #1708. When a sub-issue is added or dropped, update this table.
 
@@ -58,8 +60,8 @@ device authorization moved to #1708. When a sub-issue is added or dropped, updat
 - **During the Epic:** a sub-issue that has to deviate from these pages updates the relevant
   page in the same PR, so the specs stay the source of truth. #1704 fills `findings.md` and
   updates the hypothesis statuses.
-- **Removal:** a dedicated step of the fix work, after the post-fix check confirms the bug is
-  gone:
+- **Removal:** the cleanup sub-issue of fix Epic #1736 (#1742), after its post-fix check
+  (#1741) confirms the bug is gone:
   1. move durable knowledge into permanent docs: a short root-cause note and any clarified
      session-reuse rules into [Access Statistics](../statistics.md), the scope and endpoint
      into the access-control docs (already done by #1699). The tracking columns need no
