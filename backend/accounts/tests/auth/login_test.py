@@ -155,9 +155,11 @@ class TestLoginView:
         assert session.user.username == 'alice'
 
     def test_creates_new_session_when_current_one_already_has_a_user(self, client):
-        """Test that logging in with an already-user-tied session rotates to a new one."""
+        """Test that logging in with a session tied to another user rotates to a new one."""
         user = UserFactory(username='alice', password=TEST_PASSWORD)
-        existing_session = Session.objects.create(ip='1.2.3.4', user=user)
+        existing_session = Session.objects.create(
+            ip='1.2.3.4', user=UserFactory(username='bob'),
+        )
         client.cookies[cookies.COOKIE_NAME] = cookies.sign(existing_session.token)
 
         response = client.post(
@@ -173,8 +175,8 @@ class TestLoginView:
         assert new_session.user_id == user.id
         assert new_session.id != existing_session.id
 
-    def test_creates_new_session_when_same_user_logs_in_again(self, client):
-        """Test that a same-user re-login still rotates to a brand-new session."""
+    def test_reuses_session_when_same_user_logs_in_again(self, client):
+        """Test that a same-user re-login reuses the session already tied to that user."""
         user = UserFactory(username='alice', password=TEST_PASSWORD)
         existing_session = Session.objects.create(ip='1.2.3.4', user=user)
         client.cookies[cookies.COOKIE_NAME] = cookies.sign(existing_session.token)
@@ -187,7 +189,8 @@ class TestLoginView:
         )
 
         post_login_cookie = response.cookies[cookies.COOKIE_NAME].value
-        assert cookies.unsign(post_login_cookie) != existing_session.token
+        assert cookies.unsign(post_login_cookie) == existing_session.token
+        assert Session.objects.count() == 1
 
     def test_login_without_cookie_marks_the_new_session_logged(self, client):
         """Test that a login attaching in place to the session it created records `true`."""
@@ -214,8 +217,10 @@ class TestLoginView:
 
     def test_login_rotation_records_login_rotation(self, client):
         """Test that a login rotation records `login_rotation`, `true` and the login route."""
-        user = UserFactory(username='alice', password=TEST_PASSWORD)
-        existing_session = Session.objects.create(ip='127.0.0.1', user=user)
+        UserFactory(username='alice', password=TEST_PASSWORD)
+        existing_session = Session.objects.create(
+            ip='127.0.0.1', user=UserFactory(username='bob'),
+        )
         client.cookies[cookies.COOKIE_NAME] = cookies.sign(existing_session.token)
 
         response = self._login(client)

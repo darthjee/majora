@@ -85,7 +85,9 @@ the demotion takes effect as it does for every staff endpoint.
   `visits_truncated`. Visits are fetched in one windowed query per page (no N+1).
 - **Tracking fields**: sessions gain `first_path`, `first_seen_logged` and
   `creation_reason`; visits gain `first_path` and `last_path`. They are `null` for rows created
-  before the migration. Definitions: [Tracking columns](tracking-columns.md#columns).
+  before the migration.
+- **Visit IPs** (#1737): visits gain `first_ip` and `last_ip`, the client IP when the visit
+  opened and the last one seen in it; `null` for visits recorded before #1737. Definitions: [Tracking columns](tracking-columns.md#columns).
 - **Visits bound:** only the visits whose `started_at` falls in the requested range are
   included, earliest first, and the number per session is capped at **100**. A session whose
   visits were cut off says so in the payload (`visits_truncated: true`).

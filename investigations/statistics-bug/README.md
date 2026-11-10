@@ -84,16 +84,19 @@ getting a cookie first) runs before its time window; the script pauses 2.5 secon
 setup and its window and between scenarios, so the one-second window slack never captures
 another scenario's sessions.
 
+The expectations describe the post-#1737 behaviour; the pre-fix results are in
+[`findings.md`](../../docs/agents/specs/statistics-bug/findings.md#reproducing-scenario).
+
 | Scenario | Hypothesis | Expected |
 |---|---|---|
 | `first_visit` | — | one `no_cookie` session |
 | `sequential_navigation` | — | the same session reused; no new session |
 | `refresh_burst_no_cookie_anonymous` | 2a | one `no_cookie` session per parallel request reaching the backend (5) |
 | `refresh_burst_with_cookie_anonymous` | 2c | the existing session reused |
-| `refresh_burst_with_cookie_logged_in` | 2b | at most one `login_rotation` session |
-| `mixed_handlers` | 1 | no new session (an `ip_changed` session confirms hypothesis 1) |
-| `login_mid_navigation` | 2b | one `login_rotation` session |
-| `ip_change` | 3 | one `ip_changed` session |
+| `refresh_burst_with_cookie_logged_in` | 2b | no new session (in-place attach) |
+| `mixed_handlers` | 1 | no new session (no `ip_changed` session: the cookie is reused; #1738 also stops the IP flip) |
+| `login_mid_navigation` | 2b | no new session (login attaches the user in place) |
+| `ip_change` | 3 | the same session reused; no `ip_changed` session |
 | `host_change` | 4 | one `domain_changed` session |
 
 Notes:

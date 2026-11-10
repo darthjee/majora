@@ -56,6 +56,8 @@ class Visit(models.Model):
     hits = models.PositiveIntegerField(default=1)
     first_path = models.CharField(max_length=255, null=True, blank=True)
     last_path = models.CharField(max_length=255, null=True, blank=True)
+    first_ip = models.GenericIPAddressField(null=True, blank=True)
+    last_ip = models.GenericIPAddressField(null=True, blank=True)
 
     class Meta:
         """Indexes supporting visit aggregation."""

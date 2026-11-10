@@ -56,3 +56,20 @@ class TestVisit:
 
         assert visit.first_path == 'games.json'
         assert visit.last_path == 'games/<slug:game_slug>.json'
+
+    def test_ips_default_to_none(self):
+        """Test that `first_ip` and `last_ip` are `None` when not provided."""
+        visit = Visit.objects.create(session=self.session)
+
+        assert visit.first_ip is None
+        assert visit.last_ip is None
+
+    def test_ips_can_be_set(self):
+        """Test that `first_ip` and `last_ip` persist their values."""
+        visit = Visit.objects.create(
+            session=self.session, first_ip='192.0.2.1', last_ip='198.51.100.7',
+        )
+        visit.refresh_from_db()
+
+        assert visit.first_ip == '192.0.2.1'
+        assert visit.last_ip == '198.51.100.7'

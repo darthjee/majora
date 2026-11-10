@@ -43,8 +43,9 @@ class TestStaffStatisticsVisitSerializerKeys:
         data = _data(self.visit)
         assert list(data.keys()) == [
             'id', 'started_at', 'last_seen_at', 'duration_seconds', 'hits', 'ongoing',
-            'ip', 'domain', 'session_id', 'user', 'first_path', 'last_path',
-            'session_first_path', 'session_creation_reason', 'session_first_seen_logged',
+            'ip', 'first_ip', 'last_ip', 'domain', 'session_id', 'user', 'first_path',
+            'last_path', 'session_first_path', 'session_creation_reason',
+            'session_first_seen_logged',
         ]
         assert dict(data) == {
             'id': self.visit.id,
@@ -54,6 +55,8 @@ class TestStaffStatisticsVisitSerializerKeys:
             'hits': 4,
             'ongoing': False,
             'ip': '10.0.0.7',
+            'first_ip': None,
+            'last_ip': None,
             'domain': {'id': self.domain.id, 'domain': 'alpha.example.com'},
             'session_id': self.session.id,
             'user': {
@@ -66,6 +69,19 @@ class TestStaffStatisticsVisitSerializerKeys:
             'session_creation_reason': None,
             'session_first_seen_logged': None,
         }
+
+    def test_ip_is_the_visit_last_ip(self):
+        """Test that `ip` is the visit's `last_ip` once recorded, next to both visit IPs."""
+        Visit.objects.filter(pk=self.visit.pk).update(first_ip='192.0.2.1', last_ip='198.51.100.7')
+        self.visit.refresh_from_db()
+        data = _data(self.visit)
+        assert (data['ip'], data['first_ip'], data['last_ip']) == (
+            '198.51.100.7', '192.0.2.1', '198.51.100.7',
+        )
+
+    def test_ip_falls_back_to_the_session_ip(self):
+        """Test that `ip` is the session's IP when the visit predates IP tracking."""
+        assert _data(self.visit)['ip'] == '10.0.0.7'
 
     def test_token_is_never_serialized(self):
         """Test that the session token appears nowhere in the row."""

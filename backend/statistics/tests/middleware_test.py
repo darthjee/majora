@@ -1,12 +1,15 @@
 """Tests for `StatisticsSessionMiddleware`."""
 
+import threading
 from datetime import timedelta
 from unittest.mock import patch
 
 import pytest
 from django.contrib.auth.models import AnonymousUser
+from django.db import connection
 from django.http import HttpResponse
-from django.test import RequestFactory, override_settings
+from django.test import Client, RequestFactory, override_settings
+from django.test.utils import CaptureQueriesContext
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
 
@@ -18,6 +21,15 @@ from statistics.middleware import StatisticsSessionMiddleware
 from statistics.models import Session, Visit
 from statistics.session_attachment import attach_user
 from statistics.visit_tracking import track_visit
+
+
+def _claimed_by_another_user(function):
+    """Wrap `function` so another user claims its `session` row first (a lost race)."""
+    def wrapper(session, *args, **kwargs):
+        Session.objects.filter(pk=session.pk).update(user=UserFactory(username='bob'))
+        return function(session, *args, **kwargs)
+
+    return wrapper
 
 
 @pytest.mark.django_db
@@ -135,32 +147,58 @@ class TestStatisticsSessionMiddleware:
 
         assert Visit.objects.count() == 2
 
-    def test_ip_change_opens_a_visit_on_the_new_session(self, client):
-        """Test that a rotated (IP-changed) session gets its own new visit."""
-        client.get('/ready.json', REMOTE_ADDR='1.2.3.4')
+    def test_ip_change_extends_the_same_visit(self, client):
+        """Test that a visit opened and extended from two IPs records both, on one session."""
+        client.get('/ready.json', REMOTE_ADDR='192.0.2.1')
 
-        response = client.get('/ready.json', REMOTE_ADDR='9.9.9.9')
+        response = client.get('/ready.json', REMOTE_ADDR='198.51.100.7')
 
-        new_session = self._session_from_response(response)
-        assert new_session.ip == '9.9.9.9'
-        assert new_session.visits.get().hits == 1
-        assert Visit.objects.count() == 2
+        session = self._session_from_response(response)
+        assert session.ip == '198.51.100.7'
+        visit = Visit.objects.get()
+        assert visit.session_id == session.pk
+        assert visit.hits == 2
+        assert visit.first_ip == '192.0.2.1'
+        assert visit.last_ip == '198.51.100.7'
 
-    def test_creates_new_session_when_cookie_ip_differs(self, client):
-        """Test that a valid cookie with a mismatched IP rotates to a brand-new session."""
-        old_session = Session.objects.create(ip='1.2.3.4', domain=self.domain)
+    def test_reuses_session_when_cookie_ip_differs(self, client):
+        """Test that a valid cookie with another IP reuses its session and stores the new IP."""
+        old_session = Session.objects.create(ip='192.0.2.1', domain=self.domain)
         client.cookies[cookies.COOKIE_NAME] = cookies.sign(old_session.token)
 
-        response = client.get('/ready.json', REMOTE_ADDR='9.9.9.9')
+        response = client.get('/ready.json', REMOTE_ADDR='198.51.100.7')
 
-        assert Session.objects.count() == 2
+        assert Session.objects.count() == 1
+        assert self._session_from_response(response).pk == old_session.pk
         old_session.refresh_from_db()
-        assert old_session.ip == '1.2.3.4'
-        new_signed_value = response.cookies[cookies.COOKIE_NAME].value
-        new_token = cookies.unsign(new_signed_value)
-        assert new_token != old_session.token
-        new_session = Session.objects.get(token=new_token)
-        assert new_session.ip == '9.9.9.9'
+        assert old_session.ip == '198.51.100.7'
+
+    def test_one_cookie_across_untrusted_ips_reuses_one_session(self, client):
+        """Test that consecutive `REMOTE_ADDR`-only requests from new IPs share one session."""
+        for ip in ('192.0.2.1', '198.51.100.7', '203.0.113.9'):
+            client.get('/ready.json', REMOTE_ADDR=ip)
+
+        session = Session.objects.get()
+        assert session.ip == '203.0.113.9'
+        assert session.visits.get().hits == 3
+        assert not Session.objects.filter(creation_reason='ip_changed').exists()
+
+    def test_one_cookie_across_trusted_forwarded_ips_reuses_one_session(
+        self, client, monkeypatch
+    ):
+        """Test that consecutive trusted forwarded requests from new IPs share one session."""
+        monkeypatch.setenv('PROXY_SECRET', 'tent-secret')
+        for ip in ('192.0.2.1', '198.51.100.7', '203.0.113.9'):
+            client.get(
+                '/ready.json', REMOTE_ADDR='192.0.2.250',
+                HTTP_X_FORWARDED_FOR=ip, HTTP_X_PROXY_SECRET='tent-secret',
+            )
+
+        session = Session.objects.get()
+        assert session.ip == '203.0.113.9'
+        visit = session.visits.get()
+        assert (visit.first_ip, visit.last_ip) == ('192.0.2.1', '203.0.113.9')
+        assert not Session.objects.filter(creation_reason='ip_changed').exists()
 
     def test_creates_new_session_when_cookie_domain_differs(self, client):
         """Test that a valid cookie with a mismatched domain rotates to a brand-new session."""
@@ -231,7 +269,7 @@ class TestStatisticsSessionMiddleware:
         assert session.ip == '2.2.2.2'
 
     def test_backfills_user_on_anonymous_session_when_request_is_authenticated(self, client):
-        """Test that an authenticated request rotates an anonymous session to a new one."""
+        """Test that an authenticated request attaches the user to an anonymous session."""
         user = UserFactory(username='alice')
         token = Token.objects.create(user=user)
         session = Session.objects.create(ip='1.2.3.4', domain=self.domain)
@@ -243,22 +281,34 @@ class TestStatisticsSessionMiddleware:
             HTTP_AUTHORIZATION=f'Token {token.key}',
         )
 
-        assert Session.objects.count() == 2
+        assert Session.objects.count() == 1
         post_cookie = response.cookies[cookies.COOKIE_NAME].value
-        new_token = cookies.unsign(post_cookie)
-        assert new_token != session.token
-        new_session = Session.objects.get(token=new_token)
-        assert new_session.user_id == user.id
-        assert new_session.ip == '1.2.3.4'
+        assert cookies.unsign(post_cookie) == session.token
         session.refresh_from_db()
-        assert session.user_id is None
+        assert session.user_id == user.id
+        assert session.creation_reason is None
+
+    def test_reuses_a_session_already_tied_to_the_same_user(self, client):
+        """Test that an authenticated request reuses a session already tied to its user."""
+        user = UserFactory(username='alice')
+        token = Token.objects.create(user=user)
+        session = Session.objects.create(ip='1.2.3.4', domain=self.domain, user=user)
+        client.cookies[cookies.COOKIE_NAME] = cookies.sign(session.token)
+
+        response = client.get(
+            '/games.json', REMOTE_ADDR='1.2.3.4', HTTP_AUTHORIZATION=f'Token {token.key}',
+        )
+
+        assert Session.objects.count() == 1
+        assert cookies.unsign(response.cookies[cookies.COOKIE_NAME].value) == session.token
 
     def test_login_rotation_keeps_the_hit_on_the_anonymous_session(self, client):
-        """Test that the login request counts on the old session's visit, not the rotated one."""
+        """Test that a rotating request counts on the old session's visit, not the rotated one."""
         session = Session.objects.create(ip='1.2.3.4', domain=self.domain)
         client.cookies[cookies.COOKIE_NAME] = cookies.sign(session.token)
 
-        response = self._authenticated_get(client, REMOTE_ADDR='1.2.3.4')
+        with patch('statistics.middleware.attach_user', _claimed_by_another_user(attach_user)):
+            response = self._authenticated_get(client, REMOTE_ADDR='1.2.3.4')
 
         assert session.visits.get().hits == 1
         assert self._session_from_response(response).visits.count() == 0
@@ -267,7 +317,8 @@ class TestStatisticsSessionMiddleware:
         """Test that the next request carrying the rotated cookie opens a visit on it."""
         session = Session.objects.create(ip='1.2.3.4', domain=self.domain)
         client.cookies[cookies.COOKIE_NAME] = cookies.sign(session.token)
-        response = self._authenticated_get(client, REMOTE_ADDR='1.2.3.4')
+        with patch('statistics.middleware.attach_user', _claimed_by_another_user(attach_user)):
+            response = self._authenticated_get(client, REMOTE_ADDR='1.2.3.4')
         new_session = self._session_from_response(response)
 
         client.get('/ready.json', REMOTE_ADDR='1.2.3.4')
@@ -283,16 +334,18 @@ class TestStatisticsSessionMiddleware:
         assert Session.objects.count() == 1
         assert user_session.visits.get().hits == 1
 
-    def test_ties_new_session_to_user_when_ip_changes_on_authenticated_request(self, client):
-        """Test that a logged-in request with a changed IP creates one user-tied session."""
-        old_session = Session.objects.create(ip='1.2.3.4', domain=self.domain)
+    def test_ties_the_cookie_session_to_user_when_ip_changes_on_authenticated_request(
+        self, client
+    ):
+        """Test that a logged-in request with a changed IP ties the cookie session in place."""
+        old_session = Session.objects.create(ip='192.0.2.1', domain=self.domain)
         client.cookies[cookies.COOKIE_NAME] = cookies.sign(old_session.token)
 
-        response = self._authenticated_get(client, REMOTE_ADDR='9.9.9.9')
+        response = self._authenticated_get(client, REMOTE_ADDR='198.51.100.7')
 
-        assert Session.objects.count() == 2
-        assert Session.objects.filter(user__isnull=True).get() == old_session
-        self._assert_single_user_session(response, ip='9.9.9.9')
+        assert Session.objects.count() == 1
+        assert Session.objects.get(user=self.user) == old_session
+        self._assert_single_user_session(response, ip='198.51.100.7')
 
     def test_ties_new_session_to_user_when_domain_changes_on_authenticated_request(self, client):
         """Test that a logged-in request with a changed domain creates one user-tied session."""
@@ -384,16 +437,55 @@ class TestStatisticsSessionMiddleware:
 
     @pytest.mark.parametrize('path', [
         '/staff/statistics/visits.json',
+        '/staff/statistics.json',
+    ])
+    def test_exemption_is_exact(self, client, path):
+        """Test that a resolved sibling of the export path is still tracked."""
+        client.get(path, REMOTE_ADDR='192.0.2.1')
+
+        assert Session.objects.count() == 1
+        assert Visit.objects.count() == 1
+
+    @pytest.mark.parametrize('path', [
+        '/staff/statistics/visits.json',
         '/staff/statistics/export.json/',
         '/staff/statistics/export.jsonx',
         '/staff/statistics/export',
         '/staff/statistics.json',
     ])
-    def test_exemption_is_exact(self, client, path):
-        """Test that only the exact export path escapes tracking, never a sibling or variant."""
-        client.get(path, REMOTE_ADDR='192.0.2.1')
+    def test_untracked_path_match_is_exact(self, path):
+        """Test that only the exact export path is an untracked path, never a variant."""
+        request = RequestFactory().get(path)
+        middleware = StatisticsSessionMiddleware(lambda request: HttpResponse())
 
-        assert Session.objects.count() == 1
+        assert middleware._untracked_path(request) is False
+
+    def test_unresolved_route_creates_no_session(self, client):
+        """Test that an unknown `.json` path creates no session, no visit and no cookie."""
+        response = client.get('/no/such/path.json', REMOTE_ADDR='192.0.2.1')
+
+        assert response.status_code == 404
+        assert Session.objects.count() == 0
+        assert Visit.objects.count() == 0
+        assert cookies.COOKIE_NAME not in response.cookies
+
+    def test_unresolved_route_leaves_the_cookie_session_untouched(self, client):
+        """Test that an unresolved request with a cookie leaves its session and visit as is."""
+        session = self._stale_session(seconds_ago=120, ip='192.0.2.1')
+        track_visit(session, path='ready.json')
+        client.cookies[cookies.COOKIE_NAME] = cookies.sign(session.token)
+
+        response = client.get('/no/such/path.json', REMOTE_ADDR='198.51.100.7')
+
+        assert cookies.COOKIE_NAME not in response.cookies
+        self._assert_session_untouched(session)
+
+    def test_resolved_route_returning_404_is_still_tracked(self, client):
+        """Test that a resolved route whose view returns 404 (unknown game) is tracked."""
+        response = client.get('/games/no-such-game.json', REMOTE_ADDR='192.0.2.1')
+
+        assert response.status_code == 404
+        assert Session.objects.get().first_path == 'games/<slug:game_slug>.json'
         assert Visit.objects.count() == 1
 
     def test_skipped_request_does_not_extend_an_existing_visit(self, client, monkeypatch):
@@ -499,6 +591,24 @@ class TestStatisticsSessionMiddleware:
         assert response.status_code == 200
         assert not Visit.objects.filter(session_id=session.pk).exists()
 
+    def test_session_deleted_before_the_ip_update_does_not_fail(self, client):
+        """Test that a cookie session deleted before its IP update yields 200 and no visit."""
+        session = Session.objects.create(ip='192.0.2.1', domain=self.domain)
+        client.cookies[cookies.COOKIE_NAME] = cookies.sign(session.token)
+        original = StatisticsSessionMiddleware._session_from_cookie
+
+        def load_then_delete(middleware, request):
+            loaded, reason = original(middleware, request)
+            self._delete_session_row(loaded)
+            return loaded, reason
+
+        with patch.object(StatisticsSessionMiddleware, '_session_from_cookie', load_then_delete):
+            response = client.get('/ready.json', REMOTE_ADDR='198.51.100.7')
+
+        assert response.status_code == 200
+        assert not Session.objects.filter(pk=session.pk).exists()
+        assert not Visit.objects.filter(session_id=session.pk).exists()
+
     def test_session_deleted_before_the_track_does_not_fail(self, client):
         """Test that a cookie session deleted right before visit tracking yields 200, no visit."""
         session = Session.objects.create(ip='1.2.3.4', domain=self.domain)
@@ -547,9 +657,19 @@ class TestStatisticsSessionMiddleware:
         """Delete `session`'s row while keeping the in-memory instance and its pk."""
         Session.objects.filter(pk=session.pk).delete()
 
-    def _stale_session(self, seconds_ago):
-        """Return a session for '1.2.3.4' on `self.domain` last seen `seconds_ago` seconds ago."""
-        session = Session.objects.create(ip='1.2.3.4', domain=self.domain)
+    def _assert_session_untouched(self, session):
+        """Assert `session`'s row and its single visit match their in-memory state."""
+        stored = Session.objects.get(pk=session.pk)
+        assert stored.last_seen_at == session.last_seen_at
+        assert stored.ip == session.ip
+        visit = Visit.objects.get()
+        assert visit.session_id == session.pk
+        assert visit.hits == 1
+        assert visit.last_path == 'ready.json'
+
+    def _stale_session(self, seconds_ago, ip='1.2.3.4'):
+        """Return a session for `ip` on `self.domain` last seen `seconds_ago` seconds ago."""
+        session = Session.objects.create(ip=ip, domain=self.domain)
         seen_at = timezone.now() - timedelta(seconds=seconds_ago)
         Session.objects.filter(pk=session.pk).update(last_seen_at=seen_at)
         session.refresh_from_db()
@@ -619,13 +739,14 @@ class TestStatisticsSessionMiddlewareCreationTracking:
 
         assert self._new_session(response).creation_reason == 'domain_changed'
 
-    def test_ip_changed_reason(self, client):
-        """Test that a same-domain cookie session with another IP records `ip_changed`."""
-        self._cookie_for(client, ip='1.2.3.4', domain=self.domain)
+    def test_ip_change_records_no_ip_changed_session(self, client):
+        """Test that a same-domain cookie session with another IP is reused, not `ip_changed`."""
+        old_session = self._cookie_for(client, ip='192.0.2.1', domain=self.domain)
 
-        response = client.get('/ready.json', REMOTE_ADDR='9.9.9.9')
+        response = client.get('/ready.json', REMOTE_ADDR='198.51.100.7')
 
-        assert self._new_session(response).creation_reason == 'ip_changed'
+        assert self._new_session(response).pk == old_session.pk
+        assert not Session.objects.filter(creation_reason='ip_changed').exists()
 
     def test_domain_and_ip_changed_records_domain_changed(self, client):
         """Test that both the domain and the IP differing records `domain_changed`."""
@@ -669,12 +790,31 @@ class TestStatisticsSessionMiddlewareCreationTracking:
 
         assert self._new_session(response).first_path == 'ready.json'
 
-    def test_first_path_is_unresolved_for_a_404(self, client):
-        """Test that a path matching no route stores the `unresolved` marker."""
+    def test_unresolved_path_creates_no_session(self, client):
+        """Test that a path matching no route creates no session (no `unresolved` row)."""
         response = client.get('/no/such/path.php', REMOTE_ADDR='1.2.3.4')
 
         assert response.status_code == 404
-        assert self._new_session(response).first_path == 'unresolved'
+        assert Session.objects.count() == 0
+
+    def test_unresolved_path_keeps_the_route_marker(self):
+        """Test that an unresolved request still exposes the `unresolved` route marker."""
+        request = self.factory.get('/no/such/path.php')
+        middleware = StatisticsSessionMiddleware(lambda request: HttpResponse())
+
+        middleware(request)
+
+        assert request.statistics_route == 'unresolved'
+        assert request.statistics_session is None
+        assert request.statistics_session_created is None
+
+    def test_unresolved_path_queries_nothing(self, django_assert_num_queries):
+        """Test that an unresolved request issues no domain or session query."""
+        request = self.factory.get('/no/such/path.php')
+        middleware = StatisticsSessionMiddleware(lambda request: HttpResponse())
+
+        with django_assert_num_queries(0):
+            middleware(request)
 
     def test_anonymous_creation_is_not_logged(self, client):
         """Test that a session created for an anonymous request records `false`."""
@@ -719,6 +859,40 @@ class TestStatisticsSessionMiddlewareCreationTracking:
         with django_assert_num_queries(4):
             middleware(request)
 
+    def test_same_ip_and_fresh_session_writes_no_session(self):
+        """Test that a reused session with the same IP and no touch due gets no `UPDATE`."""
+        session = Session.objects.create(ip='192.0.2.1', domain=self.domain)
+
+        queries = self._run_with_cookie(session, ip='192.0.2.1')
+
+        assert self._session_updates(queries) == []
+
+    def test_ip_change_writes_the_session_ip_alone(self):
+        """Test that a changed IP with no touch due is a single `UPDATE` of the IP only."""
+        session = Session.objects.create(ip='192.0.2.1', domain=self.domain)
+        last_seen_at = session.last_seen_at
+
+        updates = self._session_updates(self._run_with_cookie(session, ip='198.51.100.7'))
+
+        session.refresh_from_db()
+        assert len(updates) == 1
+        assert session.ip == '198.51.100.7'
+        assert session.last_seen_at == last_seen_at
+
+    def test_ip_change_and_due_touch_share_one_update(self):
+        """Test that a changed IP and a due touch are written in the same `UPDATE`."""
+        session = Session.objects.create(ip='192.0.2.1', domain=self.domain)
+        stale_at = timezone.now() - timedelta(seconds=120)
+        Session.objects.filter(pk=session.pk).update(last_seen_at=stale_at)
+        session.refresh_from_db()
+
+        updates = self._session_updates(self._run_with_cookie(session, ip='198.51.100.7'))
+
+        session.refresh_from_db()
+        assert len(updates) == 1
+        assert session.ip == '198.51.100.7'
+        assert session.last_seen_at > stale_at
+
     def test_skipped_request_computes_no_route(self, monkeypatch):
         """Test that a skip-header request neither computes nor stores a route."""
         monkeypatch.setenv('STATISTICS_SKIP_SECRET', 'shh')
@@ -753,11 +927,27 @@ class TestStatisticsSessionMiddlewareCreationTracking:
         assert session.creation_reason == 'no_cookie'
         assert session.first_seen_logged is True
 
+    def test_backfill_on_an_earlier_session_attaches_in_place(self, client):
+        """Test that a back-fill on an earlier anonymous session creates no `login_rotation`."""
+        old_session = Session.objects.create(
+            ip='1.2.3.4', domain=self.domain, first_seen_logged=False,
+        )
+        client.cookies[cookies.COOKIE_NAME] = cookies.sign(old_session.token)
+
+        response = self._token_get(client, REMOTE_ADDR='1.2.3.4')
+
+        assert self._new_session(response).pk == old_session.pk
+        old_session.refresh_from_db()
+        assert old_session.user_id is not None
+        assert old_session.first_seen_logged is False
+        assert not Session.objects.filter(creation_reason='login_rotation').exists()
+
     def test_backfill_rotation_records_login_rotation(self, client):
         """Test that a back-fill rotation records `login_rotation`, `true` and its route."""
         old_session = self._cookie_for(client, ip='1.2.3.4', domain=self.domain)
 
-        response = self._token_get(client, REMOTE_ADDR='1.2.3.4')
+        with patch('statistics.middleware.attach_user', _claimed_by_another_user(attach_user)):
+            response = self._token_get(client, REMOTE_ADDR='1.2.3.4')
 
         rotated = self._new_session(response)
         assert rotated.pk != old_session.pk
@@ -766,27 +956,45 @@ class TestStatisticsSessionMiddlewareCreationTracking:
         assert rotated.first_path == 'games.json'
 
     def test_backfill_rotation_leaves_the_earlier_session_untouched(self, client):
-        """Test that the rotated-away anonymous session keeps its own tracking columns."""
+        """Test that a session lost to another user keeps its owner and tracking columns."""
         old_session = Session.objects.create(
             ip='1.2.3.4', domain=self.domain, first_seen_logged=False,
         )
         client.cookies[cookies.COOKIE_NAME] = cookies.sign(old_session.token)
 
-        self._token_get(client, REMOTE_ADDR='1.2.3.4')
+        with patch('statistics.middleware.attach_user', _claimed_by_another_user(attach_user)):
+            self._token_get(client, REMOTE_ADDR='1.2.3.4')
 
         old_session.refresh_from_db()
-        assert old_session.user_id is None
+        assert old_session.user.username == 'bob'
         assert old_session.first_seen_logged is False
 
     def test_visit_records_first_and_last_route(self, client):
         """Test that the request's visit stores the first and latest route patterns."""
         client.get('/ready.json?fake=1', REMOTE_ADDR='1.2.3.4')
-        client.get('/no/such/path.php', REMOTE_ADDR='1.2.3.4')
+        client.get('/games.json', REMOTE_ADDR='1.2.3.4')
 
         visit = Visit.objects.get()
         assert visit.hits == 2
         assert visit.first_path == 'ready.json'
-        assert visit.last_path == 'unresolved'
+        assert visit.last_path == 'games.json'
+
+    def _run_with_cookie(self, session, ip):
+        """Run the middleware on an anonymous request from `ip` carrying `session`'s cookie."""
+        request = self._anonymous_request(self.factory.get('/ready.json', REMOTE_ADDR=ip))
+        request.COOKIES[cookies.COOKIE_NAME] = cookies.sign(session.token)
+        middleware = StatisticsSessionMiddleware(lambda request: HttpResponse())
+        with CaptureQueriesContext(connection) as queries:
+            middleware(request)
+        return queries
+
+    def _session_updates(self, queries):
+        """Return the captured SQL statements updating the statistics session table."""
+        table = Session._meta.db_table
+        return [
+            query['sql'] for query in queries.captured_queries
+            if query['sql'].startswith(f'UPDATE `{table}`')
+        ]
 
     def _token_get(self, client, **extra):
         """Issue a token-authenticated GET to `/games.json` as a fresh user."""
@@ -808,3 +1016,50 @@ class TestStatisticsSessionMiddlewareCreationTracking:
         """Return the `Session` whose token is carried by `response`'s statistics cookie."""
         token = cookies.unsign(response.cookies[cookies.COOKIE_NAME].value)
         return Session.objects.get(token=token)
+
+
+@pytest.mark.django_db(transaction=True)
+class TestStatisticsSessionMiddlewareLoginBurst:
+    """Tests for parallel authenticated requests carrying one anonymous cookie (race 2b)."""
+
+    THREADS = 4
+
+    def setup_method(self):
+        """Register 'testserver', a user with a token, and one anonymous cookie session."""
+        memory_cache.clear()
+        self.domain = DomainFactory(domain='testserver')
+        self.user = UserFactory(username='alice')
+        self.token = Token.objects.create(user=self.user)
+        self.session = Session.objects.create(ip='192.0.2.1', domain=self.domain)
+        self.statuses = []
+
+    def test_parallel_burst_creates_no_login_rotation(self):
+        """Test that a parallel burst creates no `login_rotation` and ties the one session."""
+        barrier = threading.Barrier(self.THREADS)
+        threads = [
+            threading.Thread(target=self._request, args=(barrier,))
+            for _ in range(self.THREADS)
+        ]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+
+        assert self.statuses == [200] * self.THREADS
+        assert not Session.objects.filter(creation_reason='login_rotation').exists()
+        assert Session.objects.get() == self.session
+        assert Session.objects.get().user_id == self.user.id
+
+    def _request(self, barrier):
+        """Wait for every thread, send one authenticated request, release the connection."""
+        client = Client()
+        client.cookies[cookies.COOKIE_NAME] = cookies.sign(self.session.token)
+        barrier.wait()
+        try:
+            response = client.get(
+                '/games.json', REMOTE_ADDR='192.0.2.1',
+                HTTP_AUTHORIZATION=f'Token {self.token.key}',
+            )
+            self.statuses.append(response.status_code)
+        finally:
+            connection.close()

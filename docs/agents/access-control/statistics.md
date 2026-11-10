@@ -3,11 +3,12 @@
 The `statistics` app records site access per visitor. It has two models:
 
 - **`Session`** — the visitor (device/browser) identity, identified by a signed cookie
-  token; carries `ip`, optional `user`, optional `domain`, `created_at`, a throttled
+  token; carries `ip` (the last seen client IP), optional `user`, optional `domain`, `created_at`, a throttled
   `last_seen_at`, and the nullable tracking columns `first_path` (route pattern, never the
   raw path), `creation_reason` and `first_seen_logged`.
 - **`Visit`** — a burst of activity under a `Session` (`started_at`, `last_seen_at`,
-  exact `hits`, nullable route-pattern `first_path` / `last_path`), closed after an
+  exact `hits`, nullable route-pattern `first_path` / `last_path`, nullable client IPs
+  `first_ip` / `last_ip`, `null` for visits recorded before #1737), closed after an
   inactivity window. See the
   [access statistics data model](../statistics.md#data-model) for the design.
 
@@ -17,8 +18,11 @@ Both models are written **only by `StatisticsSessionMiddleware`**
 (`backend/statistics/middleware.py`, with `session_attachment.py` and `visit_tracking.py`),
 on every request that reaches Django and does not carry a valid `X-Statistics-Skip-Secret`
 header. No role can create, update or delete these rows through any endpoint. The tracking
-columns (`first_path`, `creation_reason`, `first_seen_logged`, `last_path`) are not returned
-by any serializer; only Django Admin (superuser, read-only) shows them.
+columns (`first_path`, `creation_reason`, `first_seen_logged`, `last_path`) and the visit IP
+columns (`first_ip`, `last_ip`) are returned only by the staff-only serializers
+(`StaffStatisticsVisitSerializer` behind `visit-list.json`,
+`StaffStatisticsExportSessionSerializer` / `StaffStatisticsExportVisitSerializer` behind
+`export.json`) and shown read-only in Django Admin.
 
 ## Reads
 
@@ -28,7 +32,7 @@ by any serializer; only Django Admin (superuser, read-only) shows them.
 | Authenticated | none |
 | Player | none |
 | GameMaster | none |
-| Staff | read-only: aggregated statistics plus raw per-visit rows (`visit-list.json`: raw IP, statistics session id, user identity; never `Session.token`) and raw session export (`export.json`: sessions with raw IP, domain, `user_id` and up to 100 visits each; never `Session.token`), through the staff statistics endpoints (see [Staff Statistics](staff-statistics.md)). `export.json` is the only one also reachable with a scoped API token carrying `statistics:read`, and only while the token owner is still staff (see [Export](staff-statistics.md#export)) |
+| Staff | read-only: aggregated statistics plus raw per-visit rows (`visit-list.json`: raw IP and per-visit `first_ip` / `last_ip`, statistics session id, user identity; never `Session.token`) and raw session export (`export.json`: sessions with raw IP, domain, `user_id` and up to 100 visits each; never `Session.token`), through the staff statistics endpoints (see [Staff Statistics](staff-statistics.md)). `export.json` is the only one also reachable with a scoped API token carrying `statistics:read`, and only while the token owner is still staff (see [Export](staff-statistics.md#export)) |
 | Superuser | read-only, through Django Admin |
 
 **There are no write endpoints for `Session` or `Visit`.** The only serializers are the

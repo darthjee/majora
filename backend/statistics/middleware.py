@@ -10,7 +10,7 @@ from common.secret_compare import secret_matches
 from domains.models import Domain
 from statistics import cookies
 from statistics.models import Session
-from statistics.route_pattern import route_pattern
+from statistics.route_pattern import UNRESOLVED, route_pattern
 from statistics.session_attachment import attach_user
 from statistics.settings import Settings
 from statistics.visit_tracking import track_visit
@@ -20,8 +20,9 @@ class StatisticsSessionMiddleware:
     """Load/create a statistics `Session` per request and write its cookie back.
 
     Same `__init__(self, get_response)` / `__call__(self, request)` shape as
-    `games.middleware.CacheControlMiddleware`. Requests to `UNTRACKED_PATHS` (exact paths,
-    never prefixes) are not tracked, like requests carrying a valid statistics-skip header.
+    `games.middleware.CacheControlMiddleware`. A request is not tracked (no session lookup, no
+    visit, no cookie) when its path is exactly one of `UNTRACKED_PATHS` (never a prefix), when
+    it carries a valid statistics-skip header, or when its path matches no route.
     """
 
     # The raw statistics export reads the data this middleware writes: tracking its own
@@ -40,11 +41,10 @@ class StatisticsSessionMiddleware:
             request.statistics_session = None
             return self.get_response(request)
 
-        request.statistics_route = route_pattern(request)
         ip = client_ip(request)
         domain = self._domain_for_request(request)
         request.statistics_session = self._load_or_create_session(request, ip, domain)
-        self._track_visit(request)
+        self._track_visit(request, ip)
 
         response = self.get_response(request)
         self._backfill_user(request)
@@ -54,8 +54,19 @@ class StatisticsSessionMiddleware:
         return response
 
     def _skip_requested(self, request):
-        """Return whether this request is exempt from tracking (exact path or skip header)."""
-        return self._untracked_path(request) or self._skip_header(request)
+        """Return whether this request is exempt from tracking.
+
+        Exempt: an exact untracked path, a valid skip header, or a path matching no route. The
+        route is only computed (and stored on `request.statistics_route`) for the last check.
+        """
+        if self._untracked_path(request) or self._skip_header(request):
+            return True
+        return self._unresolved_route(request)
+
+    def _unresolved_route(self, request):
+        """Store the request's route pattern and return whether it matches no route."""
+        request.statistics_route = route_pattern(request)
+        return request.statistics_route == UNRESOLVED
 
     def _untracked_path(self, request):
         """Return whether the request path is exactly one of `UNTRACKED_PATHS`."""
@@ -72,22 +83,21 @@ class StatisticsSessionMiddleware:
         return Domain.objects.filter(domain=host).first()
 
     def _load_or_create_session(self, request, ip, domain):
-        """Return the current request's session, reusing a valid cookie-borne one if possible."""
+        """Return the current request's session, reusing a valid cookie-borne one if possible.
+
+        A cookie session of the same domain is reused whatever the client IP (the per-IP
+        session boundary is given up on purpose); the IP change is recorded on the session
+        (`Session.ip` is the last seen IP) and on the visit (`first_ip` / `last_ip`).
+        """
         session, reason = self._session_from_cookie(request)
         domain_id = domain.id if domain is not None else None
 
-        if session is not None and session.ip == ip and session.domain_id == domain_id:
-            self._touch_session(session)
+        if session is not None and session.domain_id == domain_id:
+            self._touch_session(session, ip)
             return session
 
-        reason = reason or self._mismatch_reason(session, domain_id)
+        reason = reason or Session.CreationReason.DOMAIN_CHANGED
         return self._create_session(request, ip, domain, reason)
-
-    def _mismatch_reason(self, session, domain_id):
-        """Return why a found cookie session was not reused; the domain is checked first."""
-        if session.domain_id != domain_id:
-            return Session.CreationReason.DOMAIN_CHANGED
-        return Session.CreationReason.IP_CHANGED
 
     def _create_session(self, request, ip, domain, reason):
         """Create the request's session in a single `INSERT`, recording why and where."""
@@ -99,21 +109,38 @@ class StatisticsSessionMiddleware:
         request.statistics_session_created = created
         return created
 
-    def _touch_session(self, session):
-        """Write `session.last_seen_at` only when stale beyond the configured touch interval.
+    def _touch_session(self, session, ip):
+        """Write the reused session's changed IP and stale `last_seen_at` in one `UPDATE`.
 
-        `Visit` carries per-request activity, so the session row is throttled to keep the
-        per-request write cost at about one row. A filtered `UPDATE` is used so a session
-        deleted after being loaded (e.g. by a statistics clear) is tolerated: it matches no
-        rows and nothing raises.
+        `Visit` carries per-request activity, so `last_seen_at` is throttled to the configured
+        touch interval, and `ip` is only written when it differs from the stored one: normal
+        traffic (same IP, touch not due) writes nothing. Concurrent IP updates are last write
+        wins. A filtered `UPDATE` is used so a session deleted after being loaded (e.g. by a
+        statistics clear) is tolerated: it matches no rows and nothing raises.
         """
-        interval = timedelta(seconds=Settings.session_touch_interval_seconds())
-        now = timezone.now()
-        if now - session.last_seen_at >= interval:
-            Session.objects.filter(pk=session.pk).update(last_seen_at=now)
-            session.last_seen_at = now
+        fields = self._session_changes(session, ip)
+        if not fields:
+            return
 
-    def _track_visit(self, request):
+        Session.objects.filter(pk=session.pk).update(**fields)
+        for name, value in fields.items():
+            setattr(session, name, value)
+
+    def _session_changes(self, session, ip):
+        """Return the session fields to write: a changed `ip` and/or a due `last_seen_at`."""
+        fields = {}
+        if session.ip != ip:
+            fields['ip'] = ip
+        now = timezone.now()
+        if now - session.last_seen_at >= self._touch_interval():
+            fields['last_seen_at'] = now
+        return fields
+
+    def _touch_interval(self):
+        """Return the configured minimum delay between two `last_seen_at` writes."""
+        return timedelta(seconds=Settings.session_touch_interval_seconds())
+
+    def _track_visit(self, request, ip):
         """Attribute this request to a `Visit` of the resolved session, before the view runs.
 
         Running before dispatch means a login request counts on the pre-rotation session.
@@ -121,7 +148,7 @@ class StatisticsSessionMiddleware:
         session = request.statistics_session
         track_visit(
             session, new_session=self._created_during_request(request, session),
-            path=request.statistics_route,
+            path=request.statistics_route, ip=ip,
         )
 
     def _backfill_user(self, request):
@@ -132,15 +159,17 @@ class StatisticsSessionMiddleware:
         time `self.get_response(request)` has returned, `request.user` here reflects the
         real authenticated user, even though it was unresolved (anonymous) before dispatch.
 
-        A session created during this very request cannot belong to anyone else, so the
-        user is attached to it in place (no anonymous ghost row is left behind). A session
-        that pre-existed the request is instead always rotated to a brand-new `Session`
-        row, so an anonymous session lingering on a shared device is never silently
-        claimed by whichever authenticated request happens to hit it first.
+        An anonymous session is claimed in place by the first authenticated request (atomic
+        `UPDATE … WHERE user_id IS NULL`), whether it was created during this request or
+        earlier; concurrent requests carrying the same cookie then find it tied to the same
+        user and reuse it, so a parallel burst creates no `login_rotation` session. The
+        shared-device protection of always rotating a pre-existing session is dropped on
+        purpose (accepted trade-off): anonymous visits made on a shared device before a login
+        are attributed to the user who authenticates first, as the login view already does.
+        Only a session lost to a different user, or deleted mid-request, rotates. A session
+        already tied to a user when the request arrived is left untouched.
 
-        Visits are never moved on rotation: this request's visit stays on the original
-        session, and the rotated session opens its first visit on the next request carrying
-        its cookie. An in-place attach keeps the visit on the same session.
+        Visits are never moved: this request's visit stays on the session it was tracked on.
         """
         session = request.statistics_session
         if session is None:
@@ -148,10 +177,10 @@ class StatisticsSessionMiddleware:
         if session.user_id is not None or not request.user.is_authenticated:
             return
 
-        created_in_request = self._created_during_request(request, session)
         request.statistics_session = attach_user(
-            session, request.user, always_rotate=not created_in_request,
-            created_in_request=created_in_request, first_path=request.statistics_route,
+            session, request.user,
+            created_in_request=self._created_during_request(request, session),
+            first_path=request.statistics_route,
         )
 
     def _created_during_request(self, request, session):

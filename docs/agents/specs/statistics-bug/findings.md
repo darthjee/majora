@@ -117,7 +117,7 @@ not affect storage over HTTPS; it is tracked in #1733.
 | `refresh_burst_with_cookie_anonymous` | 2c | session reused, as expected |
 | `refresh_burst_with_cookie_logged_in` | 2b | **reproduced**: 2 `login_rotation` sessions from one burst |
 | `mixed_handlers` | 1 | **reproduced**: 2 `ip_changed` sessions (into and out of a custom-handler route) |
-| `login_mid_navigation` | 2b | no `login_rotation` session where one was expected; to be explained by the fix issue |
+| `login_mid_navigation` | 2b | no `login_rotation` session, which is correct: the login view attaches the user to the anonymous session in place (no `always_rotate`) and the following requests reuse it; the expectation was wrong, not the code (explained in #1737) |
 | `ip_change` | 3 | **reproduced**: one `ip_changed` session per IP change |
 | `host_change` | 4 | one `domain_changed` session, as expected (not seen in production) |
 
