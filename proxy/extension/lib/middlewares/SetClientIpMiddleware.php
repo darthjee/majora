@@ -35,9 +35,15 @@ use Tent\RequestHandlers\ClientIpHeaders;
  * authentication: no `X-Proxy-Secret` is sent, and Django ignores
  * `X-Forwarded-For`.
  *
- * The header names and values come from
- * {@see \Tent\RequestHandlers\ClientIpHeaders}, shared with `BackendClient`
- * so the custom handlers' backend calls carry the same signed client IP.
+ * ## Custom handlers
+ *
+ * Rules served by a custom handler (`UploadHandler`, `LinkHandler`,
+ * `DeleteHandler`, `CacheSizeHandler`, `CacheClearHandler`) don't run this
+ * middleware: the handler makes its own backend calls through
+ * `BackendClient`. `BackendClient` therefore sets the same two headers
+ * itself, from the rule's `secret` handler attribute. Both build them with
+ * {@see \Tent\RequestHandlers\ClientIpHeaders}, so the names and values
+ * can't drift apart.
  *
  * ## Usage in configuration
  *
