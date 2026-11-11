@@ -45,6 +45,12 @@ starts a new `Session`). Sessions are therefore the **visitor (device/browser) i
 visits: counting sessions by `created_at` measures new sessions, and
 `last_seen_at - created_at` measures cookie age.
 
+The cookie is written on **every** tracked response, so a tracked response is never
+`Cache-Control: public`: `CacheControlMiddleware` gives a cookie-setting anonymous response
+`private, max-age=<anon>` instead (#1733), so a shared cache cannot hand one visitor's cookie to
+another. The cookie's `Secure` attribute follows `SESSION_COOKIE_SECURE`, which must be `true`
+in production ([production configuration](production-configuration.md)).
+
 `Session.ip` is the **last seen IP**: when a reused session is hit from another IP, the
 middleware writes the new IP with a filtered `UPDATE`, folded into the `last_seen_at` touch
 when that one is due too. Normal traffic (same IP, touch not due) writes nothing. Concurrent
@@ -422,6 +428,9 @@ It is the only statistics route a scoped API token (`statistics:read`, staff own
 - **Never stored by a cache:** `X-Skip-Cache: true` and `Cache-Control: private, no-store`
   (`CacheControlMiddleware` and `BearerNoCacheMiddleware` keep a view's own `no-store` value,
   `common/cache_control.py`).
+
+Every other statistics route is tracked, so its responses carry the statistics cookie and are
+never `Cache-Control: public` (#1733).
 
 ## Staff dashboard card
 

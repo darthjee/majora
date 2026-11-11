@@ -65,7 +65,7 @@ Set on the Render backend service. Read by `backend/majora_project/settings.py` 
 | `ALLOWED_HOSTS` | Comma-separated hosts Django answers for. |
 | `CSRF_TRUSTED_ORIGINS` | Comma-separated origins trusted for CSRF. |
 | `MAJORA_MYSQL_NAME`, `MAJORA_MYSQL_USER`, `MAJORA_MYSQL_PASSWORD`, `MAJORA_MYSQL_HOST`, `MAJORA_MYSQL_PORT` | Database connection. |
-| `SESSION_COOKIE_SECURE` | `true` to send the session cookie over HTTPS only. |
+| `SESSION_COOKIE_SECURE` | **Required: `true` in production** (#1733). Adds `Secure` to the session cookie and to the statistics cookie, so both are sent over HTTPS only. Defaults to `false` when unset. |
 | `DJANGO_EMAIL_BACKEND`, `DJANGO_EMAIL_HOST`, `DJANGO_EMAIL_PORT`, `DJANGO_EMAIL_HOST_USER`, `DJANGO_EMAIL_HOST_PASSWORD`, `DJANGO_EMAIL_USE_TLS`, `DJANGO_DEFAULT_FROM_EMAIL` | Outgoing email. |
 | `FRONTEND_BASE_URL` | Base URL used to build links sent in emails. |
 | `DJANGO_LOG_LEVEL` | Level of the `accounts`, `common` and `staff` loggers (default `INFO`). |
