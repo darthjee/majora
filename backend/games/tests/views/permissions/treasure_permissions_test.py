@@ -92,7 +92,7 @@ class TestTreasurePermissionsView(TokenAuthRequestMixin, TestCase):
         data = json.loads(response.content)
         assert data == {'can_edit': False}
 
-    def test_response_is_publicly_cacheable_for_authenticated_caller(self):
-        """Test that Cache-Control stays public even when the real caller is authenticated."""
+    def test_response_gets_anonymous_tier_for_authenticated_caller(self):
+        """Test that an authenticated caller keeps the anonymous tier (private: cookie set)."""
         response = self._get(self.client, token=self.superuser_token, query='role=superuser')
-        assert response['Cache-Control'].startswith('public')
+        assert response['Cache-Control'] == 'private, max-age=3600'
