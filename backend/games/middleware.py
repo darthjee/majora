@@ -10,12 +10,19 @@ class CacheControlMiddleware:
     - Skips responses that already carry ``X-Skip-Cache: true`` (these are
       typically authenticated write endpoints whose proxy caching is already
       suppressed).
-    - Requests under the ``/permissions/`` path prefix always get the public/anonymous
-      cache tier, regardless of the real requester's own auth state: every endpoint there is
+    - Requests under the ``/permissions/`` path prefix always get the anonymous cache tier,
+      regardless of the real requester's own auth state: every endpoint there is
       a role-simulated ``permissions.json`` response, identity-independent by construction
       even when the actual caller happens to be logged in.
-    - Unauthenticated requests → ``public, max-age=<anon_seconds>``
-    - Authenticated requests    → ``private, max-age=<auth_seconds>``
+    - Anonymous tier, successful (2xx) → ``public, max-age=<anon_seconds>``, or
+      ``private, max-age=<anon_seconds>`` when the response sets (or deletes) a cookie: a
+      response carrying ``Set-Cookie`` is never ``public``.
+    - Anonymous tier, any other status → ``no-store``
+    - Authenticated requests → ``private, max-age=<auth_seconds>``
+
+    A request stopped by an earlier middleware before ``request.user`` was set is anonymous.
+    This middleware must be listed in ``MIDDLEWARE`` above every middleware that sets a
+    cookie, so that it sees those cookies on the response.
     """
 
     def __init__(self, get_response):
@@ -36,9 +43,14 @@ class CacheControlMiddleware:
         if request.path.startswith('/permissions/'):
             return self._apply_public_cache_control(response)
 
-        if request.user.is_authenticated:
+        if self._is_authenticated(request):
             return self._apply_authenticated_cache_control(response)
         return self._apply_public_cache_control(response)
+
+    def _is_authenticated(self, request):
+        """Return whether `request` resolved to an authenticated user."""
+        user = getattr(request, 'user', None)
+        return user is not None and user.is_authenticated
 
     def _apply_authenticated_cache_control(self, response):
         """Set the private, authenticated-tier Cache-Control header on `response`."""
@@ -47,10 +59,14 @@ class CacheControlMiddleware:
         return response
 
     def _apply_public_cache_control(self, response):
-        """Set the public, anonymous-tier Cache-Control header on `response`, if successful."""
+        """Set the anonymous-tier Cache-Control header on `response`: `no-store` on failure."""
         if 200 <= response.status_code < 300:
             max_age = Settings.cache_control_anonymous_max_age()
-            response['Cache-Control'] = f'public, max-age={max_age}'
+            response['Cache-Control'] = f'{self._visibility(response)}, max-age={max_age}'
         else:
             response['Cache-Control'] = 'no-store'
         return response
+
+    def _visibility(self, response):
+        """Return `private` when `response` sets (or deletes) a cookie, else `public`."""
+        return 'private' if response.cookies else 'public'

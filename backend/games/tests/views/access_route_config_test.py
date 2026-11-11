@@ -26,10 +26,10 @@ class TestAccessRouteConfigView:
         response = client.get('/access-route-config.json')
         assert response.status_code == 200
 
-    def test_response_is_publicly_cacheable(self, client):
-        """Test that the response gets the public/anonymous Cache-Control tier."""
+    def test_response_gets_anonymous_tier(self, client):
+        """Test that the response gets the anonymous tier (private: it sets a cookie)."""
         response = client.get('/access-route-config.json')
-        assert response['Cache-Control'].startswith('public')
+        assert response['Cache-Control'] == 'private, max-age=3600'
 
     def test_game_page_requires_game_kind(self, client):
         """Test that the 'game' page maps to a single 'game' kind descriptor."""

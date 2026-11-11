@@ -107,7 +107,10 @@ derived from the given value(s) (accepts repeated values, e.g. `?role=dm&role=ow
   is enforced by `CacheControlMiddleware` recognizing the `/permissions/` path prefix directly
   (see "Cache-bypass mechanism for access endpoints" below), not a per-response header. It never
   sets `X-Skip-Cache` (that header, and the whole real-identity code path, existed prior to #922
-  and has been fully removed).
+  and has been fully removed). Since #1733, a response that sets a cookie (in practice the
+  statistics cookie, on every tracked request) gets `private, max-age=<anon>` instead of
+  `public, max-age=<anon>`: the tier and its max-age are unchanged, but a `Set-Cookie` response
+  is never `public`.
 
 Role-parsing is shared verbatim by all five `permissions.json` endpoints (Game, PC, NPC, and
 Treasure's two — global and game-exclusive, see [Treasure](treasure.md#edit-permission)).
@@ -135,6 +138,11 @@ or incorrect values. Three layers enforce correctness:
    unconditionally — no per-response header involved (the earlier `X-Force-Public-Cache: true`
    header this middleware used to key off of has been removed entirely, in favor of the
    path-prefix check). There is no `X-Skip-Cache` branch left for this endpoint either.
+   Within that tier, since #1733, a successful response that sets a cookie gets
+   `private, max-age=<anon>` and one that sets none keeps `public, max-age=<anon>`: a response
+   carrying `Set-Cookie` is never `public`. `CacheControlMiddleware` is listed in `MIDDLEWARE`
+   above every cookie-setting middleware (session, CSRF, statistics, messages) so that it sees
+   their cookies; that order is load-bearing.
 3. **Frontend header** — the frontend's base request client checks every request path against its
    own exact-path/path-suffix skip-cache config (e.g. suffix-matching `/access.json`) before
    `fetch`; a match sends `X-Skip-Cache: 1`, bypassing the Tent cache read.

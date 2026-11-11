@@ -149,11 +149,11 @@ class TestGamePermissionsView(TokenAuthRequestMixin, TestCase):
         response = self._get(self.client, query='role=dm')
         assert 'X-Skip-Cache' not in response
 
-    def test_response_is_publicly_cacheable_for_authenticated_caller(self):
-        """Test that Cache-Control stays public even when the real caller is authenticated."""
+    def test_response_gets_anonymous_tier_for_authenticated_caller(self):
+        """Test that an authenticated caller keeps the anonymous tier (private: cookie set)."""
         token = Token.objects.create(user=self.dm_user)
         response = self._get(self.client, token=token, query='role=owner')
-        assert response['Cache-Control'].startswith('public')
+        assert response['Cache-Control'] == 'private, max-age=3600'
 
     def test_response_is_identical_regardless_of_which_games_exist(self):
         """Test that the response for a given role doesn't depend on any real game in the DB."""

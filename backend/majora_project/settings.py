@@ -59,6 +59,14 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    # Order is load-bearing (#1733): CacheControlMiddleware is listed above every middleware
+    # that sets a cookie (session, CSRF, statistics, messages), so it runs after them on the
+    # response and never marks a cookie-setting response `public`. It reads `request.user` on
+    # the way out only, so it does not need AuthenticationMiddleware above it.
+    'games.middleware.CacheControlMiddleware',
+    # Order is load-bearing: listed after CacheControlMiddleware, it runs first on the
+    # response, so CacheControlMiddleware sees X-Skip-Cache: true and keeps no-store.
+    'accounts.middleware.BearerNoCacheMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'domains.middleware.DomainCsrfOriginsMiddleware',
@@ -66,10 +74,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'statistics.middleware.StatisticsSessionMiddleware',
     'simple_history.middleware.HistoryRequestMiddleware',
-    'games.middleware.CacheControlMiddleware',
-    # Order is load-bearing: listed after CacheControlMiddleware, it runs first on the
-    # response, so CacheControlMiddleware sees X-Skip-Cache: true and keeps no-store.
-    'accounts.middleware.BearerNoCacheMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
