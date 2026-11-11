@@ -2,6 +2,8 @@
 
 namespace Tent\RequestHandlers\Tests;
 
+require_once __DIR__ . '/../support/SignedClientIpAssertions.php';
+
 use PHPUnit\Framework\TestCase;
 use Tent\Http\HttpClientInterface;
 use Tent\Models\ProcessingRequest;
@@ -27,6 +29,8 @@ use Tent\RequestHandlers\ShellCommandFailedException;
  */
 class CacheSizeHandlerTest extends TestCase
 {
+    use SignedClientIpAssertions;
+
     // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
@@ -264,6 +268,7 @@ class CacheSizeHandlerTest extends TestCase
             'Accept'           => 'application/json',
             'Host'             => 'backend',
             'X-Forwarded-Host' => 'majora.example.com',
+            'X-Forwarded-For'  => '203.0.113.7',
             'Accept-Encoding'  => 'gzip',
         ];
 
@@ -344,5 +349,70 @@ class CacheSizeHandlerTest extends TestCase
         $toolProp->setAccessible(true);
 
         $this->assertSame('php_walk', $toolProp->getValue($calculator));
+    }
+
+    // -------------------------------------------------------------------------
+    // Signed client IP (issue #1738)
+    // -------------------------------------------------------------------------
+
+    /**
+     * build() passes the 'secret' handler attribute on to the BackendClient.
+     */
+    public function testBuildPassesSecretToBackendClient(): void
+    {
+        $handler = CacheSizeHandler::build([
+            'host'       => 'http://backend:8080',
+            'cache_path' => '/some/cache/path',
+            'secret' => self::dummySecret(),
+        ]);
+
+        $this->assertSame(self::dummySecret(), $this->backendSecretOf($handler));
+    }
+
+    /**
+     * Without a 'secret' attribute, build() configures no secret.
+     */
+    public function testBuildDefaultsToNoSecret(): void
+    {
+        $handler = CacheSizeHandler::build([
+            'host'       => 'http://backend:8080',
+            'cache_path' => '/some/cache/path',
+        ]);
+
+        $this->assertSame('', $this->backendSecretOf($handler));
+    }
+
+    /**
+     * With a secret, the handler's backend calls carry the client's address
+     * in X-Forwarded-For and the secret in X-Proxy-Secret; the values the
+     * client sent for both are dropped.
+     */
+    public function testBackendCallsCarrySignedClientIp(): void
+    {
+        $handler = new CacheSizeHandler(
+            'http://backend:8080',
+            $this->recordingHttpClient(),
+            '/cache',
+            'php_walk',
+            null,
+            self::dummySecret()
+        );
+
+        $handler->handleRequest($this->makeRequest(self::spoofedHeaders()));
+
+        $this->assertBackendCallsCarryClientIp(self::dummySecret());
+    }
+
+    /**
+     * Without a secret, the client's address is still sent but no
+     * X-Proxy-Secret is, not even the one the client supplied.
+     */
+    public function testBackendCallsCarryNoSecretWhenNotConfigured(): void
+    {
+        $handler = $this->makeHandler($this->recordingHttpClient());
+
+        $handler->handleRequest($this->makeRequest(self::spoofedHeaders()));
+
+        $this->assertBackendCallsCarryClientIp('');
     }
 }

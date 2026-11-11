@@ -40,20 +40,27 @@ class CacheClearHandler extends RequestHandler
      * @param string                   $host       Backend host URL.
      * @param HttpClientInterface|null $httpClient HTTP client (defaults to CurlHttpClient).
      * @param string                   $cachePath  Path to the cache folder to clear.
+     * @param string                   $secret     Shared secret sent to the backend in
+     *                                             X-Proxy-Secret with the client IP
+     *                                             ('' sends none).
      */
     public function __construct(
         string $host,
         ?HttpClientInterface $httpClient=null,
-        string $cachePath=''
+        string $cachePath='',
+        string $secret=''
     ) {
-        $this->client = new BackendClient($host, $httpClient);
+        $this->client = new BackendClient($host, $httpClient, $secret);
         $this->cachePath = $cachePath;
     }
 
     /**
      * Builds a CacheClearHandler from configuration parameters.
      *
-     * @param array $params Must contain 'host' (string) and 'cache_path' (string).
+     * @param array $params Must contain 'host' (string) and 'cache_path' (string);
+     *                      optionally 'secret' (string, the proxy secret sent to
+     *                      the backend in X-Proxy-Secret along with the client IP;
+     *                      default '').
      * @return self
      */
     public static function build(array $params): self
@@ -61,7 +68,8 @@ class CacheClearHandler extends RequestHandler
         return new self(
             ($params['host'] ?? ''),
             null,
-            ($params['cache_path'] ?? '')
+            ($params['cache_path'] ?? ''),
+            (string) ($params['secret'] ?? '')
         );
     }
 

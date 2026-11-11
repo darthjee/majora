@@ -2,6 +2,8 @@
 
 namespace Tent\RequestHandlers\Tests;
 
+require_once __DIR__ . '/../support/SignedClientIpAssertions.php';
+
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 use Tent\Http\HttpClientInterface;
@@ -18,6 +20,8 @@ use Tent\RequestHandlers\LinkHandler;
  */
 class LinkHandlerTest extends TestCase
 {
+    use SignedClientIpAssertions;
+
     /** @var string Temporary directory holding everything. */
     private string $tmpDir;
 
@@ -471,5 +475,93 @@ class LinkHandlerTest extends TestCase
         ]);
 
         $this->assertInstanceOf(LinkHandler::class, $handler);
+    }
+
+    // -------------------------------------------------------------------------
+    // Signed client IP (issue #1738)
+    // -------------------------------------------------------------------------
+
+    /**
+     * build() passes the 'secret' handler attribute on to the BackendClient.
+     */
+    public function testBuildPassesSecretToBackendClient(): void
+    {
+        $handler = LinkHandler::build([
+            'host'        => 'http://backend:8080',
+            'photos_path' => $this->baseDir,
+            'files_path'  => $this->baseDir,
+            'cache_path'  => $this->cacheDir,
+            'secret' => self::dummySecret(),
+        ]);
+
+        $this->assertSame(self::dummySecret(), $this->backendSecretOf($handler));
+    }
+
+    /**
+     * Without a 'secret' attribute, build() configures no secret.
+     */
+    public function testBuildDefaultsToNoSecret(): void
+    {
+        $handler = LinkHandler::build([
+            'host'        => 'http://backend:8080',
+            'photos_path' => $this->baseDir,
+            'files_path'  => $this->baseDir,
+            'cache_path'  => $this->cacheDir,
+        ]);
+
+        $this->assertSame('', $this->backendSecretOf($handler));
+    }
+
+    /**
+     * With a secret, the handler's backend calls carry the client's address
+     * in X-Forwarded-For and the secret in X-Proxy-Secret; the values the
+     * client sent for both are dropped.
+     */
+    public function testBackendCallsCarrySignedClientIp(): void
+    {
+        $handler = new LinkHandler(
+            'http://backend:8080',
+            $this->recordingHttpClient(),
+            $this->baseDir,
+            $this->baseDir,
+            $this->cacheDir,
+            self::dummySecret()
+        );
+
+        $handler->handleRequest($this->spoofedRequest());
+
+        $this->assertBackendCallsCarryClientIp(self::dummySecret());
+    }
+
+    /**
+     * Without a secret, the client's address is still sent but no
+     * X-Proxy-Secret is, not even the one the client supplied.
+     */
+    public function testBackendCallsCarryNoSecretWhenNotConfigured(): void
+    {
+        $handler = new LinkHandler(
+            'http://backend:8080',
+            $this->recordingHttpClient(),
+            $this->baseDir,
+            $this->baseDir,
+            $this->cacheDir
+        );
+
+        $handler->handleRequest($this->spoofedRequest());
+
+        $this->assertBackendCallsCarryClientIp('');
+    }
+
+    private function spoofedRequest(): ProcessingRequest
+    {
+        return new ProcessingRequest([
+            'requestPath'   => '/uploads/link/image/42/submit',
+            'requestMethod' => 'POST',
+            'headers'       => self::spoofedHeaders(),
+            'query'         => '',
+            'body'          => '',
+            'uploadedFiles' => [],
+            'postFields'    => [],
+        ]);
     }
 }

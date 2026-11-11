@@ -26,7 +26,7 @@ class UploadStatusClientTest extends TestCase
     public function testRequestUploadingStatusReturnsFilePathOnSuccess(): void
     {
         $httpClient = $this->createMock(HttpClientInterface::class);
-        $client     = new BackendClient('http://backend:8080', $httpClient);
+        $client     = new BackendClient('http://backend:8080', $httpClient, '', '203.0.113.7');
         $statusClient = new UploadStatusClient($client, 'image');
 
         $httpClient->expects($this->once())
@@ -38,6 +38,7 @@ class UploadStatusClientTest extends TestCase
                     'X-Upload-Token'  => 'up-tok',
                     'Content-Type'    => 'application/json',
                     'Host'            => 'backend',
+                    'X-Forwarded-For' => '203.0.113.7',
                     'Accept-Encoding' => 'gzip',
                 ],
                 json_encode(['status' => 'uploading'])
@@ -58,7 +59,7 @@ class UploadStatusClientTest extends TestCase
     public function testRequestUploadingStatusUsesUploadTypeInUrl(): void
     {
         $httpClient = $this->createMock(HttpClientInterface::class);
-        $client     = new BackendClient('http://backend:8080', $httpClient);
+        $client     = new BackendClient('http://backend:8080', $httpClient, '', '203.0.113.7');
         $statusClient = new UploadStatusClient($client, 'file');
 
         $httpClient->expects($this->once())
@@ -82,7 +83,7 @@ class UploadStatusClientTest extends TestCase
     public function testRequestUploadingStatusThrowsOnBackendError(): void
     {
         $httpClient = $this->createMock(HttpClientInterface::class);
-        $client     = new BackendClient('http://backend:8080', $httpClient);
+        $client     = new BackendClient('http://backend:8080', $httpClient, '', '203.0.113.7');
         $statusClient = new UploadStatusClient($client, 'image');
 
         $httpClient->method('request')
@@ -104,7 +105,7 @@ class UploadStatusClientTest extends TestCase
     public function testRequestUploadingStatusThrowsWhenFilePathIsMissing(): void
     {
         $httpClient = $this->createMock(HttpClientInterface::class);
-        $client     = new BackendClient('http://backend:8080', $httpClient);
+        $client     = new BackendClient('http://backend:8080', $httpClient, '', '203.0.113.7');
         $statusClient = new UploadStatusClient($client, 'image');
 
         $httpClient->method('request')
@@ -130,7 +131,7 @@ class UploadStatusClientTest extends TestCase
     public function testRequestUploadedStatusSucceedsOnTwoHundred(): void
     {
         $httpClient = $this->createMock(HttpClientInterface::class);
-        $client     = new BackendClient('http://backend:8080', $httpClient);
+        $client     = new BackendClient('http://backend:8080', $httpClient, '', '203.0.113.7');
         $statusClient = new UploadStatusClient($client, 'image');
 
         $httpClient->expects($this->once())
@@ -161,7 +162,7 @@ class UploadStatusClientTest extends TestCase
         $httpClient->method('request')
             ->willReturn(['httpCode' => $httpCode, 'body' => $body, 'headers' => []]);
 
-        return new UploadStatusClient(new BackendClient('http://backend:8080', $httpClient), 'image');
+        return new UploadStatusClient(new BackendClient('http://backend:8080', $httpClient, '', '203.0.113.7'), 'image');
     }
 
     /**
@@ -271,7 +272,7 @@ class UploadStatusClientTest extends TestCase
     public function testRequestUploadedStatusThrowsOnBackendError(): void
     {
         $httpClient = $this->createMock(HttpClientInterface::class);
-        $client     = new BackendClient('http://backend:8080', $httpClient);
+        $client     = new BackendClient('http://backend:8080', $httpClient, '', '203.0.113.7');
         $statusClient = new UploadStatusClient($client, 'file');
 
         $httpClient->method('request')
@@ -297,7 +298,7 @@ class UploadStatusClientTest extends TestCase
     public function testRequestLinkStartStatusReturnsBothPaths(): void
     {
         $httpClient   = $this->createMock(HttpClientInterface::class);
-        $statusClient = new UploadStatusClient(new BackendClient('http://backend:8080', $httpClient), 'file');
+        $statusClient = new UploadStatusClient(new BackendClient('http://backend:8080', $httpClient, '', '203.0.113.7'), 'file');
 
         $httpClient->expects($this->once())
             ->method('request')
@@ -308,6 +309,7 @@ class UploadStatusClientTest extends TestCase
                     'X-Upload-Token'  => 'up-tok',
                     'Content-Type'    => 'application/json',
                     'Host'            => 'backend',
+                    'X-Forwarded-For' => '203.0.113.7',
                     'Accept-Encoding' => 'gzip',
                 ],
                 json_encode(['status' => 'uploading'])
@@ -333,7 +335,7 @@ class UploadStatusClientTest extends TestCase
     public function testRequestLinkStartStatusThrowsWhenAPathIsMissing(string $body): void
     {
         $httpClient   = $this->createMock(HttpClientInterface::class);
-        $statusClient = new UploadStatusClient(new BackendClient('http://backend:8080', $httpClient), 'image');
+        $statusClient = new UploadStatusClient(new BackendClient('http://backend:8080', $httpClient, '', '203.0.113.7'), 'image');
         $httpClient->method('request')->willReturn(['httpCode' => 200, 'body' => $body, 'headers' => []]);
 
         try {
@@ -364,7 +366,7 @@ class UploadStatusClientTest extends TestCase
     public function testRequestLinkStartStatusRelaysBackendError(int $code, string $body): void
     {
         $httpClient   = $this->createMock(HttpClientInterface::class);
-        $statusClient = new UploadStatusClient(new BackendClient('http://backend:8080', $httpClient), 'image');
+        $statusClient = new UploadStatusClient(new BackendClient('http://backend:8080', $httpClient, '', '203.0.113.7'), 'image');
         $httpClient->method('request')->willReturn(['httpCode' => $code, 'body' => $body, 'headers' => []]);
 
         try {
@@ -390,7 +392,7 @@ class UploadStatusClientTest extends TestCase
     public function testRequestFailedStatusSendsErrorField(): void
     {
         $httpClient   = $this->createMock(HttpClientInterface::class);
-        $statusClient = new UploadStatusClient(new BackendClient('http://backend:8080', $httpClient), 'image');
+        $statusClient = new UploadStatusClient(new BackendClient('http://backend:8080', $httpClient, '', '203.0.113.7'), 'image');
 
         $httpClient->expects($this->once())
             ->method('request')
@@ -411,7 +413,7 @@ class UploadStatusClientTest extends TestCase
     public function testRequestFailedStatusThrowsOnNonTwoHundred(): void
     {
         $httpClient   = $this->createMock(HttpClientInterface::class);
-        $statusClient = new UploadStatusClient(new BackendClient('http://backend:8080', $httpClient), 'image');
+        $statusClient = new UploadStatusClient(new BackendClient('http://backend:8080', $httpClient, '', '203.0.113.7'), 'image');
         $httpClient->method('request')->willReturn(['httpCode' => 400, 'body' => 'bad', 'headers' => []]);
 
         try {

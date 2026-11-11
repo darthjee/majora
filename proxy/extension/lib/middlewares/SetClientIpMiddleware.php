@@ -3,6 +3,7 @@
 namespace Tent\Middlewares;
 
 use Tent\Models\ProcessingRequest;
+use Tent\RequestHandlers\ClientIpHeaders;
 
 /**
  * Overwrites the `X-Forwarded-For` request header with Tent's own view of
@@ -34,6 +35,16 @@ use Tent\Models\ProcessingRequest;
  * authentication: no `X-Proxy-Secret` is sent, and Django ignores
  * `X-Forwarded-For`.
  *
+ * ## Custom handlers
+ *
+ * Rules served by a custom handler (`UploadHandler`, `LinkHandler`,
+ * `DeleteHandler`, `CacheSizeHandler`, `CacheClearHandler`) don't run this
+ * middleware: the handler makes its own backend calls through
+ * `BackendClient`. `BackendClient` therefore sets the same two headers
+ * itself, from the rule's `secret` handler attribute. Both build them with
+ * {@see \Tent\RequestHandlers\ClientIpHeaders}, so the names and values
+ * can't drift apart.
+ *
  * ## Usage in configuration
  *
  * ```php
@@ -51,10 +62,6 @@ use Tent\Models\ProcessingRequest;
  */
 class SetClientIpMiddleware extends Middleware
 {
-    private const FORWARDED_FOR_HEADER = 'X-Forwarded-For';
-
-    private const PROXY_SECRET_HEADER = 'X-Proxy-Secret';
-
     /**
      * @var string Shared secret sent to the backend; empty disables it.
      */
@@ -91,17 +98,17 @@ class SetClientIpMiddleware extends Middleware
      * @return ProcessingRequest The request, with a single, trustworthy
      *                            `X-Forwarded-For` header set and, when
      *                            configured, the `X-Proxy-Secret` header.
-     * @SuppressWarnings(PHPMD.Superglobals)
      */
     public function processRequest(ProcessingRequest $request): ProcessingRequest
     {
-        $this->removeHeader($request, self::FORWARDED_FOR_HEADER);
-        $this->removeHeader($request, self::PROXY_SECRET_HEADER);
+        foreach (ClientIpHeaders::names() as $headerName) {
+            $this->removeHeader($request, $headerName);
+        }
 
-        $request->setHeader(self::FORWARDED_FOR_HEADER, (string) ($_SERVER['REMOTE_ADDR'] ?? ''));
+        $headers = ClientIpHeaders::build(ClientIpHeaders::remoteAddress(), $this->secret);
 
-        if ($this->secret !== '') {
-            $request->setHeader(self::PROXY_SECRET_HEADER, $this->secret);
+        foreach ($headers as $name => $value) {
+            $request->setHeader($name, $value);
         }
 
         return $request;

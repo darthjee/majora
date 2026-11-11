@@ -91,6 +91,23 @@ Requests authenticated with a scoped API token (`Authorization: Bearer ...`) nev
 - Bearer detection must stay the same in the proxy and the backend: a looser proxy check (for example a literal `Bearer ` prefix) would miss variants the backend accepts and reopen the leak.
 - Rejected: caching Bearer responses per token (revocation must take effect at once) and skipping the cache on any `Authorization` header (the SPA sends `Authorization: Token` on every request).
 
+## Signed client IP (`X-Forwarded-For` + `X-Proxy-Secret`)
+
+Every request Tent sends to the backend carries Tent's own view of the client (`$_SERVER['REMOTE_ADDR']`) in `X-Forwarded-For` and, when `$proxySecret` is non-empty, the secret in `X-Proxy-Secret`. Django trusts `X-Forwarded-For` only when the secret matches its `PROXY_SECRET` and otherwise records `REMOTE_ADDR` (see [Production Configuration](../production-configuration.md#pairing-rule-proxysecret-and-proxy_secret)). A client-supplied value of either header, in any casing, is always dropped and never appended to. An empty secret sends no `X-Proxy-Secret`.
+
+Both paths to the backend build the headers with the same helper, `ClientIpHeaders` (`proxy/extension/lib/support/`):
+
+- Plain proxy rules (`rules/backend.php`, `admin.php`, `redirects.php`, `private_game_data_cache.php`, `staff_copies.php`) run `SetClientIpMiddleware` with `'secret' => $proxySecret`.
+- Custom handlers (`UploadHandler`, `LinkHandler`, `DeleteHandler`, `CacheSizeHandler`, `CacheClearHandler`) do not run that middleware: their rules have no `middlewares`, and the backend calls are made by the handler itself. `BackendClient` sets both headers on every call it makes (#1738), which also covers `UploadStatusClient` and `StaffAccessGuard`, since they use the handler's client. It does so after the `ForwardedHeaderFilter` allow-list (which lists neither header and must stay that way) and before the caller's override headers. The secret reaches it through the `secret` handler attribute: `'secret' => $proxySecret` in `rules/uploads.php`, `rules/delete.php` and `rules/cache.php`, dev and prod.
+
+Rules for new code:
+
+- A handler that calls the backend must do it through `BackendClient`, accept a `secret` attribute in `build()` and pass it to `new BackendClient($host, $httpClient, $secret)`; its rule must set `'secret' => $proxySecret`. Without it the backend records the proxy's IP for that route while still attaching the call to the visitor's statistics session through the cookie.
+- Never add `X-Forwarded-For` or `X-Proxy-Secret` to a forwarded-header allow-list.
+- Never log or print the secret.
+
+`HandlerProxySecretTest` (`proxy/extension/tests/configuration/`) checks that every handler rule receives the secret, in both configurations.
+
 ## Photo uploads (`UploadHandler`)
 
 `POST /uploads/<image|file>/<id>/submit` (rules/uploads.php, anchored regex `#^/uploads/(image|file)/\d+/submit$#`, so it never catches `/uploads/link/...`) validates the file, calls the backend `PATCH /uploads/<type>/<id>.json` with `status=uploading` to get the `file_path`, writes the file, then finalizes with `status=uploaded`. The client response is always built from scratch (`{"file_path": ...}`).

@@ -8,6 +8,12 @@
  * the backend's responses are cleared from it and from every domain folder
  * under it (ResponseCacheClearer::forRoot, cross-domain mode), so a staff
  * photo delete refreshes the game on all of its domains.
+ *
+ * 'secret' is the proxy secret ($proxySecret): the handler's backend calls
+ * carry the client's REMOTE_ADDR in X-Forwarded-For authenticated by
+ * X-Proxy-Secret (BackendClient), exactly as SetClientIpMiddleware does for
+ * the plain proxy rules, so Django records the visitor's IP rather than the
+ * proxy's.
  */
 
 use Tent\Configuration;
@@ -19,6 +25,7 @@ Configuration::buildRule(
         'host'        => $backendHost,
         'photos_path' => $photosPath,
         'cache_path'  => $cacheFolder,
+        'secret'      => $proxySecret,
     ],
     'matchers' => [
         [

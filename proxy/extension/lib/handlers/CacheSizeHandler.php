@@ -48,15 +48,19 @@ class CacheSizeHandler extends RequestHandler
      * @param DirectorySizeCalculator|null $calculator    Calculator used to size the cache
      *                                                    folder (defaults to one built
      *                                                    from $cacheSizeTool).
+     * @param string                       $secret        Shared secret sent to the backend
+     *                                                    in X-Proxy-Secret with the client
+     *                                                    IP ('' sends none).
      */
     public function __construct(
         string $host,
         ?HttpClientInterface $httpClient=null,
         string $cachePath='',
         string $cacheSizeTool='php_walk',
-        ?DirectorySizeCalculator $calculator=null
+        ?DirectorySizeCalculator $calculator=null,
+        string $secret=''
     ) {
-        $this->client = new BackendClient($host, $httpClient);
+        $this->client = new BackendClient($host, $httpClient, $secret);
         $this->cachePath = $cachePath;
         $this->calculator = ($calculator ?? new DirectorySizeCalculator($cacheSizeTool));
     }
@@ -65,7 +69,9 @@ class CacheSizeHandler extends RequestHandler
      * Builds a CacheSizeHandler from configuration parameters.
      *
      * @param array $params Must contain 'host' (string) and 'cache_path' (string); optionally
-     *                      'cache_size_tool' (string, defaults to 'php_walk').
+     *                      'cache_size_tool' (string, defaults to 'php_walk') and
+     *                      'secret' (string, the proxy secret sent to the backend in
+     *                      X-Proxy-Secret along with the client IP; default '').
      * @return self
      */
     public static function build(array $params): self
@@ -74,7 +80,9 @@ class CacheSizeHandler extends RequestHandler
             ($params['host'] ?? ''),
             null,
             ($params['cache_path'] ?? ''),
-            ($params['cache_size_tool'] ?? 'php_walk')
+            ($params['cache_size_tool'] ?? 'php_walk'),
+            null,
+            (string) ($params['secret'] ?? '')
         );
     }
 

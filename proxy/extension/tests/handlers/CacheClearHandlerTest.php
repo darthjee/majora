@@ -2,6 +2,8 @@
 
 namespace Tent\RequestHandlers\Tests;
 
+require_once __DIR__ . '/../support/SignedClientIpAssertions.php';
+
 use PHPUnit\Framework\TestCase;
 use Tent\Http\HttpClientInterface;
 use Tent\Models\ProcessingRequest;
@@ -18,6 +20,8 @@ use Tent\RequestHandlers\CacheClearHandler;
  */
 class CacheClearHandlerTest extends TestCase
 {
+    use SignedClientIpAssertions;
+
     // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
@@ -253,5 +257,68 @@ class CacheClearHandlerTest extends TestCase
         $prop->setAccessible(true);
 
         $this->assertSame('/some/cache/path', $prop->getValue($handler));
+    }
+
+    // -------------------------------------------------------------------------
+    // Signed client IP (issue #1738)
+    // -------------------------------------------------------------------------
+
+    /**
+     * build() passes the 'secret' handler attribute on to the BackendClient.
+     */
+    public function testBuildPassesSecretToBackendClient(): void
+    {
+        $handler = CacheClearHandler::build([
+            'host'       => 'http://backend:8080',
+            'cache_path' => '/some/cache/path',
+            'secret' => self::dummySecret(),
+        ]);
+
+        $this->assertSame(self::dummySecret(), $this->backendSecretOf($handler));
+    }
+
+    /**
+     * Without a 'secret' attribute, build() configures no secret.
+     */
+    public function testBuildDefaultsToNoSecret(): void
+    {
+        $handler = CacheClearHandler::build([
+            'host'       => 'http://backend:8080',
+            'cache_path' => '/some/cache/path',
+        ]);
+
+        $this->assertSame('', $this->backendSecretOf($handler));
+    }
+
+    /**
+     * With a secret, the handler's backend calls carry the client's address
+     * in X-Forwarded-For and the secret in X-Proxy-Secret; the values the
+     * client sent for both are dropped.
+     */
+    public function testBackendCallsCarrySignedClientIp(): void
+    {
+        $handler = new CacheClearHandler(
+            'http://backend:8080',
+            $this->recordingHttpClient(),
+            '/some/cache/path',
+            self::dummySecret()
+        );
+
+        $handler->handleRequest($this->makeRequest(self::spoofedHeaders()));
+
+        $this->assertBackendCallsCarryClientIp(self::dummySecret());
+    }
+
+    /**
+     * Without a secret, the client's address is still sent but no
+     * X-Proxy-Secret is, not even the one the client supplied.
+     */
+    public function testBackendCallsCarryNoSecretWhenNotConfigured(): void
+    {
+        $handler = new CacheClearHandler('http://backend:8080', $this->recordingHttpClient(), '/some/cache/path');
+
+        $handler->handleRequest($this->makeRequest(self::spoofedHeaders()));
+
+        $this->assertBackendCallsCarryClientIp('');
     }
 }

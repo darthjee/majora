@@ -2,6 +2,8 @@
 
 namespace Tent\RequestHandlers\Tests;
 
+require_once __DIR__ . '/../support/SignedClientIpAssertions.php';
+
 use PHPUnit\Framework\TestCase;
 use Tent\Http\HttpClientInterface;
 use Tent\Models\ProcessingRequest;
@@ -16,6 +18,8 @@ use Tent\RequestHandlers\UploadHandler;
  */
 class UploadHandlerTest extends TestCase
 {
+    use SignedClientIpAssertions;
+
     /** @var string Temporary directory used as the photos base path */
     private string $photosDir;
 
@@ -384,6 +388,7 @@ class UploadHandlerTest extends TestCase
             'Accept'          => 'application/json',
             'Content-Type'    => 'application/json',
             'Host'            => 'backend',
+            'X-Forwarded-For' => '203.0.113.7',
             'Accept-Encoding' => 'gzip',
         ];
 
@@ -429,6 +434,7 @@ class UploadHandlerTest extends TestCase
             'REFERER'         => 'http://client/upload',
             'Content-Type'    => 'application/json',
             'Host'            => 'backend',
+            'X-Forwarded-For' => '203.0.113.7',
             'Accept-Encoding' => 'gzip',
         ];
 
@@ -1323,5 +1329,85 @@ class UploadHandlerTest extends TestCase
         } finally {
             $this->removeDir($cacheDir);
         }
+    }
+
+    // -------------------------------------------------------------------------
+    // Signed client IP (issue #1738)
+    // -------------------------------------------------------------------------
+
+    /**
+     * build() passes the 'secret' handler attribute on to the BackendClient.
+     */
+    public function testBuildPassesSecretToBackendClient(): void
+    {
+        $handler = UploadHandler::build([
+            'host'        => 'http://backend:8080',
+            'photos_path' => $this->photosDir,
+            'files_path'  => $this->filesDir,
+            'secret' => self::dummySecret(),
+        ]);
+
+        $this->assertSame(self::dummySecret(), $this->backendSecretOf($handler));
+    }
+
+    /**
+     * Without a 'secret' attribute, build() configures no secret.
+     */
+    public function testBuildDefaultsToNoSecret(): void
+    {
+        $handler = UploadHandler::build([
+            'host'        => 'http://backend:8080',
+            'photos_path' => $this->photosDir,
+            'files_path'  => $this->filesDir,
+        ]);
+
+        $this->assertSame('', $this->backendSecretOf($handler));
+    }
+
+    /**
+     * With a secret, the handler's backend calls carry the client's address
+     * in X-Forwarded-For and the secret in X-Proxy-Secret; the values the
+     * client sent for both are dropped.
+     */
+    public function testBackendCallsCarrySignedClientIp(): void
+    {
+        $handler = new UploadHandler(
+            'http://backend:8080',
+            $this->recordingHttpClient(),
+            $this->photosDir,
+            $this->filesDir,
+            '',
+            self::dummySecret()
+        );
+
+        $handler->handleRequest($this->spoofedUploadRequest());
+
+        $this->assertBackendCallsCarryClientIp(self::dummySecret());
+    }
+
+    /**
+     * Without a secret, the client's address is still sent but no
+     * X-Proxy-Secret is, not even the one the client supplied.
+     */
+    public function testBackendCallsCarryNoSecretWhenNotConfigured(): void
+    {
+        $handler = $this->makeHandler($this->recordingHttpClient());
+
+        $handler->handleRequest($this->spoofedUploadRequest());
+
+        $this->assertBackendCallsCarryClientIp('');
+    }
+
+    private function spoofedUploadRequest(): ProcessingRequest
+    {
+        // Under the photos dir, so tearDown() removes it.
+        $tmpFile = $this->photosDir . '/incoming.png';
+        file_put_contents($tmpFile, $this->realPngBytes());
+
+        return $this->makeRequest(
+            $this->submitPath('image', '7'),
+            ['tmp_name' => $tmpFile, 'type' => 'image/png', 'name' => 'img.png', 'size' => 8, 'error' => 0],
+            self::spoofedHeaders()
+        );
     }
 }

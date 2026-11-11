@@ -71,7 +71,7 @@ class BackendClientTest extends TestCase
     public function testRequestFiltersHeadersDownToBaseAllowList(): void
     {
         $httpClient = $this->createMock(HttpClientInterface::class);
-        $client     = new BackendClient('http://backend:8080', $httpClient);
+        $client     = new BackendClient('http://backend:8080', $httpClient, '', '203.0.113.7');
 
         $httpClient->expects($this->once())
             ->method('request')
@@ -81,6 +81,7 @@ class BackendClientTest extends TestCase
                 [
                     'Authorization'   => 'Bearer tok',
                     'Host'            => 'backend',
+                    'X-Forwarded-For' => '203.0.113.7',
                     'Accept-Encoding' => 'gzip',
                 ],
                 null
@@ -100,7 +101,7 @@ class BackendClientTest extends TestCase
     public function testRequestFiltersHeadersDownToBaseAllowListPlusExtraAllowedHeaders(): void
     {
         $httpClient = $this->createMock(HttpClientInterface::class);
-        $client     = new BackendClient('http://backend:8080', $httpClient);
+        $client     = new BackendClient('http://backend:8080', $httpClient, '', '203.0.113.7');
 
         $httpClient->expects($this->once())
             ->method('request')
@@ -110,6 +111,7 @@ class BackendClientTest extends TestCase
                 [
                     'X-Upload-Token'  => 'up-tok',
                     'Host'            => 'backend',
+                    'X-Forwarded-For' => '203.0.113.7',
                     'Accept-Encoding' => 'gzip',
                 ],
                 null
@@ -139,7 +141,7 @@ class BackendClientTest extends TestCase
     public function testRequestOverridesHostAndSetsForwardedHost(): void
     {
         $httpClient = $this->createMock(HttpClientInterface::class);
-        $client     = new BackendClient('http://backend:8080', $httpClient);
+        $client     = new BackendClient('http://backend:8080', $httpClient, '', '203.0.113.7');
 
         $httpClient->expects($this->once())
             ->method('request')
@@ -149,6 +151,7 @@ class BackendClientTest extends TestCase
                 [
                     'Host'             => 'backend',
                     'X-Forwarded-Host' => 'majora.example.com',
+                    'X-Forwarded-For'  => '203.0.113.7',
                     'Accept-Encoding'  => 'gzip',
                 ],
                 null
@@ -164,7 +167,7 @@ class BackendClientTest extends TestCase
     public function testRequestLooksUpOriginalHostCaseInsensitively(): void
     {
         $httpClient = $this->createMock(HttpClientInterface::class);
-        $client     = new BackendClient('http://backend:8080', $httpClient);
+        $client     = new BackendClient('http://backend:8080', $httpClient, '', '203.0.113.7');
 
         $httpClient->expects($this->once())
             ->method('request')
@@ -173,6 +176,7 @@ class BackendClientTest extends TestCase
                 'http://backend:8080/users/status.json',
                 [
                     'X-Forwarded-Host' => 'majora.example.com',
+                    'X-Forwarded-For'  => '203.0.113.7',
                     'Accept-Encoding'  => 'gzip',
                     'Host'             => 'backend',
                 ],
@@ -190,7 +194,7 @@ class BackendClientTest extends TestCase
     public function testRequestSetsNoForwardedHostWhenIncomingHostIsAbsent(): void
     {
         $httpClient = $this->createMock(HttpClientInterface::class);
-        $client     = new BackendClient('http://backend:8080', $httpClient);
+        $client     = new BackendClient('http://backend:8080', $httpClient, '', '203.0.113.7');
 
         $httpClient->expects($this->once())
             ->method('request')
@@ -200,6 +204,7 @@ class BackendClientTest extends TestCase
                 [
                     'Authorization'   => 'Bearer tok',
                     'Host'            => 'backend',
+                    'X-Forwarded-For' => '203.0.113.7',
                     'Accept-Encoding' => 'gzip',
                 ],
                 null
@@ -217,7 +222,7 @@ class BackendClientTest extends TestCase
     public function testRequestDiscardsClientSuppliedForwardedHost(): void
     {
         $httpClient = $this->createMock(HttpClientInterface::class);
-        $client     = new BackendClient('http://backend:8080', $httpClient);
+        $client     = new BackendClient('http://backend:8080', $httpClient, '', '203.0.113.7');
 
         $httpClient->expects($this->once())
             ->method('request')
@@ -227,6 +232,7 @@ class BackendClientTest extends TestCase
                 [
                     'Host'             => 'backend',
                     'X-Forwarded-Host' => 'majora.example.com',
+                    'X-Forwarded-For'  => '203.0.113.7',
                     'Accept-Encoding'  => 'gzip',
                 ],
                 null
@@ -251,7 +257,7 @@ class BackendClientTest extends TestCase
     public function testRequestAppliesOverrideHeadersAfterFiltering(): void
     {
         $httpClient = $this->createMock(HttpClientInterface::class);
-        $client     = new BackendClient('http://backend:8080', $httpClient);
+        $client     = new BackendClient('http://backend:8080', $httpClient, '', '203.0.113.7');
 
         $httpClient->expects($this->once())
             ->method('request')
@@ -261,6 +267,7 @@ class BackendClientTest extends TestCase
                 [
                     'Content-Type'    => 'application/json',
                     'Host'            => 'backend',
+                    'X-Forwarded-For' => '203.0.113.7',
                     'Accept-Encoding' => 'gzip',
                 ],
                 '{"status":"uploaded"}'
@@ -278,6 +285,210 @@ class BackendClientTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
+    // request() - signed client IP (X-Forwarded-For / X-Proxy-Secret)
+    // -------------------------------------------------------------------------
+
+    /**
+     * Issues a GET through a BackendClient built with $secret and
+     * $remoteAddress, and returns the headers it sent to the backend.
+     */
+    private function sentHeaders(
+        array $incomingHeaders,
+        string $secret = '',
+        ?string $remoteAddress = '203.0.113.7',
+        array $extraAllowedHeaders = [],
+        array $overrideHeaders = []
+    ): array {
+        $sent       = null;
+        $httpClient = $this->createMock(HttpClientInterface::class);
+        $client     = new BackendClient('http://backend:8080', $httpClient, $secret, $remoteAddress);
+
+        $httpClient->expects($this->once())
+            ->method('request')
+            ->willReturnCallback(function ($method, $url, $headers) use (&$sent) {
+                $sent = $headers;
+
+                return ['httpCode' => 200, 'body' => '{}', 'headers' => []];
+            });
+
+        $client->request('GET', '/users/status.json', $incomingHeaders, null, $extraAllowedHeaders, $overrideHeaders);
+
+        return $sent;
+    }
+
+    /**
+     * X-Forwarded-For carries the client's remote address; without a secret
+     * no X-Proxy-Secret is sent.
+     */
+    public function testRequestSetsForwardedForFromRemoteAddress(): void
+    {
+        $headers = $this->sentHeaders(['Cookie' => 'session=abc']);
+
+        $this->assertSame('203.0.113.7', $headers['X-Forwarded-For']);
+        $this->assertArrayNotHasKey('X-Proxy-Secret', $headers);
+    }
+
+    /**
+     * With a secret configured, it is sent in X-Proxy-Secret alongside the
+     * client IP.
+     */
+    public function testRequestSetsProxySecretWhenConfigured(): void
+    {
+        $headers = $this->sentHeaders(['Cookie' => 'session=abc'], 'dummy-secret');
+
+        $this->assertSame('203.0.113.7', $headers['X-Forwarded-For']);
+        $this->assertSame('dummy-secret', $headers['X-Proxy-Secret']);
+    }
+
+    /**
+     * Client-supplied values of both headers, whatever their casing, never
+     * reach the backend: only Tent's own values are sent.
+     */
+    public function testRequestDropsClientSuppliedClientIpHeaders(): void
+    {
+        $headers = $this->sentHeaders(
+            [
+                'X-Forwarded-For' => '192.0.2.1',
+                'x-forwarded-for' => '192.0.2.2',
+                'X-Proxy-Secret'  => 'guess',
+                'x-PROXY-secret'  => 'other-guess',
+            ],
+            'dummy-secret'
+        );
+
+        $this->assertSame(
+            [
+                'Host'            => 'backend',
+                'X-Forwarded-For' => '203.0.113.7',
+                'X-Proxy-Secret'  => 'dummy-secret',
+                'Accept-Encoding' => 'gzip',
+            ],
+            $headers
+        );
+    }
+
+    /**
+     * Without a secret, a client-supplied X-Proxy-Secret is dropped and
+     * nothing is sent in its place.
+     */
+    public function testRequestDropsClientSuppliedSecretWhenNoSecretConfigured(): void
+    {
+        $headers = $this->sentHeaders(['x-proxy-secret' => 'guess', 'X-Forwarded-For' => '192.0.2.1']);
+
+        $this->assertSame(
+            [
+                'Host'            => 'backend',
+                'X-Forwarded-For' => '203.0.113.7',
+                'Accept-Encoding' => 'gzip',
+            ],
+            $headers
+        );
+    }
+
+    /**
+     * Even when a caller lists the headers in $extraAllowedHeaders, the
+     * client's values are dropped and replaced by Tent's own.
+     */
+    public function testRequestDropsClientSuppliedClientIpHeadersAllowedAsExtra(): void
+    {
+        $headers = $this->sentHeaders(
+            [
+                'x-forwarded-for' => '192.0.2.1',
+                'X-PROXY-SECRET'  => 'guess',
+            ],
+            'dummy-secret',
+            '203.0.113.7',
+            ['X-Forwarded-For', 'X-Proxy-Secret']
+        );
+
+        $this->assertSame(
+            [
+                'Host'            => 'backend',
+                'X-Forwarded-For' => '203.0.113.7',
+                'X-Proxy-Secret'  => 'dummy-secret',
+                'Accept-Encoding' => 'gzip',
+            ],
+            $headers
+        );
+    }
+
+    /**
+     * Same as above without a secret: the extra-allowed client secret is
+     * still dropped.
+     */
+    public function testRequestDropsExtraAllowedClientSecretWhenNoSecretConfigured(): void
+    {
+        $headers = $this->sentHeaders(
+            ['X-Proxy-Secret' => 'guess'],
+            '',
+            '203.0.113.7',
+            ['X-Proxy-Secret']
+        );
+
+        $this->assertArrayNotHasKey('X-Proxy-Secret', $headers);
+    }
+
+    /**
+     * $overrideHeaders are still applied last, after the client-IP headers.
+     */
+    public function testRequestAppliesOverrideHeadersAfterClientIpHeaders(): void
+    {
+        $headers = $this->sentHeaders(
+            [],
+            'dummy-secret',
+            '203.0.113.7',
+            [],
+            ['X-Forwarded-For' => '192.0.2.50', 'Content-Type' => 'application/json']
+        );
+
+        $this->assertSame('192.0.2.50', $headers['X-Forwarded-For']);
+        $this->assertSame('dummy-secret', $headers['X-Proxy-Secret']);
+        $this->assertSame('application/json', $headers['Content-Type']);
+    }
+
+    /**
+     * Without an injected address, the client's address is read from
+     * $_SERVER['REMOTE_ADDR'].
+     */
+    public function testRequestReadsRemoteAddressFromServerByDefault(): void
+    {
+        $original = $_SERVER['REMOTE_ADDR'] ?? null;
+        $_SERVER['REMOTE_ADDR'] = '192.0.2.99';
+
+        try {
+            $headers = $this->sentHeaders([], '', null);
+        } finally {
+            if ($original === null) {
+                unset($_SERVER['REMOTE_ADDR']);
+            } else {
+                $_SERVER['REMOTE_ADDR'] = $original;
+            }
+        }
+
+        $this->assertSame('192.0.2.99', $headers['X-Forwarded-For']);
+    }
+
+    /**
+     * With no remote address known at all, X-Forwarded-For is sent empty,
+     * matching SetClientIpMiddleware.
+     */
+    public function testRequestSendsEmptyForwardedForWhenRemoteAddressUnknown(): void
+    {
+        $original = $_SERVER['REMOTE_ADDR'] ?? null;
+        unset($_SERVER['REMOTE_ADDR']);
+
+        try {
+            $headers = $this->sentHeaders([], '', null);
+        } finally {
+            if ($original !== null) {
+                $_SERVER['REMOTE_ADDR'] = $original;
+            }
+        }
+
+        $this->assertSame('', $headers['X-Forwarded-For']);
+    }
+
+    // -------------------------------------------------------------------------
     // request() - Accept-Encoding: gzip
     // -------------------------------------------------------------------------
 
@@ -287,7 +498,7 @@ class BackendClientTest extends TestCase
     public function testRequestAddsAcceptEncodingGzip(): void
     {
         $httpClient = $this->createMock(HttpClientInterface::class);
-        $client     = new BackendClient('http://backend:8080', $httpClient);
+        $client     = new BackendClient('http://backend:8080', $httpClient, '', '203.0.113.7');
 
         $httpClient->expects($this->once())
             ->method('request')
@@ -318,7 +529,7 @@ class BackendClientTest extends TestCase
         $encodedBody = gzencode($decodedBody);
 
         $httpClient = $this->createMock(HttpClientInterface::class);
-        $client     = new BackendClient('http://backend:8080', $httpClient);
+        $client     = new BackendClient('http://backend:8080', $httpClient, '', '203.0.113.7');
 
         $httpClient->expects($this->once())
             ->method('request')
@@ -340,7 +551,7 @@ class BackendClientTest extends TestCase
     public function testRequestPassesThroughNonGzipResponseBodyUnchanged(): void
     {
         $httpClient = $this->createMock(HttpClientInterface::class);
-        $client     = new BackendClient('http://backend:8080', $httpClient);
+        $client     = new BackendClient('http://backend:8080', $httpClient, '', '203.0.113.7');
 
         $httpClient->expects($this->once())
             ->method('request')
@@ -366,7 +577,7 @@ class BackendClientTest extends TestCase
         $encodedBody = gzencode($decodedBody);
 
         $httpClient = $this->createMock(HttpClientInterface::class);
-        $client     = new BackendClient('http://backend:8080', $httpClient);
+        $client     = new BackendClient('http://backend:8080', $httpClient, '', '203.0.113.7');
 
         $httpClient->expects($this->once())
             ->method('request')
