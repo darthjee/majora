@@ -583,7 +583,9 @@ trusted only through a shared secret (#1501):
   (constant-time compare); otherwise it falls back to `REMOTE_ADDR`. Requests are never
   rejected, and an empty `PROXY_SECRET` disables the gate.
 - Rules served through custom `BackendClient` handlers (`cache.php`, `delete.php`,
-  `uploads.php`) drop both headers, so Django records Tent's IP for them.
+  `uploads.php`) do not run the middleware; `BackendClient` sets the same two headers itself
+  from the rule's `secret` handler attribute (#1738), so Django records the visitor's IP for
+  them too. See [architecture/proxy.md](architecture/proxy.md).
 - **Caveat:** if an edge proxy or CDN sits in front of Tent, every request is recorded with
   the edge's IP. This has not been verified in production.
 
