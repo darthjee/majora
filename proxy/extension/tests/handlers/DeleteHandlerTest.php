@@ -2,6 +2,8 @@
 
 namespace Tent\RequestHandlers\Tests;
 
+require_once __DIR__ . '/../support/RemoteAddrFixture.php';
+
 use PHPUnit\Framework\TestCase;
 use Tent\Http\HttpClientInterface;
 use Tent\Models\ProcessingRequest;
@@ -15,6 +17,8 @@ use Tent\RequestHandlers\DeleteHandler;
  */
 class DeleteHandlerTest extends TestCase
 {
+    use RemoteAddrFixture;
+
     /** @var string Temporary directory used as the photos base path */
     private string $photosDir;
 
@@ -321,6 +325,7 @@ class DeleteHandlerTest extends TestCase
             'Accept-Language' => 'en-US',
             'Accept'          => 'application/json',
             'Host'            => 'backend',
+            'X-Forwarded-For' => '203.0.113.7',
             'Accept-Encoding' => 'gzip',
         ];
 

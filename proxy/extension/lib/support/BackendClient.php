@@ -10,8 +10,9 @@ use Tent\Utils\CurlUtils;
  * Owns everything a proxy handler needs to call the Django backend, so that
  * logic isn't hand-rolled (and duplicated) by every handler that talks to
  * it: URL joining, forwarded-header allow-listing (via
- * ForwardedHeaderFilter), Host/X-Forwarded-Host remapping, and gzip
- * response decoding.
+ * ForwardedHeaderFilter), Host/X-Forwarded-Host remapping, the signed
+ * client IP (X-Forwarded-For + X-Proxy-Secret, via ClientIpHeaders), and
+ * gzip response decoding.
  *
  * Host/X-Forwarded-Host remapping replaces the RenameHeaderMiddleware +
  * SetHeadersMiddleware pair every backend-proxying handler used to wire up
@@ -20,6 +21,17 @@ use Tent\Utils\CurlUtils;
  * when the backend lives behind a different host (e.g.
  * `moria-api.ffavs.net`) — edge providers like Cloudflare reject that
  * mismatch with a 403 before the request ever reaches the application.
+ *
+ * The signed client IP is what SetClientIpMiddleware sets on ordinary
+ * proxied requests: X-Forwarded-For carrying Tent's own view of the client
+ * (`$_SERVER['REMOTE_ADDR']`) and, when a secret is configured,
+ * X-Proxy-Secret authenticating it. Handler rules don't run that
+ * middleware over these backend calls, so without it the backend would
+ * record the proxy's own address while still attaching the call to the
+ * visitor's statistics session through the forwarded cookie. Neither
+ * header is ever taken from the client: both stay off
+ * ForwardedHeaderFilter's allow-list and any occurrence is stripped before
+ * Tent's own values are set.
  *
  * Gzip handling exists because Tent\Http\CurlHttpExecutor\Base (in the
  * separate darthjee/tent framework repo) never decompresses a response
@@ -38,14 +50,32 @@ class BackendClient
     /** @var HttpClientInterface HTTP client used for backend calls */
     private HttpClientInterface $httpClient;
 
+    /** @var string Shared secret sent in X-Proxy-Secret; empty sends none */
+    private string $secret;
+
+    /** @var string|null Fixed client address; null reads REMOTE_ADDR per request */
+    private ?string $remoteAddress;
+
     /**
-     * @param string                   $host       Backend host URL.
-     * @param HttpClientInterface|null $httpClient HTTP client (defaults to CurlHttpClient).
+     * @param string                   $host          Backend host URL.
+     * @param HttpClientInterface|null $httpClient    HTTP client (defaults to CurlHttpClient).
+     * @param string                   $secret        Shared secret sent in X-Proxy-Secret; an
+     *                                                empty string means no secret header is sent.
+     * @param string|null              $remoteAddress Client address sent in X-Forwarded-For.
+     *                                                Defaults to null, meaning PHP's
+     *                                                `$_SERVER['REMOTE_ADDR']` is read on every
+     *                                                request; tests inject a fixed value instead.
      */
-    public function __construct(string $host, ?HttpClientInterface $httpClient=null)
-    {
+    public function __construct(
+        string $host,
+        ?HttpClientInterface $httpClient=null,
+        string $secret='',
+        ?string $remoteAddress=null
+    ) {
         $this->host = $host;
         $this->httpClient = ($httpClient ?? new CurlHttpClient());
+        $this->secret = $secret;
+        $this->remoteAddress = $remoteAddress;
     }
 
     /**
@@ -70,10 +100,15 @@ class BackendClient
      * 3. Overrides Host to the backend's own host, and sets
      *    X-Forwarded-Host from the original (case-insensitively looked up)
      *    incoming Host header, when present.
-     * 4. Applies $overrideHeaders last (e.g. a forced Content-Type).
-     * 5. Adds Accept-Encoding: gzip to the outgoing headers.
-     * 6. Calls the underlying HttpClientInterface.
-     * 7. gzdecode()s the response body when its headers report
+     * 4. Removes any X-Forwarded-For/X-Proxy-Secret (case-insensitively;
+     *    neither is on the base allow-list, so this only matters if a
+     *    caller lists one in $extraAllowedHeaders) and sets Tent's own:
+     *    X-Forwarded-For from the client's remote address and, when a
+     *    secret is configured, X-Proxy-Secret.
+     * 5. Applies $overrideHeaders last (e.g. a forced Content-Type).
+     * 6. Adds Accept-Encoding: gzip to the outgoing headers.
+     * 7. Calls the underlying HttpClientInterface.
+     * 8. gzdecode()s the response body when its headers report
      *    Content-Encoding: gzip.
      *
      * @param string      $method              The HTTP method (e.g. 'GET', 'PATCH', 'DELETE').
@@ -110,6 +145,8 @@ class BackendClient
             $headers['X-Forwarded-Host'] = $originalHost;
         }
 
+        $headers = ClientIpHeaders::apply($headers, $this->clientAddress(), $this->secret);
+
         foreach ($overrideHeaders as $name => $value) {
             $headers[$name] = $value;
         }
@@ -123,6 +160,17 @@ class BackendClient
         }
 
         return $result;
+    }
+
+    /**
+     * The client address sent in X-Forwarded-For: the one injected at
+     * construction, or Tent's own view of the connecting peer.
+     *
+     * @return string The address; empty when none is known.
+     */
+    private function clientAddress(): string
+    {
+        return ($this->remoteAddress ?? ClientIpHeaders::remoteAddress());
     }
 
     /**

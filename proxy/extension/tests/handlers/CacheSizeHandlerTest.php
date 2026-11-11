@@ -2,6 +2,8 @@
 
 namespace Tent\RequestHandlers\Tests;
 
+require_once __DIR__ . '/../support/RemoteAddrFixture.php';
+
 use PHPUnit\Framework\TestCase;
 use Tent\Http\HttpClientInterface;
 use Tent\Models\ProcessingRequest;
@@ -27,6 +29,8 @@ use Tent\RequestHandlers\ShellCommandFailedException;
  */
 class CacheSizeHandlerTest extends TestCase
 {
+    use RemoteAddrFixture;
+
     // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
@@ -264,6 +268,7 @@ class CacheSizeHandlerTest extends TestCase
             'Accept'           => 'application/json',
             'Host'             => 'backend',
             'X-Forwarded-Host' => 'majora.example.com',
+            'X-Forwarded-For'  => '203.0.113.7',
             'Accept-Encoding'  => 'gzip',
         ];
 

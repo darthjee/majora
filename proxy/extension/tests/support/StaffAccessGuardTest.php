@@ -35,7 +35,7 @@ class StaffAccessGuardTest extends TestCase
     public function testStaffUserIsAllowed(): void
     {
         $httpClient = $this->createMock(HttpClientInterface::class);
-        $client     = new BackendClient('http://backend:8080', $httpClient);
+        $client     = new BackendClient('http://backend:8080', $httpClient, '', '203.0.113.7');
 
         $httpClient->expects($this->once())
             ->method('request')
@@ -58,7 +58,7 @@ class StaffAccessGuardTest extends TestCase
     public function testSuperuserAloneIsAllowed(): void
     {
         $httpClient = $this->createMock(HttpClientInterface::class);
-        $client     = new BackendClient('http://backend:8080', $httpClient);
+        $client     = new BackendClient('http://backend:8080', $httpClient, '', '203.0.113.7');
 
         $httpClient->expects($this->once())
             ->method('request')
@@ -80,7 +80,7 @@ class StaffAccessGuardTest extends TestCase
     public function testNotLoggedInThrowsForbidden(): void
     {
         $httpClient = $this->createMock(HttpClientInterface::class);
-        $client     = new BackendClient('http://backend:8080', $httpClient);
+        $client     = new BackendClient('http://backend:8080', $httpClient, '', '203.0.113.7');
 
         $httpClient->expects($this->once())
             ->method('request')
@@ -105,7 +105,7 @@ class StaffAccessGuardTest extends TestCase
     public function testLoggedInWithoutStaffOrSuperuserThrowsForbidden(): void
     {
         $httpClient = $this->createMock(HttpClientInterface::class);
-        $client     = new BackendClient('http://backend:8080', $httpClient);
+        $client     = new BackendClient('http://backend:8080', $httpClient, '', '203.0.113.7');
 
         $httpClient->expects($this->once())
             ->method('request')
@@ -130,7 +130,7 @@ class StaffAccessGuardTest extends TestCase
     public function testUpstreamFailureIsPropagatedAsIs(): void
     {
         $httpClient = $this->createMock(HttpClientInterface::class);
-        $client     = new BackendClient('http://backend:8080', $httpClient);
+        $client     = new BackendClient('http://backend:8080', $httpClient, '', '203.0.113.7');
 
         $httpClient->expects($this->once())
             ->method('request')

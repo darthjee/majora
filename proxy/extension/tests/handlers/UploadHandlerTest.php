@@ -2,6 +2,8 @@
 
 namespace Tent\RequestHandlers\Tests;
 
+require_once __DIR__ . '/../support/RemoteAddrFixture.php';
+
 use PHPUnit\Framework\TestCase;
 use Tent\Http\HttpClientInterface;
 use Tent\Models\ProcessingRequest;
@@ -16,6 +18,8 @@ use Tent\RequestHandlers\UploadHandler;
  */
 class UploadHandlerTest extends TestCase
 {
+    use RemoteAddrFixture;
+
     /** @var string Temporary directory used as the photos base path */
     private string $photosDir;
 
@@ -384,6 +388,7 @@ class UploadHandlerTest extends TestCase
             'Accept'          => 'application/json',
             'Content-Type'    => 'application/json',
             'Host'            => 'backend',
+            'X-Forwarded-For' => '203.0.113.7',
             'Accept-Encoding' => 'gzip',
         ];
 
@@ -429,6 +434,7 @@ class UploadHandlerTest extends TestCase
             'REFERER'         => 'http://client/upload',
             'Content-Type'    => 'application/json',
             'Host'            => 'backend',
+            'X-Forwarded-For' => '203.0.113.7',
             'Accept-Encoding' => 'gzip',
         ];
 
