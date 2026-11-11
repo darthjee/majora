@@ -8,13 +8,18 @@ RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 # Redirect ALL requests to index.php
 RewriteRule ^(.*)$ index.php [QSA,L]
 
-# Default Cache-Control, only for responses that carry none (e.g. static assets):
-# - never override a Cache-Control the backend already sent (private for
-#   responses that set a cookie, no-store for Bearer and errors);
+# Default Cache-Control, only for responses that carry none (e.g. the SPA
+# redirect, a backend response the backend did not tag). Static routes set
+# their own value in the Tent rules (configuration/rules/).
+# - never override a Cache-Control already sent by the backend or by a Tent
+#   rule (private for responses that set a cookie, no-store for Bearer and
+#   errors, no-cache for files and photos);
+# - never mark a response that carries Set-Cookie as public, even when it has
+#   no Cache-Control: it gets no default at all;
 # - never mark token-authenticated (Authorization: Bearer ...) responses as
 #   public, so shared caches don't store them.
 # Under mod_fcgid the headers sent by PHP live in the "always" table, under
 # mod_php in the default one. "always setifempty" covers the first and the
-# resp() check (which reads both tables) covers the second, so the backend's
-# value wins under either handler.
-Header always setifempty Cache-Control "max-age=10, public" "expr=-z %{req:Authorization} && -z resp('Cache-Control')"
+# resp() checks (which read both tables) cover the second, so the value sent
+# by PHP wins under either handler.
+Header always setifempty Cache-Control "max-age=10, public" "expr=-z %{req:Authorization} && -z resp('Cache-Control') && -z resp('Set-Cookie')"
