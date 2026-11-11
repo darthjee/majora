@@ -2,7 +2,7 @@
 
 namespace Tent\RequestHandlers\Tests;
 
-require_once __DIR__ . '/../support/RemoteAddrFixture.php';
+require_once __DIR__ . '/../support/SignedClientIpAssertions.php';
 
 use PHPUnit\Framework\TestCase;
 use Tent\Http\HttpClientInterface;
@@ -17,7 +17,7 @@ use Tent\RequestHandlers\DeleteHandler;
  */
 class DeleteHandlerTest extends TestCase
 {
-    use RemoteAddrFixture;
+    use SignedClientIpAssertions;
 
     /** @var string Temporary directory used as the photos base path */
     private string $photosDir;
@@ -752,5 +752,69 @@ class DeleteHandlerTest extends TestCase
         $rootProp->setAccessible(true);
 
         $this->assertSame($cacheDir, $rootProp->getValue($clearer));
+    }
+
+    // -------------------------------------------------------------------------
+    // Signed client IP (issue #1738)
+    // -------------------------------------------------------------------------
+
+    /**
+     * build() passes the 'secret' handler attribute on to the BackendClient.
+     */
+    public function testBuildPassesSecretToBackendClient(): void
+    {
+        $handler = DeleteHandler::build([
+            'host'        => 'http://backend:8080',
+            'photos_path' => $this->photosDir,
+            'secret' => self::dummySecret(),
+        ]);
+
+        $this->assertSame(self::dummySecret(), $this->backendSecretOf($handler));
+    }
+
+    /**
+     * Without a 'secret' attribute, build() configures no secret.
+     */
+    public function testBuildDefaultsToNoSecret(): void
+    {
+        $handler = DeleteHandler::build([
+            'host'        => 'http://backend:8080',
+            'photos_path' => $this->photosDir,
+        ]);
+
+        $this->assertSame('', $this->backendSecretOf($handler));
+    }
+
+    /**
+     * With a secret, the handler's backend calls carry the client's address
+     * in X-Forwarded-For and the secret in X-Proxy-Secret; the values the
+     * client sent for both are dropped.
+     */
+    public function testBackendCallsCarrySignedClientIp(): void
+    {
+        $handler = new DeleteHandler(
+            'http://backend:8080',
+            $this->recordingHttpClient(),
+            $this->photosDir,
+            '',
+            self::dummySecret()
+        );
+
+        $handler->handleRequest($this->makeRequest('/staff/photos/main/3.json', self::spoofedHeaders()));
+
+        $this->assertBackendCallsCarryClientIp(self::dummySecret());
+    }
+
+    /**
+     * Without a secret, the client's address is still sent but no
+     * X-Proxy-Secret is, not even the one the client supplied.
+     */
+    public function testBackendCallsCarryNoSecretWhenNotConfigured(): void
+    {
+        $handler = $this->makeHandler($this->recordingHttpClient());
+
+        $handler->handleRequest($this->makeRequest('/staff/photos/main/3.json', self::spoofedHeaders()));
+
+        $this->assertBackendCallsCarryClientIp('');
     }
 }

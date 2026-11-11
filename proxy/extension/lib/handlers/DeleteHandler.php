@@ -66,14 +66,18 @@ class DeleteHandler extends RequestHandler
      * @param string                   $photosBasePath Base directory photos are stored under.
      * @param string                   $cacheRoot      Cache root cleared across every domain
      *                                                 folder ('' disables clearing).
+     * @param string                   $secret         Shared secret sent to the backend in
+     *                                                 X-Proxy-Secret with the client IP
+     *                                                 ('' sends none).
      */
     public function __construct(
         string $host,
         ?HttpClientInterface $httpClient=null,
         string $photosBasePath='',
-        string $cacheRoot=''
+        string $cacheRoot='',
+        string $secret=''
     ) {
-        $this->client = new BackendClient($host, $httpClient);
+        $this->client = new BackendClient($host, $httpClient, $secret);
         $this->photosBasePath = $photosBasePath;
         $this->photoStorage = new SecurePhotoStorage($photosBasePath);
         $this->cacheClearer = ResponseCacheClearer::forRoot($cacheRoot);
@@ -84,7 +88,10 @@ class DeleteHandler extends RequestHandler
      *
      * @param array $params Must contain 'host' (string) and 'photos_path' (string);
      *                      may contain 'cache_path' (string, the cache root) to
-     *                      enable cross-domain X-Cache-Clear handling.
+     *                      enable cross-domain X-Cache-Clear handling, and
+     *                      'secret' (string, the proxy secret sent to the
+     *                      backend in X-Proxy-Secret along with the client IP;
+     *                      default '').
      * @return self
      */
     public static function build(array $params): self
@@ -93,7 +100,8 @@ class DeleteHandler extends RequestHandler
             ($params['host'] ?? ''),
             null,
             ($params['photos_path'] ?? ''),
-            ($params['cache_path'] ?? '')
+            ($params['cache_path'] ?? ''),
+            (string) ($params['secret'] ?? '')
         );
     }
 
