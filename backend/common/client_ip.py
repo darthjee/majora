@@ -1,14 +1,29 @@
 """Resolve the real client IP, trusting `X-Forwarded-For` only from the Tent proxy."""
 
 import ipaddress
+import logging
 import os
 
+from django.conf import settings
+
 from common.secret_compare import secret_matches
+
+PROXY_SECRET_MISSING = (
+    'PROXY_SECRET is not set: X-Forwarded-For is ignored and client IPs fall back to REMOTE_ADDR'
+)
+
+logger = logging.getLogger('common')
 
 
 def proxy_secret():
     """Return the configured proxy shared secret, or '' if unset (trust disabled)."""
     return os.environ.get('PROXY_SECRET', '')
+
+
+def warn_if_proxy_secret_missing():
+    """Log a warning when production settings (`DEBUG` off) run without `PROXY_SECRET`."""
+    if not settings.DEBUG and not proxy_secret():
+        logger.warning(PROXY_SECRET_MISSING)
 
 
 def client_ip(request):

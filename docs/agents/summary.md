@@ -90,6 +90,11 @@ open the full file before loading it. For a bare link-only table of contents ins
 - **[Cache Warmer](cache-warmer.md)** — How Majora uses Navi to warm the Tent proxy cache
   after each production release; used by the `cache` agent to maintain
   `navi/navi_config.yaml`.
+- **[Production Configuration](production-configuration.md)** — Production settings kept outside
+  git: the keys of Tent's server-side `locals.php` (carried from release to release by CI, so
+  new keys are added on the server by hand), the backend's Render env vars, the rule that
+  `$proxySecret` and `PROXY_SECRET` must match, the `Check locals` deploy check, the backend's
+  startup warning and the secret rotation procedure.
 - **[Frontend i18n](i18n.md)** — The frontend's hand-rolled i18n layer: YAML translation
   files, the `Translator` API, language persistence, and how to add a new language.
 - **[How to Use Navi](external/HOW_TO_USE_NAVI.md)** — Reference hub for Navi, the

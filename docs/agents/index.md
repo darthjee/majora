@@ -32,6 +32,7 @@ open. For a short abstract of each doc's content, see [summary.md](summary.md) i
 ## External tooling
 
 - [Cache Warmer](cache-warmer.md)
+- [Production Configuration](production-configuration.md)
 - [Frontend i18n](i18n.md)
 - [How to Use Navi](external/HOW_TO_USE_NAVI.md)
 

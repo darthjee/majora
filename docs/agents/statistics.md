@@ -578,7 +578,10 @@ trusted only through a shared secret (#1501):
 - **Caveat:** if an edge proxy or CDN sits in front of Tent, every request is recorded with
   the edge's IP. This has not been verified in production.
 
-`PROXY_SECRET` must hold the same value on the Render backend service and in Tent's
-server-side `locals.php` (local dev: `.env`). Stored IPs are therefore **best effort**: not
-client-chosen, but possibly less precise than the real client IP. `X-Forwarded-Host` is not
+`PROXY_SECRET` (Render) and Tent's `$proxySecret` (server-side `locals.php`; local dev: `.env`)
+must hold the same non-empty value: see
+[Production Configuration](production-configuration.md#pairing-rule-proxysecret-and-proxy_secret)
+for the pairing rule, the guards on each side and the rotation procedure.
+
+Stored IPs are **best effort**: not client-chosen, but possibly less precise than the real client IP. `X-Forwarded-Host` is not
 covered by the secret gate (see [game access](access-control/game.md)).
