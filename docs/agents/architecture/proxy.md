@@ -27,6 +27,8 @@ proxy/
 
 See proxy/dev_configuration/rules/ and proxy/prod_configuration/ for exact rule definitions.
 
+Production-only settings (`configuration/locals.php` on the server, including the `$proxySecret` shared with the backend's `PROXY_SECRET`) and the deploy check that enforces them are described in [Production Configuration](../production-configuration.md).
+
 ## Production `.htaccess` (`proxy/prod_htaccess/`)
 
 Production runs PHP under mod_fcgid, which does not pass the `Authorization` request header to PHP, so Tent (which builds request headers with `getallheaders()`) would forward requests without it and every scoped API token (`Authorization: Bearer mjr_...`) would get `401 authentication_required` (#1729).
