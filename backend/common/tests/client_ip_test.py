@@ -1,10 +1,16 @@
 """Tests for the common.client_ip module."""
 
+import logging
+
+import pytest
 from django.test import RequestFactory
 
-from common.client_ip import client_ip, proxy_secret
+from common.client_ip import client_ip, proxy_secret, warn_if_proxy_secret_missing
 
 SECRET = 'tent-secret'
+WARNING_MESSAGE = (
+    'PROXY_SECRET is not set: X-Forwarded-For is ignored and client IPs fall back to REMOTE_ADDR'
+)
 
 
 def _request(**meta):
@@ -24,6 +30,49 @@ class TestProxySecret:
         """Test that the secret is read from PROXY_SECRET."""
         monkeypatch.setenv('PROXY_SECRET', SECRET)
         assert proxy_secret() == SECRET
+
+
+class TestWarnIfProxySecretMissing:
+    """Tests for warn_if_proxy_secret_missing()."""
+
+    @pytest.fixture(autouse=True)
+    def _capture_common_logs(self, caplog):
+        """Attach caplog to the (non-propagating) `common` logger for the test."""
+        common_logger = logging.getLogger('common')
+        common_logger.addHandler(caplog.handler)
+        caplog.set_level(logging.WARNING, logger='common')
+        self.caplog = caplog
+        yield
+        common_logger.removeHandler(caplog.handler)
+
+    def test_warns_in_production_when_secret_unset(self, settings, monkeypatch):
+        """Test that one WARNING with the contract message is logged on `common`."""
+        settings.DEBUG = False
+        monkeypatch.delenv('PROXY_SECRET', raising=False)
+        warn_if_proxy_secret_missing()
+        assert self.caplog.record_tuples == [('common', logging.WARNING, WARNING_MESSAGE)]
+
+    def test_warns_in_production_when_secret_empty(self, settings, monkeypatch):
+        """Test that an empty PROXY_SECRET is treated as missing."""
+        settings.DEBUG = False
+        monkeypatch.setenv('PROXY_SECRET', '')
+        warn_if_proxy_secret_missing()
+        assert self.caplog.record_tuples == [('common', logging.WARNING, WARNING_MESSAGE)]
+
+    def test_silent_in_production_when_secret_set(self, settings, monkeypatch):
+        """Test that nothing is logged, and the secret never appears, when it is set."""
+        settings.DEBUG = False
+        monkeypatch.setenv('PROXY_SECRET', SECRET)
+        warn_if_proxy_secret_missing()
+        assert self.caplog.records == []
+        assert SECRET not in self.caplog.text
+
+    def test_silent_in_debug_when_secret_unset(self, settings, monkeypatch):
+        """Test that nothing is logged outside production settings."""
+        settings.DEBUG = True
+        monkeypatch.delenv('PROXY_SECRET', raising=False)
+        warn_if_proxy_secret_missing()
+        assert self.caplog.records == []
 
 
 class TestClientIp:

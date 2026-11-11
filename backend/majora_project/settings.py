@@ -145,7 +145,7 @@ DEFAULT_FROM_EMAIL = os.environ.get('DJANGO_DEFAULT_FROM_EMAIL', 'no-reply@major
 # Base URL of the frontend application, used to build links sent in emails.
 FRONTEND_BASE_URL = os.environ.get('FRONTEND_BASE_URL', 'http://localhost:3000')
 
-# Only the apps that currently emit log records (`accounts`, `staff`) get an explicit
+# Only the apps that currently emit log records (`accounts`, `common`, `staff`) get an explicit
 # logger config, each with `propagate: False`, so records never bubble up into Django's
 # own `django`-namespaced logger tree (which already has its own console handler via
 # Django's DEFAULT_LOGGING) — this avoids duplicate lines in local dev. The handler writes
@@ -170,6 +170,11 @@ LOGGING = {
     },
     'loggers': {
         'accounts': {
+            'handlers': ['console'],
+            'level': DJANGO_LOG_LEVEL,
+            'propagate': False,
+        },
+        'common': {
             'handlers': ['console'],
             'level': DJANGO_LOG_LEVEL,
             'propagate': False,
