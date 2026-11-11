@@ -84,4 +84,9 @@ Docs:
   The full suite is the check.
 - `response.cookies` also contains cookie deletions (`delete_cookie`). That is intended: a
   `Set-Cookie` header is still sent.
+- Cookies set by middlewares listed above the cache middlewares (`SessionMiddleware`'s session
+  cookie, `CsrfViewMiddleware`'s CSRF cookie) are still added after the cache decision. Those
+  responses are mostly authenticated (`private`) already. Check whether an anonymous response can
+  get one (e.g. the CSRF cookie on a login page), and if so cover it too (e.g. by placing the
+  cache middlewares higher, with tests). Otherwise record it as a known gap.
 - Repo is public: no real IPs, hostnames or secrets in tests or docs.
