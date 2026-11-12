@@ -45,3 +45,11 @@ resources:
   paginated_game_faction_characters:
     - url: /games/{:slug}/factions/{:id}/characters.json?page={:page}&per_page={:per_page}
       status: 200
+
+  game_faction_pc_summary:
+    - url: /games/{:slug}/factions/{:faction_id}/pcs/{:character_id}/summary.json
+      status: 200
+
+  game_faction_npc_summary:
+    - url: /games/{:slug}/factions/{:faction_id}/npcs/{:character_id}/summary.json
+      status: 200

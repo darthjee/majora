@@ -74,6 +74,16 @@ resources:
   paginated_game_document_pages:
     - url: /games/{:slug}/documents/{:id}/pages.json?page={:page}&per_page=1
       status: 200
+      actions:
+        - resource: game_document_page_detail
+          parameters:
+            slug: parameters.slug
+            document_id: parameters.id
+            page_id: parsedBody.id
+
+  game_document_page_detail:
+    - url: /games/{:slug}/documents/{:document_id}/pages/{:page_id}.json
+      status: 200
 
   short_game_document_files:
     - url: /games/{:slug}/documents/{:id}/files.json?per_page=17
@@ -81,4 +91,12 @@ resources:
 
   short_game_document_photos:
     - url: /games/{:slug}/documents/{:id}/photos.json?per_page=17
+      status: 200
+
+  game_document_pc_summary:
+    - url: /games/{:slug}/documents/{:document_id}/pcs/{:character_id}/summary.json
+      status: 200
+
+  game_document_npc_summary:
+    - url: /games/{:slug}/documents/{:document_id}/npcs/{:character_id}/summary.json
       status: 200
