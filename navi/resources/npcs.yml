@@ -127,6 +127,10 @@ resources:
     - url: /games/{:slug}/npcs/{:id}/items/{:item_id}.json
       status: 200
 
+  npc_items_available:
+    - url: /games/{:slug}/npcs/{:id}/items/available.json
+      status: 200
+
   short_npc_items:
     - url: /games/{:slug}/npcs/{:id}/items.json?per_page=5
       status: 200
@@ -145,6 +149,38 @@ resources:
 
   paginated_npc_documents:
     - url: /games/{:slug}/npcs/{:id}/documents.json?page={:page}&per_page={:per_page}
+      status: 200
+      actions:
+        - resource: npc_document_detail
+          parameters:
+            slug: parameters.slug
+            id: parameters.id
+            document_id: parsedBody.id
+        - resource: npc_document_files
+          parameters:
+            slug: parameters.slug
+            id: parameters.id
+            document_id: parsedBody.id
+        - resource: npc_document_photos
+          parameters:
+            slug: parameters.slug
+            id: parameters.id
+            document_id: parsedBody.id
+
+  npc_document_detail:
+    - url: /games/{:slug}/npcs/{:id}/documents/{:document_id}.json
+      status: 200
+
+  npc_document_files:
+    - url: /games/{:slug}/npcs/{:id}/documents/{:document_id}/files.json
+      status: 200
+
+  npc_document_photos:
+    - url: /games/{:slug}/npcs/{:id}/documents/{:document_id}/photos.json
+      status: 200
+
+  npc_documents_available:
+    - url: /games/{:slug}/npcs/{:id}/documents/available.json
       status: 200
 
   short_npc_documents:
@@ -166,6 +202,20 @@ resources:
   paginated_npc_factions:
     - url: /games/{:slug}/npcs/{:id}/factions.json?page={:page}&per_page={:per_page}
       status: 200
+      actions:
+        - resource: npc_faction_detail
+          parameters:
+            slug: parameters.slug
+            id: parameters.id
+            faction_id: parsedBody.id
+
+  npc_faction_detail:
+    - url: /games/{:slug}/npcs/{:id}/factions/{:faction_id}.json
+      status: 200
+
+  npc_factions_available:
+    - url: /games/{:slug}/npcs/{:id}/factions/available.json
+      status: 200
 
   short_npc_factions:
     - url: /games/{:slug}/npcs/{:id}/factions.json?per_page=5
@@ -185,6 +235,20 @@ resources:
 
   paginated_npc_possessions:
     - url: /games/{:slug}/npcs/{:id}/possessions.json?page={:page}&per_page={:per_page}
+      status: 200
+      actions:
+        - resource: npc_possession_detail
+          parameters:
+            slug: parameters.slug
+            id: parameters.id
+            possession_id: parsedBody.id
+
+  npc_possession_detail:
+    - url: /games/{:slug}/npcs/{:id}/possessions/{:possession_id}.json
+      status: 200
+
+  npc_possessions_available:
+    - url: /games/{:slug}/npcs/{:id}/possessions/available.json
       status: 200
 
   short_npc_possessions:
@@ -219,6 +283,22 @@ resources:
 
   short_npc_recipes:
     - url: /games/{:slug}/npcs/{:id}/recipes.json?per_page=5
+      status: 200
+
+  npc_treasure_summary:
+    - url: /games/{:slug}/treasures/{:treasure_id}/npcs/{:character_id}/summary.json
+      status: 200
+
+  npc_document_summary:
+    - url: /games/{:slug}/documents/{:document_id}/npcs/{:character_id}/summary.json
+      status: 200
+
+  npc_faction_summary:
+    - url: /games/{:slug}/factions/{:faction_id}/npcs/{:character_id}/summary.json
+      status: 200
+
+  npc_item_summary:
+    - url: /games/{:slug}/items/{:item_id}/npcs/{:character_id}/summary.json
       status: 200
 
   short_game_npcs:

@@ -48,3 +48,11 @@ resources:
   game_treasure_detail:
     - url: /games/{:slug}/treasures/{:id}.json
       status: 200
+
+  game_treasure_pc_summary:
+    - url: /games/{:slug}/treasures/{:treasure_id}/pcs/{:character_id}/summary.json
+      status: 200
+
+  game_treasure_npc_summary:
+    - url: /games/{:slug}/treasures/{:treasure_id}/npcs/{:character_id}/summary.json
+      status: 200

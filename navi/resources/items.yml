@@ -24,3 +24,11 @@ resources:
   game_item_detail:
     - url: /games/{:slug}/items/{:id}.json
       status: 200
+
+  game_item_pc_summary:
+    - url: /games/{:slug}/items/{:item_id}/pcs/{:character_id}/summary.json
+      status: 200
+
+  game_item_npc_summary:
+    - url: /games/{:slug}/items/{:item_id}/npcs/{:character_id}/summary.json
+      status: 200

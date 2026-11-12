@@ -127,6 +127,10 @@ resources:
     - url: /games/{:slug}/pcs/{:id}/items/{:item_id}.json
       status: 200
 
+  pc_items_available:
+    - url: /games/{:slug}/pcs/{:id}/items/available.json
+      status: 200
+
   short_pc_items:
     - url: /games/{:slug}/pcs/{:id}/items.json?per_page=5
       status: 200
@@ -145,6 +149,38 @@ resources:
 
   paginated_pc_documents:
     - url: /games/{:slug}/pcs/{:id}/documents.json?page={:page}&per_page={:per_page}
+      status: 200
+      actions:
+        - resource: pc_document_detail
+          parameters:
+            slug: parameters.slug
+            id: parameters.id
+            document_id: parsedBody.id
+        - resource: pc_document_files
+          parameters:
+            slug: parameters.slug
+            id: parameters.id
+            document_id: parsedBody.id
+        - resource: pc_document_photos
+          parameters:
+            slug: parameters.slug
+            id: parameters.id
+            document_id: parsedBody.id
+
+  pc_document_detail:
+    - url: /games/{:slug}/pcs/{:id}/documents/{:document_id}.json
+      status: 200
+
+  pc_document_files:
+    - url: /games/{:slug}/pcs/{:id}/documents/{:document_id}/files.json
+      status: 200
+
+  pc_document_photos:
+    - url: /games/{:slug}/pcs/{:id}/documents/{:document_id}/photos.json
+      status: 200
+
+  pc_documents_available:
+    - url: /games/{:slug}/pcs/{:id}/documents/available.json
       status: 200
 
   short_pc_documents:
@@ -166,6 +202,20 @@ resources:
   paginated_pc_factions:
     - url: /games/{:slug}/pcs/{:id}/factions.json?page={:page}&per_page={:per_page}
       status: 200
+      actions:
+        - resource: pc_faction_detail
+          parameters:
+            slug: parameters.slug
+            id: parameters.id
+            faction_id: parsedBody.id
+
+  pc_faction_detail:
+    - url: /games/{:slug}/pcs/{:id}/factions/{:faction_id}.json
+      status: 200
+
+  pc_factions_available:
+    - url: /games/{:slug}/pcs/{:id}/factions/available.json
+      status: 200
 
   short_pc_factions:
     - url: /games/{:slug}/pcs/{:id}/factions.json?per_page=5
@@ -185,6 +235,20 @@ resources:
 
   paginated_pc_possessions:
     - url: /games/{:slug}/pcs/{:id}/possessions.json?page={:page}&per_page={:per_page}
+      status: 200
+      actions:
+        - resource: pc_possession_detail
+          parameters:
+            slug: parameters.slug
+            id: parameters.id
+            possession_id: parsedBody.id
+
+  pc_possession_detail:
+    - url: /games/{:slug}/pcs/{:id}/possessions/{:possession_id}.json
+      status: 200
+
+  pc_possessions_available:
+    - url: /games/{:slug}/pcs/{:id}/possessions/available.json
       status: 200
 
   short_pc_possessions:
@@ -219,6 +283,22 @@ resources:
 
   short_pc_recipes:
     - url: /games/{:slug}/pcs/{:id}/recipes.json?per_page=5
+      status: 200
+
+  pc_treasure_summary:
+    - url: /games/{:slug}/treasures/{:treasure_id}/pcs/{:character_id}/summary.json
+      status: 200
+
+  pc_document_summary:
+    - url: /games/{:slug}/documents/{:document_id}/pcs/{:character_id}/summary.json
+      status: 200
+
+  pc_faction_summary:
+    - url: /games/{:slug}/factions/{:faction_id}/pcs/{:character_id}/summary.json
+      status: 200
+
+  pc_item_summary:
+    - url: /games/{:slug}/items/{:item_id}/pcs/{:character_id}/summary.json
       status: 200
 
   short_game_pcs:
