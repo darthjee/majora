@@ -13,6 +13,7 @@ class GameCommonItem(models.Model):
     CATEGORY_AMMUNITION = 'ammunition'
     CATEGORY_POISON = 'poison'
     CATEGORY_GEAR = 'gear'
+    CATEGORY_INGREDIENT = 'ingredient'
     CATEGORY_OTHER = 'other'
 
     CATEGORY_CHOICES = [
@@ -22,6 +23,7 @@ class GameCommonItem(models.Model):
         (CATEGORY_AMMUNITION, 'Ammunition'),
         (CATEGORY_POISON, 'Poison'),
         (CATEGORY_GEAR, 'Gear'),
+        (CATEGORY_INGREDIENT, 'Ingredient'),
         (CATEGORY_OTHER, 'Other'),
     ]
 
