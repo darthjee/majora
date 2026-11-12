@@ -4,9 +4,9 @@ import CommonItemCategoryField, { CATEGORY_VALUES }
 
 describe('CommonItemCategoryField', function() {
   describe('CATEGORY_VALUES', function() {
-    it('lists the 7 fixed category values', function() {
+    it('lists the 8 fixed category values', function() {
       expect(CATEGORY_VALUES).toEqual([
-        'potion', 'drug', 'consumable', 'ammunition', 'poison', 'gear', 'other',
+        'potion', 'drug', 'consumable', 'ammunition', 'poison', 'gear', 'ingredient', 'other',
       ]);
     });
   });

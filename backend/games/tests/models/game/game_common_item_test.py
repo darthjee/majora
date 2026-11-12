@@ -55,6 +55,16 @@ class TestGameCommonItem(TestCase):
         )
         assert common_item.category == GameCommonItem.CATEGORY_POTION
 
+    def test_ingredient_category_is_persisted(self):
+        """Test that ingredient is a supported category and survives persistence."""
+        common_item = GameCommonItem.objects.create(
+            game=self.game, name='Moonpetal', price=3,
+            category=GameCommonItem.CATEGORY_INGREDIENT,
+        )
+        common_item.refresh_from_db()
+        assert common_item.category == 'ingredient'
+        assert (GameCommonItem.CATEGORY_INGREDIENT, 'Ingredient') in GameCommonItem.CATEGORY_CHOICES
+
     def test_game_common_item_str(self):
         """Test string representation of a game common item."""
         common_item = GameCommonItem(game=self.game, name='Healing Potion', price=15)

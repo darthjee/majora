@@ -8,4 +8,5 @@ common_item_page:
     ammunition: Ammunition
     poison: Poison
     gear: Gear
+    ingredient: Ingredient
     other: Other
