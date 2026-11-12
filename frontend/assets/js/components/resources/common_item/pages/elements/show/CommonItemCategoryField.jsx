@@ -8,7 +8,9 @@ import Translator from '../../../../../../i18n/Translator.js';
  *
  * @type {string[]}
  */
-export const CATEGORY_VALUES = ['potion', 'drug', 'consumable', 'ammunition', 'poison', 'gear', 'other'];
+export const CATEGORY_VALUES = [
+  'potion', 'drug', 'consumable', 'ammunition', 'poison', 'gear', 'ingredient', 'other',
+];
 
 const ID_KEYS = { new: 'common-item-new-category', edit: 'common-item-edit-category' };
 const LABEL_KEYS = {
@@ -34,8 +36,8 @@ function CommonItemCategoryFieldShow({ category }) {
 }
 
 /**
- * New/edit-mode right-column slot: the common item's category `<select>`, over the 7 fixed
- * category values, labels sourced from `common_item_page.category.*`.
+ * New/edit-mode right-column category `<select>`, with labels sourced from
+ * `common_item_page.category.*`.
  *
  * @param {object} context - Merged `ShowPageLayout` rendering context.
  * @param {'new'|'edit'} context.mode - Current page mode.

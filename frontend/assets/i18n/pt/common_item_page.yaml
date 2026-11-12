@@ -8,4 +8,5 @@ common_item_page:
     ammunition: Munição
     poison: Veneno
     gear: Equipamento
+    ingredient: Ingrediente
     other: Outro
