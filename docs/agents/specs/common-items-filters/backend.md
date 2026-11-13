@@ -2,8 +2,8 @@
 
 Part of the [Common Items Filters](../common-items-filters.md) specs (Epic #1766).
 
-*Planned by #1770.* Nothing on this page exists yet. It records where the filters from the
-[API contract](api-contract.md) are applied and how the existing filter helpers are refactored
+*Implemented by #1770.* This page records where the filters from the
+[API contract](api-contract.md) are applied and how the existing filter helpers were refactored
 to support them.
 
 ## Chosen approach
@@ -23,20 +23,22 @@ In `backend/common/query_filters.py`:
 - `filter_by_min(request, queryset, param, field)`: applies `<field>__gte`.
 - `filter_by_max(request, queryset, param, field)`: applies `<field>__lte`.
 
-Both read `request.query_params` (today `_filter_by_value` reads `request.GET`). Parsing follows
-rules #5 to #9: an absent, empty or non-`int` value is ignored; `0` and negative values are
-applied (the check is `is None`, not falsiness).
+Both read `request.query_params` (the former `_filter_by_value` read `request.GET`, an alias on
+a DRF `Request`). Parsing follows rules #5 to #9: an absent, empty or non-`int` value is
+ignored; `0` and negative values are applied (the check is `is None`, not falsiness). Parsing is
+exactly `int(value)`, identical to treasures, so Python `int()` quirks apply (`" 5"`, `"+5"` and
+`"1_000"` are accepted): a nuance on rule #15, not a deviation.
 
 ## Treasure compatibility
 
-**The pitfall this fixes:** the current helpers in
-`backend/games/views/games/_treasure_filters.py` hard-code the `min_value` / `max_value` param
-names, so they cannot serve `min_price` / `max_price`.
+**The pitfall this fixed:** the former helpers in
+`backend/games/views/games/_treasure_filters.py` hard-coded the `min_value` / `max_value` param
+names, so they could not serve `min_price` / `max_price`.
 
-- `filter_by_min_value` / `filter_by_max_value` keep their signatures and become thin wrappers
+- `filter_by_min_value` / `filter_by_max_value` keep their signatures and are thin wrappers
   over the shared helpers (`param='min_value'` / `'max_value'`, default `field='game_value'`).
 - `filter_by_name` is unchanged.
-- None of the 8 callers (4 treasure views, 4 exchange views) change.
+- None of the 8 callers (4 treasure views, 4 exchange views) changed.
 - The module docstring points to `common/query_filters.py` as the canonical home of the shared
   helpers.
 
@@ -70,7 +72,7 @@ behaviour decided for common items (rule #2).
 No Navi change: `navi/resources/common_items.yml` warms only unfiltered pages
 (`?page=&per_page=`); filtered URLs are plain cache misses.
 
-## Docs to update in #1770
+## Docs updated in #1770
 
-- [Game Common Item access control](../../access-control/game-common-item.md): extend the
-  `?name=` filter section with the new params.
+- [Game Common Item access control](../../access-control/game-common-item.md): the `?name=`
+  filter section now documents the new params.
