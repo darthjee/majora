@@ -1,8 +1,8 @@
 # Common Items Filters
 
 Specs for Epic #1766. `GameCommonItem` is the per-game catalog of common items, each with a
-`price` and a `category` (7 fixed choices: `potion`, `drug`, `consumable`, `ammunition`,
-`poison`, `gear`, `other`). Today both common items indexes accept only `?name=` (#1449), and
+`price` and a `category` (8 fixed choices: `potion`, `drug`, `consumable`, `ammunition`,
+`poison`, `gear`, `ingredient`, `other`). Today both common items indexes accept only `?name=` (#1449), and
 the common items page has no filter UI at all.
 
 The Epic adds `category`, `min_price` and `max_price` (alongside the existing `name`) to both

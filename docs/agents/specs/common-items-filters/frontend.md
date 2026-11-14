@@ -11,7 +11,7 @@ filters from the [API contract](api-contract.md).
 A **treasure-style draft form**. Fields, in order:
 
 1. name;
-2. category dropdown: "all" plus the 7 choices;
+2. category dropdown: "all" plus the 8 choices;
 3. min price;
 4. max price;
 5. `common/forms/FilterActions.jsx` (Query / Clear).

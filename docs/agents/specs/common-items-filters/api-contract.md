@@ -23,7 +23,7 @@ refer to them.
 | Param | Semantics | Status |
 |-------|-----------|--------|
 | `name` | Case-insensitive substring match on `name` | Existing (#1449) |
-| `category` | Exact match against the 7 `GameCommonItem.CATEGORY_CHOICES` (`potion`, `drug`, `consumable`, `ammunition`, `poison`, `gear`, `other`) | New |
+| `category` | Exact match against the 8 `GameCommonItem.CATEGORY_CHOICES` (`potion`, `drug`, `consumable`, `ammunition`, `poison`, `gear`, `ingredient`, `other`) | New |
 | `min_price` | `price__gte` | New |
 | `max_price` | `price__lte` | New |
 

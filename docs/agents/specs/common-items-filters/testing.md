@@ -55,7 +55,7 @@ Jasmine specs under `frontend/specs/`, mirroring `assets/js/`:
 - **Filter element:** rendering of the four fields and the actions; pre-fill from the hash
   filters.
 - **Controller:** query building: `name` trimmed, blank fields omitted, "all" category omitted.
-- **Helper:** fields and labels, including the 7 category options.
+- **Helper:** fields and labels, including the 8 category options.
 - **Page wiring:** `activeFilters` passed to the list; Query and Clear reset to page 1; Clear
   empties the hash filters.
 - **Translations:** key sync across languages.
