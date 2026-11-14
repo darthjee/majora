@@ -8,7 +8,7 @@ version: '3.8'
 
 services:
   majora_mysql:
-    image: mysql:9.3.0
+    image: mysql:8.4.13
     container_name: majora_mysql
     env_file: .env
     environment:
@@ -18,6 +18,15 @@ services:
       MYSQL_ROOT_PASSWORD: majora
     volumes:
       - ./docker_volumes/mysql_data:/var/lib/mysql
+    # Ping over TCP (-h 127.0.0.1), not the socket: during first-time init the
+    # image runs a temporary server with networking disabled, so a socket ping
+    # could report healthy before init has finished. No ports: here (#1724).
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
 
   #################### Base  ####################
 
@@ -66,7 +75,16 @@ services:
     <<: *base
     container_name: majora_tests
     depends_on:
-      - base_build
+      base_build:
+        condition: service_completed_successfully
+      majora_mysql:
+        condition: service_healthy
+    # Tests connect as root, like CI: the official image only grants the
+    # `majora` user privileges on `majora.*`, so it can't CREATE DATABASE
+    # test_majora (#1775). The password (majora, from .env) matches
+    # MYSQL_ROOT_PASSWORD. majora_app keeps connecting as `majora`.
+    environment:
+      - MAJORA_MYSQL_USER=root
 
   majora_prod_app:
     <<: *base_prod
