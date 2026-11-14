@@ -159,7 +159,7 @@ jobs:
           MAJORA_MYSQL_USER: root
           MAJORA_MYSQL_NAME: majora
           MAJORA_MYSQL_PASSWORD: majora
-      - image: cimg/mysql:8.0
+      - image: cimg/mysql:8.4.13
         name: mysql
         environment:
           MYSQL_DATABASE: majora
@@ -192,7 +192,7 @@ jobs:
           MAJORA_MYSQL_USER: root
           MAJORA_MYSQL_NAME: majora
           MAJORA_MYSQL_PASSWORD: majora
-      - image: cimg/mysql:8.0
+      - image: cimg/mysql:8.4.13
         name: mysql
         environment:
           MYSQL_DATABASE: majora
@@ -225,7 +225,7 @@ jobs:
           MAJORA_MYSQL_USER: root
           MAJORA_MYSQL_NAME: majora
           MAJORA_MYSQL_PASSWORD: majora
-      - image: cimg/mysql:8.0
+      - image: cimg/mysql:8.4.13
         name: mysql
         environment:
           MYSQL_DATABASE: majora
