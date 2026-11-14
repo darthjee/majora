@@ -1,4 +1,5 @@
 import listTypeConfig from '../../../../../../../assets/js/components/common/list_types/listTypeConfig.js';
+import CommonItemFilters from '../../../../../../../assets/js/components/resources/common_item/pages/elements/CommonItemFilters.jsx';
 import GameCommonItemListItem from '../../../../../../../assets/js/components/common/list_types/GameCommonItemListItem.js';
 import HashRouteResolver from '../../../../../../../assets/js/utils/routing/HashRouteResolver.js';
 import AccessStore from '../../../../../../../assets/js/utils/access/store/AccessStore.js';
@@ -13,8 +14,8 @@ describe('listTypeConfig', function() {
       expect(commonItems.wrapperClass).toBe(GameCommonItemListItem);
     });
 
-    it('has no filters component', function() {
-      expect(commonItems.filtersComponent).toBeNull();
+    it('uses CommonItemFilters as the filters component', function() {
+      expect(commonItems.filtersComponent).toBe(CommonItemFilters);
     });
 
     it('uses the commonItem photo type', function() {
@@ -93,6 +94,23 @@ describe('listTypeConfig', function() {
         });
         expect(result.data).toEqual([{ id: 5, name: 'Healing Potion' }]);
         expect(result.canEdit).toBe(false);
+      });
+
+      it('forwards the hash filter params in the query', async function() {
+        const hashResolver = new HashRouteResolver(
+          () => '#/games/demo/common_items?name=rope&category=tool&min_price=1&max_price=9',
+        );
+
+        spyOn(RequestStore, 'ensure').and.returnValue(Promise.resolve({
+          data: [], pagination: { page: 1, pages: 1, perPage: 10 },
+        }));
+        spyOn(AccessStore, 'ensureGamePermissions').and.returnValue(Promise.resolve({ can_edit: false }));
+
+        await commonItems.fetchList('demo', hashResolver);
+
+        expect(RequestStore.ensure).toHaveBeenCalledWith(jasmine.objectContaining({
+          query: { name: 'rope', category: 'tool', min_price: '1', max_price: '9' },
+        }));
       });
 
       it('resolves canEdit true when the requester can edit the game', async function() {
