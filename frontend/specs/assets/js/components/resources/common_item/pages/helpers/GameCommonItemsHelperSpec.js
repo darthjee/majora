@@ -1,4 +1,5 @@
 import { renderToStaticMarkup } from 'react-dom/server';
+import Noop from '../../../../../../../../assets/js/utils/Noop.js';
 import GameCommonItemsHelper
   from '../../../../../../../../assets/js/components/resources/common_item/pages/helpers/GameCommonItemsHelper.jsx';
 import ListPage from '../../../../../../../../assets/js/components/common/list_page/ListPage.jsx';
@@ -42,7 +43,7 @@ describe('GameCommonItemsHelper', function() {
     activeFilters: { name: 'rope' },
     ...overrides,
   });
-  const handlers = { onFilterQuery: () => {}, onFilterClear: () => {} };
+  const handlers = { onFilterQuery: Noop.noop, onFilterClear: Noop.noop };
 
   describe('.render', function() {
     it('renders a back button to the parent game page', function() {
