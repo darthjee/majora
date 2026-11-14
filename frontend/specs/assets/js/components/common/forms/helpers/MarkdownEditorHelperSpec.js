@@ -86,6 +86,17 @@ describe('MarkdownEditorHelper', function() {
         expect(html).toContain('Heading');
       });
 
+      it('renders a GFM table in the preview', function() {
+        const html = renderToStaticMarkup(
+          MarkdownEditorHelper.render(
+            'description', 'Description', '| A | B |\n| --- | --- |\n| 1 | 2 |', [],
+            buildState({ activeTab: 'preview' }), buildHandlers(),
+          ),
+        );
+
+        expect(html).toContain('<table class="table');
+      });
+
       it('renders the empty-preview message when value is blank', function() {
         const html = renderToStaticMarkup(
           MarkdownEditorHelper.render(

@@ -35,6 +35,14 @@ describe('DescriptionBoxHelper', function() {
       expect(html).toContain('bg-light');
     });
 
+    it('renders a GFM table', function() {
+      const html = renderToStaticMarkup(
+        DescriptionBoxHelper.render('| A | B |\n| --- | --- |\n| 1 | 2 |', buildState(), buildHandlers()),
+      );
+
+      expect(html).toContain('<table class="table');
+    });
+
     it('preserves line breaks via remark-breaks', function() {
       const html = renderToStaticMarkup(
         DescriptionBoxHelper.render('Line one.\nLine two.', buildState(), buildHandlers()),

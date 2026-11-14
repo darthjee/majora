@@ -1,6 +1,5 @@
 import React from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkBreaks from 'remark-breaks';
+import MarkdownContent from '../../misc/MarkdownContent.jsx';
 import FieldErrors from '../FieldErrors.jsx';
 import Translator from '../../../../i18n/Translator.js';
 import Icons from '../../../../utils/ui/Icons.js';
@@ -107,7 +106,7 @@ export default class MarkdownEditorHelper {
     return (
       <div className="markdown-editor-preview p-2">
         {value
-          ? <ReactMarkdown remarkPlugins={[remarkBreaks]}>{value}</ReactMarkdown>
+          ? <MarkdownContent>{value}</MarkdownContent>
           : <span className="text-muted">{Translator.t('markdown_editor.preview_empty')}</span>}
       </div>
     );

@@ -56,3 +56,11 @@ Pick one of these four extraction patterns, depending on what the condition guar
    `static renderXxx()` helper method following the existing convention in `helpers/*.jsx`
    (e.g. `CharacterHelper.#renderPrivateDescription`, `StaffUsersHelper.#renderRecoveryAction`),
    instead of writing the markup inline.
+
+## Markdown Rendering
+
+All Markdown is rendered through `components/common/misc/MarkdownContent.jsx` (GitHub Flavored
+Markdown via `remark-gfm` plus `remark-breaks`, with tables styled by Bootstrap inside a
+`table-responsive` wrapper). New code must not call `ReactMarkdown` directly. Do not add
+`rehype-raw` or a custom `urlTransform`: raw HTML must stay escaped and dangerous link schemes
+must stay stripped.
