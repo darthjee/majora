@@ -133,7 +133,7 @@ const FILTER_KEYS = [
   'public_slain', 'private_slain', 'name', 'public_allegiance', 'private_allegiance', 'status',
   'hidden', 'game_type', 'min_value', 'max_value', 'search',
   'type', 'race', 'roles', 'source', 'collection', 'tags', 'size',
-  'category', 'completed', 'session',
+  'category', 'completed', 'session', 'min_price', 'max_price',
   'range', 'from', 'to', 'granularity', 'user', 'domain', 'audience',
 ];
 
@@ -220,7 +220,7 @@ export default class HashRouteResolver {
    * @returns {URLSearchParams} Filter params (`public_slain`/`private_slain`/`name`/
    *   `public_allegiance`/`private_allegiance`/`status`/`hidden`/`game_type`/`min_value`/
    *   `max_value`/`search`/`type`/`race`/`roles`/`source`/`collection`/`tags`/`size`/
-   *   `category`/`completed`/`session`, plus the access statistics filters `range`/`from`/`to`/
+   *   `category`/`completed`/`session`/`min_price`/`max_price`, plus the access statistics filters `range`/`from`/`to`/
    *   `granularity`/`user`/`domain`/`audience`), only set when present in hash.
    */
   getFilterParams() {

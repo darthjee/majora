@@ -3,3 +3,9 @@ game_common_items_page:
   title: Itens Comuns
   hidden_label: Oculto
   create_common_item: Criar Item Comum
+  filter_name_label: Nome
+  filter_name_placeholder: Buscar por nome...
+  filter_category_label: Categoria
+  filter_category_all: Todas
+  filter_min_price_label: Preço mínimo
+  filter_max_price_label: Preço máximo

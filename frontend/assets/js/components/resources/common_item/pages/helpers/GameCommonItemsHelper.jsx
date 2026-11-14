@@ -22,9 +22,15 @@ export default class GameCommonItemsHelper {
    * @param {string} state.newHref - Hash path to the new common item form.
    * @param {boolean} state.canCreateCommonItem - Whether the current user may create a new
    *   common item.
+   * @param {number} state.refreshToken - Opaque value bumped to re-trigger the list fetch.
+   * @param {object} state.activeFilters - Active filter query params preserved on pagination
+   *   links.
+   * @param {object} handlers - Page event handlers.
+   * @param {Function} handlers.onFilterQuery - Called with the built filter query object.
+   * @param {Function} handlers.onFilterClear - Called when the filters are cleared.
    * @returns {React.ReactElement} Rendered common items page.
    */
-  static render(state) {
+  static render(state, handlers) {
     return (
       <>
         <div className="container mt-4">
@@ -38,6 +44,11 @@ export default class GameCommonItemsHelper {
           gameSlug={state.gameSlug}
           basePath={state.basePath}
           loadingMessage={Translator.t('game_common_items_page.loading')}
+          filters={{
+            props: { onQuery: handlers.onFilterQuery, onClear: handlers.onFilterClear },
+            active: state.activeFilters,
+          }}
+          refreshToken={state.refreshToken}
         />
       </>
     );
