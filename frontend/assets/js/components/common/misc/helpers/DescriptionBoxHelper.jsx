@@ -1,6 +1,5 @@
 import React from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkBreaks from 'remark-breaks';
+import MarkdownContent from '../MarkdownContent.jsx';
 import OverlayTrigger from 'react-bootstrap/cjs/OverlayTrigger.js';
 import Tooltip from 'react-bootstrap/cjs/Tooltip.js';
 import Translator from '../../../../i18n/Translator.js';
@@ -32,7 +31,7 @@ export default class DescriptionBoxHelper {
             maxHeight: state.expanded ? 'none' : state.maxCollapsedHeight,
           }}
         >
-          <ReactMarkdown remarkPlugins={[remarkBreaks]}>{description}</ReactMarkdown>
+          <MarkdownContent>{description}</MarkdownContent>
         </div>
         {DescriptionBoxHelper.#renderToggle(state, handlers)}
       </div>

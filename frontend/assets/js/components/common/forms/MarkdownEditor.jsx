@@ -5,7 +5,7 @@ import MarkdownSyntax from '../../../utils/MarkdownSyntax.js';
 /**
  * Labeled Markdown editor, a drop-in replacement for `TextareaField` on every description-like
  * field. Adds a toolbar that inserts Markdown syntax into the textarea plus a "Write"/"Preview"
- * tab pair, whose preview reuses the same `ReactMarkdown` rendering used on show pages.
+ * tab pair, whose preview reuses the same `MarkdownContent` rendering used on show pages.
  *
  * @param {object} props - Component props.
  * @param {string} props.id - Id shared between the label's `htmlFor` and the textarea.

@@ -1,6 +1,5 @@
 import React from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkBreaks from 'remark-breaks';
+import MarkdownContent from '../../../../../../common/misc/MarkdownContent.jsx';
 import Pagination from '../../../../../../common/pagination/Pagination.jsx';
 import EditButton from '../../../../../../common/buttons/EditButton.jsx';
 import ConditionalComponent from '../../../../../../common/misc/ConditionalComponent.jsx';
@@ -85,7 +84,7 @@ export default class DocumentPagesBoxHelper {
         ref={(element) => registerSegmentRef(segment.order, element)}
         data-page={segment.order}
       >
-        <ReactMarkdown remarkPlugins={[remarkBreaks]}>{segment.content}</ReactMarkdown>
+        <MarkdownContent>{segment.content}</MarkdownContent>
       </div>
     );
   }
