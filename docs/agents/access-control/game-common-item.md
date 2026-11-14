@@ -35,10 +35,24 @@ The UI create gate (Common Items create link and `/common_items/new` page) reads
 match the `create` key above.
 
 Both index endpoints order by `id`; `description` is omitted from both (present on detail
-endpoints instead). Both index endpoints accept an optional `?name=` filter (case-insensitive
-substring on `name`; absent or empty means no filtering), applied after the hidden filter on
-`common_items.json` and after the GameEdit gate on `common_items/all.json`, so it can only narrow
-results (issue #1449). `PATCH` shares the same route as `GET` on the plain detail endpoint; only
+endpoints instead). Both index endpoints accept the same optional filters, combined with AND:
+
+- `?name=`: case-insensitive substring on `name`; absent or empty means no filtering (issue
+  #1449).
+- `?category=`: exact, case-sensitive match against `GameCommonItem.CATEGORY_CHOICES`; absent or
+  empty means no filtering; an unknown value returns an empty list (`200`, never `400`); a
+  repeated param keeps its last value (issue #1770).
+- `?min_price=` / `?max_price=`: `price__gte` / `price__lte`; absent, empty, non-numeric or
+  decimal values are ignored, `0` and negative values are applied, and `min_price > max_price`
+  returns an empty list. The values follow Python `int()` parsing, identical to the treasure
+  `min_value` / `max_value` filters (issue #1770).
+
+The filters are applied after the hidden filter on `common_items.json` and after the GameEdit gate
+on `common_items/all.json`, and before pagination, so they can only narrow results and the
+pagination headers reflect the filtered total. A hidden item never appears on the public index,
+whatever the filters; unknown params (including `?hidden=`) are ignored.
+
+`PATCH` shares the same route as `GET` on the plain detail endpoint; only
 `name`/`description`/`price`/`category`/`hidden` are writable — `photo` stays on its own upload
 endpoint, which uses a fixed, deterministic path (`use_uuid=False`) since a common item has at
 most one photo, always replaced on re-upload (mirrors `GamePossession`'s single-always-replace

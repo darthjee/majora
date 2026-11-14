@@ -5,6 +5,7 @@ import json
 import pytest
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
+from rest_framework.test import APIClient
 
 from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import (
@@ -14,6 +15,7 @@ from games.tests.factories import (
     SuperUserFactory,
     UserFactory,
 )
+from games.tests.views.games._common_items_filters_behavior import CommonItemsFiltersBehavior
 
 
 @pytest.mark.django_db
@@ -150,3 +152,41 @@ class TestGameCommonItemsAllNameFilter(TokenAuthRequestMixin):
         """Test that ?name= does not bypass the gate for non-DM callers."""
         response = self.get(client, self._url('?name=secret'), token=self.other_token)
         assert response.status_code == 403
+
+
+@pytest.mark.django_db
+class TestGameCommonItemsAllFilters(TokenAuthRequestMixin, CommonItemsFiltersBehavior):
+    """Tests for the category and price filters on GET /games/<slug>/common_items/all.json."""
+
+    def setup_method(self):
+        """Set up a game with a DM and visible and hidden common items."""
+        self.client = APIClient()
+        self._create_items()
+        dm_user = UserFactory(username='dm_user', password='secret-password')
+        PlayerFactory(game=self.game, user=dm_user, is_dm=True)
+        self.dm_token = Token.objects.create(user=dm_user)
+
+    def _fetch(self, query='', game_slug='test-game'):
+        """Return the DM's all.json response for the given query string."""
+        url = f'/games/{game_slug}/common_items/all.json{query}'
+        return self.get(self.client, url, token=self.dm_token)
+
+    def test_hidden_item_matching_filters_is_returned(self):
+        """Test that a hidden item matching every filter is returned to the DM."""
+        query = '?name=elixir&category=potion&min_price=20&max_price=20'
+        assert self._names(query) == ['Healing Elixir']
+
+    def test_category_filter_includes_hidden_items(self):
+        """Test that ?category= returns matching hidden items alongside visible ones."""
+        assert self._names('?category=potion') == [
+            'Healing Potion', 'Greater Healing Potion', 'Healing Elixir',
+        ]
+
+    def test_returns_404_for_unknown_game_with_filters(self):
+        """Test that an unknown game slug returns 404 before any filter."""
+        assert self._fetch('?category=potion', game_slug='unknown').status_code == 404
+
+    def test_returns_401_for_unauthenticated_with_filters(self):
+        """Test that the filters do not bypass the gate for unauthenticated callers."""
+        response = self.get(self.client, '/games/test-game/common_items/all.json?category=potion')
+        assert response.status_code == 401

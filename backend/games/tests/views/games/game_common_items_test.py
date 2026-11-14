@@ -2,9 +2,11 @@
 
 import json
 
+import pytest
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
+from rest_framework.test import APIClient
 
 from games.models import GameCommonItem
 from games.tests.behaviors import TokenAuthRequestMixin
@@ -15,6 +17,7 @@ from games.tests.factories import (
     SuperUserFactory,
     UserFactory,
 )
+from games.tests.views.games._common_items_filters_behavior import CommonItemsFiltersBehavior
 
 
 class TestGameCommonItemsView(TestCase):
@@ -171,6 +174,35 @@ class TestGameCommonItemsNameFilter(TestCase):
         data = json.loads(response.content)
         assert [item['name'] for item in data] == ['Healing Potion']
         assert response['pages'] == '2'
+
+
+@pytest.mark.django_db
+class TestGameCommonItemsFilters(CommonItemsFiltersBehavior):
+    """Tests for the category and price filters on GET /games/<slug>/common_items.json."""
+
+    def setup_method(self):
+        """Set up a game with visible and hidden common items."""
+        self.client = APIClient()
+        self._create_items()
+
+    def _fetch(self, query='', game_slug='test-game'):
+        """Return the public index response for the given query string."""
+        return self.client.get(f'/games/{game_slug}/common_items.json{query}')
+
+    def test_hidden_item_matching_filters_is_never_returned(self):
+        """Test that a hidden item matching every filter is absent from the public index."""
+        query = '?name=elixir&category=potion&min_price=20&max_price=20'
+        assert self._names(query) == []
+
+    def test_hidden_param_does_not_expose_hidden_items(self):
+        """Test that ?hidden=true is ignored and never exposes hidden items."""
+        assert self._names('?hidden=true&category=potion') == [
+            'Healing Potion', 'Greater Healing Potion',
+        ]
+
+    def test_returns_404_for_unknown_game_with_filters(self):
+        """Test that an unknown game slug returns 404 before any filter."""
+        assert self._fetch('?category=potion', game_slug='unknown').status_code == 404
 
 
 class TestGameCommonItemsCreate(TokenAuthRequestMixin, TestCase):
