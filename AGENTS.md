@@ -56,6 +56,12 @@ frontend dev server on `3010`, full stack proxy on `3000`. A plain `docker-compo
 so it migrates and seeds the `localhost` / `127.0.0.1` domains. `make dev-up` seeds them by itself on boot;
 a running app must be restarted to pick up rows seeded by `make setup` (per-process in-memory caches).
 
+The dev MySQL runs 8.4 since #1775 (down from 9.3), matching CI and production. MySQL 8.4 can't open a
+`docker_volumes/mysql_data` created by 9.3, so if yours predates that change, stop the stack, delete
+`docker_volumes/mysql_data` and run `make setup` again. `majora_tests` starts `majora_mysql` itself, waits
+until it is healthy and connects as root (like CI), so it can create the `test_majora` database;
+`majora_app` keeps connecting as `majora`.
+
 **Always run project commands through `docker-compose`.**
 
 - Never install packages on the host machine.
