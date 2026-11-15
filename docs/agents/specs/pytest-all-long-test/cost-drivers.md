@@ -15,7 +15,7 @@ recorded test-style counts.
 - `backend/pyproject.toml` `[tool.pytest.ini_options]` defines `DJANGO_SETTINGS_MODULE`,
   `pythonpath`, `testpaths` (11 apps) and `python_files`. It does **not** define `addopts`,
   `--reuse-db`, `--no-migrations` or any xdist configuration.
-- Each CI pytest job has its own ephemeral `cimg/mysql:8.0` container, so creating the test
+- Each CI pytest job has its own ephemeral `cimg/mysql:8.4.13` container, so creating the test
   database per job is cheap and is **not** the bottleneck.
 - `django-simple-history` 3.13.0 is installed and `HistoryRequestMiddleware` is active, so every
   `save()` on a versioned model writes an extra history row during tests.

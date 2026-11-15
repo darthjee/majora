@@ -34,8 +34,10 @@ Observations:
 ## How to measure
 
 - **CI:** job durations from the CircleCI API or UI, for the pipeline of the PR's head commit,
-  compared with the latest `main` pipeline. Once #1787 lands, each pytest job also publishes a
-  durations report as an artifact, which gives per-module and per-test timings.
+  compared with the latest `main` pipeline. Since #1787, each pytest job also publishes a
+  durations report in its Artifacts tab under `test-reports/` (`durations.txt` per test and
+  phase, `durations-by-file.md` per file and directory, `junit.xml`) and populates its Tests
+  tab; see [CI jobs](ci-jobs.md#durations-report-1787) for how to read it.
 - **Every Epic PR** that touches tests or CI states the before and after time of the affected
   jobs (and of the affected modules, once the durations report exists) in its description, and
   appends them to the [History](#history) table below.
