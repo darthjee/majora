@@ -132,6 +132,43 @@ workflows:
       - client-release:
           requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint]
           filters: *tags_only
+commands:
+  # Runs pytest on the given paths with coverage, uploads partial coverage to
+  # Codacy and publishes the durations reports (#1787): the full
+  # `--durations=0` list, a per-file/per-directory summary built by
+  # bin/junit_summary.py and the JUnit XML, as artifacts and test results.
+  pytest_with_reports:
+    parameters:
+      paths:
+        type: string
+    steps:
+      - run:
+          name: Tests
+          command: |
+            mkdir -p test-reports
+            poetry run pytest << parameters.paths >> --cov --cov-report=lcov:coverage/lcov.info \
+              --durations=0 --junitxml=test-reports/junit.xml -o junit_family=xunit1 \
+              | tee test-reports/pytest-output.txt
+      - run:
+          name: Upload coverage to Codacy (partial)
+          command: bash <(curl -Ls https://coverage.codacy.com/get.sh) report --partial -r coverage/lcov.info
+      - run:
+          name: Durations report
+          when: always
+          command: |
+            if [ -f test-reports/pytest-output.txt ]; then
+              awk '/slowest durations/ { found = 1 } found && /^====/ && !/slowest durations/ { exit } found { print }' \
+                test-reports/pytest-output.txt > test-reports/durations.txt
+            fi
+            if [ -f test-reports/junit.xml ]; then
+              poetry run python bin/junit_summary.py test-reports/junit.xml test-reports/durations-by-file.md
+            fi
+      - store_test_results:
+          path: test-reports
+      - store_artifacts:
+          path: test-reports
+          destination: test-reports
+
 jobs:
   release-image:
     parameters:
@@ -176,12 +213,8 @@ jobs:
       - run:
           name: wait for db
           command: bin/configure_database.sh wait
-      - run:
-          name: Tests
-          command: poetry run pytest games/tests/views/game/ --cov --cov-report=lcov:coverage/lcov.info
-      - run:
-          name: Upload coverage to Codacy (partial)
-          command: bash <(curl -Ls https://coverage.codacy.com/get.sh) report --partial -r coverage/lcov.info
+      - pytest_with_reports:
+          paths: "games/tests/views/game/"
 
   pytest_views_rest:
     docker:
@@ -209,12 +242,8 @@ jobs:
       - run:
           name: wait for db
           command: bin/configure_database.sh wait
-      - run:
-          name: Tests
-          command: poetry run pytest games/tests/views/ --ignore=games/tests/views/game/ --cov --cov-report=lcov:coverage/lcov.info
-      - run:
-          name: Upload coverage to Codacy (partial)
-          command: bash <(curl -Ls https://coverage.codacy.com/get.sh) report --partial -r coverage/lcov.info
+      - pytest_with_reports:
+          paths: "games/tests/views/ --ignore=games/tests/views/game/"
 
   pytest_all:
     docker:
@@ -242,12 +271,8 @@ jobs:
       - run:
           name: wait for db
           command: bin/configure_database.sh wait
-      - run:
-          name: Tests
-          command: poetry run pytest --ignore=games/tests/views/ --cov --cov-report=lcov:coverage/lcov.info
-      - run:
-          name: Upload coverage to Codacy (partial)
-          command: bash <(curl -Ls https://coverage.codacy.com/get.sh) report --partial -r coverage/lcov.info
+      - pytest_with_reports:
+          paths: "--ignore=games/tests/views/"
 
   jasmine:
     docker:
