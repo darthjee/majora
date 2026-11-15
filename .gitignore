@@ -64,3 +64,4 @@ Thumbs.db
 proxy/extension/.phpunit.result.cache
 proxy/extension/vendor
 backend/coverage/
+backend/test-reports/

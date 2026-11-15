@@ -15,7 +15,7 @@ recorded test-style counts.
 - `backend/pyproject.toml` `[tool.pytest.ini_options]` defines `DJANGO_SETTINGS_MODULE`,
   `pythonpath`, `testpaths` (11 apps) and `python_files`. It does **not** define `addopts`,
   `--reuse-db`, `--no-migrations` or any xdist configuration.
-- Each CI pytest job has its own ephemeral `cimg/mysql:8.0` container, so creating the test
+- Each CI pytest job has its own ephemeral `cimg/mysql:8.4.13` container, so creating the test
   database per job is cheap and is **not** the bottleneck.
 - `django-simple-history` 3.13.0 is installed and `HistoryRequestMiddleware` is active, so every
   `save()` on a versioned model writes an extra history row during tests.
@@ -57,9 +57,9 @@ Ordered by expected impact. Each one is confirmed or ruled out mainly by the dur
 
 | # | Hypothesis | Status | How it is confirmed or ruled out |
 |---|------------|--------|----------------------------------|
-| 1 | The transactional and migration tests in `pytest_all` (driver 9) are a large share of its runtime. Suggested by the baseline: `pytest_all` has no view tests, yet it is the slowest job. | open | Sum of the durations of the 10 transactional files in #1787's `pytest_all` report, against the job's total. |
+| 1 | The transactional and migration tests in `pytest_all` (driver 9) are a large share of its runtime. Suggested by the baseline: `pytest_all` has no view tests, yet it is the slowest job. | **confirmed** | Sum of the durations of the 10 transactional files in #1787's `pytest_all` report, against the job's total. Pipeline 5900: the 10 files take 244.41s, 57.3% of the job's 426.84s sum of test times (53.2% of its 459.63s pytest wall time). The 4 migration files take 232.93s (54.6%), and two of them (`game_treasure_hidden_backfill_migration_test.py`, `character_public_slain_migration_test.py`) take 223.83s (52.4%); the 6 concurrency and reset/clear files only 11.48s (2.7%). See [Baseline](baseline.md#first-durations-report). |
 | 2 | The three pytest jobs are unbalanced, so the pipeline waits on the largest one regardless of per-test cost. | open | Already visible in the [Baseline](baseline.md); confirmed when #1788's rebalanced jobs lower the workflow wall-clock time without changing any test. |
-| 3 | Per-test setup (driver 2) multiplied across the suite is a major cost. The baseline weakens the original ranking of view tests first, since they run in the two faster jobs. | open | #1787's report: share of time spent in setup for `setup_method` modules; then the before/after time of each module conversion. |
+| 3 | Per-test setup (driver 2) multiplied across the suite is a major cost. The baseline weakens the original ranking of view tests first, since they run in the two faster jobs. | **confirmed** | #1787's report: share of time spent in setup for `setup_method` modules; then the before/after time of each module conversion. Pipeline 5900, excluding the one-off test database creation: the 360 `setup_method` files spend 152.09s in setup against 131.34s in call across the three jobs (all other files: 6.37s of setup). It is the largest cost of `pytest_views_characters` (85.07s setup vs 64.17s call, 226.5s pytest wall time), but not of the critical-path `pytest_all` (49.44s), which is dominated by hypothesis 1. Module conversions keep their before/after times in the [Baseline](baseline.md#history). |
 | 4 | `UserFactory` and manual `Token` creation multiply `INSERT`s across the suite. | open | Before/after job times of #1790 and #1791. |
 | 5 | `simple_history` roughly doubles write volume on versioned models. | open | Before/after job times of #1792. |
 | 6 | Coverage instrumentation adds a substantial constant overhead to every run. | open | #1794's local runs with and without `--cov` on the same machine. |
