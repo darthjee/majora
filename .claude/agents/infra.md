@@ -106,21 +106,25 @@ routes to it, the same way PHP proxy work is delegated to the `proxy` agent.
 All jobs run on every push. Release jobs run **only on version tags** matching `\d+\.\d+\.\d+`:
 
 ```
-[pytest] ─┐
-[jasmine] ─┼─ coverage-final
-[checks] ──┤
-[frontend-checks] ─┤
-           └─ build-and-release ─┐
-              upload_proxy_files ─┼─ release ─── warm-up-cache
-              upload_fe_files ───┘
-              link_photos ────────┘
+[pytest_views_game] ────┐
+[pytest_views_rest] ────┤
+[pytest_non_views] ×3 ──┼─ coverage-final
+[jasmine] ──────────────┤
+[checks] ───────────────┤
+[frontend-checks] ──────┤
+                        └─ build-and-release ─┐
+                           upload_proxy_files ─┼─ release ─── warm-up-cache
+                           upload_fe_files ────┤
+                           link_photos ────────┘
 ```
 
 ### CI jobs
 
 | Job | Image | Purpose |
 |-----|-------|---------|
-| `pytest` | `darthjee/circleci_majora-base` + `cimg/mysql:8.0` | Run backend tests + upload partial coverage |
+| `pytest_views_game` | `darthjee/circleci_majora-base` + `cimg/mysql:8.4.13` | Run `games/tests/views/game/` + upload partial coverage and the durations report |
+| `pytest_views_rest` | `darthjee/circleci_majora-base` + `cimg/mysql:8.4.13` | Run `games/tests/views/` except `game/` + upload partial coverage and the durations report |
+| `pytest_non_views` | `darthjee/circleci_majora-base` + `cimg/mysql:8.4.13` | `parallelism: 3`: every other `*_test.py` under the `testpaths`, split across containers by recorded timings (`circleci tests split --split-by=timings`); each container uploads partial coverage, its durations report and `test-reports/test-files.txt`. See `docs/agents/specs/pytest-all-long-test/ci-jobs.md` |
 | `jasmine` | `darthjee/circleci_node` | Run frontend tests + upload partial coverage |
 | `coverage-final` | `darthjee/circleci_node` | Finalize coverage report on Codacy |
 | `checks` | `darthjee/circleci_majora-base` | ruff lint + complexity check |
@@ -131,7 +135,7 @@ All jobs run on every push. Release jobs run **only on version tags** matching `
 | `link_photos` | `darthjee/tent` | Link photos directory on server |
 | `release` | `darthjee/vite_majora-base` | Finalize asset release on server |
 | `warm-up-cache` | `darthjee/navi-hey-client:latest` | Push resource/client config and trigger `engine-start` against the persistent Navi server via `navi-client` |
-| `wake-navi` | `cimg/base:current` | Runs in parallel with the `release` job chain (`requires:` the same test/check jobs as `build-and-release`); pings `$NAVI_URL` to wake the persistent Navi server, then keeps it warm with periodic pings before `warm-up-cache` needs it |
+| `wake-navi` | `cimg/base:current` | Runs in parallel with the `release` job chain (`requires:` the same test/check jobs as `build-and-release`, including `pytest_views_game`, `pytest_views_rest` and `pytest_non_views`); pings `$NAVI_URL` to wake the persistent Navi server, then keeps it warm with periodic pings before `warm-up-cache` needs it |
 | `crawler_extension_tests` | `machine` (runs `docker compose run extension_tests` in `crawler/navi-extension/`) | Lint + test the crawler Navi extension (`crawler/navi-extension/`) |
 
 ### CI setup pattern (backend/frontend jobs)
