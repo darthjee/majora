@@ -14,4 +14,5 @@
 - Check it locally only inside the container, e.g. `docker-compose run --rm majora_tests sh -c "poetry run pytest common/tests --junitxml=/tmp/j.xml -o junit_family=xunit1 -q && poetry run python bin/junit_summary.py /tmp/j.xml /tmp/s.md && cat /tmp/s.md"`, and run `ruff check` on it.
 
 ## Files to Change
+
 - `backend/bin/junit_summary.py` — new script.

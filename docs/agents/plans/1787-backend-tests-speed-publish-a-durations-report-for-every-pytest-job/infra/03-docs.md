@@ -9,6 +9,7 @@
 - `docs/agents/specs/pytest-all-long-test/baseline.md` "How to measure": state that the durations report now exists and where it is.
 
 ## Files to Change
+
 - `docs/agents/specs/pytest-all-long-test/ci-jobs.md` — durations report section, commands, MySQL image.
 - `docs/agents/specs/pytest-all-long-test/cost-drivers.md` — MySQL image.
 - `docs/agents/specs/pytest-all-long-test/baseline.md` — "How to measure" wording.

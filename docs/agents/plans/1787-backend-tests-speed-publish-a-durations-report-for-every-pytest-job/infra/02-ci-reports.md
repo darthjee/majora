@@ -19,5 +19,6 @@ Change `pytest_views_characters`, `pytest_views_rest` and `pytest_all` in `.circ
 - Add `backend/test-reports/` to the root `.gitignore`, next to `backend/coverage/`.
 
 ## Files to Change
+
 - `.circleci/config.yml` — pytest flags, report steps, optional reusable `commands:` entry.
 - `.gitignore` — ignore `backend/test-reports/`.
