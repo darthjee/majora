@@ -60,6 +60,7 @@ describe('MarkdownEditorHelper', function() {
         expect(html).toContain('bi-list-ul');
         expect(html).toContain('bi-list-ol');
         expect(html).toContain('bi-link-45deg');
+        expect(html).toContain('bi-table');
       });
 
       it('does not render a Markdown preview', function() {

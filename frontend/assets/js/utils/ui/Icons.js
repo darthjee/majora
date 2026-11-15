@@ -51,6 +51,7 @@ export default {
   listUl: 'bi-list-ul',
   listOl: 'bi-list-ol',
   link45deg: 'bi-link-45deg',
+  table: 'bi-table',
   arrowsExpand: 'bi-arrows-expand',
   arrowsCollapse: 'bi-arrows-collapse',
   questionCircleFill: 'bi-question-circle-fill',

@@ -94,6 +94,77 @@ describe('MarkdownSyntax', function() {
       });
     });
 
+    describe('table', function() {
+      const skeleton = '| Header 1 | Header 2 |\n| --- | --- |\n| Cell | Cell |';
+
+      it('inserts the skeleton without separators into an empty value', function() {
+        const result = MarkdownSyntax.apply('table', '', 0, 0);
+
+        expect(result.value).toBe(skeleton);
+      });
+
+      it('selects the Header 1 placeholder', function() {
+        const result = MarkdownSyntax.apply('table', '', 0, 0);
+
+        expect(result.value.slice(result.selectionStart, result.selectionEnd)).toBe('Header 1');
+        expect(result.selectionStart).toBe(2);
+        expect(result.selectionEnd).toBe(10);
+      });
+
+      it('adds a blank line before the table when the cursor is at the end of a text line', function() {
+        const result = MarkdownSyntax.apply('table', 'Intro', 5, 5);
+
+        expect(result.value).toBe(`Intro\n\n${skeleton}`);
+        expect(result.value.slice(result.selectionStart, result.selectionEnd)).toBe('Header 1');
+      });
+
+      it('adds only one newline when the value ends in a single newline', function() {
+        const result = MarkdownSyntax.apply('table', 'Intro\n', 6, 6);
+
+        expect(result.value).toBe(`Intro\n\n${skeleton}`);
+        expect(result.value.slice(result.selectionStart, result.selectionEnd)).toBe('Header 1');
+      });
+
+      it('adds no prefix when the value ends in a blank line', function() {
+        const result = MarkdownSyntax.apply('table', 'Intro\n\n', 7, 7);
+
+        expect(result.value).toBe(`Intro\n\n${skeleton}`);
+        expect(result.value.slice(result.selectionStart, result.selectionEnd)).toBe('Header 1');
+      });
+
+      it('adds a prefix and a suffix when the cursor is in the middle of text', function() {
+        const result = MarkdownSyntax.apply('table', 'Hello world', 5, 5);
+
+        expect(result.value).toBe(`Hello\n\n${skeleton}\n\n world`);
+        expect(result.value.slice(result.selectionStart, result.selectionEnd)).toBe('Header 1');
+      });
+
+      it('adds a blank line suffix and prefix around a single-newline separated text', function() {
+        const result = MarkdownSyntax.apply('table', 'Intro\nOutro', 5, 5);
+
+        expect(result.value).toBe(`Intro\n\n${skeleton}\n\nOutro`);
+      });
+
+      it('completes a single newline following the cursor into a blank line', function() {
+        const result = MarkdownSyntax.apply('table', '\nOutro', 0, 0);
+
+        expect(result.value).toBe(`${skeleton}\n\nOutro`);
+      });
+
+      it('adds no suffix when the following text starts with a blank line', function() {
+        const result = MarkdownSyntax.apply('table', 'Intro\n\nOutro', 5, 5);
+
+        expect(result.value).toBe(`Intro\n\n${skeleton}\n\nOutro`);
+      });
+
+      it('keeps the selected text and inserts the table after it', function() {
+        const result = MarkdownSyntax.apply('table', 'Hello world', 0, 5);
+
+        expect(result.value).toBe(`Hello\n\n${skeleton}\n\n world`);
+        expect(result.value.slice(result.selectionStart, result.selectionEnd)).toBe('Header 1');
+      });
+    });
+
     describe('an unrecognized action', function() {
       it('returns the value and selection unchanged', function() {
         const result = MarkdownSyntax.apply('unknown', 'Hello', 1, 3);
