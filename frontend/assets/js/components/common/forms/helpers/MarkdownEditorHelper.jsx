@@ -11,6 +11,7 @@ const TOOLBAR_ACTIONS = [
   { action: 'bulleted_list', icon: Icons.listUl, labelKey: 'markdown_editor.bulleted_list' },
   { action: 'numbered_list', icon: Icons.listOl, labelKey: 'markdown_editor.numbered_list' },
   { action: 'link', icon: Icons.link45deg, labelKey: 'markdown_editor.link' },
+  { action: 'table', icon: Icons.table, labelKey: 'markdown_editor.table' },
 ];
 
 /**

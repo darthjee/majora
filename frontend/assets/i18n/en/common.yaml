@@ -157,6 +157,7 @@ markdown_editor:
   bulleted_list: Bulleted list
   numbered_list: Numbered list
   link: Link
+  table: Table
   preview_empty: Nothing to preview yet
 character_page:
   loading: Loading character...
