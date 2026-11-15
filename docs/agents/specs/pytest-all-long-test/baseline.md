@@ -214,6 +214,53 @@ database creation.
 | call | 0.07s | `games/tests/views/game_sessions/session_messages_list_test.py::TestSessionMessagesListView::test_next_entry_id_query_param_returns_next_page` |
 | call | 0.06s | `games/tests/views/treasures/treasure_detail_test.py::TestTreasureDetailPatchView::test_patch_persists_changes` |
 
+### Rebalanced jobs (#1788)
+
+Recorded from CircleCI pipeline 5913 (workflow `0ea63694-0617-48be-bbca-2f8780e403d7`, commit
+`f1d88728`, PR #1800), 2026-11-15, from the `test-reports/` artifacts of each pytest job and
+each `pytest_non_views` container.
+
+This is the first pipeline after the rename, so `pytest_non_views` had **no timing history**:
+its "Split test files" step logged `Requested weighting by historical based timing, but they are
+not present. Falling back to weighting by name.` (121, 121 and 120 files per container). The
+pipeline of the commit that records these numbers is the first one that splits by timings.
+The branch also includes #1798 (merged from `main`), which makes the two slow migration files
+cheap, so the gain below is not from #1788 alone.
+
+| Job | Duration | pytest wall time | Tests | Slowest file (total) |
+|-----|----------|------------------|------:|----------------------|
+| `pytest_views_game` (#96397) | 4m 56s | 268.08s | 2,614 | `games/tests/views/games/_entity_token_scopes_behavior.py` (60.03s) |
+| `pytest_views_rest` (#96396) | 2m 58s | 106.27s | 1,671 | `games/tests/views/access_route_config_test.py` (44.75s) |
+| `pytest_non_views` (#96398) | 2m 33s | — | 4,805 | — |
+| `pytest_non_views` container 0 | 2m 34s | 126.37s | 1,646 | `accounts/tests/api_token_authentication_test.py` (53.88s) |
+| `pytest_non_views` container 1 | 2m 24s | 116.42s | 1,634 | `accounts/tests/api_token_exclusions_test.py` (52.50s) |
+| `pytest_non_views` container 2 | 1m 55s | 89.02s | 1,525 | `accounts/tests/api_tokens/access_test.py` (41.23s) |
+| Workflow `test` | 5m 12s | — | — | — |
+
+- Container durations run from the first to the last step of each container (CircleCI API
+  v1.1 step times); the job duration is the one CircleCI reports for the whole job.
+- Every slowest file above is slowest only because its first test pays the test database
+  creation (about 40–50s). Outside that, container 0's slowest file is
+  `character_public_slain_migration_test.py` (11.97s) and container 2's is
+  `password_reset_token_table_migration_test.py` (4.94s).
+- The two slow migration files from pipeline 5900 split across containers:
+  `character_public_slain_migration_test.py` ran in container 0 and
+  `game_treasure_hidden_backfill_migration_test.py` (now 0.88s) ran in container 2.
+- Exact coverage: the three `test-files.txt` artifacts list 121 + 121 + 120 = 362 files, with no
+  file listed twice and none missing or extra, compared with every `*_test.py` under the
+  `testpaths` outside `games/tests/views/` at `f1d88728`. Their test counts add up to 4,805, the
+  same as `pytest_all` in pipeline 5900.
+- `pytest_views_game` (4m 56s) is now the critical path; `coverage-final` waits on it.
+
+#### Compared with pipeline 5900
+
+| Job | Pipeline 5900 | Pipeline 5913 |
+|-----|---------------|---------------|
+| `pytest_all` → `pytest_non_views` | 8m 08s (459.8s, 4,805 tests) | 2m 33s (containers 2m 34s / 2m 24s / 1m 55s) |
+| `pytest_views_characters` → `pytest_views_game` | 4m 58s (226.5s, 2,614 tests) | 4m 56s (268.08s, 2,614 tests) |
+| `pytest_views_rest` | 2m 55s (122.1s, 1,671 tests) | 2m 58s (106.27s, 1,671 tests) |
+| Workflow `test` | 8m 54s | 5m 12s |
+
 ## How to measure
 
 - **CI:** job durations from the CircleCI API or UI, for the pipeline of the PR's head commit,
@@ -234,13 +281,15 @@ the comparison fair.
 
 ## Targets
 
-*Placeholder.* Concrete numeric targets for the CI workflow wall-clock time and the local
-full-run time are set here once the durations report (#1787) is available.
+- **CI:** after #1788, the `test` workflow wall-clock time is at most **5m 30s**. Later
+  sub-issues (#1789–#1794, #1798) lower it further. Pipeline 5913 meets it at 5m 12s.
+- **Local:** set by #1794.
 
 ## History
 
 | Sub-issue | Pipeline / machine | Jobs or modules | Before | After |
 |-----------|--------------------|-----------------|--------|-------|
 | #1787 | CircleCI 5881 → 5900 | `pytest_all` / `pytest_views_characters` / `pytest_views_rest` / workflow | 8m 34s / 5m 04s / 3m 35s / 8m 43s | 8m 08s / 4m 58s / 2m 55s / 8m 54s |
+| #1788 | CircleCI 5900 → 5913 | pytest jobs / workflow (`pytest_all` → `pytest_non_views`, `pytest_views_characters` → `pytest_views_game`, `pytest_views_rest`) | 8m 08s / 4m 58s / 2m 55s / 8m 54s | 2m 33s / 4m 56s / 2m 58s / 5m 12s (split by name, no timing history; includes #1798) |
 | #1798 | local docker (macOS host, MySQL 8), each file alone, `--durations=0` | `game_treasure_hidden_backfill_migration_test.py` call / teardown | 17.85s / 11.19s | 0.38s / 0.32s |
 | #1798 | local docker (macOS host, MySQL 8), each file alone, `--durations=0` | `character_public_slain_migration_test.py` call (both tests) / teardown | 19.98s / 12.70s | 3.53s / 0.31s |
