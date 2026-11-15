@@ -12,6 +12,7 @@ Own implementation work inside `backend/`, including Django models, views, seria
 - Python 3.11, Django 5, Django REST Framework, MySQL 8, pytest/pytest-django, and ruff.
 - Keep views thin; business logic belongs in models or serializers. Keep methods small and focused; extract helpers or classes for complex transformations.
 - Follow `docs/agents/architecture.md`, `docs/agents/models-organization.md`, `docs/agents/views-organization.md`, `docs/agents/serializers-organization.md`, and relevant access-control and product docs.
+- New test files use Django `TestCase` + `setUpTestData` (plain pytest classes with no marker when they never touch the database); existing `@pytest.mark.django_db` + `setup_method` files keep their style until a dedicated conversion issue converts them. See the [isolation policy](../../docs/agents/specs/pytest-all-long-test/isolation-policy.md).
 - Add or update tests alongside behavior changes. Update access-control documentation in the same change when adding an exposed model or endpoint.
 
 ## Commands
