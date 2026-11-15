@@ -242,3 +242,5 @@ full-run time are set here once the durations report (#1787) is available.
 | Sub-issue | Pipeline / machine | Jobs or modules | Before | After |
 |-----------|--------------------|-----------------|--------|-------|
 | #1787 | CircleCI 5881 → 5900 | `pytest_all` / `pytest_views_characters` / `pytest_views_rest` / workflow | 8m 34s / 5m 04s / 3m 35s / 8m 43s | 8m 08s / 4m 58s / 2m 55s / 8m 54s |
+| #1798 | local docker (macOS host, MySQL 8), each file alone, `--durations=0` | `game_treasure_hidden_backfill_migration_test.py` call / teardown | 17.85s / 11.19s | 0.38s / 0.32s |
+| #1798 | local docker (macOS host, MySQL 8), each file alone, `--durations=0` | `character_public_slain_migration_test.py` call (both tests) / teardown | 19.98s / 12.70s | 3.53s / 0.31s |
