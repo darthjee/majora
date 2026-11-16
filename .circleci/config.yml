@@ -340,6 +340,9 @@ jobs:
           name: Check python Lint
           command: poetry run ruff check .
       - run:
+          name: Check test policy
+          command: poetry run python bin/check_test_policy.py
+      - run:
           name: Check Python complexity
           command: bin/reports.sh ci
 

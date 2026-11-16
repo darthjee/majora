@@ -127,7 +127,7 @@ All jobs run on every push. Release jobs run **only on version tags** matching `
 | `pytest_non_views` | `darthjee/circleci_majora-base` + `cimg/mysql:8.4.13` | `parallelism: 3`: every other `*_test.py` under the `testpaths`, split across containers by recorded timings (`circleci tests split --split-by=timings`); each container uploads partial coverage, its durations report and `test-reports/test-files.txt`. See `docs/agents/specs/pytest-all-long-test/ci-jobs.md` |
 | `jasmine` | `darthjee/circleci_node` | Run frontend tests + upload partial coverage |
 | `coverage-final` | `darthjee/circleci_node` | Finalize coverage report on Codacy |
-| `checks` | `darthjee/circleci_majora-base` | ruff lint + complexity check |
+| `checks` | `darthjee/circleci_majora-base` | ruff lint + test-policy check + complexity check |
 | `frontend-checks` | `darthjee/circleci_node` | ESLint |
 | `build-and-release` | machine | Trigger Render.com deploy via `scripts/deploy.sh` |
 | `upload_proxy_files` | `darthjee/tent` | Upload Tent proxy configuration to server |
