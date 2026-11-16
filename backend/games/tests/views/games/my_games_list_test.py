@@ -4,7 +4,6 @@ import json
 
 import pytest
 from django.urls import reverse
-from rest_framework.authtoken.models import Token
 
 from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import (
@@ -15,6 +14,7 @@ from games.tests.factories import (
     MessageFactory,
     MessageVisualisationFactory,
     PlayerFactory,
+    TokenFactory,
     UserFactory,
 )
 
@@ -28,7 +28,7 @@ class TestMyGamesListView(TokenAuthRequestMixin):
     def setup_method(self):
         """Set up a requesting user and a token for it."""
         self.user = UserFactory(username='alice', password='secret-password')
-        self.token = Token.objects.create(user=self.user)
+        self.token = TokenFactory(user=self.user)
 
     def test_unauthenticated_returns_401(self, client):
         """Test that an unauthenticated request returns 401."""

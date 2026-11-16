@@ -8,13 +8,13 @@ from django.db import connection
 from django.db.models.query import QuerySet
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
-from rest_framework.authtoken.models import Token
 
 from accounts.models import UserProfile
 from domains.tests.factories import DomainFactory
 from games.tests.factories import (
     PlayerFactory,
     SuperUserFactory,
+    TokenFactory,
     UserFactory,
     UserProfileFactory,
 )
@@ -53,12 +53,12 @@ class _UsersViewSetup:
 
     def setup_method(self):
         """Set up staff, superuser, DM and regular accounts, three ranked users and visits."""
-        self.staff_token = Token.objects.create(user=UserFactory(is_staff=True))
-        self.superuser_token = Token.objects.create(user=SuperUserFactory())
-        self.regular_token = Token.objects.create(user=UserFactory())
+        self.staff_token = TokenFactory(user=UserFactory(is_staff=True))
+        self.superuser_token = TokenFactory(user=SuperUserFactory())
+        self.regular_token = TokenFactory(user=UserFactory())
         dm_user = UserFactory()
         PlayerFactory(user=dm_user, is_dm=True)
-        self.dm_token = Token.objects.create(user=dm_user)
+        self.dm_token = TokenFactory(user=dm_user)
         self.zeta = DomainFactory(domain='zeta.example.com')
         self.alpha = DomainFactory(domain='alpha.example.com')
         self._create_ranked_users()

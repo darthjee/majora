@@ -4,11 +4,10 @@ import json
 
 from django.test import TestCase
 from django.urls import reverse
-from rest_framework.authtoken.models import Token
 
 from accounts.models import UserProfile
 from games.tests.behaviors import TokenAuthRequestMixin
-from games.tests.factories import SuperUserFactory, UserFactory, UserProfileFactory
+from games.tests.factories import SuperUserFactory, TokenFactory, UserFactory, UserProfileFactory
 
 STAFF_USERS_URL = '/staff/users.json'
 
@@ -22,11 +21,11 @@ class TestStaffUsersListView(TokenAuthRequestMixin, TestCase):
         cls.staff_user = UserFactory(
             username='staffer', password='secret-password', is_staff=True
         )
-        cls.staff_token = Token.objects.create(user=cls.staff_user)
+        cls.staff_token = TokenFactory(user=cls.staff_user)
         cls.superuser = SuperUserFactory(username='admin', password='secret-password')
-        cls.superuser_token = Token.objects.create(user=cls.superuser)
+        cls.superuser_token = TokenFactory(user=cls.superuser)
         cls.regular_user = UserFactory(username='player', password='secret-password')
-        cls.regular_token = Token.objects.create(user=cls.regular_user)
+        cls.regular_token = TokenFactory(user=cls.regular_user)
 
     def _get(self, client, token=None):
         """Issue a GET request to the staff users list endpoint, optionally with a token."""
@@ -93,7 +92,7 @@ class TestStaffUsersListViewFilters(TokenAuthRequestMixin, TestCase):
     def setUpTestData(cls):
         """Set up a superuser plus pending, approved, and denied users to filter across."""
         cls.superuser = SuperUserFactory(username='admin', password='secret-password')
-        cls.superuser_token = Token.objects.create(user=cls.superuser)
+        cls.superuser_token = TokenFactory(user=cls.superuser)
 
         cls.pending_user = UserFactory(
             username='penny', password='secret-password', email='penny@example.com'

@@ -4,7 +4,6 @@ import json
 
 import pytest
 from django.urls import reverse
-from rest_framework.authtoken.models import Token
 
 from games.models import CharacterDocument
 from games.tests.behaviors import TokenAuthRequestMixin
@@ -14,6 +13,7 @@ from games.tests.factories import (
     GameFactory,
     PlayerFactory,
     SuperUserFactory,
+    TokenFactory,
     UserFactory,
 )
 
@@ -131,26 +131,26 @@ class TestGameNpcDocumentDetailHidden(TokenAuthRequestMixin):
     def test_hidden_npc_document_returns_404_for_regular_user(self, client):
         """Test that a non-DM authenticated user gets 404 for a hidden NPC's document."""
         other_user = UserFactory(username='other', password='secret-password')
-        token = Token.objects.create(user=other_user)
+        token = TokenFactory(user=other_user)
         response = self.get(client, self._url(), token=token)
         assert response.status_code == 404
 
     def test_hidden_npc_document_returns_404_for_dm(self, client):
         """Test that a DM gets 404 for a hidden NPC's document on the plain route."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self.get(client, self._url(), token=token)
         assert response.status_code == 404
 
     def test_hidden_npc_document_returns_404_for_superuser(self, client):
         """Test that a superuser gets 404 for a hidden NPC's document on the plain route."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
-        token = Token.objects.create(user=superuser)
+        token = TokenFactory(user=superuser)
         response = self.get(client, self._url(), token=token)
         assert response.status_code == 404
 
     def test_hidden_npc_document_response_includes_x_skip_cache_header_for_dm(self, client):
         """Test that a DM's response for a hidden NPC's document includes X-Skip-Cache: true."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self.get(client, self._url(), token=token)
         assert response['X-Skip-Cache'] == 'true'
 

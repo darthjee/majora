@@ -3,10 +3,15 @@
 import json
 
 from django.test import TestCase
-from rest_framework.authtoken.models import Token
 
 from games.models import GamePhoto
-from games.tests.factories import GameFactory, PlayerFactory, SuperUserFactory, UserFactory
+from games.tests.factories import (
+    GameFactory,
+    PlayerFactory,
+    SuperUserFactory,
+    TokenFactory,
+    UserFactory,
+)
 from uploads.models import Upload
 
 
@@ -19,7 +24,7 @@ class TestPhotoUploadView(TestCase):
         cls.game = GameFactory(name='Epic Quest', game_slug='epic-quest')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
-        cls.dm_token = Token.objects.create(user=cls.dm_user)
+        cls.dm_token = TokenFactory(user=cls.dm_user)
 
     def _post(self, client, payload, token=None):
         """Issue a POST request to the photo upload endpoint, optionally with a token."""
@@ -41,7 +46,7 @@ class TestPhotoUploadView(TestCase):
     def test_non_dm_user_returns_403(self):
         """Test that an authenticated user who is not a game master is rejected with 403."""
         other = UserFactory(username='other', password='secret-password')
-        token = Token.objects.create(user=other)
+        token = TokenFactory(user=other)
         response = self._post(self.client, {'filename': 'photo.jpg'}, token=token)
         assert response.status_code == 403
 
@@ -145,7 +150,7 @@ class TestPhotoUploadView(TestCase):
     def test_superuser_can_upload(self):
         """Test that a superuser is allowed to upload a photo for any game."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
-        token = Token.objects.create(user=superuser)
+        token = TokenFactory(user=superuser)
         response = self._post(self.client, {'filename': 'cover.jpg'}, token=token)
         assert response.status_code == 201
 

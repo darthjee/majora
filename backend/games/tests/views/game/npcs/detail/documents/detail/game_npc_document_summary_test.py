@@ -4,7 +4,6 @@ import json
 
 import pytest
 from django.urls import reverse
-from rest_framework.authtoken.models import Token
 
 from games.models import CharacterDocument
 from games.tests.behaviors import TokenAuthRequestMixin
@@ -13,6 +12,7 @@ from games.tests.factories import (
     GameDocumentFactory,
     GameFactory,
     PlayerFactory,
+    TokenFactory,
     UserFactory,
 )
 
@@ -27,7 +27,7 @@ class TestGameNpcDocumentSummaryView(TokenAuthRequestMixin):
         self.character = CharacterFactory(name='Gandalf', game=self.game, npc=True)
         self.game_document = GameDocumentFactory(game=self.game, name='Elven Lore')
         self.other_user = UserFactory(username='other', password='secret-password')
-        self.other_token = Token.objects.create(user=self.other_user)
+        self.other_token = TokenFactory(user=self.other_user)
 
     def _url(self, document_id=None, character_id=None, game_slug=None):
         """Return the summary endpoint URL (defaults to fixtures)."""
@@ -118,7 +118,7 @@ class TestGameNpcDocumentSummaryHiddenDocument(TokenAuthRequestMixin):
         self.game = GameFactory(name='Test Game', game_slug='test-game')
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
-        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.dm_token = TokenFactory(user=self.dm_user)
         self.character = CharacterFactory(name='Gandalf', game=self.game, npc=True)
         self.game_document = GameDocumentFactory(game=self.game, name='Secret Tome', hidden=True)
 

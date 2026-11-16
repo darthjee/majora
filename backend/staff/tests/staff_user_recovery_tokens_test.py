@@ -4,10 +4,9 @@ import json
 
 from django.test import TestCase
 from django.urls import reverse
-from rest_framework.authtoken.models import Token
 
 from accounts.models import PasswordResetToken
-from games.tests.factories import SuperUserFactory, UserFactory
+from games.tests.factories import SuperUserFactory, TokenFactory, UserFactory
 
 
 class TestStaffUserRecoveryTokensView(TestCase):
@@ -22,11 +21,11 @@ class TestStaffUserRecoveryTokensView(TestCase):
         cls.staff_user = UserFactory(
             username='staffer', password='secret-password', is_staff=True
         )
-        cls.staff_token = Token.objects.create(user=cls.staff_user)
+        cls.staff_token = TokenFactory(user=cls.staff_user)
         cls.superuser = SuperUserFactory(username='admin', password='secret-password')
-        cls.superuser_token = Token.objects.create(user=cls.superuser)
+        cls.superuser_token = TokenFactory(user=cls.superuser)
         cls.regular_user = UserFactory(username='player', password='secret-password')
-        cls.regular_token = Token.objects.create(user=cls.regular_user)
+        cls.regular_token = TokenFactory(user=cls.regular_user)
 
     def _get(self, client, user_id, token=None):
         """Issue a GET request to the recovery-tokens endpoint, optionally with a token."""

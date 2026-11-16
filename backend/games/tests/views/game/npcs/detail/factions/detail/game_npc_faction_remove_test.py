@@ -2,7 +2,6 @@
 
 import pytest
 from django.urls import reverse
-from rest_framework.authtoken.models import Token
 
 from games.models import CharacterFaction
 from games.tests.behaviors import TokenAuthRequestMixin
@@ -11,6 +10,7 @@ from games.tests.factories import (
     GameFactionFactory,
     GameFactory,
     PlayerFactory,
+    TokenFactory,
     UserFactory,
 )
 
@@ -25,12 +25,12 @@ class TestGameNpcFactionRemoveView(TokenAuthRequestMixin):
         self.character = CharacterFactory(name='Gandalf', game=self.game, npc=True)
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
-        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.dm_token = TokenFactory(user=self.dm_user)
         self.other_user = UserFactory(username='other', password='secret-password')
-        self.other_token = Token.objects.create(user=self.other_user)
+        self.other_token = TokenFactory(user=self.other_user)
         self.plain_player_user = UserFactory(username='plain_player', password='secret-password')
         PlayerFactory(game=self.game, user=self.plain_player_user)
-        self.plain_player_token = Token.objects.create(user=self.plain_player_user)
+        self.plain_player_token = TokenFactory(user=self.plain_player_user)
         self.game_faction = GameFactionFactory(game=self.game, name='The Silver Hand')
         self.character_faction = CharacterFaction.objects.create(
             character=self.character, game_faction=self.game_faction,
@@ -70,7 +70,7 @@ class TestGameNpcFactionRemoveView(TokenAuthRequestMixin):
         staff_user = UserFactory(username='staff_user', password='secret-password')
         staff_user.is_staff = True
         staff_user.save()
-        staff_token = Token.objects.create(user=staff_user)
+        staff_token = TokenFactory(user=staff_user)
         response = self._post(client, token=staff_token)
         assert response.status_code == 204
 

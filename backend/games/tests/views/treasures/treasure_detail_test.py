@@ -4,7 +4,6 @@ import json
 
 from django.test import TestCase
 from django.urls import reverse
-from rest_framework.authtoken.models import Token
 
 from games.tests.behaviors import DetailNotFoundBehaviorMixin, TokenAuthRequestMixin
 from games.tests.factories import (
@@ -12,6 +11,7 @@ from games.tests.factories import (
     GameTreasureFactory,
     PlayerFactory,
     SuperUserFactory,
+    TokenFactory,
     TreasureFactory,
     UserFactory,
 )
@@ -58,13 +58,13 @@ class TestTreasureDetailPatchView(TokenAuthRequestMixin, TestCase):
         """Set up a treasure, a superuser, and a regular user."""
         cls.treasure = TreasureFactory(name='Old Helmet', value=80)
         cls.superuser = SuperUserFactory(username='admin', password='secret-password')
-        cls.superuser_token = Token.objects.create(user=cls.superuser)
+        cls.superuser_token = TokenFactory(user=cls.superuser)
         cls.regular_user = UserFactory(username='player', password='secret-password')
-        cls.regular_token = Token.objects.create(user=cls.regular_user)
+        cls.regular_token = TokenFactory(user=cls.regular_user)
         cls.staff_user = UserFactory(
             username='staffer', password='secret-password', is_staff=True
         )
-        cls.staff_token = Token.objects.create(user=cls.staff_user)
+        cls.staff_token = TokenFactory(user=cls.staff_user)
 
     def _patch(self, client, payload, token=None):
         """Issue a PATCH request to the treasure detail endpoint, optionally with a token."""
@@ -124,7 +124,7 @@ class TestTreasureDetailPatchView(TokenAuthRequestMixin, TestCase):
         self.treasure.save()
         dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=game, user=dm_user, is_dm=True)
-        dm_token = Token.objects.create(user=dm_user)
+        dm_token = TokenFactory(user=dm_user)
         response = self._patch(self.client, {'name': 'Hacked Helmet'}, token=dm_token)
         assert response.status_code == 403
         self.treasure.refresh_from_db()

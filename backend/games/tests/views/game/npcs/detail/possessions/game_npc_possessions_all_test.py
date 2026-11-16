@@ -4,7 +4,6 @@ import json
 
 import pytest
 from django.urls import reverse
-from rest_framework.authtoken.models import Token
 
 from games.models import CharacterPossession
 from games.tests.behaviors import TokenAuthRequestMixin
@@ -14,6 +13,7 @@ from games.tests.factories import (
     GamePossessionFactory,
     PlayerFactory,
     SuperUserFactory,
+    TokenFactory,
     UserFactory,
 )
 
@@ -27,9 +27,9 @@ class TestGameNpcPossessionsAllView(TokenAuthRequestMixin):
         self.game = GameFactory(name='Test Game', game_slug='test-game')
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
-        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.dm_token = TokenFactory(user=self.dm_user)
         self.other_user = UserFactory(username='other', password='secret-password')
-        self.other_token = Token.objects.create(user=self.other_user)
+        self.other_token = TokenFactory(user=self.other_user)
         self.character = CharacterFactory(name='Gandalf', game=self.game, npc=True)
         self.visible_possession = GamePossessionFactory(game=self.game, name='Visible Vault')
         self.hidden_possession = GamePossessionFactory(game=self.game, name='Hidden Vault')
@@ -67,7 +67,7 @@ class TestGameNpcPossessionsAllView(TokenAuthRequestMixin):
     def test_superuser_gets_200_with_both_visible_and_hidden_possessions(self, client):
         """Test that a superuser gets 200 with both visible and hidden possessions."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
-        token = Token.objects.create(user=superuser)
+        token = TokenFactory(user=superuser)
         response = self.get(client, self._url(), token=token)
         assert response.status_code == 200
         data = json.loads(response.content)

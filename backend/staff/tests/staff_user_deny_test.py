@@ -8,7 +8,7 @@ from rest_framework.authtoken.models import Token
 
 from accounts.models import ApiToken, UserProfile
 from games.tests.behaviors import TokenAuthRequestMixin
-from games.tests.factories import SuperUserFactory, UserFactory, UserProfileFactory
+from games.tests.factories import SuperUserFactory, TokenFactory, UserFactory, UserProfileFactory
 
 STAFF_USER_DENY_URL = '/staff/users/deny.json'
 
@@ -22,11 +22,11 @@ class TestStaffUserDenyView(TokenAuthRequestMixin, TestCase):
         cls.staff_user = UserFactory(
             username='staffer', password='secret-password', is_staff=True
         )
-        cls.staff_token = Token.objects.create(user=cls.staff_user)
+        cls.staff_token = TokenFactory(user=cls.staff_user)
         cls.superuser = SuperUserFactory(username='admin', password='secret-password')
-        cls.superuser_token = Token.objects.create(user=cls.superuser)
+        cls.superuser_token = TokenFactory(user=cls.superuser)
         cls.regular_user = UserFactory(username='player', password='secret-password')
-        cls.regular_token = Token.objects.create(user=cls.regular_user)
+        cls.regular_token = TokenFactory(user=cls.regular_user)
 
         cls.target_user = UserFactory(
             username='newbie', password='secret-password', email='newbie@example.com'
@@ -77,7 +77,7 @@ class TestStaffUserDenyView(TokenAuthRequestMixin, TestCase):
 
     def test_deny_destroys_the_user_tokens(self):
         """Test that denying a user deletes all of their tokens."""
-        Token.objects.create(user=self.target_user)
+        TokenFactory(user=self.target_user)
 
         self._post(self.client, self.target_user.id, token=self.superuser_token)
 

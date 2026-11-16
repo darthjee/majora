@@ -4,9 +4,8 @@ from unittest import TestCase, mock
 
 import pytest
 from django.urls import reverse
-from rest_framework.authtoken.models import Token
 
-from games.tests.factories import SuperUserFactory, UserFactory
+from games.tests.factories import SuperUserFactory, TokenFactory, UserFactory
 from statistics import reset as reset_module
 from statistics.models import Session, Visit
 
@@ -20,9 +19,9 @@ class TestStaffStatisticsClearView:
     def setup_method(self):
         """Set up staff, superuser and regular accounts, and two sessions with visits."""
         self.staff_user = UserFactory(is_staff=True)
-        self.staff_token = Token.objects.create(user=self.staff_user)
-        self.superuser_token = Token.objects.create(user=SuperUserFactory())
-        self.regular_token = Token.objects.create(user=UserFactory())
+        self.staff_token = TokenFactory(user=self.staff_user)
+        self.superuser_token = TokenFactory(user=SuperUserFactory())
+        self.regular_token = TokenFactory(user=UserFactory())
         for _ in range(2):
             session = Session.objects.create(ip='127.0.0.1')
             Visit.objects.create(session=session)

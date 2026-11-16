@@ -5,10 +5,9 @@ DELETE /staff/users/<id>/recovery-tokens/<token_id>.json
 
 from django.test import TestCase
 from django.urls import reverse
-from rest_framework.authtoken.models import Token
 
 from accounts.models import PasswordResetToken
-from games.tests.factories import SuperUserFactory, UserFactory
+from games.tests.factories import SuperUserFactory, TokenFactory, UserFactory
 
 
 class TestStaffUserRecoveryTokenDeleteView(TestCase):
@@ -23,11 +22,11 @@ class TestStaffUserRecoveryTokenDeleteView(TestCase):
         cls.staff_user = UserFactory(
             username='staffer', password='secret-password', is_staff=True
         )
-        cls.staff_token = Token.objects.create(user=cls.staff_user)
+        cls.staff_token = TokenFactory(user=cls.staff_user)
         cls.superuser = SuperUserFactory(username='admin', password='secret-password')
-        cls.superuser_token = Token.objects.create(user=cls.superuser)
+        cls.superuser_token = TokenFactory(user=cls.superuser)
         cls.regular_user = UserFactory(username='player', password='secret-password')
-        cls.regular_token = Token.objects.create(user=cls.regular_user)
+        cls.regular_token = TokenFactory(user=cls.regular_user)
 
     def setUp(self):
         """Set up a fresh recovery token for the target user before each test."""

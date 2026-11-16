@@ -4,7 +4,6 @@ import json
 
 import pytest
 from django.urls import reverse
-from rest_framework.authtoken.models import Token
 
 from games.models import CharacterDocument
 from games.tests.behaviors import TokenAuthRequestMixin
@@ -13,6 +12,7 @@ from games.tests.factories import (
     GameDocumentFactory,
     GameFactory,
     PlayerFactory,
+    TokenFactory,
     UserFactory,
 )
 
@@ -33,17 +33,17 @@ class TestGamePcDocumentAcquireView(TokenAuthRequestMixin):
         )
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
-        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.dm_token = TokenFactory(user=self.dm_user)
         self.other_user = UserFactory(username='other', password='secret-password')
-        self.other_token = Token.objects.create(user=self.other_user)
+        self.other_token = TokenFactory(user=self.other_user)
         self.plain_player_user = UserFactory(username='plain_player', password='secret-password')
         PlayerFactory(game=self.game, user=self.plain_player_user)
-        self.plain_player_token = Token.objects.create(user=self.plain_player_user)
+        self.plain_player_token = TokenFactory(user=self.plain_player_user)
         self.game_document = GameDocumentFactory(game=self.game, name='Elven Lore')
 
     def _editor_token(self):
         """Return the owning player's user token."""
-        return Token.objects.create(user=self.owner)
+        return TokenFactory(user=self.owner)
 
     def _url(self, character_id=None, game_slug=None):
         """Return the acquire endpoint URL for the given character/game (defaults to fixtures)."""
@@ -193,7 +193,7 @@ class TestGamePcDocumentAcquireView(TokenAuthRequestMixin):
         staff_user = UserFactory(username='staff_user', password='secret-password')
         staff_user.is_staff = True
         staff_user.save()
-        staff_token = Token.objects.create(user=staff_user)
+        staff_token = TokenFactory(user=staff_user)
         response = self._post(
             client, {'game_document_id': self.game_document.id}, token=staff_token,
         )

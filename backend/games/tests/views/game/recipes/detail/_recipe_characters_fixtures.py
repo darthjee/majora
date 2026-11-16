@@ -1,6 +1,5 @@
 """Shared fixtures for the recipe → characters view tests (issue #1447)."""
 
-from rest_framework.authtoken.models import Token
 
 from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import (
@@ -9,6 +8,7 @@ from games.tests.factories import (
     GameFactory,
     GameRecipeFactory,
     PlayerFactory,
+    TokenFactory,
     UserFactory,
 )
 
@@ -21,10 +21,10 @@ class RecipeCharactersViewFixtures(TokenAuthRequestMixin):
         self.game = GameFactory(name='Test Game', game_slug='test-game')
         self.dm_user = UserFactory(username='dm_user')
         PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
-        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.dm_token = TokenFactory(user=self.dm_user)
         self.player_user = UserFactory(username='player')
         PlayerFactory(game=self.game, user=self.player_user)
-        self.player_token = Token.objects.create(user=self.player_user)
+        self.player_token = TokenFactory(user=self.player_user)
         self.recipe = GameRecipeFactory(game=self.game, name='Brew Potion')
         self.zed = self._know('Zed', npc=False)
         self.aragorn = self._know('Aragorn', npc=False)

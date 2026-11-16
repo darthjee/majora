@@ -4,10 +4,9 @@ import json
 
 import pytest
 from django.utils.crypto import get_random_string
-from rest_framework.authtoken.models import Token
 
 from accounts.models import CacheToken, UserProfile
-from games.tests.factories import UserFactory, UserProfileFactory
+from games.tests.factories import TokenFactory, UserFactory, UserProfileFactory
 
 TEST_PASSWORD = get_random_string(20)
 
@@ -37,7 +36,7 @@ class TestHeaderStatusView:
         """Test that a pending user's valid token reports the dedicated pending payload."""
         user = UserFactory(username='alice', password=TEST_PASSWORD)
         UserProfileFactory(user=user, status=UserProfile.STATUS_PENDING)
-        token = Token.objects.create(user=user)
+        token = TokenFactory(user=user)
 
         response = client.get(
             '/users/header_status.json',
@@ -55,7 +54,7 @@ class TestHeaderStatusView:
         """Test that a denied user's valid token reports a plain logged_in false (no status)."""
         user = UserFactory(username='alice', password=TEST_PASSWORD)
         UserProfileFactory(user=user, status=UserProfile.STATUS_DENIED)
-        token = Token.objects.create(user=user)
+        token = TokenFactory(user=user)
 
         response = client.get(
             '/users/header_status.json',
@@ -68,7 +67,7 @@ class TestHeaderStatusView:
     def test_returns_narrow_payload_for_approved_non_staff_user(self, client):
         """Test that an approved, non-staff/non-superuser gets the narrow logged-in payload."""
         user = UserFactory(username='alice', password=TEST_PASSWORD)
-        token = Token.objects.create(user=user)
+        token = TokenFactory(user=user)
 
         response = client.get(
             '/users/header_status.json',
@@ -91,7 +90,7 @@ class TestHeaderStatusView:
     def test_omits_token_for_header_token_authenticated_request(self, client):
         """Test that token-auth (Authorization header) logged-in responses omit `token`."""
         user = UserFactory(username='alice', password=TEST_PASSWORD)
-        token = Token.objects.create(user=user)
+        token = TokenFactory(user=user)
 
         response = client.get(
             '/users/header_status.json',
@@ -104,7 +103,7 @@ class TestHeaderStatusView:
     def test_includes_token_for_session_authenticated_request(self, client):
         """Test that session-auth logged-in responses include `token` matching the session."""
         user = UserFactory(username='alice', password=TEST_PASSWORD)
-        token = Token.objects.create(user=user)
+        token = TokenFactory(user=user)
         session = client.session
         session['auth_token'] = token.key
         session.save()
@@ -125,7 +124,7 @@ class TestHeaderStatusView:
         """Test that a pending user's response omits `token`."""
         user = UserFactory(username='alice', password=TEST_PASSWORD)
         UserProfileFactory(user=user, status=UserProfile.STATUS_PENDING)
-        token = Token.objects.create(user=user)
+        token = TokenFactory(user=user)
 
         response = client.get(
             '/users/header_status.json',
@@ -138,7 +137,7 @@ class TestHeaderStatusView:
         """Test that a denied user's response omits `token`."""
         user = UserFactory(username='alice', password=TEST_PASSWORD)
         UserProfileFactory(user=user, status=UserProfile.STATUS_DENIED)
-        token = Token.objects.create(user=user)
+        token = TokenFactory(user=user)
 
         response = client.get(
             '/users/header_status.json',
@@ -153,7 +152,7 @@ class TestHeaderStatusView:
         user.is_staff = True
         user.is_superuser = True
         user.save()
-        token = Token.objects.create(user=user)
+        token = TokenFactory(user=user)
 
         response = client.get(
             '/users/header_status.json',
@@ -174,7 +173,7 @@ class TestHeaderStatusView:
     def test_repeated_calls_return_the_same_cache_token(self, client):
         """Test that a second call for the same user reuses the same cache_token."""
         user = UserFactory(username='alice', password=TEST_PASSWORD)
-        token = Token.objects.create(user=user)
+        token = TokenFactory(user=user)
         session = client.session
         session['auth_token'] = token.key
         session.save()

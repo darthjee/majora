@@ -4,7 +4,6 @@ import json
 
 import pytest
 from django.urls import reverse
-from rest_framework.authtoken.models import Token
 
 from games.models import CharacterPossession
 from games.tests.behaviors import TokenAuthRequestMixin
@@ -13,6 +12,7 @@ from games.tests.factories import (
     GameFactory,
     GamePossessionFactory,
     PlayerFactory,
+    TokenFactory,
     UserFactory,
 )
 
@@ -27,12 +27,12 @@ class TestGameNpcPossessionAcquireView(TokenAuthRequestMixin):
         self.character = CharacterFactory(name='Gandalf', game=self.game, npc=True)
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
-        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.dm_token = TokenFactory(user=self.dm_user)
         self.other_user = UserFactory(username='other', password='secret-password')
-        self.other_token = Token.objects.create(user=self.other_user)
+        self.other_token = TokenFactory(user=self.other_user)
         self.plain_player_user = UserFactory(username='plain_player', password='secret-password')
         PlayerFactory(game=self.game, user=self.plain_player_user)
-        self.plain_player_token = Token.objects.create(user=self.plain_player_user)
+        self.plain_player_token = TokenFactory(user=self.plain_player_user)
         self.game_possession = GamePossessionFactory(game=self.game, name='Bag End')
 
     def _url(self, character_id=None, game_slug=None):
@@ -66,7 +66,7 @@ class TestGameNpcPossessionAcquireView(TokenAuthRequestMixin):
         staff_user = UserFactory(username='staff_user', password='secret-password')
         staff_user.is_staff = True
         staff_user.save()
-        staff_token = Token.objects.create(user=staff_user)
+        staff_token = TokenFactory(user=staff_user)
         response = self._post(
             client, {'game_possession_id': self.game_possession.id}, token=staff_token,
         )
@@ -173,7 +173,7 @@ class TestGameNpcPossessionAcquireHidden(TokenAuthRequestMixin):
         self.game = GameFactory(name='Test Game', game_slug='test-game')
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
-        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.dm_token = TokenFactory(user=self.dm_user)
         self.hidden_npc = CharacterFactory(
             name='Secret NPC', game=self.game, npc=True, hidden=True,
         )
@@ -201,6 +201,6 @@ class TestGameNpcPossessionAcquireHidden(TokenAuthRequestMixin):
     def test_unrelated_user_returns_404_for_hidden_npc(self, client):
         """Test that an unrelated authenticated user returns 404 for a hidden NPC."""
         other = UserFactory(username='other', password='secret-password')
-        token = Token.objects.create(user=other)
+        token = TokenFactory(user=other)
         response = self._post(client, token=token)
         assert response.status_code == 404

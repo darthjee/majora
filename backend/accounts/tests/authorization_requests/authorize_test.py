@@ -6,11 +6,10 @@ from datetime import timedelta
 import pytest
 from django.utils import timezone
 from django.utils.crypto import get_random_string
-from rest_framework.authtoken.models import Token
 
 from accounts.models import AuthorizationRequest
 from games.tests.behaviors import TokenAuthRequestMixin
-from games.tests.factories import UserFactory
+from games.tests.factories import TokenFactory, UserFactory
 
 TEST_PASSWORD = get_random_string(20)
 
@@ -27,7 +26,7 @@ class TestAuthorizationRequestAuthorizeView(TokenAuthRequestMixin):
     def setup_method(self):
         """Set up an authenticated user, another user, and their token."""
         self.user = UserFactory(username='alice', password=TEST_PASSWORD)
-        self.token = Token.objects.create(user=self.user)
+        self.token = TokenFactory(user=self.user)
         self.other_user = UserFactory(username='bob', password=TEST_PASSWORD)
 
     def test_returns_401_when_unauthenticated(self, client):
@@ -160,9 +159,9 @@ class TestAuthorizationRequestAuthorizeScopes(TokenAuthRequestMixin):
     def setup_method(self):
         """Set up a staff user and a non-staff user, each with a token."""
         self.staff = UserFactory(username='staff', password=TEST_PASSWORD, is_staff=True)
-        self.staff_token = Token.objects.create(user=self.staff)
+        self.staff_token = TokenFactory(user=self.staff)
         self.player = UserFactory(username='player', password=TEST_PASSWORD)
-        self.player_token = Token.objects.create(user=self.player)
+        self.player_token = TokenFactory(user=self.player)
 
     def _authorize(self, client, user, token, scopes):
         """Create a request for `user` asking for `scopes`, approve it; return both."""

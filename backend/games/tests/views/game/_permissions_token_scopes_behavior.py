@@ -1,6 +1,7 @@
 """Shared `@token_scopes` tests for the identity-independent `permissions/*.json` routes."""
 
-from rest_framework.authtoken.models import Token
+
+from games.tests.factories import TokenFactory
 
 
 class PermissionsTokenScopesBehavior:
@@ -26,7 +27,7 @@ class PermissionsTokenScopesBehavior:
 
     def _legacy_permissions_get(self, query=''):
         """GET the permissions URL with a legacy `Token` of the DM."""
-        token = Token.objects.create(user=self.dm)
+        token = TokenFactory(user=self.dm)
         return self.client.get(
             self._permissions_query_url(query), HTTP_AUTHORIZATION=f'Token {token.key}',
         )

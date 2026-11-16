@@ -4,7 +4,6 @@ import json
 
 import pytest
 from django.urls import reverse
-from rest_framework.authtoken.models import Token
 
 from games.models import CharacterItem
 from games.tests.behaviors import TokenAuthRequestMixin
@@ -14,6 +13,7 @@ from games.tests.factories import (
     GameItemFactory,
     PlayerFactory,
     SuperUserFactory,
+    TokenFactory,
     UserFactory,
 )
 
@@ -27,10 +27,10 @@ class TestGameNpcItemRemoveAllView(TokenAuthRequestMixin):
         self.game = GameFactory(name='Test Game', game_slug='test-game')
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
-        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.dm_token = TokenFactory(user=self.dm_user)
         self.character = CharacterFactory(name='Gandalf', game=self.game, npc=True)
         self.other_user = UserFactory(username='other', password='secret-password')
-        self.other_token = Token.objects.create(user=self.other_user)
+        self.other_token = TokenFactory(user=self.other_user)
         self.game_item = GameItemFactory(game=self.game, name='Secret Ring')
         self.character_item = CharacterItem.objects.create(
             character=self.character, game_item=self.game_item, hidden=True,
@@ -58,7 +58,7 @@ class TestGameNpcItemRemoveAllView(TokenAuthRequestMixin):
     def test_superuser_can_remove_a_hidden_item(self, client):
         """Test that a superuser can remove a hidden item via the all-variant."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
-        token = Token.objects.create(user=superuser)
+        token = TokenFactory(user=superuser)
         response = self._post(client, token=token)
         assert response.status_code == 204
 
@@ -67,7 +67,7 @@ class TestGameNpcItemRemoveAllView(TokenAuthRequestMixin):
         staff_user = UserFactory(username='staff_user', password='secret-password')
         staff_user.is_staff = True
         staff_user.save()
-        staff_token = Token.objects.create(user=staff_user)
+        staff_token = TokenFactory(user=staff_user)
         response = self._post(client, token=staff_token)
         assert response.status_code == 403
 

@@ -4,7 +4,6 @@ import json
 
 from django.test import TestCase
 from django.urls import reverse
-from rest_framework.authtoken.models import Token
 
 from games.models import GameSession, Poll, PollOption, PollVote
 from games.tests.factories import (
@@ -13,6 +12,7 @@ from games.tests.factories import (
     PollFactory,
     PollOptionFactory,
     SuperUserFactory,
+    TokenFactory,
     UserFactory,
 )
 
@@ -32,18 +32,18 @@ class TestGamePollCloseView(TestCase):
         cls.option_two = PollOptionFactory(poll=cls.poll, option='The Rusty Anchor')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
-        cls.dm_token = Token.objects.create(user=cls.dm_user)
+        cls.dm_token = TokenFactory(user=cls.dm_user)
         cls.player_user = UserFactory(username='player_user', password='secret-password')
         cls.player = PlayerFactory(name='Bob', user=cls.player_user, game=cls.game)
-        cls.player_token = Token.objects.create(user=cls.player_user)
+        cls.player_token = TokenFactory(user=cls.player_user)
         cls.superuser = SuperUserFactory(username='admin', password='secret-password')
-        cls.superuser_token = Token.objects.create(user=cls.superuser)
+        cls.superuser_token = TokenFactory(user=cls.superuser)
         cls.staff_user = UserFactory(
             username='staff_user', password='secret-password', is_staff=True,
         )
-        cls.staff_token = Token.objects.create(user=cls.staff_user)
+        cls.staff_token = TokenFactory(user=cls.staff_user)
         cls.outsider = UserFactory(username='outsider', password='secret-password')
-        cls.outsider_token = Token.objects.create(user=cls.outsider)
+        cls.outsider_token = TokenFactory(user=cls.outsider)
 
     def _patch(self, payload=None, token=None, game_slug=None, poll_id=None):
         """Issue a PATCH request to the poll close endpoint, optionally with a token."""
@@ -264,7 +264,7 @@ class TestGamePollCloseMultipleType(TestCase):
         cls.option_c = PollOptionFactory(poll=cls.poll, option='C')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
-        cls.dm_token = Token.objects.create(user=cls.dm_user)
+        cls.dm_token = TokenFactory(user=cls.dm_user)
 
     def test_closing_a_multiple_type_poll_resolves_to_a_single_winner(self):
         """Test that closing a multiple-type poll still selects exactly one winning option."""
@@ -301,7 +301,7 @@ class TestGamePollCloseSessionLinked(TestCase):
         cls.option_two = PollOptionFactory(poll=cls.poll, option='2026-08-08')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
-        cls.dm_token = Token.objects.create(user=cls.dm_user)
+        cls.dm_token = TokenFactory(user=cls.dm_user)
 
     def _patch(self, payload=None):
         """Issue a PATCH request to the poll close endpoint as the game's DM."""

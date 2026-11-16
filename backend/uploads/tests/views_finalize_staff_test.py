@@ -5,10 +5,9 @@ from datetime import timedelta
 
 import pytest
 from django.utils import timezone
-from rest_framework.authtoken.models import Token
 
 from games.models import GameDocumentFilePhoto
-from games.tests.factories import PlayerFactory, TreasureFactory, UserFactory
+from games.tests.factories import PlayerFactory, TokenFactory, TreasureFactory, UserFactory
 from staff import photo_types
 from staff.tests.photo_builders import PhotoBuilder
 from uploads.models import Upload
@@ -23,9 +22,9 @@ class TestUploadFinalizeStaffBranch:
     def setup_method(self):
         """Set up a staff user, another staff user, and the photo builder."""
         self.staff_user = UserFactory(username='staffer', is_staff=True)
-        self.staff_token = Token.objects.create(user=self.staff_user)
+        self.staff_token = TokenFactory(user=self.staff_user)
         self.other_staff = UserFactory(username='other_staffer', is_staff=True)
-        self.other_staff_token = Token.objects.create(user=self.other_staff)
+        self.other_staff_token = TokenFactory(user=self.other_staff)
         self.builder = PhotoBuilder()
 
     def _staff_upload(self, photo, file_path, user=None, **kwargs):
@@ -134,7 +133,7 @@ class TestUploadFinalizeStaffBranch:
         """Test that a user no longer staff cannot finalize their staff upload."""
         photo, _ = self.builder.build('game')
         demoted = UserFactory(username='demoted')
-        token = Token.objects.create(user=demoted)
+        token = TokenFactory(user=demoted)
         upload = self._staff_upload(photo, photo.path, user=demoted)
         assert self._patch(client, upload, 'uploading', token=token).status_code == 403
 
@@ -143,7 +142,7 @@ class TestUploadFinalizeStaffBranch:
         photo, game = self.builder.build('game')
         dm = UserFactory(username='dm')
         PlayerFactory(game=game, user=dm, is_dm=True)
-        token = Token.objects.create(user=dm)
+        token = TokenFactory(user=dm)
         upload = self._staff_upload(photo, photo.path, user=dm)
         assert self._patch(client, upload, 'uploading', token=token).status_code == 403
 
@@ -228,7 +227,7 @@ class TestUploadFinalizeRegularBranchUnchanged:
         photo, game = PhotoBuilder().build('game', ready=False)
         dm = UserFactory(username='dm_regular')
         PlayerFactory(game=game, user=dm, is_dm=True)
-        token = Token.objects.create(user=dm)
+        token = TokenFactory(user=dm)
         upload = Upload.objects.create(user=dm, file_path=photo.path, content_object=photo)
         response = client.patch(
             f'/uploads/image/{upload.pk}.json',

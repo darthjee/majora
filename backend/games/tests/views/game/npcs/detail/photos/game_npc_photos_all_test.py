@@ -4,7 +4,6 @@ import json
 
 import pytest
 from django.urls import reverse
-from rest_framework.authtoken.models import Token
 
 from games.models import CharacterPhoto
 from games.tests.behaviors import TokenAuthRequestMixin
@@ -13,6 +12,7 @@ from games.tests.factories import (
     GameFactory,
     PlayerFactory,
     SuperUserFactory,
+    TokenFactory,
     UserFactory,
 )
 
@@ -26,10 +26,10 @@ class TestGameNpcPhotosAllView(TokenAuthRequestMixin):
         self.game = GameFactory(name='Test Game', game_slug='test-game')
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
-        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.dm_token = TokenFactory(user=self.dm_user)
         self.other_user = UserFactory(username='other', password='secret-password')
         PlayerFactory(game=self.game, user=self.other_user)
-        self.other_token = Token.objects.create(user=self.other_user)
+        self.other_token = TokenFactory(user=self.other_user)
         self.npc = CharacterFactory(name='Secret NPC', game=self.game, npc=True, hidden=True)
         CharacterPhoto.objects.create(
             path='photos/games/test-game/characters/1/ready.png',
@@ -69,7 +69,7 @@ class TestGameNpcPhotosAllView(TokenAuthRequestMixin):
     def test_superuser_gets_photos_of_hidden_npc(self, client):
         """Test that a superuser gets the photos of a hidden NPC."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
-        token = Token.objects.create(user=superuser)
+        token = TokenFactory(user=superuser)
         response = self.get(client, self._url(), token=token)
         assert response.status_code == 200
         assert len(json.loads(response.content)) == 1

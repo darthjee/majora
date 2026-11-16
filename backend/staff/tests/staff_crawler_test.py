@@ -5,9 +5,8 @@ import json
 import pytest
 from django.contrib.auth.models import User
 from django.urls import reverse
-from rest_framework.authtoken.models import Token
 
-from games.tests.factories import SuperUserFactory, UserFactory
+from games.tests.factories import SuperUserFactory, TokenFactory, UserFactory
 from staff.crawler_debug_emission_paginator import PAGE_SIZE, RETENTION_CAP
 from staff.models import CrawlerDebugEmission
 from staff.views.staff_crawler import MAX_PAYLOAD_BYTES
@@ -20,11 +19,11 @@ class TestStaffCrawlerView:
     def setup_method(self):
         """Set up staff, superuser, and regular user accounts."""
         self.staff_user = UserFactory(is_staff=True)
-        self.staff_token = Token.objects.create(user=self.staff_user)
+        self.staff_token = TokenFactory(user=self.staff_user)
         self.superuser = SuperUserFactory()
-        self.superuser_token = Token.objects.create(user=self.superuser)
+        self.superuser_token = TokenFactory(user=self.superuser)
         self.regular_user = UserFactory()
-        self.regular_token = Token.objects.create(user=self.regular_user)
+        self.regular_token = TokenFactory(user=self.regular_user)
 
     def _post(self, client, data=None, token=None):
         """Issue a POST request to the staff crawler endpoint, optionally with a token."""

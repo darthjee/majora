@@ -4,7 +4,6 @@ import json
 
 from django.test import TestCase
 from django.urls import reverse
-from rest_framework.authtoken.models import Token
 
 from games.models import GameSession, Poll
 from games.serializers.games.polls.poll_create import MAX_OPTIONS
@@ -13,6 +12,7 @@ from games.tests.factories import (
     GameFactory,
     PlayerFactory,
     SuperUserFactory,
+    TokenFactory,
     UserFactory,
 )
 
@@ -28,18 +28,18 @@ class TestSessionPollCreateView(TestCase):
         cls.session = GameSession.objects.create(game=cls.game, title='Session One')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
-        cls.dm_token = Token.objects.create(user=cls.dm_user)
+        cls.dm_token = TokenFactory(user=cls.dm_user)
         cls.player_user = UserFactory(username='player_user', password='secret-password')
         cls.player = PlayerFactory(name='Bob', user=cls.player_user, game=cls.game)
-        cls.player_token = Token.objects.create(user=cls.player_user)
+        cls.player_token = TokenFactory(user=cls.player_user)
         cls.superuser = SuperUserFactory(username='admin', password='secret-password')
-        cls.superuser_token = Token.objects.create(user=cls.superuser)
+        cls.superuser_token = TokenFactory(user=cls.superuser)
         cls.staff_user = UserFactory(
             username='staff_user', password='secret-password', is_staff=True,
         )
-        cls.staff_token = Token.objects.create(user=cls.staff_user)
+        cls.staff_token = TokenFactory(user=cls.staff_user)
         cls.outsider = UserFactory(username='outsider', password='secret-password')
-        cls.outsider_token = Token.objects.create(user=cls.outsider)
+        cls.outsider_token = TokenFactory(user=cls.outsider)
 
     def _payload(self, **overrides):
         """Build a valid session poll creation payload, honoring any given overrides."""

@@ -16,7 +16,6 @@ fields" test must stay.
 
 import pytest
 from django.test import TestCase
-from rest_framework.authtoken.models import Token
 
 from games.models import CharacterPhoto, CharacterTreasure
 from games.tests.behaviors import TokenAuthRequestMixin
@@ -25,6 +24,7 @@ from games.tests.factories import (
     GameFactory,
     PlayerFactory,
     SuperUserFactory,
+    TokenFactory,
     TreasureFactory,
     UserFactory,
 )
@@ -152,20 +152,20 @@ class TestGameNpcDetailHidden(TokenAuthRequestMixin):
     def test_hidden_npc_returns_404_for_regular_user(self, client):
         """Test that a non-DM authenticated user gets 404 for a hidden NPC."""
         other_user = UserFactory(username='other', password='secret-password')
-        token = Token.objects.create(user=other_user)
+        token = TokenFactory(user=other_user)
         response = self.get(client, self._url(), token=token)
         assert response.status_code == 404
 
     def test_hidden_npc_returns_404_for_dm(self, client):
         """Test that a DM gets 404 for a hidden NPC detail on the plain route."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self.get(client, self._url(), token=token)
         assert response.status_code == 404
 
     def test_hidden_npc_returns_404_for_superuser(self, client):
         """Test that a superuser gets 404 for a hidden NPC detail on the plain route."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
-        token = Token.objects.create(user=superuser)
+        token = TokenFactory(user=superuser)
         response = self.get(client, self._url(), token=token)
         assert response.status_code == 404
 
@@ -182,7 +182,7 @@ class TestGameNpcDetailHidden(TokenAuthRequestMixin):
 
     def test_hidden_npc_response_includes_x_skip_cache_header_for_dm(self, client):
         """Test that a DM's response for a hidden NPC includes X-Skip-Cache: true."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self.get(client, self._url(), token=token)
         assert response['X-Skip-Cache'] == 'true'
 
@@ -221,7 +221,7 @@ class TestGameNpcPlayerUpdateView(TokenAuthRequestMixin, TestCase):
 
     def test_patch_by_player_of_game_returns_200(self):
         """Test that a player of the game (via Player.game) can toggle public_slain."""
-        token = Token.objects.create(user=self.player_user)
+        token = TokenFactory(user=self.player_user)
 
         response = self._patch(self.client, {'public_slain': True}, token=token)
 
@@ -231,7 +231,7 @@ class TestGameNpcPlayerUpdateView(TokenAuthRequestMixin, TestCase):
 
     def test_patch_by_dm_returns_200(self):
         """Test that a GameMaster of the game can also use this endpoint."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
 
         response = self._patch(self.client, {'public_slain': True}, token=token)
 
@@ -240,7 +240,7 @@ class TestGameNpcPlayerUpdateView(TokenAuthRequestMixin, TestCase):
     def test_patch_by_superuser_returns_200(self):
         """Test that a superuser can also use this endpoint."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
-        token = Token.objects.create(user=superuser)
+        token = TokenFactory(user=superuser)
 
         response = self._patch(self.client, {'public_slain': True}, token=token)
 
@@ -248,7 +248,7 @@ class TestGameNpcPlayerUpdateView(TokenAuthRequestMixin, TestCase):
 
     def test_patch_public_description_by_player_of_game_returns_200(self):
         """Test that a player of the game can update `public_description`."""
-        token = Token.objects.create(user=self.player_user)
+        token = TokenFactory(user=self.player_user)
 
         response = self._patch(
             self.client, {'public_description': 'A wandering wizard.'}, token=token
@@ -260,7 +260,7 @@ class TestGameNpcPlayerUpdateView(TokenAuthRequestMixin, TestCase):
 
     def test_patch_name_and_role_by_player_of_game_returns_200(self):
         """Test that a player of the game can update `name` and `role`."""
-        token = Token.objects.create(user=self.player_user)
+        token = TokenFactory(user=self.player_user)
 
         response = self._patch(
             self.client, {'name': 'Saruman', 'role': 'Dark Wizard'}, token=token
@@ -273,7 +273,7 @@ class TestGameNpcPlayerUpdateView(TokenAuthRequestMixin, TestCase):
 
     def test_patch_public_allegiance_by_player_of_game_returns_200(self):
         """Test that a player of the game can update `public_allegiance`."""
-        token = Token.objects.create(user=self.player_user)
+        token = TokenFactory(user=self.player_user)
 
         response = self._patch(self.client, {'public_allegiance': 'enemy'}, token=token)
 
@@ -284,7 +284,7 @@ class TestGameNpcPlayerUpdateView(TokenAuthRequestMixin, TestCase):
 
     def test_patch_links_by_player_of_game_returns_200(self):
         """Test that a player of the game can create a link via `links`."""
-        token = Token.objects.create(user=self.player_user)
+        token = TokenFactory(user=self.player_user)
 
         response = self._patch(
             self.client,
@@ -297,7 +297,7 @@ class TestGameNpcPlayerUpdateView(TokenAuthRequestMixin, TestCase):
 
     def test_patch_combined_fields_by_player_of_game_returns_200(self):
         """Test that a player of the game can update every new field together."""
-        token = Token.objects.create(user=self.player_user)
+        token = TokenFactory(user=self.player_user)
 
         response = self._patch(
             self.client,
@@ -323,7 +323,7 @@ class TestGameNpcPlayerUpdateView(TokenAuthRequestMixin, TestCase):
 
     def test_patch_public_description_by_dm_returns_200(self):
         """Test that a GameMaster can also update `public_description`."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
 
         response = self._patch(
             self.client, {'public_description': 'A wandering wizard.'}, token=token
@@ -334,7 +334,7 @@ class TestGameNpcPlayerUpdateView(TokenAuthRequestMixin, TestCase):
     def test_patch_public_allegiance_by_superuser_returns_200(self):
         """Test that a superuser can also update `public_allegiance`."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
-        token = Token.objects.create(user=superuser)
+        token = TokenFactory(user=superuser)
 
         response = self._patch(self.client, {'public_allegiance': 'ally'}, token=token)
 
@@ -343,7 +343,7 @@ class TestGameNpcPlayerUpdateView(TokenAuthRequestMixin, TestCase):
     def test_patch_by_unrelated_user_returns_403(self):
         """Test that an authenticated user who is neither a player nor an editor gets 403."""
         other_user = UserFactory(username='other', password='secret-password')
-        token = Token.objects.create(user=other_user)
+        token = TokenFactory(user=other_user)
 
         response = self._patch(self.client, {'public_slain': True}, token=token)
 
@@ -353,7 +353,7 @@ class TestGameNpcPlayerUpdateView(TokenAuthRequestMixin, TestCase):
 
     def test_patch_sets_public_slain_and_leaves_private_slain_untouched(self):
         """Test that {"public_slain": true} sets public_slain but not private_slain."""
-        token = Token.objects.create(user=self.player_user)
+        token = TokenFactory(user=self.player_user)
 
         response = self._patch(self.client, {'public_slain': True}, token=token)
 
@@ -366,7 +366,7 @@ class TestGameNpcPlayerUpdateView(TokenAuthRequestMixin, TestCase):
         """Test that {"public_slain": false} reverts a slain NPC's public_slain to False."""
         self.npc.public_slain = True
         self.npc.save()
-        token = Token.objects.create(user=self.player_user)
+        token = TokenFactory(user=self.player_user)
 
         response = self._patch(self.client, {'public_slain': False}, token=token)
 
@@ -380,7 +380,7 @@ class TestGameNpcPlayerUpdateView(TokenAuthRequestMixin, TestCase):
         This is the view-level regression test required for update serializers by
         `docs/agents/security-guidelines.md` section 8.
         """
-        token = Token.objects.create(user=self.player_user)
+        token = TokenFactory(user=self.player_user)
 
         response = self._patch(
             self.client,
@@ -402,7 +402,7 @@ class TestGameNpcPlayerUpdateView(TokenAuthRequestMixin, TestCase):
 
     def test_patch_money_by_player_of_game_returns_200(self):
         """Test that a player of the game can update `money` via the PATCH endpoint."""
-        token = Token.objects.create(user=self.player_user)
+        token = TokenFactory(user=self.player_user)
 
         response = self._patch(self.client, {'money': 999}, token=token)
 
@@ -415,7 +415,7 @@ class TestGameNpcPlayerUpdateView(TokenAuthRequestMixin, TestCase):
         staff_user = UserFactory(username='staff_user', password='secret-password')
         staff_user.is_staff = True
         staff_user.save()
-        token = Token.objects.create(user=staff_user)
+        token = TokenFactory(user=staff_user)
 
         response = self._patch(self.client, {'money': 999}, token=token)
 
@@ -425,7 +425,7 @@ class TestGameNpcPlayerUpdateView(TokenAuthRequestMixin, TestCase):
 
     def test_patch_response_matches_get_detail_shape(self):
         """Test that the PATCH response has the same shape as the GET detail response."""
-        token = Token.objects.create(user=self.player_user)
+        token = TokenFactory(user=self.player_user)
 
         get_response = self.get(self.client, self._url())
         patch_response = self._patch(self.client, {'public_slain': True}, token=token)
@@ -436,14 +436,14 @@ class TestGameNpcPlayerUpdateView(TokenAuthRequestMixin, TestCase):
 
     def test_patch_response_includes_x_skip_cache_header(self):
         """Test that the PATCH response includes the X-Skip-Cache: true header."""
-        token = Token.objects.create(user=self.player_user)
+        token = TokenFactory(user=self.player_user)
         response = self._patch(self.client, {'public_slain': True}, token=token)
         assert response['X-Skip-Cache'] == 'true'
 
     def test_patch_on_pc_id_returns_404(self):
         """Test that this NPC-only endpoint returns 404 for a PC id."""
         pc = CharacterFactory(name='Aragorn', game=self.game, npc=False)
-        token = Token.objects.create(user=self.player_user)
+        token = TokenFactory(user=self.player_user)
 
         response = self._patch(self.client, {'public_slain': True}, token=token, character=pc)
 
@@ -471,7 +471,7 @@ class TestGameNpcPlayerUpdateHiddenGate(TokenAuthRequestMixin, TestCase):
 
     def test_patch_hidden_npc_by_player_returns_404(self):
         """Test that a player of the game (not an editor) gets 404 for a hidden NPC."""
-        token = Token.objects.create(user=self.player_user)
+        token = TokenFactory(user=self.player_user)
 
         response = self.patch(self.client, self._url(), {'public_slain': True}, token=token)
 
@@ -479,7 +479,7 @@ class TestGameNpcPlayerUpdateHiddenGate(TokenAuthRequestMixin, TestCase):
 
     def test_patch_hidden_npc_by_dm_returns_200(self):
         """Test that a DM can still PATCH a hidden NPC's slain state."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
 
         response = self.patch(self.client, self._url(), {'public_slain': True}, token=token)
 

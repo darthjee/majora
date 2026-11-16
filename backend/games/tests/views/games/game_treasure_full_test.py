@@ -2,7 +2,6 @@
 
 import pytest
 from django.urls import reverse
-from rest_framework.authtoken.models import Token
 
 from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import (
@@ -10,6 +9,7 @@ from games.tests.factories import (
     GameTreasureFactory,
     PlayerFactory,
     SuperUserFactory,
+    TokenFactory,
     TreasureFactory,
     UserFactory,
 )
@@ -33,8 +33,8 @@ class TestGameTreasureFullView(TokenAuthRequestMixin):
             hidden=True,
         )
         self.visible_treasure = TreasureFactory(name='Visible Gem', value=42, game=self.game)
-        self.dm_token = Token.objects.create(user=self.dm_user)
-        self.player_token = Token.objects.create(user=self.player_user)
+        self.dm_token = TokenFactory(user=self.dm_user)
+        self.player_token = TokenFactory(user=self.player_user)
 
     def _url(self, treasure_id=None):
         """Return the full URL for the given treasure id (defaults to the hidden treasure)."""
@@ -70,7 +70,7 @@ class TestGameTreasureFullView(TokenAuthRequestMixin):
     def test_superuser_gets_hidden_treasure(self, client):
         """Test that a superuser gets a hidden treasure's detail."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
-        token = Token.objects.create(user=superuser)
+        token = TokenFactory(user=superuser)
         response = self.get(client, self._url(), token=token)
         assert_json_response(response, 200, hidden=True)
 

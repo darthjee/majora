@@ -4,9 +4,8 @@ from datetime import datetime, timezone
 from unittest.mock import patch
 
 import pytest
-from rest_framework.authtoken.models import Token
 
-from games.tests.factories import PlayerFactory, SuperUserFactory, UserFactory
+from games.tests.factories import PlayerFactory, SuperUserFactory, TokenFactory, UserFactory
 from statistics.aggregation import SummaryParamsParser
 from statistics.models import Session, Visit
 
@@ -31,7 +30,7 @@ class _SummaryRequests:
 
     def _create_staff_token(self):
         """Create the staff token used by the successful requests."""
-        self.staff_token = Token.objects.create(user=UserFactory(is_staff=True))
+        self.staff_token = TokenFactory(user=UserFactory(is_staff=True))
 
     def _get(self, client, token=None, url=URL, **params):
         """Issue a GET request with "today" pinned at `NOW`, optionally with a token."""
@@ -57,11 +56,11 @@ class TestStaffStatisticsSummaryAccess(_SummaryRequests):
     def setup_method(self):
         """Set up staff, superuser, DM and regular accounts."""
         self._create_staff_token()
-        self.superuser_token = Token.objects.create(user=SuperUserFactory())
-        self.regular_token = Token.objects.create(user=UserFactory())
+        self.superuser_token = TokenFactory(user=SuperUserFactory())
+        self.regular_token = TokenFactory(user=UserFactory())
         dm_user = UserFactory()
         PlayerFactory(user=dm_user, is_dm=True)
-        self.dm_token = Token.objects.create(user=dm_user)
+        self.dm_token = TokenFactory(user=dm_user)
 
     def test_unauthenticated_returns_401(self, client):
         """Test that an unauthenticated GET returns 401."""

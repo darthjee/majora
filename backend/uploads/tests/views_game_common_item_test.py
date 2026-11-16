@@ -3,10 +3,9 @@
 import json
 
 from django.test import TestCase
-from rest_framework.authtoken.models import Token
 
 from games.models import GameCommonItemPhoto
-from games.tests.factories import GameCommonItemFactory, GameFactory, UserFactory
+from games.tests.factories import GameCommonItemFactory, GameFactory, TokenFactory, UserFactory
 from uploads.models import Upload
 from uploads.tests.fixtures import UploadFinalizeFixtureMixin
 
@@ -88,7 +87,7 @@ class TestUploadFinalizeGameCommonItemPhoto(UploadFinalizeFixtureMixin, TestCase
     def test_unrelated_user_returns_403_for_common_item_upload(self):
         """Test that a user unrelated to the game is rejected on a GameCommonItemPhoto upload."""
         other_user = UserFactory(username='other_common_item', password='secret-password')
-        other_token = Token.objects.create(user=other_user)
+        other_token = TokenFactory(user=other_user)
         self.common_item_upload.user = other_user
         Upload.objects.filter(pk=self.common_item_upload.pk).update(user=other_user)
         response = self._patch(

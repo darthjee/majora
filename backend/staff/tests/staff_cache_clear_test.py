@@ -2,9 +2,8 @@
 
 import pytest
 from django.urls import reverse
-from rest_framework.authtoken.models import Token
 
-from games.tests.factories import SuperUserFactory, UserFactory
+from games.tests.factories import SuperUserFactory, TokenFactory, UserFactory
 from majora_project.cache import memory_cache
 
 
@@ -15,11 +14,11 @@ class TestStaffCacheClearView:
     def setup_method(self):
         """Set up staff, superuser, and regular user accounts, and prime the shared cache."""
         self.staff_user = UserFactory(is_staff=True)
-        self.staff_token = Token.objects.create(user=self.staff_user)
+        self.staff_token = TokenFactory(user=self.staff_user)
         self.superuser = SuperUserFactory()
-        self.superuser_token = Token.objects.create(user=self.superuser)
+        self.superuser_token = TokenFactory(user=self.superuser)
         self.regular_user = UserFactory()
-        self.regular_token = Token.objects.create(user=self.regular_user)
+        self.regular_token = TokenFactory(user=self.regular_user)
         memory_cache.set('some-type', 'some-key', 'some-value', size_bytes=10)
 
     def _delete(self, client, token=None):

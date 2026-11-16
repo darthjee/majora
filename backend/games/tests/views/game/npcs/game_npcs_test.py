@@ -3,7 +3,6 @@
 import json
 
 import pytest
-from rest_framework.authtoken.models import Token
 
 from games.models import Character, CharacterPhoto, CharacterTreasure
 from games.tests.behaviors import TokenAuthRequestMixin
@@ -12,6 +11,7 @@ from games.tests.factories import (
     GameFactory,
     PlayerFactory,
     SuperUserFactory,
+    TokenFactory,
     TreasureFactory,
     UserFactory,
 )
@@ -306,20 +306,20 @@ class TestGameNpcsCreate(TokenAuthRequestMixin):
         self.player = PlayerFactory(name='Alice')
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
-        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.dm_token = TokenFactory(user=self.dm_user)
         self.superuser = SuperUserFactory(username='admin', password='secret-password')
-        self.superuser_token = Token.objects.create(user=self.superuser)
+        self.superuser_token = TokenFactory(user=self.superuser)
         self.staff_user = UserFactory(username='staff_user', password='secret-password')
         self.staff_user.is_staff = True
         self.staff_user.save()
-        self.staff_token = Token.objects.create(user=self.staff_user)
+        self.staff_token = TokenFactory(user=self.staff_user)
         self.game_player_user = UserFactory(
             username='game_player_user', password='secret-password',
         )
         PlayerFactory(name='Bob', game=self.game, user=self.game_player_user)
-        self.game_player_token = Token.objects.create(user=self.game_player_user)
+        self.game_player_token = TokenFactory(user=self.game_player_user)
         self.regular_user = UserFactory(username='player', password='secret-password')
-        self.regular_token = Token.objects.create(user=self.regular_user)
+        self.regular_token = TokenFactory(user=self.regular_user)
 
     def _post(self, client, payload, token=None, game_slug=None):
         """Issue a POST request to the game NPCs list endpoint, optionally with a token."""

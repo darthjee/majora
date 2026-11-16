@@ -1,7 +1,6 @@
 """Tests for the PC photo set (role update) endpoint."""
 
 import pytest
-from rest_framework.authtoken.models import Token
 
 from games.models import CharacterPhoto
 from games.tests.behaviors import TokenAuthRequestMixin
@@ -10,6 +9,7 @@ from games.tests.factories import (
     GameFactory,
     PlayerFactory,
     SuperUserFactory,
+    TokenFactory,
     UserFactory,
 )
 
@@ -33,8 +33,8 @@ class TestGamePcPhotoSetView(TokenAuthRequestMixin):
         )
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
-        self.owner_token = Token.objects.create(user=self.owner)
-        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.owner_token = TokenFactory(user=self.owner)
+        self.dm_token = TokenFactory(user=self.dm_user)
 
     def _editor_token(self):
         """Return the owning player's user token."""
@@ -62,7 +62,7 @@ class TestGamePcPhotoSetView(TokenAuthRequestMixin):
     def test_unrelated_user_returns_403(self, client):
         """Test that an authenticated user unrelated to the character is rejected with 403."""
         other = UserFactory(username='other', password='secret-password')
-        token = Token.objects.create(user=other)
+        token = TokenFactory(user=other)
         response = self._patch(client, {'roles': ['profile']}, token=token)
         assert response.status_code == 403
 
@@ -136,7 +136,7 @@ class TestGamePcPhotoSetView(TokenAuthRequestMixin):
     def test_superuser_can_set_photo(self, client):
         """Test that a superuser is allowed to set the profile photo for any character."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
-        token = Token.objects.create(user=superuser)
+        token = TokenFactory(user=superuser)
         response = self._patch(client, {'roles': ['profile']}, token=token)
         assert response.status_code == 200
 
@@ -171,7 +171,7 @@ class TestGamePcPhotoSetView(TokenAuthRequestMixin):
         """Test that a player of the game (via Player.game) can set the PC's profile photo."""
         player_user = UserFactory(username='player_user', password='secret-password')
         PlayerFactory(name='Alice', user=player_user, game=self.game)
-        token = Token.objects.create(user=player_user)
+        token = TokenFactory(user=player_user)
 
         response = self._patch(client, {'roles': ['profile']}, token=token)
 
@@ -180,7 +180,7 @@ class TestGamePcPhotoSetView(TokenAuthRequestMixin):
     def test_staff_user_returns_200(self, client):
         """Test that an is_staff=True user unrelated to the game can set the PC's profile photo."""
         staff_user = UserFactory(username='staff_user', password='secret-password', is_staff=True)
-        token = Token.objects.create(user=staff_user)
+        token = TokenFactory(user=staff_user)
 
         response = self._patch(client, {'roles': ['profile']}, token=token)
 

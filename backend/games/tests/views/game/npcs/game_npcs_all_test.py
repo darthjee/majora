@@ -3,7 +3,6 @@
 import json
 
 from django.test import TestCase
-from rest_framework.authtoken.models import Token
 
 from games.models import CharacterTreasure
 from games.tests.behaviors import TokenAuthRequestMixin
@@ -12,6 +11,7 @@ from games.tests.factories import (
     GameFactory,
     PlayerFactory,
     SuperUserFactory,
+    TokenFactory,
     TreasureFactory,
     UserFactory,
 )
@@ -47,13 +47,13 @@ class TestGameNpcsAllView(TokenAuthRequestMixin, TestCase):
     def test_returns_403_for_non_dm_authenticated_user(self):
         """Test that an authenticated user who is not a DM gets 403."""
         other_user = UserFactory(username='other', password='secret-password')
-        token = Token.objects.create(user=other_user)
+        token = TokenFactory(user=other_user)
         response = self._get(self.client, token=token)
         assert response.status_code == 403
 
     def test_returns_200_for_dm_with_all_npcs(self):
         """Test that a DM gets 200 with both visible and hidden NPCs."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._get(self.client, token=token)
         assert response.status_code == 200
         data = json.loads(response.content)
@@ -63,7 +63,7 @@ class TestGameNpcsAllView(TokenAuthRequestMixin, TestCase):
 
     def test_returns_200_with_hidden_field_in_response_body(self):
         """Test that the response body includes the correct `hidden` value for each NPC."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._get(self.client, token=token)
         assert response.status_code == 200
         data = json.loads(response.content)
@@ -75,7 +75,7 @@ class TestGameNpcsAllView(TokenAuthRequestMixin, TestCase):
         """Test that the response body includes the `incognito` value for each NPC."""
         self.hidden_npc.incognito = True
         self.hidden_npc.save()
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._get(self.client, token=token)
         assert response.status_code == 200
         data = json.loads(response.content)
@@ -86,7 +86,7 @@ class TestGameNpcsAllView(TokenAuthRequestMixin, TestCase):
     def test_returns_200_for_superuser_with_all_npcs(self):
         """Test that a superuser gets 200 with both visible and hidden NPCs."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
-        token = Token.objects.create(user=superuser)
+        token = TokenFactory(user=superuser)
         response = self._get(self.client, token=token)
         assert response.status_code == 200
         data = json.loads(response.content)
@@ -94,7 +94,7 @@ class TestGameNpcsAllView(TokenAuthRequestMixin, TestCase):
 
     def test_returns_404_for_unknown_game(self):
         """Test that 404 is returned for a non-existent game_slug."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self.get(self.client, '/games/unknown-game/npcs/all.json', token=token)
         assert response.status_code == 404
 
@@ -108,7 +108,7 @@ class TestGameNpcsAllView(TokenAuthRequestMixin, TestCase):
         CharacterTreasure.objects.create(
             character=self.visible_npc, treasure=treasure_two, quantity=1, total_value=100,
         )
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._get(self.client, token=token)
         data = json.loads(response.content)
         by_name = {item['name']: item['treasure_value'] for item in data}
@@ -117,7 +117,7 @@ class TestGameNpcsAllView(TokenAuthRequestMixin, TestCase):
 
     def test_response_includes_pagination_headers(self):
         """Test that the response includes page/pages/per_page/total headers."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._get(self.client, token=token)
         assert response['page'] == '1'
         assert response['pages'] == '1'
@@ -126,7 +126,7 @@ class TestGameNpcsAllView(TokenAuthRequestMixin, TestCase):
 
     def test_response_includes_x_skip_cache_header(self):
         """Test that the response includes the X-Skip-Cache: true header."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._get(self.client, token=token)
         assert response['X-Skip-Cache'] == 'true'
 
@@ -134,7 +134,7 @@ class TestGameNpcsAllView(TokenAuthRequestMixin, TestCase):
         """Test that the endpoint only returns NPCs, not PCs."""
         player = PlayerFactory(name='Alice')
         CharacterFactory(name='Alice PC', game=self.game, player=player, npc=False)
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._get(self.client, token=token)
         assert response.status_code == 200
         data = json.loads(response.content)
@@ -153,7 +153,7 @@ class TestGameNpcsAllView(TokenAuthRequestMixin, TestCase):
         """Test that private_slain=true returns only slain NPCs."""
         self.visible_npc.private_slain = True
         self.visible_npc.save()
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._get_with_query(self.client, '?private_slain=true', token=token)
         assert self._names(response) == ['Visible NPC']
 
@@ -161,20 +161,20 @@ class TestGameNpcsAllView(TokenAuthRequestMixin, TestCase):
         """Test that private_slain=false returns only alive NPCs."""
         self.visible_npc.private_slain = True
         self.visible_npc.save()
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._get_with_query(self.client, '?private_slain=false', token=token)
         assert self._names(response) == ['Hidden NPC']
 
     def test_invalid_private_slain_value_is_ignored(self):
         """Test that an unrecognized private_slain value applies no filter and does not 400."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._get_with_query(self.client, '?private_slain=unknown', token=token)
         assert response.status_code == 200
         assert sorted(self._names(response)) == ['Hidden NPC', 'Visible NPC']
 
     def test_name_filter_matches_case_insensitively(self):
         """Test that name filters case-insensitively, anywhere in the name."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._get_with_query(self.client, '?name=hidden', token=token)
         assert self._names(response) == ['Hidden NPC']
 
@@ -182,7 +182,7 @@ class TestGameNpcsAllView(TokenAuthRequestMixin, TestCase):
         """Test that name and private_slain filters apply together (AND)."""
         self.hidden_npc.private_slain = True
         self.hidden_npc.save()
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._get_with_query(self.client, '?name=NPC&private_slain=true', token=token)
         assert self._names(response) == ['Hidden NPC']
 
@@ -191,14 +191,14 @@ class TestGameNpcsAllView(TokenAuthRequestMixin, TestCase):
         self.hidden_npc.private_slain = True
         self.hidden_npc.save()
         CharacterFactory(name='Another Slain NPC', game=self.game, npc=True, private_slain=True)
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._get_with_query(self.client, '?private_slain=true&per_page=1', token=token)
         assert response['pages'] == '2'
         assert response['total'] == '2'
 
     def test_no_filter_params_preserves_current_behavior(self):
         """Test that omitting filter params returns the unfiltered NPC list."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._get_with_query(self.client, '', token=token)
         assert sorted(self._names(response)) == ['Hidden NPC', 'Visible NPC']
 
@@ -210,7 +210,7 @@ class TestGameNpcsAllView(TokenAuthRequestMixin, TestCase):
         self.hidden_npc.private_allegiance = 'enemy'
         self.hidden_npc.public_allegiance = 'ally'
         self.hidden_npc.save()
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._get_with_query(self.client, '?private_allegiance=ally', token=token)
         assert self._names(response) == ['Visible NPC']
 
@@ -222,7 +222,7 @@ class TestGameNpcsAllView(TokenAuthRequestMixin, TestCase):
         self.hidden_npc.private_slain = False
         self.hidden_npc.public_slain = True
         self.hidden_npc.save()
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._get_with_query(self.client, '?private_slain=true', token=token)
         assert self._names(response) == ['Visible NPC']
 
@@ -234,7 +234,7 @@ class TestGameNpcsAllView(TokenAuthRequestMixin, TestCase):
         self.hidden_npc.private_slain = True
         self.hidden_npc.public_slain = False
         self.hidden_npc.save()
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._get_with_query(self.client, '?public_slain=true', token=token)
         assert self._names(response) == ['Visible NPC']
 
@@ -246,7 +246,7 @@ class TestGameNpcsAllView(TokenAuthRequestMixin, TestCase):
         self.hidden_npc.private_slain = True
         self.hidden_npc.public_slain = False
         self.hidden_npc.save()
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._get_with_query(
             self.client, '?public_slain=true&private_slain=true', token=token,
         )
@@ -260,7 +260,7 @@ class TestGameNpcsAllView(TokenAuthRequestMixin, TestCase):
         self.hidden_npc.private_allegiance = 'ally'
         self.hidden_npc.public_allegiance = 'enemy'
         self.hidden_npc.save()
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._get_with_query(self.client, '?public_allegiance=ally', token=token)
         assert self._names(response) == ['Visible NPC']
 
@@ -272,7 +272,7 @@ class TestGameNpcsAllView(TokenAuthRequestMixin, TestCase):
         self.hidden_npc.private_allegiance = 'ally'
         self.hidden_npc.public_allegiance = 'enemy'
         self.hidden_npc.save()
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._get_with_query(
             self.client, '?public_allegiance=ally&private_allegiance=ally', token=token,
         )
@@ -280,26 +280,26 @@ class TestGameNpcsAllView(TokenAuthRequestMixin, TestCase):
 
     def test_invalid_private_allegiance_value_is_ignored(self):
         """Test that an unrecognized private_allegiance value applies no filter and does not 400."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._get_with_query(self.client, '?private_allegiance=unknown', token=token)
         assert response.status_code == 200
         assert sorted(self._names(response)) == ['Hidden NPC', 'Visible NPC']
 
     def test_hidden_true_returns_only_hidden_npcs(self):
         """Test that hidden=true returns only hidden NPCs."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._get_with_query(self.client, '?hidden=true', token=token)
         assert self._names(response) == ['Hidden NPC']
 
     def test_hidden_false_returns_only_visible_npcs(self):
         """Test that hidden=false returns only visible NPCs."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._get_with_query(self.client, '?hidden=false', token=token)
         assert self._names(response) == ['Visible NPC']
 
     def test_invalid_hidden_value_is_ignored(self):
         """Test that an unrecognized hidden value applies no filter and does not 400."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._get_with_query(self.client, '?hidden=unknown', token=token)
         assert response.status_code == 200
         assert sorted(self._names(response)) == ['Hidden NPC', 'Visible NPC']
@@ -307,6 +307,6 @@ class TestGameNpcsAllView(TokenAuthRequestMixin, TestCase):
     def test_permission_enforced_regardless_of_filter_params(self):
         """Test that GameEditPermission is still enforced when filter params are present."""
         other_user = UserFactory(username='other', password='secret-password')
-        token = Token.objects.create(user=other_user)
+        token = TokenFactory(user=other_user)
         response = self._get_with_query(self.client, '?private_slain=true&name=NPC', token=token)
         assert response.status_code == 403

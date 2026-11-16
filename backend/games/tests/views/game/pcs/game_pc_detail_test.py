@@ -12,7 +12,6 @@ by issue #865 (the same plain `pcs/:id.json` route as the GET tests above).
 """
 
 import pytest
-from rest_framework.authtoken.models import Token
 
 from games.models import CharacterTreasure
 from games.serializers.characters.character_link_write import MAX_LINKS
@@ -22,6 +21,7 @@ from games.tests.factories import (
     GameFactory,
     PlayerFactory,
     SuperUserFactory,
+    TokenFactory,
     TreasureFactory,
     UserFactory,
 )
@@ -128,7 +128,7 @@ class TestGamePcRegularUpdateView(TokenAuthRequestMixin):
 
     def _owner_token(self):
         """Return the PC's owning player's user token."""
-        return Token.objects.create(user=self.owner)
+        return TokenFactory(user=self.owner)
 
     def _url(self, character_id=None):
         """Return the regular-update URL for the given character id (defaults to the fixture)."""
@@ -147,7 +147,7 @@ class TestGamePcRegularUpdateView(TokenAuthRequestMixin):
     def test_patch_with_unrelated_user_returns_403(self, client):
         """Test that PATCH from an unrelated user's token is rejected with 403."""
         other_user = UserFactory(username='other', password='secret-password')
-        token = Token.objects.create(user=other_user)
+        token = TokenFactory(user=other_user)
 
         response = self._patch(client, {'name': 'Strider'}, token=token)
 
@@ -179,7 +179,7 @@ class TestGamePcRegularUpdateView(TokenAuthRequestMixin):
 
     def test_patch_updates_fields_for_dm(self, client):
         """Test that a DM of the game can update the regular field set."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
 
         response = self._patch(client, {'name': 'Strider'}, token=token)
 
@@ -190,7 +190,7 @@ class TestGamePcRegularUpdateView(TokenAuthRequestMixin):
     def test_patch_updates_fields_for_superuser(self, client):
         """Test that a superuser (admin) can update the regular field set."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
-        token = Token.objects.create(user=superuser)
+        token = TokenFactory(user=superuser)
 
         response = self._patch(client, {'name': 'Strider'}, token=token)
 
@@ -200,7 +200,7 @@ class TestGamePcRegularUpdateView(TokenAuthRequestMixin):
 
     def test_patch_updates_fields_for_regular_player_of_the_game(self, client):
         """Test that any other player of the game (not the owner) can update the field set."""
-        token = Token.objects.create(user=self.regular_player_user)
+        token = TokenFactory(user=self.regular_player_user)
 
         response = self._patch(client, {'name': 'Strider'}, token=token)
 
@@ -213,7 +213,7 @@ class TestGamePcRegularUpdateView(TokenAuthRequestMixin):
         staff_user = UserFactory(username='staff_user', password='secret-password')
         staff_user.is_staff = True
         staff_user.save()
-        token = Token.objects.create(user=staff_user)
+        token = TokenFactory(user=staff_user)
 
         response = self._patch(client, {'name': 'Strider'}, token=token)
 

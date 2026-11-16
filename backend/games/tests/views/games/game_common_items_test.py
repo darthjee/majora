@@ -5,7 +5,6 @@ import json
 import pytest
 from django.test import TestCase
 from django.urls import reverse
-from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
 from games.models import GameCommonItem
@@ -15,6 +14,7 @@ from games.tests.factories import (
     GameFactory,
     PlayerFactory,
     SuperUserFactory,
+    TokenFactory,
     UserFactory,
 )
 from games.tests.views.games._common_items_filters_behavior import CommonItemsFiltersBehavior
@@ -228,7 +228,7 @@ class TestGameCommonItemsCreate(TokenAuthRequestMixin, TestCase):
 
     def test_dm_can_create_common_item(self):
         """Test that the game's DM can create a bare GameCommonItem."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._post(
             self.client,
             {
@@ -248,7 +248,7 @@ class TestGameCommonItemsCreate(TokenAuthRequestMixin, TestCase):
 
     def test_create_persists_game_common_item(self):
         """Test that the create endpoint persists a GameCommonItem."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._post(
             self.client,
             {'name': 'Healing Potion', 'price': 15, 'description': 'A cheap tonic.'},
@@ -263,7 +263,7 @@ class TestGameCommonItemsCreate(TokenAuthRequestMixin, TestCase):
 
     def test_create_defaults_description_category_and_hidden(self):
         """Test that description/category/hidden default to ''/other/False."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._post(
             self.client, {'name': 'Healing Potion', 'price': 15}, token=token,
         )
@@ -275,7 +275,7 @@ class TestGameCommonItemsCreate(TokenAuthRequestMixin, TestCase):
     def test_superuser_can_create_common_item(self):
         """Test that a superuser can create a bare GameCommonItem."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
-        token = Token.objects.create(user=superuser)
+        token = TokenFactory(user=superuser)
         response = self._post(
             self.client, {'name': 'Healing Potion', 'price': 15}, token=token,
         )
@@ -286,7 +286,7 @@ class TestGameCommonItemsCreate(TokenAuthRequestMixin, TestCase):
         staff_user = UserFactory(username='staff_user', password='secret-password')
         staff_user.is_staff = True
         staff_user.save()
-        token = Token.objects.create(user=staff_user)
+        token = TokenFactory(user=staff_user)
         response = self._post(
             self.client, {'name': 'Healing Potion', 'price': 15}, token=token,
         )
@@ -299,7 +299,7 @@ class TestGameCommonItemsCreate(TokenAuthRequestMixin, TestCase):
 
     def test_regular_player_can_create_common_item(self):
         """Test that a regular player of the game can create a bare GameCommonItem."""
-        token = Token.objects.create(user=self.player_user)
+        token = TokenFactory(user=self.player_user)
         response = self._post(
             self.client, {'name': 'Healing Potion', 'price': 15}, token=token,
         )
@@ -307,7 +307,7 @@ class TestGameCommonItemsCreate(TokenAuthRequestMixin, TestCase):
 
     def test_unrelated_user_returns_403(self):
         """Test that an authenticated user unrelated to the game is rejected with 403."""
-        token = Token.objects.create(user=self.other_user)
+        token = TokenFactory(user=self.other_user)
         response = self._post(
             self.client, {'name': 'Healing Potion', 'price': 15}, token=token,
         )
@@ -315,7 +315,7 @@ class TestGameCommonItemsCreate(TokenAuthRequestMixin, TestCase):
 
     def test_missing_name_returns_400(self):
         """Test that a missing name returns 400."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._post(self.client, {'price': 15}, token=token)
         assert response.status_code == 400
         data = json.loads(response.content)
@@ -323,7 +323,7 @@ class TestGameCommonItemsCreate(TokenAuthRequestMixin, TestCase):
 
     def test_blank_name_returns_400(self):
         """Test that a blank name returns 400."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._post(self.client, {'name': '', 'price': 15}, token=token)
         assert response.status_code == 400
         data = json.loads(response.content)
@@ -331,7 +331,7 @@ class TestGameCommonItemsCreate(TokenAuthRequestMixin, TestCase):
 
     def test_name_too_long_returns_400(self):
         """Test that a name longer than 200 chars returns 400."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._post(self.client, {'name': 'x' * 201, 'price': 15}, token=token)
         assert response.status_code == 400
         data = json.loads(response.content)
@@ -339,7 +339,7 @@ class TestGameCommonItemsCreate(TokenAuthRequestMixin, TestCase):
 
     def test_missing_price_returns_400(self):
         """Test that a missing price returns 400 — price is required."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._post(self.client, {'name': 'Healing Potion'}, token=token)
         assert response.status_code == 400
         data = json.loads(response.content)
@@ -347,7 +347,7 @@ class TestGameCommonItemsCreate(TokenAuthRequestMixin, TestCase):
 
     def test_negative_price_returns_400(self):
         """Test that a negative price is rejected with 400."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._post(
             self.client, {'name': 'Healing Potion', 'price': -1}, token=token,
         )
@@ -357,7 +357,7 @@ class TestGameCommonItemsCreate(TokenAuthRequestMixin, TestCase):
 
     def test_invalid_category_returns_400(self):
         """Test that an unrecognized category returns 400."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._post(
             self.client,
             {'name': 'Healing Potion', 'price': 15, 'category': 'not-a-category'},
@@ -369,7 +369,7 @@ class TestGameCommonItemsCreate(TokenAuthRequestMixin, TestCase):
 
     def test_returns_404_for_unknown_game_slug(self):
         """Test that a non-existent game slug returns 404."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self.post(
             self.client,
             self._url(game_slug='unknown-game'),
