@@ -25,6 +25,7 @@ class TestGameTreasureHiddenBackfillNoopReverse(TestCase):
         _migration._noop_reverse(apps, None)
 
 
+# transactional: migrates the schema with MigrationExecutor; DDL commits implicitly on MySQL
 class TestGameTreasureHiddenBackfillMigration(TransactionTestCase):
     """Tests for the actual backfill performed by the 0059 data migration.
 

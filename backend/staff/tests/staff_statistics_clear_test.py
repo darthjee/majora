@@ -12,6 +12,7 @@ from statistics.models import Session, Visit
 URL = '/staff/statistics.json'
 
 
+# transactional: StatisticsReset runs raw ALTER TABLE, which commits implicitly on MySQL
 @pytest.mark.django_db(transaction=True)
 class TestStaffStatisticsClearView:
     """Tests for the DELETE /staff/statistics.json endpoint."""

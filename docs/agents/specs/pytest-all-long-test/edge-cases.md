@@ -6,22 +6,26 @@ The cases each sub-issue must handle. When a sub-issue handles one, it records h
 
 ## Transactional tests
 
-10 test files use real transactions (`TransactionTestCase` or `django_db(transaction=True)`).
-They must keep real transaction semantics: each one gets a justification comment (#1793), and
-none is converted.
+10 test files (11 sites) use real transactions (`TransactionTestCase` or
+`django_db(transaction=True)`). They must keep real transaction semantics, and none is converted.
+Each site carries a `# transactional: <reason>` comment directly above it (#1793), enforced by
+the `transaction-justification` rule of the check script.
 
-- **Concurrency** (`threading.Barrier`, committed rows must be visible across threads):
+- **Concurrency** (`threading.Barrier`; "threads use their own connections and must see
+  committed rows"):
   `statistics/tests/middleware_test.py` (login burst), `statistics/tests/visit_tracking_test.py`,
   `accounts/tests/models/authorization_request_test.py`,
   `accounts/tests/authorization_requests/poll_test.py`.
-- **Reset and clear:** `statistics/tests/reset_test.py`,
+- **Reset and clear** ("StatisticsReset runs raw ALTER TABLE, which commits implicitly on
+  MySQL"): `statistics/tests/reset_test.py`,
   `staff/tests/staff_statistics_clear_test.py`.
-- **Migration:** `domains/tests/migrations/migrate_domain_title_test.py`,
+- **Migration** ("migrates the schema with MigrationExecutor; DDL commits implicitly on
+  MySQL"): `domains/tests/migrations/migrate_domain_title_test.py`,
   `accounts/tests/models/password_reset_token_table_migration_test.py`,
   `games/tests/models/character/character_public_slain_migration_test.py`,
   `games/tests/models/game/game_treasure_hidden_backfill_migration_test.py`.
 
-All 10 run in `pytest_all`. A transactional test flushes every table after each test, and a
+All 11 sites run in `pytest_all`. A transactional test flushes every table after each test, and a
 migration test migrates the schema backwards and forwards; both are expensive on MySQL, so they
 are a likely cause of `pytest_all` being the slowest job (hypothesis 1 in
 [Cost drivers](cost-drivers.md#hypotheses)). The durations report (#1787) confirms or rules
@@ -70,7 +74,13 @@ this out, and the CI rebalancing (#1788) spreads them across jobs.
 - A class-, module- or session-scoped pytest fixture that writes to the database (through
   `django_db_blocker`) is **not** rolled back per test: data created or changed by one test leaks
   into the next. The [Isolation policy](isolation-policy.md#fixture-scope) forbids it, and the
-  check script enforces it from #1793 on.
+  check script enforces it with the `scoped-db-fixture` rule (#1793).
+
+## Base game builder
+
+`build_base_game()` (`games/tests/factories/base_game.py`) always registers the `testserver`
+domain. `Domain.domain` is unique, so a converted module that also creates `testserver` must use
+`base.domain` instead of creating its own.
 
 ## Factories
 

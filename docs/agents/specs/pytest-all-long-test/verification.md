@@ -32,6 +32,9 @@ conversions):
   `2` configuration error. To add a rule, write a `rule(tree, path) -> list[Violation]` function
   and append it to `RULES`. A line is allowed with `# test-policy: allow <rule-id>`; allowed
   lines are printed as opt-outs.
+- **#1793 (transactional comments and base game):** the 11 transactional sites carry a
+  `# transactional:` comment, the collected node IDs equal the earlier list plus the
+  `base_game_test.py` tests, and the check script exits `0` on the real tree.
 - **#1789 (cache fixture):** any test that starts failing once the cache is cleared
   automatically is fixed in the same PR, and the PR lists them.
 - **#1792 (history off):** the 13 history test files pass with the opt-in. A test asserts that
@@ -45,8 +48,8 @@ conversions):
 ## Check-script rules
 
 The script scans every `.py` file under the `testpaths` (test files, conftests and helper
-modules), plus the root `conftest.py`. Rules so far: `memory-cache-clear` (#1789) and
-`token-create` (#1790).
+modules), plus the root `conftest.py`. Rules: `memory-cache-clear` (#1789), `token-create` (#1790),
+`transaction-justification` and `scoped-db-fixture` (#1793).
 
 "No new test violates the policy" is enforced by a small check script run in the existing
 `checks` CI job, created by #1789. Each rule is added by the sub-issue that removes the last
@@ -56,8 +59,8 @@ violation, so the script never fails on existing code.
 |------|----------|--------|
 | No `memory_cache.clear()` in test files (the autouse fixture handles it) | #1789 | added |
 | No `Token.objects.create` in test files (use `TokenFactory`) | #1790 | added |
-| Every `TransactionTestCase` or `django_db(transaction=True)` has a justification comment directly above it | #1793 | not yet added |
-| No fixture scoped to a class, module or session writes to the database | #1793 | not yet added |
+| Every `TransactionTestCase` or `django_db(transaction=True)` has a justification comment directly above it | #1793 | added |
+| No fixture scoped to a class, module or session writes to the database | #1793 | added |
 
 "New tests use `TestCase` + `setUpTestData`" is **not** enforced by the script, because telling
 new test files from old ones is fragile. It is enforced through the backend agent instructions

@@ -18,6 +18,7 @@ def _create_rows(sessions=3, visits_per_session=2):
     return created
 
 
+# transactional: StatisticsReset runs raw ALTER TABLE, which commits implicitly on MySQL
 @pytest.mark.django_db(transaction=True)
 class TestStatisticsReset:
     """Tests for `StatisticsReset.run()`."""
@@ -89,6 +90,7 @@ class TestStatisticsReset:
         assert reset.deleted_sessions == 0
 
 
+# transactional: StatisticsReset runs raw ALTER TABLE, which commits implicitly on MySQL
 @pytest.mark.django_db(transaction=True)
 class TestStatisticsResetEmpty:
     """Tests for `StatisticsReset.run()` on empty tables."""

@@ -41,6 +41,7 @@ class TestPasswordResetTokenTableState(TestCase):
         assert PasswordResetToken._meta.db_table == 'accounts_passwordresettoken'
 
 
+# transactional: migrates the schema with MigrationExecutor; DDL commits implicitly on MySQL
 class TestPasswordResetTokenTableRenameDDL(TransactionTestCase):
     """Tests for the forward and reverse DDL of the 0008 rename migration.
 

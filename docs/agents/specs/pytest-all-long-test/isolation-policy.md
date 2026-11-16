@@ -32,7 +32,8 @@ move it into `docs/agents/testing.md` almost unchanged. Edge cases behind each r
 
 - Real transactions (`TransactionTestCase`, `@pytest.mark.django_db(transaction=True)`) are used
   only when the test needs committed data (threads, migrations).
-- Each one has a comment directly above it saying why.
+- Each one has a `# transactional: <reason>` comment directly above it saying why; the
+  `transaction-justification` rule of the check script enforces it.
 
 ## Fixture scope
 
@@ -40,6 +41,8 @@ move it into `docs/agents/testing.md` almost unchanged. Edge cases behind each r
   rolled back between tests, so data leaks from one test into the next.
 - Shared data is built in `setUpTestData` instead, which is rolled back after the class and
   deep-copied per test.
+- The `scoped-db-fixture` rule of the check script flags such a fixture (one that takes or uses
+  `django_db_blocker`).
 
 ## Inside `TestCase`
 
@@ -77,10 +80,20 @@ move it into `docs/agents/testing.md` almost unchanged. Edge cases behind each r
 
 ## Rules added later
 
-*Placeholders, filled in by the sub-issue named.*
-
 - **Base object graph (#1793):** `setUpTestData` builds the common game, player, user and domain
-  through the shared `base_game` builder.
+  through the shared `base_game` builder:
+
+  ```python
+  from games.tests.factories import build_base_game
+
+  class TestSomething(TestCase):
+      @classmethod
+      def setUpTestData(cls):
+          cls.base = build_base_game()  # game, dm_user, dm_player, domain
+  ```
+
+  Overrides: `game_name`, `game_slug`, `dm_username`, plus any other `Game` field as a keyword.
+  The domain is always `testserver`, so use `base.domain` rather than creating another one.
 
 ## History
 

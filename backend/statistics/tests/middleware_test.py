@@ -1014,6 +1014,7 @@ class TestStatisticsSessionMiddlewareCreationTracking:
         return Session.objects.get(token=token)
 
 
+# transactional: threads use their own connections and must see committed rows
 @pytest.mark.django_db(transaction=True)
 class TestStatisticsSessionMiddlewareLoginBurst:
     """Tests for parallel authenticated requests carrying one anonymous cookie (race 2b)."""
