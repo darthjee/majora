@@ -91,13 +91,18 @@ globally-installed `navi-hey`:
 
 ```bash
 export MAJORA_API_TOKEN=<your Majora API token>
-export MAJORA_API_BASE_URL=<Majora backend base URL, e.g. http://localhost:3030>
+export MAJORA_API_BASE_URL=<Majora public (proxy) URL, e.g. http://localhost:3000>
 export LOOTSTUDIOS_SESSION_COOKIE=<your PHPSESSID cookie value>
 
 npx navi-hey --config crawler/navi_config.yaml
 # or, if navi-hey is installed globally:
 navi-hey --config crawler/navi_config.yaml
 ```
+
+`MAJORA_API_BASE_URL` must point at the proxy (locally the Tent proxy,
+`http://localhost:3000`), never at the backend directly (`majora_app`,
+`http://localhost:3030`). Requests that bypass the proxy are untrusted and,
+once enforcement is on in production (#1768), are rejected with `403`.
 
 `crawler/navi_config.yaml` declares no `web:` section, so it runs headlessly
 (per
