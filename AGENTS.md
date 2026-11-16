@@ -76,6 +76,11 @@ docker-compose run --rm majora_fe yarn lint
 docker-compose run --rm majora_tests pytest
 ```
 
+Local backend runs reuse the `test_majora` database (`--reuse-db`). Pass `--create-db` after
+pulling or writing migrations, after switching to a branch with different migrations, and after an
+interrupted migration test. `make tests-fast` (optionally with `ARGS=...`) is the fast local
+command; CI and `.claude/scripts/check_backend.sh` always pass `--create-db`.
+
 The `crawler_navi_web` service
 (`docker-compose -f docker-compose.yml -f docker-compose.ports.yml up crawler_navi_web`) runs the
 Lootstudios crawler's interactive Enqueue UI, bound to `127.0.0.1:3110` — see

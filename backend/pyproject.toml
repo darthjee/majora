@@ -28,6 +28,7 @@ factory-boy = "^3.3"
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "majora_project.settings_test"
 pythonpath = ["."]
+addopts = "--reuse-db"
 testpaths = [
     "accounts/tests",
     "games/tests",
