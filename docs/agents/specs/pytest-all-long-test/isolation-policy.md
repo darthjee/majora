@@ -79,10 +79,16 @@ move it into `docs/agents/testing.md` almost unchanged. Edge cases behind each r
 
 *Placeholders, filled in by the sub-issue named.*
 
-- **History (#1792):** `simple_history` is off in tests; tests that assert on history use the
-  opt-in.
 - **Base object graph (#1793):** `setUpTestData` builds the common game, player, user and domain
   through the shared `base_game` builder.
+
+## History
+
+`simple_history` recording is off in tests (`SIMPLE_HISTORY_ENABLED = False` in
+`majora_project/settings_test.py`). A test that reads `simple_history` rows, or asserts that none
+were added, uses `@pytest.mark.history` on the test or class; an autouse fixture in
+`backend/conftest.py` turns recording back on for it and restores the disabled state afterwards.
+`GameDocumentPageHistory` is a custom model and is unaffected.
 
 ## Why
 
