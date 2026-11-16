@@ -35,6 +35,9 @@ open the full file before loading it. For a bare link-only table of contents ins
 - **[Documentation](documentation.md)** — Markdown formatting rules for files under
   `docs/agents/` (issues, plans, hub docs): blank lines around headings and lists, enforced
   by Codacy's PR check with no local equivalent to run first.
+- **[Testing](testing.md)** — Backend test policy: `TestCase` + `setUpTestData` for new tests, the
+  transaction, fixture-scope, cache, factory and history rules, the `bin/check_test_policy.py`
+  rules, local commands (`make tests-fast`, `--create-db`) and the CI split and durations report.
 - **[Flow](flow.md)** — Main runtime flow of the application.
 - **[Product Definitions](product.md)** — Authoritative product-level concepts: entity
   definitions (split under `product/entities/`), ownership chain, GameMaster role, and

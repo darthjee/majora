@@ -92,7 +92,7 @@ docker-compose run --rm majora_tests /bin/bash
 
 ### Tests (pytest + pytest-django)
 
-Full policy: [isolation policy](../../docs/agents/specs/pytest-all-long-test/isolation-policy.md).
+Full policy: [testing](../../docs/agents/testing.md).
 
 - Test files live in `backend/<app>/tests/`, named `<module>_test.py`.
 - **New test files** use Django `TestCase`. Build the data every test needs once per class in
