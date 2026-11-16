@@ -35,6 +35,8 @@ pages it follows and updates.
 | #1786 | Write the specs | architect | — | all |
 | #1787 | Publish a durations report for every pytest job | infra | #1786 | [CI jobs](pytest-all-long-test/ci-jobs.md), [Baseline](pytest-all-long-test/baseline.md), [Cost drivers](pytest-all-long-test/cost-drivers.md) |
 | #1788 | Rebalance the CI pytest jobs | infra | #1787 | [CI jobs](pytest-all-long-test/ci-jobs.md), [Baseline](pytest-all-long-test/baseline.md) |
+| #1798 | Make the two slow migration tests cheap | backend | #1787 | [Baseline](pytest-all-long-test/baseline.md), [Cost drivers](pytest-all-long-test/cost-drivers.md) |
+| #1802 | Split the view test jobs into parallel containers | infra | #1788 | [CI jobs](pytest-all-long-test/ci-jobs.md), [Baseline](pytest-all-long-test/baseline.md) |
 | #1789 | Autouse memory cache fixture and test-policy check script | backend (infra for the `checks` job) | #1786 | [Isolation policy](pytest-all-long-test/isolation-policy.md), [Edge cases](pytest-all-long-test/edge-cases.md), [Verification](pytest-all-long-test/verification.md) |
 | #1790 | Add `TokenFactory` and replace manual token creation | backend | #1789 | [Cost drivers](pytest-all-long-test/cost-drivers.md), [Verification](pytest-all-long-test/verification.md) |
 | #1791 | Make the `UserProfile` write in `UserFactory` optional | backend | #1786 | [Cost drivers](pytest-all-long-test/cost-drivers.md) |
@@ -53,7 +55,7 @@ update this table.
 ## Sequencing
 
 1. #1786 first.
-2. #1787, then #1788 (both edit `.circleci/config.yml`).
+2. #1787, then #1788, then #1802 (all edit `.circleci/config.yml`).
 3. #1789, #1791, #1792 and #1794 in parallel, alongside the CI work.
 4. #1790 and #1793 after #1789, because they extend the check script it creates.
 5. The module conversions, once #1787 names the slow modules, before #1795.
