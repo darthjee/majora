@@ -31,7 +31,7 @@ workflows:
       - markdownlint:
           filters: *all_tags
       - coverage-final:
-          requires: [pytest_views_game, pytest_views_rest, pytest_non_views, jasmine, client_tests]
+          requires: [pytest_views, pytest_non_views, jasmine, client_tests]
           filters: *all_tags
       - release-image:
           name: release-majora-base
@@ -70,29 +70,29 @@ workflows:
           arch: arm64
           filters: *all_tags
       - build-and-release:
-          requires: [pytest_views_game, pytest_views_rest, pytest_non_views, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint, release-production_majora-base, release-production_majora-base-arm64]
+          requires: [pytest_views, pytest_non_views, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint, release-production_majora-base, release-production_majora-base-arm64]
           filters: &tags_only
             tags:
               only: /\d+\.\d+\.\d+/
             branches:
               ignore: /.*/
       - upload_proxy_files:
-          requires: [pytest_views_game, pytest_views_rest, pytest_non_views, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint]
+          requires: [pytest_views, pytest_non_views, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint]
           filters: *tags_only
       - upload_fe_files:
-          requires: [pytest_views_game, pytest_views_rest, pytest_non_views, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint, release-vite_majora-base, release-vite_majora-base-arm64]
+          requires: [pytest_views, pytest_non_views, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint, release-vite_majora-base, release-vite_majora-base-arm64]
           filters: *tags_only
       - link_photos:
-          requires: [pytest_views_game, pytest_views_rest, pytest_non_views, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint]
+          requires: [pytest_views, pytest_non_views, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint]
           filters: *tags_only
       - link_files:
-          requires: [pytest_views_game, pytest_views_rest, pytest_non_views, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint]
+          requires: [pytest_views, pytest_non_views, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint]
           filters: *tags_only
       - link_domain:
-          requires: [pytest_views_game, pytest_views_rest, pytest_non_views, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint]
+          requires: [pytest_views, pytest_non_views, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint]
           filters: *tags_only
       - upload_admin_assets:
-          requires: [pytest_views_game, pytest_views_rest, pytest_non_views, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint, release-circleci_majora-base]
+          requires: [pytest_views, pytest_non_views, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint, release-circleci_majora-base]
           filters: *tags_only
       - upload_extension:
           requires: [upload_proxy_files]
@@ -124,10 +124,10 @@ workflows:
           requires: [release]
           filters: *tags_only
       - wake-navi:
-          requires: [pytest_views_game, pytest_views_rest, pytest_non_views, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint]
+          requires: [pytest_views, pytest_non_views, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint]
           filters: *tags_only
       - client-release:
-          requires: [pytest_views_game, pytest_views_rest, pytest_non_views, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint]
+          requires: [pytest_views, pytest_non_views, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint]
           filters: *tags_only
 commands:
   # Splits the test files matching `include` (and not `exclude`) across the
