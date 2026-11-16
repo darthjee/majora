@@ -48,7 +48,9 @@ recorded test-style counts.
    is process-wide. Only 16 test files cleared it by hand; a test that forgot could pass or fail
    depending on what ran before it. Addressed by #1789 (autouse fixture in `backend/conftest.py`).
 7. **`simple_history` writes during tests.** Every save of a versioned model writes an extra
-   history row, which only 13 test files assert on. Addressed by #1792.
+   history row, which only a handful of test files assert on. Addressed by #1792: recording is now
+   off in tests (`SIMPLE_HISTORY_ENABLED = False` in `settings_test.py`), and the 6 files that read
+   history rows opt back in with `@pytest.mark.history`.
 8. **Coverage always on.** All three CI jobs run with `--cov`, and there is no fast local
    command without it. Addressed locally by #1794 (`make tests-fast`).
 9. **Transactional and migration tests.** 10 test files use real transactions
@@ -67,7 +69,7 @@ Ordered by expected impact. Each one is confirmed or ruled out mainly by the dur
 | 2 | The three pytest jobs are unbalanced, so the pipeline waits on the largest one regardless of per-test cost. | **confirmed** | Already visible in the [Baseline](baseline.md). #1788's rebalanced jobs lowered the workflow wall-clock time without changing any test: pipeline 5900 to 5913, `test` workflow 8m 54s to 5m 12s (after #1788, together with #1798). |
 | 3 | Per-test setup (driver 2) multiplied across the suite is a major cost. The baseline weakens the original ranking of view tests first, since they run in the two faster jobs. | **confirmed** | #1787's report: share of time spent in setup for `setup_method` modules; then the before/after time of each module conversion. Pipeline 5900, excluding the one-off test database creation: the 360 `setup_method` files spend 152.09s in setup against 131.34s in call across the three jobs (all other files: 6.37s of setup). It is the largest cost of `pytest_views_characters` (85.07s setup vs 64.17s call, 226.5s pytest wall time), but not of the critical-path `pytest_all` (49.44s), which is dominated by hypothesis 1. Module conversions keep their before/after times in the [Baseline](baseline.md#history). |
 | 4 | `UserFactory` and manual `Token` creation multiply `INSERT`s across the suite. | open | Before/after job times of #1790 and #1791. #1790 (tokens) is done: `TokenFactory` replaces every manual `Token.objects.create`; it is still one `INSERT` per token, so no speed change is expected (job times in the [Baseline](baseline.md#history)). Stays open until #1791. |
-| 5 | `simple_history` roughly doubles write volume on versioned models. | open | Before/after job times of #1792. |
+| 5 | `simple_history` roughly doubles write volume on versioned models. | open | Before/after job times of #1792. Implemented; job times are pending the PR pipeline (see [Baseline](baseline.md#history)), and the status is set from them. |
 | 6 | Coverage instrumentation adds a substantial constant overhead to every run. | open | #1794's local runs with and without `--cov` on the same machine. |
 | 7 | The lack of `--reuse-db` adds a fixed setup cost to every local run (local only, not CI). | open | #1794's local before/after runs. |
 

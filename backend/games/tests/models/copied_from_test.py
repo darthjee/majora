@@ -69,6 +69,7 @@ class TestCopiedFrom:
         copy.refresh_from_db()
         assert copy.copied_from is None
 
+    @pytest.mark.history
     def test_nulling_creates_no_history_entry_on_copy(self, factory):
         """Test that nulling `copied_from` on delete creates no historical record on the copy."""
         source, copy = self._source_and_copy(factory)

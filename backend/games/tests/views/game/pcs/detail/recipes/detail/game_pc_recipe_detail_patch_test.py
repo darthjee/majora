@@ -101,6 +101,7 @@ class TestGamePcRecipeDetailPatchView(CharacterRecipeViewFixtures):
         response = self._patch(client, self.visible_row.id, {'hidden': True}, self.dm_token)
         assert response['X-Skip-Cache'] == 'true'
 
+    @pytest.mark.history
     def test_records_history(self, client):
         """Test that the update is recorded in the row's history."""
         before = self.visible_row.history.count()

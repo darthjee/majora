@@ -19,3 +19,15 @@ def clear_memory_cache():
 
     memory_cache.clear()
     yield
+
+
+@pytest.fixture(autouse=True)
+def simple_history_recording(request):
+    """Enable simple_history only for tests marked ``@pytest.mark.history`` (#1792)."""
+    if request.node.get_closest_marker('history') is None:
+        yield
+        return
+    from django.test import override_settings
+
+    with override_settings(SIMPLE_HISTORY_ENABLED=True):
+        yield

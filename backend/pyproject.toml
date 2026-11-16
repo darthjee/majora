@@ -42,6 +42,9 @@ testpaths = [
     "uploads/tests",
 ]
 python_files = ["*_test.py"]
+markers = [
+    "history: record django-simple-history rows for this test (off by default in tests, #1792)",
+]
 
 [tool.coverage.run]
 source = [
