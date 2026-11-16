@@ -9,6 +9,12 @@ the pytest ``testpaths`` is scanned (test files, conftests and helper modules), 
 A violation can be allowed on a single line with a comment such as
 ``# test-policy: allow memory-cache-clear``; allowed lines are listed as opt-outs.
 
+Two more rules: ``transaction-justification`` requires every transactional test
+(``TransactionTestCase`` or ``django_db(transaction=True)``) to have a
+``# transactional: <reason>`` comment directly above it, and ``scoped-db-fixture`` forbids
+class/module/package/session fixtures that use ``django_db_blocker`` (their database writes are
+not rolled back).
+
 Exit codes: ``0`` clean (opt-outs are only printed), ``1`` violations, ``2``
 configuration error. Output lines look like ``path:line: rule-id: message``.
 
@@ -124,7 +130,115 @@ def token_create_rule(tree, path):
     ]
 
 
-RULES = [memory_cache_clear_rule, token_create_rule]
+TRANSACTIONAL_COMMENT = re.compile(r"^#\s*transactional:\s*\S")
+WIDE_SCOPES = {"class", "module", "package", "session"}
+
+
+def _is_transaction_test_case_base(base):
+    """Return whether ``base`` is ``TransactionTestCase`` or an attribute ending in it."""
+    name = base.id if isinstance(base, ast.Name) else getattr(base, "attr", None)
+    return name == "TransactionTestCase"
+
+
+def _is_attr_call(node, attr):
+    """Return whether ``node`` is a call to ``attr`` or ``<something>.attr``."""
+    if not isinstance(node, ast.Call):
+        return False
+    func = node.func
+    name = func.id if isinstance(func, ast.Name) else getattr(func, "attr", None)
+    return name == attr
+
+
+def _keyword_constant(call, name):
+    """Return the constant value of keyword ``name`` in ``call``, or ``None``."""
+    for keyword in call.keywords:
+        if keyword.arg == name and isinstance(keyword.value, ast.Constant):
+            return keyword.value.value
+    return None
+
+
+def _is_transactional_decorator(decorator):
+    """Return whether ``decorator`` is ``django_db(transaction=True)``."""
+    is_django_db = _is_attr_call(decorator, "django_db")
+    return is_django_db and _keyword_constant(decorator, "transaction") is True
+
+
+def _is_transactional_site(node):
+    """Return whether a class or function is a transactional test."""
+    if isinstance(node, ast.ClassDef) and any(
+        _is_transaction_test_case_base(base) for base in node.bases
+    ):
+        return True
+    return any(_is_transactional_decorator(decorator) for decorator in node.decorator_list)
+
+
+def _anchor_line(node):
+    """Return the first decorator line of ``node``, or its own line without decorators."""
+    decorators = node.decorator_list
+    return decorators[0].lineno if decorators else node.lineno
+
+
+def transaction_justification_rule(tree, path):
+    """Flag transactional tests without a ``# transactional: <reason>`` comment above them."""
+    lines = Path(path).read_text().splitlines()
+    message = "transactional test needs a '# transactional: <reason>' comment directly above it"
+    sites = (
+        node
+        for node in ast.walk(tree)
+        if isinstance(node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef))
+        and _is_transactional_site(node)
+    )
+    violations = []
+    for node in sites:
+        anchor = _anchor_line(node)
+        above = lines[anchor - 2].strip() if anchor >= 2 else ""
+        if not TRANSACTIONAL_COMMENT.match(above):
+            violations.append(Violation(str(path), anchor, "transaction-justification", message))
+    return violations
+
+
+def _wide_fixture_decorator(node):
+    """Return the ``fixture`` decorator with a class/module/package/session scope, if any."""
+    for decorator in node.decorator_list:
+        if not _is_attr_call(decorator, "fixture"):
+            continue
+        if _keyword_constant(decorator, "scope") in WIDE_SCOPES:
+            return decorator
+    return None
+
+
+def _uses_db_blocker(node):
+    """Return whether a function takes or references ``django_db_blocker``."""
+    arguments = node.args.posonlyargs + node.args.args + node.args.kwonlyargs
+    if any(argument.arg == "django_db_blocker" for argument in arguments):
+        return True
+    return any(
+        isinstance(child, ast.Name) and child.id == "django_db_blocker" for child in ast.walk(node)
+    )
+
+
+def scoped_db_fixture_rule(tree, path):
+    """Flag wide-scoped fixtures that use ``django_db_blocker`` (writes are not rolled back)."""
+    message = (
+        "fixtures scoped to class/module/package/session must not write to the database; "
+        "use setUpTestData"
+    )
+    violations = []
+    for node in ast.walk(tree):
+        if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            continue
+        decorator = _wide_fixture_decorator(node)
+        if decorator is not None and _uses_db_blocker(node):
+            violations.append(Violation(str(path), decorator.lineno, "scoped-db-fixture", message))
+    return violations
+
+
+RULES = [
+    memory_cache_clear_rule,
+    token_create_rule,
+    transaction_justification_rule,
+    scoped_db_fixture_rule,
+]
 
 
 def _split(found, allowed):
