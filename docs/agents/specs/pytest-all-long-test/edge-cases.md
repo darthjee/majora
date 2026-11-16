@@ -92,8 +92,14 @@ domain. `Domain.domain` is unique, so a converted module that also creates `test
 
 ## `--reuse-db`
 
-- A reused local database does not pick up new migrations automatically. The documented local
-  command (#1794) must say when to pass `--create-db` (after pulling or writing migrations).
+- `backend/pyproject.toml` sets `addopts = "--reuse-db"`, so a local `pytest` and `make tests-fast`
+  reuse `test_majora`.
+- All worktrees share the `majora_mysql` container and its `test_majora`, so a reused database can
+  carry another branch's schema. A reused database does not pick up new migrations automatically.
+- Pass `--create-db` after pulling or writing migrations, after switching to a branch with
+  different migrations, and after an interrupted migration test.
+- `.claude/scripts/check_backend.sh` always passes `--create-db`, so an agent's check runs against
+  the schema of its own branch.
 - CI always passes `--create-db`, so `--reuse-db` does not change what CI runs.
 
 ## Tests without a database

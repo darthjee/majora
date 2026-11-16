@@ -274,16 +274,25 @@ cheap, so the gain below is not from #1788 alone.
 
 ## Local
 
-*Placeholder, filled in by #1794.* #1794 measures a full local run in the `majora_tests`
-container, both with and without `--cov`, on a stated machine, right before and after its own
-change, and records all four numbers here. Measuring both in one PR on the same machine keeps
-the comparison fair.
+Measured by #1794 in the `majora_tests` container on one machine: Apple M4 Pro, 24 GB RAM,
+macOS (Darwin 25.3.0), Docker 29.3.0, MySQL `mysql:8.4.13` (shared `majora_mysql`). Nothing else
+was running during the measurements.
+
+| Run | Wall-clock | pytest time | Tests |
+|-----|-----------:|------------:|------:|
+| Baseline, `pytest` (fresh test database, no `--cov`) | 2m 01s | 113.85s (1m 53s) | 9,110 |
+| Baseline, `pytest --cov` (fresh test database) | 3m 19s | 191.82s (3m 11s) | 9,110 |
+| `make tests-fast` (`--reuse-db`, second run, no `--cov`) | 1m 45s | 98.21s (1m 38s) | 9,110 |
+
+The reused-database run is about 14% faster in pytest time (15.6s) than the no-coverage baseline.
+`pytest --collect-only -q` lists the same 9,110 node IDs before and after the change.
 
 ## Targets
 
 - **CI:** after #1788, the `test` workflow wall-clock time is at most **5m 30s**. Later
   sub-issues (#1789–#1794, #1798) lower it further. Pipeline 5913 meets it at 5m 12s.
-- **Local:** set by #1794.
+- **Local:** a full `make tests-fast` run takes at most **1m 45s** wall-clock (98.21s of pytest
+  time) on the machine above. Later sub-issues must not make it slower.
 
 ## History
 
@@ -295,3 +304,4 @@ the comparison fair.
 | #1798 | local docker (macOS host, MySQL 8), each file alone, `--durations=0` | `character_public_slain_migration_test.py` call (both tests) / teardown | 19.98s / 12.70s | 3.53s / 0.31s |
 | #1790 | CircleCI, pending the PR pipeline | `pytest_views` / `pytest_non_views` | see previous rows | to be filled in from the PR pipeline (no speed change expected: still one `INSERT` per token) |
 | #1792 | CircleCI, pending the PR pipeline | `pytest_views_game` / `pytest_views_rest` / `pytest_non_views` | see previous rows | to be filled in from the PR pipeline |
+| #1794 | local docker (Apple M4 Pro, MySQL 8.4.13), full run, no `--cov` | `pytest` vs reused `make tests-fast` | 2m 01s (113.85s pytest) | 1m 45s (98.21s pytest) |

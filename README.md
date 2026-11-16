@@ -128,6 +128,11 @@ Inside the test shell (`make tests`):
 poetry run pytest
 ```
 
+Local runs reuse the `test_majora` database (`--reuse-db`). Pass `--create-db` after pulling or
+writing migrations, after switching to a branch with different migrations, and after an
+interrupted migration test. `make tests-fast` (optionally `make tests-fast ARGS="games/tests"`) is
+the fast local command; CI always passes `--create-db`.
+
 Frontend tests (from `frontend/`):
 ```bash
 yarn test        # run Jasmine specs
