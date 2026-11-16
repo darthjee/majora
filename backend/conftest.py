@@ -31,3 +31,10 @@ def simple_history_recording(request):
 
     with override_settings(SIMPLE_HISTORY_ENABLED=True):
         yield
+
+
+@pytest.fixture(autouse=True)
+def clear_proxy_env(monkeypatch):
+    """Drop `PROXY_SECRET` and `PROXY_ENFORCE` so a developer's `.env` never leaks into tests."""
+    monkeypatch.delenv('PROXY_SECRET', raising=False)
+    monkeypatch.delenv('PROXY_ENFORCE', raising=False)

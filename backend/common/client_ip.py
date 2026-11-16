@@ -2,22 +2,16 @@
 
 import ipaddress
 import logging
-import os
 
 from django.conf import settings
 
-from common.secret_compare import secret_matches
+from common.proxy_trust import has_valid_proxy_secret, proxy_secret
 
 PROXY_SECRET_MISSING = (
     'PROXY_SECRET is not set: X-Forwarded-For is ignored and client IPs fall back to REMOTE_ADDR'
 )
 
 logger = logging.getLogger('common')
-
-
-def proxy_secret():
-    """Return the configured proxy shared secret, or '' if unset (trust disabled)."""
-    return os.environ.get('PROXY_SECRET', '')
 
 
 def warn_if_proxy_secret_missing():
@@ -28,13 +22,8 @@ def warn_if_proxy_secret_missing():
 
 def client_ip(request):
     """Return the client IP: the leftmost trusted `X-Forwarded-For` entry, else `REMOTE_ADDR`."""
-    forwarded = _forwarded_ip(request) if _from_trusted_proxy(request) else None
+    forwarded = _forwarded_ip(request) if has_valid_proxy_secret(request) else None
     return forwarded or request.META.get('REMOTE_ADDR')
-
-
-def _from_trusted_proxy(request):
-    """Return whether the request carries a `X-Proxy-Secret` matching `PROXY_SECRET`."""
-    return secret_matches(request.META.get('HTTP_X_PROXY_SECRET'), proxy_secret())
 
 
 def _forwarded_ip(request):
