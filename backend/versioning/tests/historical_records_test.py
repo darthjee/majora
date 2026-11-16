@@ -23,6 +23,7 @@ from games.tests.factories import (
 
 
 @pytest.mark.django_db
+@pytest.mark.history
 class TestHistoricalRecordsOnCreate:
     """Test that saving a new tracked instance creates a full-state historical row."""
 
@@ -64,6 +65,7 @@ class TestHistoricalRecordsOnCreate:
 
 
 @pytest.mark.django_db
+@pytest.mark.history
 class TestHistoricalRecordsOnUpdate:
     """Test that updating a tracked instance creates a new full-state historical row."""
 
@@ -98,6 +100,7 @@ class TestHistoricalRecordsOnUpdate:
 
 
 @pytest.mark.django_db
+@pytest.mark.history
 class TestHistoricalRecordsOnDelete:
     """Test that deleting a tracked instance is also captured as a historical row."""
 
@@ -123,6 +126,7 @@ class TestHistoricalRecordsOnDelete:
         assert history[1].history_type == '-'
 
 
+@pytest.mark.history
 class TestHistoricalRecordsUser(TokenAuthRequestMixin, TestCase):
     """Test that a request-bound user performing a change is captured as `history_user`."""
 
