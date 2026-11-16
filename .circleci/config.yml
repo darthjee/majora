@@ -3,13 +3,10 @@ workflows:
   version: 2
   test:
     jobs:
-      - pytest_views_game:
+      - pytest_views:
           filters: &all_tags
             tags:
               only: /.*/
-          requires: [release-circleci_majora-base, release-circleci_majora-base-arm64]
-      - pytest_views_rest:
-          filters: *all_tags
           requires: [release-circleci_majora-base, release-circleci_majora-base-arm64]
       - pytest_non_views:
           filters: *all_tags
@@ -133,6 +130,41 @@ workflows:
           requires: [pytest_views_game, pytest_views_rest, pytest_non_views, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint]
           filters: *tags_only
 commands:
+  # Splits the test files matching `include` (and not `exclude`) across the
+  # parallel containers by the per-file timings stored from the JUnit report,
+  # and exports this container's share as TEST_FILES.
+  split_test_files:
+    parameters:
+      include:
+        type: string
+      exclude:
+        type: string
+        default: '^$'
+    steps:
+      - run:
+          name: Split test files
+          command: |
+            mkdir -p test-reports
+            # Glob patterns are passed to `circleci tests glob`, not expanded by the shell.
+            set -f
+            patterns=""
+            # Every testpaths entry of pyproject.toml, so the list never drifts from it.
+            for testpath in $(sed -n '/^testpaths = \[/,/\]/p' pyproject.toml | grep -o '"[^"]*"' | tr -d '"'); do
+              patterns="$patterns $testpath/*_test.py $testpath/**/*_test.py"
+            done
+            circleci tests glob $patterns \
+              | sort -u \
+              | grep -E '<< parameters.include >>' \
+              | grep -Ev '<< parameters.exclude >>' \
+              | circleci tests split --split-by=timings --timings-type=filename \
+              > test-reports/test-files.txt
+            echo "Container $CIRCLE_NODE_INDEX/$CIRCLE_NODE_TOTAL runs $(wc -l < test-reports/test-files.txt) files"
+            if [ ! -s test-reports/test-files.txt ]; then
+              echo "No test files assigned to this container" >&2
+              exit 1
+            fi
+            echo "export TEST_FILES=\"$(tr '\n' ' ' < test-reports/test-files.txt)\"" >> "$BASH_ENV"
+
   # Runs pytest on the given paths with coverage, uploads partial coverage to
   # Codacy and publishes the durations reports (#1787): the full
   # `--durations=0` list, a per-file/per-directory summary built by
@@ -187,7 +219,10 @@ jobs:
           name: Release
           command: bin/image.sh push << parameters.image >> << parameters.arch >>
 
-  pytest_views_game:
+  # Runs every test under games/tests/views/ (#1802), split across parallel
+  # containers by the per-file timings stored from the JUnit report.
+  pytest_views:
+    parallelism: 3
     docker:
       - image: darthjee/circleci_majora-base:0.1.0
         environment:
@@ -213,37 +248,10 @@ jobs:
       - run:
           name: wait for db
           command: bin/configure_database.sh wait
+      - split_test_files:
+          include: '^games/tests/views/'
       - pytest_with_reports:
-          paths: "games/tests/views/game/"
-
-  pytest_views_rest:
-    docker:
-      - image: darthjee/circleci_majora-base:0.1.0
-        environment:
-          MAJORA_MYSQL_HOST: mysql
-          MAJORA_MYSQL_PORT: 3306
-          MAJORA_MYSQL_USER: root
-          MAJORA_MYSQL_NAME: majora
-          MAJORA_MYSQL_PASSWORD: majora
-      - image: cimg/mysql:8.4.13
-        name: mysql
-        environment:
-          MYSQL_DATABASE: majora
-          MYSQL_USER: majora
-          MYSQL_PASSWORD: majora
-          MYSQL_ROOT_PASSWORD: majora
-    working_directory: ~/project/backend
-    steps:
-      - checkout:
-          path: ~/project
-      - run:
-          name: Poetry Install
-          command: poetry install --no-root --no-interaction --no-ansi
-      - run:
-          name: wait for db
-          command: bin/configure_database.sh wait
-      - pytest_with_reports:
-          paths: "games/tests/views/ --ignore=games/tests/views/game/"
+          paths: "$TEST_FILES"
 
   # Runs every test outside games/tests/views/ (#1788), split across parallel
   # containers by the per-file timings stored from the JUnit report.
@@ -274,28 +282,9 @@ jobs:
       - run:
           name: wait for db
           command: bin/configure_database.sh wait
-      - run:
-          name: Split test files
-          command: |
-            mkdir -p test-reports
-            # Glob patterns are passed to `circleci tests glob`, not expanded by the shell.
-            set -f
-            patterns=""
-            # Every testpaths entry of pyproject.toml, so the list never drifts from it.
-            for testpath in $(sed -n '/^testpaths = \[/,/\]/p' pyproject.toml | grep -o '"[^"]*"' | tr -d '"'); do
-              patterns="$patterns $testpath/*_test.py $testpath/**/*_test.py"
-            done
-            circleci tests glob $patterns \
-              | sort -u \
-              | grep -v '^games/tests/views/' \
-              | circleci tests split --split-by=timings --timings-type=filename \
-              > test-reports/test-files.txt
-            echo "Container $CIRCLE_NODE_INDEX/$CIRCLE_NODE_TOTAL runs $(wc -l < test-reports/test-files.txt) files"
-            if [ ! -s test-reports/test-files.txt ]; then
-              echo "No test files assigned to this container" >&2
-              exit 1
-            fi
-            echo "export TEST_FILES=\"$(tr '\n' ' ' < test-reports/test-files.txt)\"" >> "$BASH_ENV"
+      - split_test_files:
+          include: '.'
+          exclude: '^games/tests/views/'
       - pytest_with_reports:
           paths: "$TEST_FILES"
 
