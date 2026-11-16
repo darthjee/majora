@@ -238,19 +238,38 @@ class TestStatisticsSessionMiddleware:
         session = Session.objects.get()
         assert session.ip == '2.2.2.2'
 
-    def test_forged_forwarded_for_without_proxy_secret_stores_remote_addr(
-        self, client, monkeypatch
-    ):
-        """Test that a forged `X-Forwarded-For` without the proxy secret stores `REMOTE_ADDR`."""
+    def test_request_without_proxy_secret_is_not_tracked(self, client, monkeypatch):
+        """Test that a request without the proxy secret creates no session and no cookie."""
         monkeypatch.setenv('PROXY_SECRET', 'tent-secret')
-        client.get(
+        response = client.get(
             '/ready.json',
             REMOTE_ADDR='1.1.1.1',
             HTTP_X_FORWARDED_FOR='2.2.2.2',
         )
 
-        session = Session.objects.get()
-        assert session.ip == '1.1.1.1'
+        assert Session.objects.count() == 0
+        assert cookies.COOKIE_NAME not in response.cookies
+
+    def test_untrusted_request_with_valid_skip_secret_is_untracked(self, client, monkeypatch):
+        """Test that an untrusted request with a valid skip secret is still untracked."""
+        monkeypatch.setenv('PROXY_SECRET', 'tent-secret')
+        monkeypatch.setenv('STATISTICS_SKIP_SECRET', 'shh')
+        client.get('/ready.json', HTTP_X_STATISTICS_SKIP_SECRET='shh')
+
+        assert Session.objects.count() == 0
+
+    def test_trusted_request_is_tracked(self, client, monkeypatch):
+        """Test that a request with the matching proxy secret is tracked."""
+        monkeypatch.setenv('PROXY_SECRET', 'tent-secret')
+        client.get('/ready.json', HTTP_X_PROXY_SECRET='tent-secret')
+
+        assert Session.objects.count() == 1
+
+    def test_request_is_tracked_when_proxy_secret_is_empty(self, client):
+        """Test that requests are tracked when no proxy secret is configured."""
+        client.get('/ready.json')
+
+        assert Session.objects.count() == 1
 
     def test_trusted_multi_value_forwarded_for_stores_leftmost_entry(self, client, monkeypatch):
         """Test that a trusted multi-value `X-Forwarded-For` stores its leftmost entry."""
@@ -528,8 +547,8 @@ class TestStatisticsSessionMiddleware:
         assert response.status_code == 200
         assert Session.objects.count() == 1
 
-    def test_non_ascii_proxy_secret_records_remote_addr(self, client, monkeypatch):
-        """Test that a non-ASCII proxy secret header records REMOTE_ADDR, never a 500."""
+    def test_non_ascii_proxy_secret_is_untracked(self, client, monkeypatch):
+        """Test that a non-ASCII proxy secret header is untrusted and untracked, never a 500."""
         monkeypatch.setenv('PROXY_SECRET', 'tent-secret')
 
         response = client.get(
@@ -540,7 +559,7 @@ class TestStatisticsSessionMiddleware:
         )
 
         assert response.status_code == 200
-        assert Session.objects.get().ip == '1.2.3.4'
+        assert Session.objects.count() == 0
 
     def test_creates_session_when_skip_secret_not_configured(self, client, monkeypatch):
         """Test that an unset skip secret always falls through to normal recording."""

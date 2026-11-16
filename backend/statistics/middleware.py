@@ -21,8 +21,10 @@ class StatisticsSessionMiddleware:
 
     Same `__init__(self, get_response)` / `__call__(self, request)` shape as
     `games.middleware.CacheControlMiddleware`. A request is not tracked (no session lookup, no
-    visit, no cookie) when its path is exactly one of `UNTRACKED_PATHS` (never a prefix), when
-    it carries a valid statistics-skip header, or when its path matches no route.
+    visit, no cookie) when it bypassed the proxy (`request.via_proxy` is false, see
+    `common.middleware.ProxyTrustMiddleware`), when its path is exactly one of `UNTRACKED_PATHS`
+    (never a prefix), when it carries a valid statistics-skip header, or when its path matches
+    no route.
     """
 
     # The raw statistics export reads the data this middleware writes: tracking its own
@@ -56,9 +58,12 @@ class StatisticsSessionMiddleware:
     def _skip_requested(self, request):
         """Return whether this request is exempt from tracking.
 
-        Exempt: an exact untracked path, a valid skip header, or a path matching no route. The
-        route is only computed (and stored on `request.statistics_route`) for the last check.
+        Exempt: a request that bypassed the proxy, an exact untracked path, a valid skip header,
+        or a path matching no route. The route is only computed (and stored on
+        `request.statistics_route`) for the last check.
         """
+        if not getattr(request, 'via_proxy', True):
+            return True
         if self._untracked_path(request) or self._skip_header(request):
             return True
         return self._unresolved_route(request)
