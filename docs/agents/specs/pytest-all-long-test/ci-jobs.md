@@ -7,31 +7,34 @@ rebalancing (#1788).
 
 ## Current split
 
-Three jobs in `.circleci/config.yml`, each with `working_directory: ~/project/backend`. Every job,
-and every container of a parallel job, has its own ephemeral `cimg/mysql:8.4.13` container:
+Two jobs in `.circleci/config.yml`, each with `working_directory: ~/project/backend` and
+`parallelism: 3`. Every container has its own ephemeral `cimg/mysql:8.4.13` container:
 
-| Job | Scope (`paths` passed to `pytest_with_reports`) | How it is split | Before #1788 (pipeline 5900) |
+| Job | Scope (`paths` passed to `pytest_with_reports`) | How it is split | Before #1802 (pipeline 5913) |
 |-----|--------------------------------------------------|-----------------|------------------------------|
-| `pytest_views_game` (was `pytest_views_characters`) | `games/tests/views/game/` | One job | 4m 58s |
-| `pytest_views_rest` | `games/tests/views/ --ignore=games/tests/views/game/` | One job | 2m 55s |
-| `pytest_non_views` (was `pytest_all`) | `$TEST_FILES`: this container's share of every `*_test.py` under the `testpaths`, except `games/tests/views/` | `parallelism: 3`, split by timings | **8m 08s** |
+| `pytest_views` (was `pytest_views_game` and `pytest_views_rest`) | `$TEST_FILES`: this container's share of every `*_test.py` under `games/tests/views/` | `parallelism: 3`, split by timings | 4m 56s (`pytest_views_game`) and 2m 58s (`pytest_views_rest`) |
+| `pytest_non_views` (was `pytest_all`) | `$TEST_FILES`: this container's share of every `*_test.py` under the `testpaths`, except `games/tests/views/` | `parallelism: 3`, split by timings | 2m 33s |
 
 - Every job runs pytest through the reusable `pytest_with_reports` command in
   `.circleci/config.yml`, which appends `--cov --cov-report=lcov:coverage/lcov.info
   --durations=0 --junitxml=test-reports/junit.xml -o junit_family=xunit1` and publishes the
   reports (see [Durations report](#durations-report-1787)).
-- `pytest_non_views` runs a "Split test files" step before `pytest_with_reports`, in each
-  container:
-  1. It reads every `testpaths` entry from `backend/pyproject.toml` (so the list never drifts
+- Both jobs run a "Split test files" step before `pytest_with_reports`, in each container, through
+  the shared `split_test_files` command (top-level `commands:`). It has two parameters, `include`
+  (a regex of path prefixes to keep, `'^games/tests/views/'` for `pytest_views` and `'.'` for
+  `pytest_non_views`) and `exclude` (a regex of path prefixes to drop, default `'^$'`, which
+  matches nothing; `'^games/tests/views/'` for `pytest_non_views`). Sharing it keeps the two
+  splits from drifting. It:
+  1. Reads every `testpaths` entry from `backend/pyproject.toml` (so the list never drifts
      from it) and globs `<testpath>/*_test.py` and `<testpath>/**/*_test.py` with
      `circleci tests glob`. The `testpaths` matter: `majora_project/settings_test.py` matches
      `*_test.py` but is not a test file.
-  2. It removes duplicates (`sort -u`) and everything under `games/tests/views/`
-     (`grep -v '^games/tests/views/'`), which replaces the old `--ignore=games/tests/views/`.
-  3. It pipes the list to `circleci tests split --split-by=timings --timings-type=filename`,
-     writes the container's share to `test-reports/test-files.txt`, fails if that share is
-     empty (pytest would otherwise run every `testpaths` entry) and exports it as `TEST_FILES`
-     through `$BASH_ENV`.
+  2. Removes duplicates (`sort -u`), then keeps the `include` matches (`grep -E`) and drops the
+     `exclude` matches (`grep -Ev`).
+  3. Pipes the list to `circleci tests split --split-by=timings --timings-type=filename`,
+     writes the container's share to `test-reports/test-files.txt` (each parallel job writes
+     its own), fails if that share is empty (pytest would otherwise run every `testpaths`
+     entry) and exports it as `TEST_FILES` through `$BASH_ENV`.
   4. `pytest_with_reports` then runs with `paths: "$TEST_FILES"`; the parameter is expanded
      unquoted, so the shell splits the list into one argument per file.
 - The 10 transactional and migration test files (see
@@ -45,7 +48,7 @@ and every container of a parallel job, has its own ephemeral `cimg/mysql:8.4.13`
 - Each pytest job, and each `pytest_non_views` container, uploads its own partial coverage to
   Codacy in a step named "Upload coverage to Codacy (partial)": `bash <(curl -Ls
   https://coverage.codacy.com/get.sh) report --partial -r coverage/lcov.info`.
-- `coverage-final` requires `pytest_views_game`, `pytest_views_rest`, `pytest_non_views`,
+- `coverage-final` requires `pytest_views`, `pytest_non_views`,
   `jasmine` and `client_tests`, then runs the Codacy `final` command. A parallel job is required
   by its single name, and is done only when all its containers are.
 - Every new or renamed pytest job must keep uploading its partial coverage, and `coverage-final`
@@ -53,8 +56,8 @@ and every container of a parallel job, has its own ephemeral `cimg/mysql:8.4.13`
 
 ## Release jobs that depend on the pytest jobs
 
-The tag-only release jobs (`filters: *tags_only`) list all three pytest jobs
-(`pytest_views_game`, `pytest_views_rest`, `pytest_non_views`) in `requires`:
+The tag-only release jobs (`filters: *tags_only`) list both pytest jobs
+(`pytest_views`, `pytest_non_views`) in `requires`:
 `build-and-release`, `upload_proxy_files`, `upload_fe_files`, `link_photos`, `link_files`,
 `link_domain`, `upload_admin_assets`, `wake-navi` and `client-release`. A rename or a new pytest
 job must update every one of them, as well as `coverage-final`. Tag builds do not run on pull
@@ -63,13 +66,13 @@ requests, so check a rename with `circleci config validate` and a `grep` for the
 
 ## Durations report (#1787)
 
-Every pytest job, and every `pytest_non_views` container, publishes its own durations report, so
+Every pytest job container publishes its own durations report, so
 per-file and per-test timings are available for every pipeline. The first numbers are in [Baseline](baseline.md) and the hypothesis statuses
 in [Cost drivers](cost-drivers.md#hypotheses).
 
 ### How it runs
 
-The three jobs (each `pytest_non_views` container with its own `$TEST_FILES`) call the reusable `pytest_with_reports` command (top-level `commands:` in
+The two jobs (each container with its own `$TEST_FILES`) call the reusable `pytest_with_reports` command (top-level `commands:` in
 `.circleci/config.yml`) with their own `paths`. It runs, from `~/project/backend`:
 
 ```bash
@@ -102,7 +105,7 @@ container (`pytest_non_views` shows a set for each of its containers, numbered f
 | `durations.txt` | The `--durations=0` list: one line per phase (`setup`, `call`, `teardown`) of each test, slowest first. Phases under 0.005s are hidden by pytest and summarized in a final line. |
 | `durations-by-file.md` | Per-file and per-directory totals built from the JUnit XML. |
 | `junit.xml` | The JUnit XML (xunit1). |
-| `test-files.txt` | `pytest_non_views` only: the test files given to this container, one per line. The union of all containers' lists, plus the two view jobs' paths, is the full suite. |
+| `test-files.txt` | The test files given to this container, one per line, in both `pytest_views` and `pytest_non_views`. The union of all containers' lists of both jobs is the full suite. |
 
 The **Tests** tab shows the same JUnit results per test, with their timings; CircleCI keeps them
 as the timing history used by timing-based splitting.
@@ -192,8 +195,8 @@ was 4,805 + 2,614 + 1,671 = 9,090 tests.
 
 ### Next candidate
 
-`pytest_views_game` (about 5m) is now the critical path. Splitting it further (for example into
-its own parallel job) is the next candidate, out of the scope of #1788.
+After #1788, `pytest_views_game` (about 5m) was the critical path. #1802 removed it, see
+[Parallel view jobs (#1802)](#parallel-view-jobs-1802).
 
 ### Renames
 
@@ -201,3 +204,39 @@ The `protect main` ruleset has no required status checks (checked 2026-11-15), s
 breaks no PR check; confirm it again just before merging a rename. A rename must also update the
 release jobs' and `coverage-final`'s `requires` and the job names listed in
 `docs/agents/contributing.md` and `.claude/agents/infra.md`.
+
+## Parallel view jobs (#1802)
+
+Done by #1802, from pipeline 5913 (after #1788 and #1798): `pytest_views_game` 4m 56s (268.08s
+of pytest), `pytest_views_rest` 2m 58s (106.27s), `pytest_non_views` 2m 33s, `test` workflow
+5m 12s. The new numbers are in [Baseline](baseline.md).
+
+### Choice
+
+Both view jobs are merged into `pytest_views` with `parallelism: 3`, split by timings over
+`games/tests/views/` through the shared `split_test_files` command. Two alternatives were
+rejected:
+
+- **`pytest_views_game` alone with `parallelism: 2`:** it keeps a hand-picked path that must be
+  re-tuned by hand as the costs change.
+- **One `pytest` job for the whole suite with `parallelism: 6`:** it reverses #1788's hybrid
+  choice and pays the fixed cost in more containers.
+
+Estimate: about 280s of view work / 3 + about 80s fixed cost, about 3m per container.
+
+### Shared behavior modules
+
+Three modules (`_entity_token_scopes_behavior.py`, `_common_items_filters_behavior.py`,
+`_permissions_token_scopes_behavior.py`) define tests that other files inherit. JUnit credits an
+inherited test to the module that defines it, so the files that inherit them are under-weighted in
+the filename timings and the split is less even than it looks. This is accepted: tests are never
+changed to balance the split.
+
+### Next candidate
+
+To be filled from the recorded run, see [Baseline](baseline.md). The remaining levers are the
+per-test work (#1790 to #1793) and the fixed cost of about 80s per container.
+
+### Exact coverage
+
+The union of the `test-files.txt` artifacts of both jobs' containers covers every test file.
