@@ -60,6 +60,7 @@ Set on the Render backend service. Read by `backend/majora_project/settings.py` 
 | Variable | Purpose |
 |----------|---------|
 | `PROXY_SECRET` | Shared secret expected in `X-Proxy-Secret` (`backend/common/client_ip.py`). Must be non-empty and equal to Tent's `$proxySecret`. |
+| `PROXY_ENFORCE` | `true` makes the backend answer 403 to any request without a valid `X-Proxy-Secret` (only `/ready.json` is exempt). Off by default. Turn it on only after confirming every caller uses the proxy URL (#1768). |
 | `DJANGO_SECRET_KEY` | Django `SECRET_KEY`. |
 | `DJANGO_DEBUG` | `false` in production. Also the switch that enables the `PROXY_SECRET` startup warning. |
 | `ALLOWED_HOSTS` | Comma-separated hosts Django answers for. |
@@ -81,10 +82,12 @@ and are described in `.env.dev.sample`.
 
 - Tent sends the secret as `X-Proxy-Secret` with its own `X-Forwarded-For`. Django trusts
   `X-Forwarded-For` only when the header matches `PROXY_SECRET`.
-- An empty value on either side, or two different values, disables client-IP trust. Requests
-  are still served, but statistics record `REMOTE_ADDR`: the hosting's internal load-balancer
-  address, which changes from request to request, instead of the visitor's IP.
-- Only statistics use this IP (see [Access Statistics](statistics.md#client-ip-integrity)).
+- An empty value on either side, or two different values, makes every request untrusted: it is
+  not tracked in statistics, `X-Forwarded-Host` is ignored (no domain resolves, so
+  `/games.json` returns 404 `domain_not_recognized`), and with `PROXY_ENFORCE=true` it gets a
+  403.
+- Statistics only track trusted requests and use the forwarded client IP (see
+  [Access Statistics](statistics.md#client-ip-integrity)).
 
 Each side has one guard:
 
@@ -96,7 +99,12 @@ Each side has one guard:
   PROXY_SECRET is not set: X-Forwarded-For is ignored and client IPs fall back to REMOTE_ADDR
   ```
 
-  It appears in the Render logs unless `DJANGO_LOG_LEVEL` is set above `WARNING`.
+  When `PROXY_ENFORCE=true` and `PROXY_SECRET` is empty, a second startup warning is logged
+  (every request would get a 403). Both appear in the Render logs unless `DJANGO_LOG_LEVEL`
+  is set above `WARNING`.
+
+**Deploy note (#1750):** before deploying it, confirm `PROXY_SECRET` is set on the backend.
+Otherwise the change is a silent no-op.
 
 ## Rotating the secret
 
@@ -105,9 +113,10 @@ Each side has one guard:
 3. Set the same value as `PROXY_SECRET` on the Render backend service.
 4. Redeploy the backend so it reads the new value.
 
-Between steps 2 and 4 the two sides disagree, so requests record `REMOTE_ADDR`. This is
-harmless since #1737 (sessions are reused across IP changes); only the stored IPs of those
-requests are imprecise.
+Between steps 2 and 4 the two sides disagree, and that window is **not harmless**: requests are
+untrusted, so domain-scoped pages fail (`domain_not_recognized`), and once `PROXY_ENFORCE` is on
+everything gets a 403. Update both sides back to back, preferably at low traffic, and expect a
+short disruption.
 
 To verify: the backend start has no `PROXY_SECRET is not set` warning, and new statistics
 sessions record public client IPs.
