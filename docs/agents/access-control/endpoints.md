@@ -19,7 +19,10 @@ classes are explicitly empty and permission is `AllowAny` — this response neve
 
 | Endpoint | Method | Who can call | Response |
 |----------|--------|-------------|----------|
-| `/health.json` | GET | **AllowAny** | `{"status": "ok"}` |
+| `/ready.json` | GET | **AllowAny** | `{"status": "ok"}` |
+
+`/ready.json` is the only path exempt from `PROXY_ENFORCE` (exact match): it stays reachable
+without the proxy secret so the platform health check keeps working.
 
 ## Domain configuration endpoint
 
