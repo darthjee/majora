@@ -122,7 +122,7 @@ All jobs run on every push. Release jobs run **only on version tags** matching `
 | Job | Image | Purpose |
 |-----|-------|---------|
 | `pytest_views` | `darthjee/circleci_majora-base` + `cimg/mysql:8.4.13` | `parallelism: 3`: run `games/tests/views/`, split by timings across 3 containers + upload partial coverage and the durations report |
-| `pytest_non_views` | `darthjee/circleci_majora-base` + `cimg/mysql:8.4.13` | `parallelism: 3`: every other `*_test.py` under the `testpaths`, split across containers by recorded timings (`circleci tests split --split-by=timings`); each container uploads partial coverage, its durations report and `test-reports/test-files.txt`. See `docs/agents/specs/pytest-all-long-test/ci-jobs.md` |
+| `pytest_non_views` | `darthjee/circleci_majora-base` + `cimg/mysql:8.4.13` | `parallelism: 3`: every other `*_test.py` under the `testpaths`, split across containers by recorded timings (`circleci tests split --split-by=timings`); each container uploads partial coverage, its durations report and `test-reports/test-files.txt`. See the CI section of `docs/agents/testing.md` |
 | `jasmine` | `darthjee/circleci_node` | Run frontend tests + upload partial coverage |
 | `coverage-final` | `darthjee/circleci_node` | Finalize coverage report on Codacy |
 | `checks` | `darthjee/circleci_majora-base` | ruff lint + test-policy check + complexity check |
