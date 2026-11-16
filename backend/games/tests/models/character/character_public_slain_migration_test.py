@@ -17,6 +17,7 @@ _BACKFILL = ('games', '0041_character_public_slain')
 _RENAME_TO_PRIVATE = ('games', '0073_rename_slain_and_allegiance_to_private')
 
 
+# transactional: migrates the schema with MigrationExecutor; DDL commits implicitly on MySQL
 class TestCharacterPublicSlainBackfillNoopReverse(TestCase):
     """Tests for the 0041 migration's reverse operation."""
 
@@ -25,6 +26,7 @@ class TestCharacterPublicSlainBackfillNoopReverse(TestCase):
         _migration._noop_reverse(apps, None)
 
 
+# transactional: migrates the schema with MigrationExecutor; DDL commits implicitly on MySQL
 class TestCharacterPublicSlainBackfillMigration(TransactionTestCase):
     """Tests for the actual backfill performed by the 0041 data migration.
 

@@ -176,6 +176,7 @@ class TestTrackVisit:
         return Visit.objects.create(session=self.session, started_at=seen_at, last_seen_at=seen_at)
 
 
+# transactional: threads use their own connections and must see committed rows
 @pytest.mark.django_db(transaction=True)
 class TestTrackVisitConcurrency:
     """Tests for concurrent `track_visit` extends."""

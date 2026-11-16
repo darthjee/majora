@@ -188,6 +188,7 @@ class TestAuthorizationRequestPollView:
         assert second_response.status_code == 403
         assert json.loads(second_response.content) == {'error': 'not_found'}
 
+    # transactional: threads use their own connections and must see committed rows
     @pytest.mark.django_db(transaction=True)
     def test_only_one_of_two_concurrent_polls_wins_the_approved_to_logged_race(self):
         """Test that of two near-simultaneous polls on an approved request, only one wins."""

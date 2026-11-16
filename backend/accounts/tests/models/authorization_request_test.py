@@ -153,6 +153,7 @@ class TestAuthorizationRequestTryTransitionApprovedToLogged(TestCase):
         assert instance.status == AuthorizationRequest.STATUS_OPEN
 
 
+# transactional: threads use their own connections and must see committed rows
 @pytest.mark.django_db(transaction=True)
 class TestAuthorizationRequestConcurrentTransition:
     """Tests exercising try_transition_approved_to_logged under real concurrency."""

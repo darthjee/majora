@@ -17,6 +17,7 @@ _BACKFILL = ('games', '0059_backfill_gametreasure_hidden')
 _REMOVE_TREASURE_HIDDEN = ('games', '0060_remove_treasure_hidden')
 
 
+# transactional: migrates the schema with MigrationExecutor; DDL commits implicitly on MySQL
 class TestGameTreasureHiddenBackfillNoopReverse(TestCase):
     """Tests for the 0059 migration's reverse operation."""
 
@@ -25,6 +26,7 @@ class TestGameTreasureHiddenBackfillNoopReverse(TestCase):
         _migration._noop_reverse(apps, None)
 
 
+# transactional: migrates the schema with MigrationExecutor; DDL commits implicitly on MySQL
 class TestGameTreasureHiddenBackfillMigration(TransactionTestCase):
     """Tests for the actual backfill performed by the 0059 data migration.
 

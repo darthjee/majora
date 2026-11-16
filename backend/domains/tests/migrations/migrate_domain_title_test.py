@@ -13,6 +13,7 @@ _MIGRATE_FROM = [('domains', '0002_domainconfiguration')]
 _MIGRATE_TO = [('domains', '0003_migrate_domain_title')]
 
 
+# transactional: migrates the schema with MigrationExecutor; DDL commits implicitly on MySQL
 class TestMigrateDomainTitleNoopReverse(TestCase):
     """Tests for the 0003 migration's reverse operation."""
 
@@ -21,6 +22,7 @@ class TestMigrateDomainTitleNoopReverse(TestCase):
         _migration._noop_reverse(apps, None)
 
 
+# transactional: migrates the schema with MigrationExecutor; DDL commits implicitly on MySQL
 class TestMigrateDomainTitleMigration(TransactionTestCase):
     """Tests for the actual backfill performed by the 0003 data migration.
 
