@@ -74,6 +74,7 @@ backend/
 docker-compose run --rm majora_tests pytest              # run all tests
 docker-compose run --rm majora_tests ruff check .        # lint check (no file changes)
 docker-compose run --rm majora_tests ruff check --fix .  # optional: lint and auto-fix
+docker-compose run --rm majora_tests poetry run python bin/check_test_policy.py  # test-policy check (must pass)
 ```
 
 To open an interactive shell inside the test container:
@@ -91,25 +92,41 @@ docker-compose run --rm majora_tests /bin/bash
 
 ### Tests (pytest + pytest-django)
 
-- Test files live in `backend/games/tests/`, named `<module>_test.py`
-- Test classes prefixed with `Test`, decorated with `@pytest.mark.django_db`
-- Use `setup_method` for per-test fixtures (not pytest fixtures)
-- Each test method has a one-line docstring
-- Use plain `assert` (pytest style, no `unittest` assertions)
+Full policy: [testing](../../docs/agents/testing.md).
+
+- Test files live in `backend/<app>/tests/`, named `<module>_test.py`.
+- **New test files** use Django `TestCase`. Build the data every test needs once per class in
+  `setUpTestData` (a `@classmethod`), never in `setup_method`/`setUp`.
+- **New test files with no database access** (pure unit tests) use plain pytest classes with no
+  marker, not `TestCase`, so they pay no database setup.
+- **Existing `@pytest.mark.django_db` + `setup_method` files** keep their style when you add or
+  edit tests in them. They are converted only by the dedicated conversion issues, never as a side
+  effect of another change.
+- Never write to the database from a pytest fixture scoped to a class, module or session: it is
+  not rolled back between tests.
+- Use real transactions (`TransactionTestCase`, `@pytest.mark.django_db(transaction=True)`) only
+  when the test needs committed data (threads, migrations), with a comment directly above saying why.
+- Inside `TestCase`: `self.client` instead of the `client` fixture, `unittest.mock.patch` instead of
+  `monkeypatch`, `self.assertNumQueries` instead of `django_assert_num_queries`, and `self.subTest`
+  or separate methods instead of `@pytest.mark.parametrize` (not supported in `TestCase`).
+- Never call `memory_cache.clear()` in a test: the autouse fixture in `backend/conftest.py` clears
+  it before each test (opt-out for tests whose subject is clearing: `# test-policy: allow memory-cache-clear`).
+- Each test method has a one-line docstring.
+- Use plain `assert` (it works inside `TestCase` under pytest); no `unittest` `assert*` methods,
+  except the `assertNumQueries` context manager.
 
 Example structure:
 ```python
-@pytest.mark.django_db
-class TestGame:
-
+class TestGame(TestCase):
     """Tests for the Game model."""
 
-    def setup_method(self):
-        """Set up common test fixtures."""
-        self.game = Game.objects.create(name='Test Game', game_slug='test-game')
+    @classmethod
+    def setUpTestData(cls):
+        """Set up a game shared by every test in the class."""
+        cls.game = GameFactory(name='Test Game', game_slug='test-game')
 
-    def test_something(self):
-        """Test that something works."""
+    def test_name(self):
+        """Test that the game keeps its name."""
         assert self.game.name == 'Test Game'
 ```
 

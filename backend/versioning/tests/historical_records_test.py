@@ -9,7 +9,6 @@ import json
 
 import pytest
 from django.test import TestCase
-from rest_framework.authtoken.models import Token
 
 from games.models import Game, GameTreasure
 from games.tests.behaviors import TokenAuthRequestMixin
@@ -17,12 +16,14 @@ from games.tests.factories import (
     CharacterFactory,
     GameFactory,
     PlayerFactory,
+    TokenFactory,
     TreasureFactory,
     UserFactory,
 )
 
 
 @pytest.mark.django_db
+@pytest.mark.history
 class TestHistoricalRecordsOnCreate:
     """Test that saving a new tracked instance creates a full-state historical row."""
 
@@ -64,6 +65,7 @@ class TestHistoricalRecordsOnCreate:
 
 
 @pytest.mark.django_db
+@pytest.mark.history
 class TestHistoricalRecordsOnUpdate:
     """Test that updating a tracked instance creates a new full-state historical row."""
 
@@ -98,6 +100,7 @@ class TestHistoricalRecordsOnUpdate:
 
 
 @pytest.mark.django_db
+@pytest.mark.history
 class TestHistoricalRecordsOnDelete:
     """Test that deleting a tracked instance is also captured as a historical row."""
 
@@ -123,6 +126,7 @@ class TestHistoricalRecordsOnDelete:
         assert history[1].history_type == '-'
 
 
+@pytest.mark.history
 class TestHistoricalRecordsUser(TokenAuthRequestMixin, TestCase):
     """Test that a request-bound user performing a change is captured as `history_user`."""
 
@@ -134,7 +138,7 @@ class TestHistoricalRecordsUser(TokenAuthRequestMixin, TestCase):
         )
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
-        cls.dm_token = Token.objects.create(user=cls.dm_user)
+        cls.dm_token = TokenFactory(user=cls.dm_user)
 
     def test_patch_via_authenticated_endpoint_sets_history_user(self):
         """Test that PATCHing a game via a DM's token sets history_user on the new row."""

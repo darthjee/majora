@@ -35,10 +35,37 @@ The UI create gate (Common Items create link and `/common_items/new` page) reads
 match the `create` key above.
 
 Both index endpoints order by `id`; `description` is omitted from both (present on detail
-endpoints instead). Both index endpoints accept an optional `?name=` filter (case-insensitive
-substring on `name`; absent or empty means no filtering), applied after the hidden filter on
-`common_items.json` and after the GameEdit gate on `common_items/all.json`, so it can only narrow
-results (issue #1449). `PATCH` shares the same route as `GET` on the plain detail endpoint; only
+endpoints instead). Both index endpoints accept the same optional filters, combined with AND:
+
+- `?name=`: case-insensitive substring on `name`; absent or empty means no filtering (issue
+  #1449).
+- `?category=`: exact, case-sensitive match against `GameCommonItem.CATEGORY_CHOICES`; absent or
+  empty means no filtering; an unknown value returns an empty list (`200`, never `400`); a
+  repeated param keeps its last value (issue #1770).
+- `?min_price=` / `?max_price=`: `price__gte` / `price__lte`; absent, empty, non-numeric or
+  decimal values are ignored, `0` and negative values are applied, and `min_price > max_price`
+  returns an empty list. The values follow Python `int()` parsing, identical to the treasure
+  `min_value` / `max_value` filters (issue #1770).
+
+The filters are applied after the hidden filter on `common_items.json` and after the GameEdit gate
+on `common_items/all.json`, and before pagination, so they can only narrow results and the
+pagination headers reflect the filtered total. A hidden item never appears on the public index,
+whatever the filters; unknown params (including `?hidden=`) are ignored.
+
+Implementation pointers: `?name=` uses `common.query_filters.filter_by_name`, and
+`?min_price=` / `?max_price=` use the shared int-range helpers `filter_by_min` / `filter_by_max` in
+`backend/common/query_filters.py` (the treasure `filter_by_min_value` / `filter_by_max_value` are
+thin wrappers over them). The `?category=` filter and the combined `apply_common_item_filters` live
+in `backend/games/views/games/_common_item_filters.py`, called once by each index view on its base
+queryset. `filter_by_category` deliberately stays local instead of becoming a generic `common/`
+choice filter: it has a single caller, and the
+[recipes](game-recipe.md) `category` filter differs (hidden-output masking, and an empty
+`?category=` returns an empty list there, whereas here an empty value is treated as absent).
+
+Cache: Navi (`navi/resources/common_items.yml`) warms only the unfiltered pages; filtered URLs are
+plain cache misses, so adding filters needed no Navi change.
+
+`PATCH` shares the same route as `GET` on the plain detail endpoint; only
 `name`/`description`/`price`/`category`/`hidden` are writable — `photo` stays on its own upload
 endpoint, which uses a fixed, deterministic path (`use_uuid=False`) since a common item has at
 most one photo, always replaced on re-upload (mirrors `GamePossession`'s single-always-replace

@@ -56,6 +56,12 @@ frontend dev server on `3010`, full stack proxy on `3000`. A plain `docker-compo
 so it migrates and seeds the `localhost` / `127.0.0.1` domains. `make dev-up` seeds them by itself on boot;
 a running app must be restarted to pick up rows seeded by `make setup` (per-process in-memory caches).
 
+The dev MySQL runs 8.4 since #1775 (down from 9.3), matching CI and production. MySQL 8.4 can't open a
+`docker_volumes/mysql_data` created by 9.3, so if yours predates that change, stop the stack, delete
+`docker_volumes/mysql_data` and run `make setup` again. `majora_tests` starts `majora_mysql` itself, waits
+until it is healthy and connects as root (like CI), so it can create the `test_majora` database;
+`majora_app` keeps connecting as `majora`.
+
 **Always run project commands through `docker-compose`.**
 
 - Never install packages on the host machine.
@@ -69,6 +75,12 @@ This keeps dependencies reproducible inside the project's containers. The host m
 docker-compose run --rm majora_fe yarn lint
 docker-compose run --rm majora_tests pytest
 ```
+
+Local backend runs reuse the `test_majora` database (`--reuse-db`). Pass `--create-db` after
+pulling or writing migrations, after switching to a branch with different migrations, and after an
+interrupted migration test. `make tests-fast` (optionally with `ARGS=...`) is the fast local
+command; CI and `.claude/scripts/check_backend.sh` always pass `--create-db`. See
+[`docs/agents/testing.md`](docs/agents/testing.md) for the rest of the testing policy.
 
 The `crawler_navi_web` service
 (`docker-compose -f docker-compose.yml -f docker-compose.ports.yml up crawler_navi_web`) runs the
@@ -99,6 +111,7 @@ All project documentation lives under [`docs/agents/`](docs/agents/):
 |------|----------|
 | [Index](docs/agents/index.md) | Link-only table of contents for `docs/agents/` — fetch this first to navigate the doc set. |
 | [Summary](docs/agents/summary.md) | 2-4 line abstract of each doc under `docs/agents/`, to decide whether to open the full file. |
+| [Testing](docs/agents/testing.md) | Backend test policy (`TestCase` + `setUpTestData`, isolation rules, check script), local test commands and the CI split with its durations report. |
 | [Folder Structure](docs/agents/folder-structure.md) | Top-level directory layout and the role of each folder. |
 | [Architecture](docs/agents/architecture.md) | Source layout, modules, code style, and implementation guidelines. |
 | [Views Organization](docs/agents/views-organization.md) | Folder convention for `backend/games/views/` (and its mirrored test tree): plural resource folders, nested `game/` sub-resources, `detail/` member actions. |

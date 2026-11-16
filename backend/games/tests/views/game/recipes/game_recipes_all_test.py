@@ -3,7 +3,6 @@
 import json
 
 import pytest
-from rest_framework.authtoken.models import Token
 
 from games.models import GameCommonItem
 from games.tests.behaviors import TokenAuthRequestMixin
@@ -13,6 +12,7 @@ from games.tests.factories import (
     GameRecipeFactory,
     PlayerFactory,
     SuperUserFactory,
+    TokenFactory,
     UserFactory,
 )
 
@@ -39,7 +39,7 @@ class TestGameRecipesAllView(TokenAuthRequestMixin):
         """Create a game member and return their auth token."""
         user = UserFactory(username=username, password='secret-password')
         PlayerFactory(game=self.game, user=user, is_dm=is_dm)
-        return Token.objects.create(user=user)
+        return TokenFactory(user=user)
 
     def _url(self, query=''):
         """Return the recipes/all URL, with an optional query string."""
@@ -64,7 +64,7 @@ class TestGameRecipesAllView(TokenAuthRequestMixin):
 
     def test_superuser_gets_all_recipes(self, client):
         """Test that a superuser gets every recipe."""
-        token = Token.objects.create(user=SuperUserFactory(username='admin'))
+        token = TokenFactory(user=SuperUserFactory(username='admin'))
         response = self.get(client, self._url(), token=token)
         assert len(json.loads(response.content)) == 2
 

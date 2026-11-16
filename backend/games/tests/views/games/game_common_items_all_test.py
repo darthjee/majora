@@ -4,7 +4,7 @@ import json
 
 import pytest
 from django.urls import reverse
-from rest_framework.authtoken.models import Token
+from rest_framework.test import APIClient
 
 from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import (
@@ -12,8 +12,10 @@ from games.tests.factories import (
     GameFactory,
     PlayerFactory,
     SuperUserFactory,
+    TokenFactory,
     UserFactory,
 )
+from games.tests.views.games._common_items_filters_behavior import CommonItemsFiltersBehavior
 
 
 @pytest.mark.django_db
@@ -25,9 +27,9 @@ class TestGameCommonItemsAllView(TokenAuthRequestMixin):
         self.game = GameFactory(name='Test Game', game_slug='test-game')
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
-        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.dm_token = TokenFactory(user=self.dm_user)
         self.other_user = UserFactory(username='other', password='secret-password')
-        self.other_token = Token.objects.create(user=self.other_user)
+        self.other_token = TokenFactory(user=self.other_user)
         self.visible_common_item = GameCommonItemFactory(game=self.game, name='Visible Potion')
         self.hidden_common_item = GameCommonItemFactory(
             game=self.game, name='Secret Poison', hidden=True,
@@ -59,7 +61,7 @@ class TestGameCommonItemsAllView(TokenAuthRequestMixin):
     def test_superuser_gets_200_with_both_visible_and_hidden_common_items(self, client):
         """Test that a superuser gets 200 with both visible and hidden common items."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
-        token = Token.objects.create(user=superuser)
+        token = TokenFactory(user=superuser)
         response = self.get(client, self._url(), token=token)
         assert response.status_code == 200
         data = json.loads(response.content)
@@ -105,9 +107,9 @@ class TestGameCommonItemsAllNameFilter(TokenAuthRequestMixin):
         self.game = GameFactory(name='Test Game', game_slug='test-game')
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
-        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.dm_token = TokenFactory(user=self.dm_user)
         self.other_user = UserFactory(username='other', password='secret-password')
-        self.other_token = Token.objects.create(user=self.other_user)
+        self.other_token = TokenFactory(user=self.other_user)
         GameCommonItemFactory(game=self.game, name='Healing Potion')
         GameCommonItemFactory(game=self.game, name='Silver Arrow')
         GameCommonItemFactory(game=self.game, name='Secret POTION', hidden=True)
@@ -150,3 +152,41 @@ class TestGameCommonItemsAllNameFilter(TokenAuthRequestMixin):
         """Test that ?name= does not bypass the gate for non-DM callers."""
         response = self.get(client, self._url('?name=secret'), token=self.other_token)
         assert response.status_code == 403
+
+
+@pytest.mark.django_db
+class TestGameCommonItemsAllFilters(TokenAuthRequestMixin, CommonItemsFiltersBehavior):
+    """Tests for the category and price filters on GET /games/<slug>/common_items/all.json."""
+
+    def setup_method(self):
+        """Set up a game with a DM and visible and hidden common items."""
+        self.client = APIClient()
+        self._create_items()
+        dm_user = UserFactory(username='dm_user', password='secret-password')
+        PlayerFactory(game=self.game, user=dm_user, is_dm=True)
+        self.dm_token = TokenFactory(user=dm_user)
+
+    def _fetch(self, query='', game_slug='test-game'):
+        """Return the DM's all.json response for the given query string."""
+        url = f'/games/{game_slug}/common_items/all.json{query}'
+        return self.get(self.client, url, token=self.dm_token)
+
+    def test_hidden_item_matching_filters_is_returned(self):
+        """Test that a hidden item matching every filter is returned to the DM."""
+        query = '?name=elixir&category=potion&min_price=20&max_price=20'
+        assert self._names(query) == ['Healing Elixir']
+
+    def test_category_filter_includes_hidden_items(self):
+        """Test that ?category= returns matching hidden items alongside visible ones."""
+        assert self._names('?category=potion') == [
+            'Healing Potion', 'Greater Healing Potion', 'Healing Elixir',
+        ]
+
+    def test_returns_404_for_unknown_game_with_filters(self):
+        """Test that an unknown game slug returns 404 before any filter."""
+        assert self._fetch('?category=potion', game_slug='unknown').status_code == 404
+
+    def test_returns_401_for_unauthenticated_with_filters(self):
+        """Test that the filters do not bypass the gate for unauthenticated callers."""
+        response = self.get(self.client, '/games/test-game/common_items/all.json?category=potion')
+        assert response.status_code == 401

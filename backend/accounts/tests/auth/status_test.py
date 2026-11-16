@@ -4,10 +4,9 @@ import json
 
 import pytest
 from django.utils.crypto import get_random_string
-from rest_framework.authtoken.models import Token
 
 from accounts.models import CacheToken, UserProfile
-from games.tests.factories import UserFactory, UserProfileFactory
+from games.tests.factories import TokenFactory, UserFactory, UserProfileFactory
 
 TEST_PASSWORD = get_random_string(20)
 
@@ -19,7 +18,7 @@ class TestStatusView:
     def test_returns_logged_in_for_valid_token(self, client):
         """Test that a valid token reports logged_in true with the username."""
         user = UserFactory(username='alice', password=TEST_PASSWORD)
-        token = Token.objects.create(user=user)
+        token = TokenFactory(user=user)
 
         response = client.get(
             '/users/status.json',
@@ -42,7 +41,7 @@ class TestStatusView:
     def test_returns_is_superuser_false_for_regular_user(self, client):
         """Test that a non-superuser's status response includes is_superuser false."""
         user = UserFactory(username='alice', password=TEST_PASSWORD)
-        token = Token.objects.create(user=user)
+        token = TokenFactory(user=user)
 
         response = client.get(
             '/users/status.json',
@@ -57,7 +56,7 @@ class TestStatusView:
         user = UserFactory(username='admin', password=TEST_PASSWORD)
         user.is_superuser = True
         user.save()
-        token = Token.objects.create(user=user)
+        token = TokenFactory(user=user)
 
         response = client.get(
             '/users/status.json',
@@ -70,7 +69,7 @@ class TestStatusView:
     def test_returns_is_staff_false_for_regular_user(self, client):
         """Test that a non-staff user's status response includes is_staff false."""
         user = UserFactory(username='alice', password=TEST_PASSWORD)
-        token = Token.objects.create(user=user)
+        token = TokenFactory(user=user)
 
         response = client.get(
             '/users/status.json',
@@ -85,7 +84,7 @@ class TestStatusView:
         user = UserFactory(username='staffer', password=TEST_PASSWORD)
         user.is_staff = True
         user.save()
-        token = Token.objects.create(user=user)
+        token = TokenFactory(user=user)
 
         response = client.get(
             '/users/status.json',
@@ -124,7 +123,7 @@ class TestStatusView:
     def test_returns_logged_in_via_session_and_includes_token(self, client):
         """Test that a valid session cookie (no Authorization header) returns logged_in true."""
         user = UserFactory(username='alice', password=TEST_PASSWORD)
-        token = Token.objects.create(user=user)
+        token = TokenFactory(user=user)
         session = client.session
         session['auth_token'] = token.key
         session.save()
@@ -140,7 +139,7 @@ class TestStatusView:
     def test_includes_cache_token_regardless_of_auth_path(self, client):
         """Test that cache_token is present even for token (non-session) authentication."""
         user = UserFactory(username='alice', password=TEST_PASSWORD)
-        token = Token.objects.create(user=user)
+        token = TokenFactory(user=user)
 
         response = client.get(
             '/users/status.json',
@@ -154,7 +153,7 @@ class TestStatusView:
     def test_repeated_status_calls_return_the_same_cache_token(self, client):
         """Test that a second status call in the same session reuses the same cache_token."""
         user = UserFactory(username='alice', password=TEST_PASSWORD)
-        token = Token.objects.create(user=user)
+        token = TokenFactory(user=user)
         session = client.session
         session['auth_token'] = token.key
         session.save()
@@ -168,7 +167,7 @@ class TestStatusView:
     def test_returns_logged_out_for_stale_session_token(self, client):
         """Test that a session referencing a deleted token returns logged_in false."""
         user = UserFactory(username='alice', password=TEST_PASSWORD)
-        token = Token.objects.create(user=user)
+        token = TokenFactory(user=user)
         session = client.session
         session['auth_token'] = token.key
         session.save()
@@ -183,7 +182,7 @@ class TestStatusView:
         """Test that a pending user's valid token reports the dedicated pending payload."""
         user = UserFactory(username='alice', password=TEST_PASSWORD)
         UserProfileFactory(user=user, status=UserProfile.STATUS_PENDING)
-        token = Token.objects.create(user=user)
+        token = TokenFactory(user=user)
 
         response = client.get(
             '/users/status.json',
@@ -197,7 +196,7 @@ class TestStatusView:
         """Test that a denied user's valid token reports a plain logged_in false (no status)."""
         user = UserFactory(username='alice', password=TEST_PASSWORD)
         UserProfileFactory(user=user, status=UserProfile.STATUS_DENIED)
-        token = Token.objects.create(user=user)
+        token = TokenFactory(user=user)
 
         response = client.get(
             '/users/status.json',
@@ -220,7 +219,7 @@ class TestStatusViewCacheControl:
     def test_authenticated_status_returns_no_store(self, client):
         """Authenticated GET /users/status.json must carry Cache-Control: no-store."""
         user = UserFactory(username='alice', password=TEST_PASSWORD)
-        token = Token.objects.create(user=user)
+        token = TokenFactory(user=user)
         response = client.get(
             '/users/status.json',
             HTTP_AUTHORIZATION=f'Token {token.key}',

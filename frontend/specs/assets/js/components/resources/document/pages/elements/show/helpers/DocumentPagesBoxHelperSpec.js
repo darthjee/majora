@@ -68,6 +68,17 @@ describe('DocumentPagesBoxHelper', function() {
       expect(html).toContain('border');
     });
 
+    it('renders a GFM table in a segment', function() {
+      const html = renderToStaticMarkup(DocumentPagesBoxHelper.render(
+        buildState({ segments: [{ id: 1, content: '| A | B |\n| --- | --- |\n| 1 | 2 |', order: 1 }] }),
+        buildRefs(),
+        'demo',
+        9,
+      ));
+
+      expect(html).toContain('<table class="table');
+    });
+
     it('preserves line breaks via remark-breaks', function() {
       const html = renderToStaticMarkup(DocumentPagesBoxHelper.render(
         buildState({ segments: [{ id: 1, content: 'Line one.\nLine two.', order: 1 }] }),

@@ -3,7 +3,6 @@
 import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.test import TestCase
-from rest_framework.authtoken.models import Token
 from rest_framework.request import Request
 from rest_framework.test import APIRequestFactory
 
@@ -16,7 +15,13 @@ from games.serializers import (
     GamePermissionsSerializer,
     GameUpdateSerializer,
 )
-from games.tests.factories import CharacterFactory, GameFactory, PlayerFactory, UserFactory
+from games.tests.factories import (
+    CharacterFactory,
+    GameFactory,
+    PlayerFactory,
+    TokenFactory,
+    UserFactory,
+)
 from games.views.common import (
     access_response,
     detail_or_update,
@@ -108,7 +113,7 @@ class TestRequireSession:
 
     def test_returns_none_for_legacy_token(self):
         """Test that a request authenticated by a legacy DRF Token passes."""
-        self.request.auth = Token.objects.create(user=self.user)
+        self.request.auth = TokenFactory(user=self.user)
         assert require_session(self.request) is None
 
     def test_returns_none_without_auth(self):

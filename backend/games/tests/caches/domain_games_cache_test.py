@@ -15,7 +15,6 @@ class TestDomainGamesCacheGameLinkedToMultipleGroups:
 
     def setup_method(self):
         """Set up two domains/groups and a game linked to both."""
-        memory_cache.clear()
         self.first_domain = DomainFactory(domain='first.com')
         self.second_domain = DomainFactory(domain='second.com')
         self.game = GameFactory(
@@ -37,7 +36,6 @@ class TestDomainGamesCacheGameIdsForDomain:
 
     def setup_method(self):
         """Set up a domain with games under its group, and clear the shared memory cache."""
-        memory_cache.clear()
         self.game_domain = DomainFactory(domain='example.com')
         self.game = GameFactory(game_domain_groups=[self.game_domain.domain_group])
         self.other_game = GameFactory(game_domain_groups=[self.game_domain.domain_group])
@@ -79,7 +77,6 @@ class TestDomainGamesCacheGameIdsForRequest:
 
     def setup_method(self):
         """Set up a domain with a game under its group, and clear the shared memory cache."""
-        memory_cache.clear()
         self.game_domain = DomainFactory(domain='example.com')
         self.game = GameFactory(game_domain_groups=[self.game_domain.domain_group])
         self.factory = RequestFactory()

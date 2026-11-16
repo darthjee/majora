@@ -21,6 +21,7 @@ class TestMigrateDomainTitleNoopReverse(TestCase):
         _migration._noop_reverse(apps, None)
 
 
+# transactional: migrates the schema with MigrationExecutor; DDL commits implicitly on MySQL
 class TestMigrateDomainTitleMigration(TransactionTestCase):
     """Tests for the actual backfill performed by the 0003 data migration.
 

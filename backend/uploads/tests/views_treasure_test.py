@@ -3,10 +3,9 @@
 import json
 
 from django.test import TestCase
-from rest_framework.authtoken.models import Token
 
 from games.models import TreasurePhoto
-from games.tests.factories import SuperUserFactory, TreasureFactory, UserFactory
+from games.tests.factories import SuperUserFactory, TokenFactory, TreasureFactory, UserFactory
 from uploads.models import Upload
 
 
@@ -19,7 +18,7 @@ class TestUploadFinalizeTreasurePhoto(TestCase):
         cls.superuser = SuperUserFactory(
             username='admin', password='secret-password'
         )
-        cls.superuser_token = Token.objects.create(user=cls.superuser)
+        cls.superuser_token = TokenFactory(user=cls.superuser)
         cls.treasure = TreasureFactory(name='Golden Crown', value=500)
 
         cls.treasure_upload = Upload.objects.create(
@@ -75,7 +74,7 @@ class TestUploadFinalizeTreasurePhoto(TestCase):
     def test_non_superuser_returns_403_for_treasure_upload(self):
         """Test that a non-superuser is rejected on a TreasurePhoto upload with 403."""
         other_user = UserFactory(username='other', password='secret-password')
-        other_token = Token.objects.create(user=other_user)
+        other_token = TokenFactory(user=other_user)
         self.treasure_upload.user = other_user
         Upload.objects.filter(pk=self.treasure_upload.pk).update(user=other_user)
         response = self._patch(

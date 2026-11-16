@@ -3,7 +3,6 @@
 import json
 
 import pytest
-from rest_framework.authtoken.models import Token
 
 from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import (
@@ -15,6 +14,7 @@ from games.tests.factories import (
     GamePossessionFactory,
     GameRecipeFactory,
     SuperUserFactory,
+    TokenFactory,
 )
 
 COPYABLE_FACTORIES = [
@@ -69,6 +69,7 @@ class TestCopiedFrom:
         copy.refresh_from_db()
         assert copy.copied_from is None
 
+    @pytest.mark.history
     def test_nulling_creates_no_history_entry_on_copy(self, factory):
         """Test that nulling `copied_from` on delete creates no historical record on the copy."""
         source, copy = self._source_and_copy(factory)
@@ -86,7 +87,7 @@ class TestCopiedFromNotExposed(TokenAuthRequestMixin):
         source = GameItemFactory(game=GameFactory(name='Source', game_slug='source'))
         self.game = GameFactory(name='Target', game_slug='target')
         self.item = GameItemFactory(game=self.game, copied_from=source)
-        self.token = Token.objects.create(user=SuperUserFactory(username='admin'))
+        self.token = TokenFactory(user=SuperUserFactory(username='admin'))
 
     def _data(self, client, url):
         """Return the decoded JSON body of a GET on `url` as the superuser."""

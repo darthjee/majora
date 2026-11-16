@@ -60,6 +60,7 @@ describe('MarkdownEditorHelper', function() {
         expect(html).toContain('bi-list-ul');
         expect(html).toContain('bi-list-ol');
         expect(html).toContain('bi-link-45deg');
+        expect(html).toContain('bi-table');
       });
 
       it('does not render a Markdown preview', function() {
@@ -84,6 +85,17 @@ describe('MarkdownEditorHelper', function() {
         expect(html).not.toContain('<textarea');
         expect(html).toContain('<h1');
         expect(html).toContain('Heading');
+      });
+
+      it('renders a GFM table in the preview', function() {
+        const html = renderToStaticMarkup(
+          MarkdownEditorHelper.render(
+            'description', 'Description', '| A | B |\n| --- | --- |\n| 1 | 2 |', [],
+            buildState({ activeTab: 'preview' }), buildHandlers(),
+          ),
+        );
+
+        expect(html).toContain('<table class="table');
       });
 
       it('renders the empty-preview message when value is blank', function() {

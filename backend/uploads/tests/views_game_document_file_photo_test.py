@@ -3,10 +3,9 @@
 import json
 
 from django.test import TestCase
-from rest_framework.authtoken.models import Token
 
 from games.models import GameDocumentFile, GameDocumentFilePhoto
-from games.tests.factories import GameDocumentFactory, GameFactory, UserFactory
+from games.tests.factories import GameDocumentFactory, GameFactory, TokenFactory, UserFactory
 from uploads.models import Upload
 from uploads.tests.fixtures import UploadFinalizeFixtureMixin
 
@@ -136,7 +135,7 @@ class TestUploadFinalizeGameDocumentFilePhoto(UploadFinalizeFixtureMixin, TestCa
     def test_unrelated_user_returns_403_for_document_file_photo_upload(self):
         """Test that a user unrelated to the game is rejected on a GameDocumentFilePhoto."""
         other_user = UserFactory(username='other_document_file_photo', password='secret-password')
-        other_token = Token.objects.create(user=other_user)
+        other_token = TokenFactory(user=other_user)
         self.document_file_photo_upload.user = other_user
         Upload.objects.filter(pk=self.document_file_photo_upload.pk).update(user=other_user)
         response = self._patch(

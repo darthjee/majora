@@ -4,7 +4,6 @@ import json
 
 import pytest
 from django.urls import reverse
-from rest_framework.authtoken.models import Token
 
 from games.models import CharacterItem, GameItem
 from games.tests.behaviors import TokenAuthRequestMixin
@@ -13,6 +12,7 @@ from games.tests.factories import (
     GameFactory,
     GameItemFactory,
     PlayerFactory,
+    TokenFactory,
     UserFactory,
 )
 
@@ -162,7 +162,7 @@ class TestGamePcItemsCreate(TokenAuthRequestMixin):
 
     def test_owner_can_create_item(self, client):
         """Test that the PC's owning player can create an item."""
-        token = Token.objects.create(user=self.owner)
+        token = TokenFactory(user=self.owner)
         response = self._post(
             client, {'name': 'Sting', 'description': 'A glowing blade.', 'hidden': True},
             token=token,
@@ -176,7 +176,7 @@ class TestGamePcItemsCreate(TokenAuthRequestMixin):
 
     def test_create_persists_game_item_and_character_item(self, client):
         """Test that the create endpoint persists both a GameItem and a CharacterItem."""
-        token = Token.objects.create(user=self.owner)
+        token = TokenFactory(user=self.owner)
         response = self._post(
             client, {'name': 'Sting', 'description': 'A glowing blade.'}, token=token,
         )
@@ -192,7 +192,7 @@ class TestGamePcItemsCreate(TokenAuthRequestMixin):
 
     def test_create_defaults_description_and_hidden(self, client):
         """Test that description defaults to '' and hidden defaults to False."""
-        token = Token.objects.create(user=self.owner)
+        token = TokenFactory(user=self.owner)
         response = self._post(client, {'name': 'Sting'}, token=token)
         data = json.loads(response.content)
         assert data['description'] == ''
@@ -200,7 +200,7 @@ class TestGamePcItemsCreate(TokenAuthRequestMixin):
 
     def test_dm_can_create_item(self, client):
         """Test that the game's DM can create an item for a PC."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._post(client, {'name': 'Sting'}, token=token)
         assert response.status_code == 201
 
@@ -209,7 +209,7 @@ class TestGamePcItemsCreate(TokenAuthRequestMixin):
         staff_user = UserFactory(username='staff_user', password='secret-password')
         staff_user.is_staff = True
         staff_user.save()
-        token = Token.objects.create(user=staff_user)
+        token = TokenFactory(user=staff_user)
         response = self._post(client, {'name': 'Sting'}, token=token)
         assert response.status_code == 201
 
@@ -220,13 +220,13 @@ class TestGamePcItemsCreate(TokenAuthRequestMixin):
 
     def test_unrelated_user_returns_403(self, client):
         """Test that an authenticated user unrelated to the game is rejected with 403."""
-        token = Token.objects.create(user=self.other_user)
+        token = TokenFactory(user=self.other_user)
         response = self._post(client, {'name': 'Sting'}, token=token)
         assert response.status_code == 403
 
     def test_missing_name_returns_400(self, client):
         """Test that a missing name returns 400."""
-        token = Token.objects.create(user=self.owner)
+        token = TokenFactory(user=self.owner)
         response = self._post(client, {}, token=token)
         assert response.status_code == 400
         data = json.loads(response.content)
@@ -234,7 +234,7 @@ class TestGamePcItemsCreate(TokenAuthRequestMixin):
 
     def test_blank_name_returns_400(self, client):
         """Test that a blank name returns 400."""
-        token = Token.objects.create(user=self.owner)
+        token = TokenFactory(user=self.owner)
         response = self._post(client, {'name': ''}, token=token)
         assert response.status_code == 400
         data = json.loads(response.content)
@@ -242,7 +242,7 @@ class TestGamePcItemsCreate(TokenAuthRequestMixin):
 
     def test_name_too_long_returns_400(self, client):
         """Test that a name longer than 200 chars returns 400."""
-        token = Token.objects.create(user=self.owner)
+        token = TokenFactory(user=self.owner)
         response = self._post(client, {'name': 'x' * 201}, token=token)
         assert response.status_code == 400
         data = json.loads(response.content)
@@ -250,7 +250,7 @@ class TestGamePcItemsCreate(TokenAuthRequestMixin):
 
     def test_unknown_character_id_returns_404(self, client):
         """Test that a non-existent character_id returns 404."""
-        token = Token.objects.create(user=self.owner)
+        token = TokenFactory(user=self.owner)
         response = client.post(
             self._url(character_id=99999),
             data=json.dumps({'name': 'Sting'}),
@@ -262,7 +262,7 @@ class TestGamePcItemsCreate(TokenAuthRequestMixin):
     def test_returns_404_for_opposite_role_id(self, client):
         """Test that an id belonging to the opposite role returns 404."""
         other = CharacterFactory(name='Other', game=self.game, npc=True)
-        token = Token.objects.create(user=self.owner)
+        token = TokenFactory(user=self.owner)
         response = client.post(
             self._url(character_id=other.id),
             data=json.dumps({'name': 'Sting'}),

@@ -7,6 +7,7 @@ factory call overrides its default, so existing test intent (specific names,
 roles, flags, etc.) is preserved by passing overrides at the call site.
 """
 
+from games.tests.factories.base_game import BaseGame, build_base_game
 from games.tests.factories.character import CharacterFactory
 from games.tests.factories.common_item import GameCommonItemFactory
 from games.tests.factories.conversation import (
@@ -22,10 +23,12 @@ from games.tests.factories.item import CharacterItemFactory, GameItemFactory
 from games.tests.factories.poll import PollFactory, PollOptionFactory, PollVoteFactory
 from games.tests.factories.possession import CharacterPossessionFactory, GamePossessionFactory
 from games.tests.factories.recipe import CharacterRecipeFactory, GameRecipeFactory
+from games.tests.factories.token import TokenFactory
 from games.tests.factories.treasure import GameTreasureFactory, TreasureFactory
 from games.tests.factories.user import SuperUserFactory, UserFactory, UserProfileFactory
 
 __all__ = [
+    'BaseGame',
     'CharacterDocumentFactory',
     'CharacterFactionFactory',
     'CharacterFactory',
@@ -49,7 +52,9 @@ __all__ = [
     'PollOptionFactory',
     'PollVoteFactory',
     'SuperUserFactory',
+    'TokenFactory',
     'TreasureFactory',
     'UserFactory',
     'UserProfileFactory',
+    'build_base_game',
 ]

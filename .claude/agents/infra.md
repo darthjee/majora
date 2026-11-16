@@ -106,24 +106,26 @@ routes to it, the same way PHP proxy work is delegated to the `proxy` agent.
 All jobs run on every push. Release jobs run **only on version tags** matching `\d+\.\d+\.\d+`:
 
 ```
-[pytest] ─┐
-[jasmine] ─┼─ coverage-final
-[checks] ──┤
-[frontend-checks] ─┤
-           └─ build-and-release ─┐
-              upload_proxy_files ─┼─ release ─── warm-up-cache
-              upload_fe_files ───┘
-              link_photos ────────┘
+[pytest_views] ×3 ──────┤
+[pytest_non_views] ×3 ──┼─ coverage-final
+[jasmine] ──────────────┤
+[checks] ───────────────┤
+[frontend-checks] ──────┤
+                        └─ build-and-release ─┐
+                           upload_proxy_files ─┼─ release ─── warm-up-cache
+                           upload_fe_files ────┤
+                           link_photos ────────┘
 ```
 
 ### CI jobs
 
 | Job | Image | Purpose |
 |-----|-------|---------|
-| `pytest` | `darthjee/circleci_majora-base` + `cimg/mysql:8.0` | Run backend tests + upload partial coverage |
+| `pytest_views` | `darthjee/circleci_majora-base` + `cimg/mysql:8.4.13` | `parallelism: 3`: run `games/tests/views/`, split by timings across 3 containers + upload partial coverage and the durations report |
+| `pytest_non_views` | `darthjee/circleci_majora-base` + `cimg/mysql:8.4.13` | `parallelism: 3`: every other `*_test.py` under the `testpaths`, split across containers by recorded timings (`circleci tests split --split-by=timings`); each container uploads partial coverage, its durations report and `test-reports/test-files.txt`. See the CI section of `docs/agents/testing.md` |
 | `jasmine` | `darthjee/circleci_node` | Run frontend tests + upload partial coverage |
 | `coverage-final` | `darthjee/circleci_node` | Finalize coverage report on Codacy |
-| `checks` | `darthjee/circleci_majora-base` | ruff lint + complexity check |
+| `checks` | `darthjee/circleci_majora-base` | ruff lint + test-policy check + complexity check |
 | `frontend-checks` | `darthjee/circleci_node` | ESLint |
 | `build-and-release` | machine | Trigger Render.com deploy via `scripts/deploy.sh` |
 | `upload_proxy_files` | `darthjee/tent` | Upload Tent proxy configuration to server |
@@ -131,7 +133,7 @@ All jobs run on every push. Release jobs run **only on version tags** matching `
 | `link_photos` | `darthjee/tent` | Link photos directory on server |
 | `release` | `darthjee/vite_majora-base` | Finalize asset release on server |
 | `warm-up-cache` | `darthjee/navi-hey-client:latest` | Push resource/client config and trigger `engine-start` against the persistent Navi server via `navi-client` |
-| `wake-navi` | `cimg/base:current` | Runs in parallel with the `release` job chain (`requires:` the same test/check jobs as `build-and-release`); pings `$NAVI_URL` to wake the persistent Navi server, then keeps it warm with periodic pings before `warm-up-cache` needs it |
+| `wake-navi` | `cimg/base:current` | Runs in parallel with the `release` job chain (`requires:` the same test/check jobs as `build-and-release`, including `pytest_views` and `pytest_non_views`); pings `$NAVI_URL` to wake the persistent Navi server, then keeps it warm with periodic pings before `warm-up-cache` needs it |
 | `crawler_extension_tests` | `machine` (runs `docker compose run extension_tests` in `crawler/navi-extension/`) | Lint + test the crawler Navi extension (`crawler/navi-extension/`) |
 
 ### CI setup pattern (backend/frontend jobs)

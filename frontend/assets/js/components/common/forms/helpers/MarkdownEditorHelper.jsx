@@ -1,6 +1,5 @@
 import React from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkBreaks from 'remark-breaks';
+import MarkdownContent from '../../misc/MarkdownContent.jsx';
 import FieldErrors from '../FieldErrors.jsx';
 import Translator from '../../../../i18n/Translator.js';
 import Icons from '../../../../utils/ui/Icons.js';
@@ -12,6 +11,7 @@ const TOOLBAR_ACTIONS = [
   { action: 'bulleted_list', icon: Icons.listUl, labelKey: 'markdown_editor.bulleted_list' },
   { action: 'numbered_list', icon: Icons.listOl, labelKey: 'markdown_editor.numbered_list' },
   { action: 'link', icon: Icons.link45deg, labelKey: 'markdown_editor.link' },
+  { action: 'table', icon: Icons.table, labelKey: 'markdown_editor.table' },
 ];
 
 /**
@@ -107,7 +107,7 @@ export default class MarkdownEditorHelper {
     return (
       <div className="markdown-editor-preview p-2">
         {value
-          ? <ReactMarkdown remarkPlugins={[remarkBreaks]}>{value}</ReactMarkdown>
+          ? <MarkdownContent>{value}</MarkdownContent>
           : <span className="text-muted">{Translator.t('markdown_editor.preview_empty')}</span>}
       </div>
     );

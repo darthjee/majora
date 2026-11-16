@@ -1,5 +1,6 @@
 import AccessStore from '../../../../utils/access/store/AccessStore.js';
 import fetchRequestStoreList, { buildListQuery } from '../fetchRequestStoreList.js';
+import CommonItemFilters from '../../../resources/common_item/pages/elements/CommonItemFilters.jsx';
 import GameCommonItemListItem from '../GameCommonItemListItem.js';
 import { buildReadOnlyActionBarProps, buildItemInfoBarItems } from '../listTypeConfig.js';
 
@@ -13,7 +14,8 @@ import { buildReadOnlyActionBarProps, buildItemInfoBarItems } from '../listTypeC
  *
  * @param {string} gameSlug - Game slug.
  * @param {import('../../../../utils/routing/HashRouteResolver.js').default} hashResolver -
- *   Resolver used to read pagination params from the current hash.
+ *   Resolver used to read pagination and filter params (`name`, `category`, `min_price`,
+ *   `max_price`) from the current hash.
  * @returns {Promise<{data: object[], pagination: object, canEdit: boolean}>} Resolves to the
  *   fetched common items, pagination metadata, and the resolved edit permission.
  */
@@ -22,7 +24,7 @@ function fetchGameCommonItems(gameSlug, hashResolver) {
     componentName: 'ListPageController',
     resource: 'commonItem',
     params: { gameSlug },
-    query: buildListQuery(hashResolver),
+    query: buildListQuery(hashResolver, Object.fromEntries(hashResolver.getFilterParams())),
     canEdit: AccessStore.ensureGamePermissions(gameSlug),
   });
 }
@@ -48,7 +50,7 @@ const commonItemListTypes = {
   commonItems: {
     fetchList: fetchGameCommonItems,
     wrapperClass: GameCommonItemListItem,
-    filtersComponent: null,
+    filtersComponent: CommonItemFilters,
     photoType: 'commonItem',
     buildActionBarProps: buildReadOnlyActionBarProps,
     buildInfoBarItems: buildItemInfoBarItems('game_common_items_page.hidden_label'),

@@ -3,13 +3,13 @@
 import json
 
 from django.test import TestCase
-from rest_framework.authtoken.models import Token
 
 from games.models import TreasurePhoto
 from games.tests.factories import (
     GameFactory,
     PlayerFactory,
     SuperUserFactory,
+    TokenFactory,
     TreasureFactory,
     UserFactory,
 )
@@ -26,15 +26,15 @@ class TestTreasurePhotoUploadView(TestCase):
         cls.superuser = SuperUserFactory(
             username='admin', password='secret-password'
         )
-        cls.superuser_token = Token.objects.create(user=cls.superuser)
+        cls.superuser_token = TokenFactory(user=cls.superuser)
         cls.regular_user = UserFactory(
             username='player', password='secret-password'
         )
-        cls.regular_token = Token.objects.create(user=cls.regular_user)
+        cls.regular_token = TokenFactory(user=cls.regular_user)
         cls.staff_user = UserFactory(
             username='staffer', password='secret-password', is_staff=True
         )
-        cls.staff_token = Token.objects.create(user=cls.staff_user)
+        cls.staff_token = TokenFactory(user=cls.staff_user)
 
     def _url(self, treasure_id=None):
         """Return the upload endpoint URL for the given treasure id (defaults to the treasure)."""
@@ -196,15 +196,15 @@ class TestTreasurePhotoUploadGameExclusive(TestCase):
         )
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
-        cls.dm_token = Token.objects.create(user=cls.dm_user)
+        cls.dm_token = TokenFactory(user=cls.dm_user)
         cls.regular_user = UserFactory(
             username='player', password='secret-password'
         )
-        cls.regular_token = Token.objects.create(user=cls.regular_user)
+        cls.regular_token = TokenFactory(user=cls.regular_user)
         cls.staff_user = UserFactory(
             username='staffer', password='secret-password', is_staff=True
         )
-        cls.staff_token = Token.objects.create(user=cls.staff_user)
+        cls.staff_token = TokenFactory(user=cls.staff_user)
 
     def _post(self, client, payload, token=None):
         """Issue a POST request to the photo upload endpoint, optionally with a token."""

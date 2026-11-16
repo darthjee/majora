@@ -1,7 +1,6 @@
 """Tests for the game document photo set (display) endpoint."""
 
 import pytest
-from rest_framework.authtoken.models import Token
 
 from games.models import GameDocumentPhoto
 from games.tests.behaviors import TokenAuthRequestMixin
@@ -10,6 +9,7 @@ from games.tests.factories import (
     GameFactory,
     PlayerFactory,
     SuperUserFactory,
+    TokenFactory,
     UserFactory,
 )
 
@@ -28,10 +28,10 @@ class TestGameDocumentPhotoSetView(TokenAuthRequestMixin):
         )
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
-        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.dm_token = TokenFactory(user=self.dm_user)
         self.player_user = UserFactory(username='player_user', password='secret-password')
         PlayerFactory(name='Bob', user=self.player_user, game=self.game)
-        self.player_token = Token.objects.create(user=self.player_user)
+        self.player_token = TokenFactory(user=self.player_user)
 
     def _url(self, document_id=None, photo_id=None):
         """Return the set endpoint URL for the given document/photo id (defaults to fixtures)."""
@@ -51,7 +51,7 @@ class TestGameDocumentPhotoSetView(TokenAuthRequestMixin):
     def test_unrelated_user_returns_403(self, client):
         """Test that an authenticated user unrelated to the game is rejected with 403."""
         other = UserFactory(username='other', password='secret-password')
-        token = Token.objects.create(user=other)
+        token = TokenFactory(user=other)
         response = self._patch(client, {'roles': ['display']}, token=token)
         assert response.status_code == 403
 
@@ -138,14 +138,14 @@ class TestGameDocumentPhotoSetView(TokenAuthRequestMixin):
     def test_superuser_can_set_display_photo(self, client):
         """Test that a superuser is allowed to set the display photo for any document."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
-        token = Token.objects.create(user=superuser)
+        token = TokenFactory(user=superuser)
         response = self._patch(client, {'roles': ['display']}, token=token)
         assert response.status_code == 200
 
     def test_staff_user_returns_200(self, client):
         """Test that an is_staff=True user unrelated to the game can set the display photo."""
         staff_user = UserFactory(username='staff_user', password='secret-password', is_staff=True)
-        token = Token.objects.create(user=staff_user)
+        token = TokenFactory(user=staff_user)
         response = self._patch(client, {'roles': ['display']}, token=token)
         assert response.status_code == 200
 

@@ -4,11 +4,10 @@ import json
 
 import pytest
 from rest_framework import serializers
-from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 
 from games.models import GameItem
-from games.tests.factories import SuperUserFactory, UserFactory
+from games.tests.factories import SuperUserFactory, TokenFactory, UserFactory
 from staff import copy_types
 from staff.copy_types import CopyType, ModelCopyType
 
@@ -19,11 +18,11 @@ class StaffCopyActorsMixin:
     def setup_actors(self):
         """Create the users and their tokens."""
         self.staff_user = UserFactory(username='staffer', is_staff=True)
-        self.staff_token = Token.objects.create(user=self.staff_user)
+        self.staff_token = TokenFactory(user=self.staff_user)
         self.superuser = SuperUserFactory(username='admin')
-        self.superuser_token = Token.objects.create(user=self.superuser)
+        self.superuser_token = TokenFactory(user=self.superuser)
         self.regular_user = UserFactory(username='player')
-        self.regular_token = Token.objects.create(user=self.regular_user)
+        self.regular_token = TokenFactory(user=self.regular_user)
 
     @staticmethod
     def auth(token=None):

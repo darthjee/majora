@@ -1,12 +1,11 @@
 """Tests for the CookieTokenAuthentication class."""
 
 from django.test import TestCase
-from rest_framework.authtoken.models import Token
 from rest_framework.test import APIRequestFactory
 
 from accounts.authentication import CookieTokenAuthentication
 from accounts.models import UserProfile
-from games.tests.factories import UserFactory, UserProfileFactory
+from games.tests.factories import TokenFactory, UserFactory, UserProfileFactory
 
 
 class TestCookieTokenAuthentication(TestCase):
@@ -16,7 +15,7 @@ class TestCookieTokenAuthentication(TestCase):
     def setUpTestData(cls):
         """Set up a user and token for tests."""
         cls.user = UserFactory(username='alice', password='secret')
-        cls.token = Token.objects.create(user=cls.user)
+        cls.token = TokenFactory(user=cls.user)
         cls.auth = CookieTokenAuthentication()
         cls.factory = APIRequestFactory()
 
@@ -109,7 +108,7 @@ class TestCookieTokenAuthentication(TestCase):
         stale_key = self.token.key
         self.token.delete()
         # Create a fresh token for the same user
-        new_token = Token.objects.create(user=self.user)
+        new_token = TokenFactory(user=self.user)
         # Request carries the stale key in the header but the new key in session
         request = self.factory.get('/')
         request.META['HTTP_AUTHORIZATION'] = f'Token {stale_key}'

@@ -5,12 +5,10 @@ import json
 import pytest
 from django.test import TestCase, override_settings
 from django.urls import reverse
-from rest_framework.authtoken.models import Token
 
 from domains.tests.factories import DomainFactory
 from games.models import Game, Player
-from games.tests.factories import GameFactory, UserFactory
-from majora_project.cache import memory_cache
+from games.tests.factories import GameFactory, TokenFactory, UserFactory
 
 
 @pytest.mark.django_db
@@ -18,12 +16,11 @@ class TestGamesListView:
     """Tests for the games list endpoint."""
 
     def setup_method(self):
-        """Clear the shared memory cache and register 'testserver' as a known domain.
+        """Register 'testserver' as a known domain.
 
         Django's test client defaults to `Host: testserver`, so registering it here
         matches the domain-scoped resolution `games_list` always performs now.
         """
-        memory_cache.clear()
         self.game_domain = DomainFactory(domain='testserver')
 
     def test_returns_empty_list(self, client):
@@ -107,12 +104,8 @@ class TestGamesCreateView(TestCase):
         required for POST requests to resolve through the domain-scoped creation path.
         """
         cls.user = UserFactory(username='creator', password='secret-password')
-        cls.token = Token.objects.create(user=cls.user)
+        cls.token = TokenFactory(user=cls.user)
         cls.game_domain = DomainFactory(domain='testserver')
-
-    def setUp(self):
-        """Clear the shared memory cache before each test."""
-        memory_cache.clear()
 
     def _post(self, client, payload, token=None):
         """Issue a POST request to the games list endpoint, optionally with a token."""
@@ -197,7 +190,6 @@ class TestGamesListViewPerDomainGet:
 
     def setup_method(self):
         """Set up a recognized domain with games, and clear the shared memory cache."""
-        memory_cache.clear()
         self.game_domain = DomainFactory(domain='tenant.example.com')
         self.game = GameFactory(
             name='Tenant Game', game_slug='tenant-game',
@@ -266,10 +258,9 @@ class TestGamesListViewPerDomainPost:
 
     def setup_method(self):
         """Set up a recognized domain, an authenticated user, and clear the memory cache."""
-        memory_cache.clear()
         self.game_domain = DomainFactory(domain='tenant-create.example.com')
         self.user = UserFactory(username='domain-creator', password='secret-password')
-        self.token = Token.objects.create(user=self.user)
+        self.token = TokenFactory(user=self.user)
 
     def _post(self, client, payload, host):
         """Issue an authenticated POST to /games.json against the given host."""

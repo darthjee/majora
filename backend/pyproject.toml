@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "majora"
-version = "1.6.0"
+version = "1.7.0"
 description = "Majora - RPG Campaign Management System"
 authors = ["darthjee"]
 license = "MIT"
@@ -28,6 +28,7 @@ factory-boy = "^3.3"
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "majora_project.settings_test"
 pythonpath = ["."]
+addopts = "--reuse-db"
 testpaths = [
     "accounts/tests",
     "games/tests",
@@ -42,6 +43,9 @@ testpaths = [
     "uploads/tests",
 ]
 python_files = ["*_test.py"]
+markers = [
+    "history: record django-simple-history rows for this test (off by default in tests, #1792)",
+]
 
 [tool.coverage.run]
 source = [

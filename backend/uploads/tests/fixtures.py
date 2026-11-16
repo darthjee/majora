@@ -8,9 +8,8 @@ that recurring boilerplate so each test module only has to build the fixtures
 specific to its own subject.
 """
 
-from rest_framework.authtoken.models import Token
 
-from games.tests.factories import PlayerFactory, UserFactory
+from games.tests.factories import PlayerFactory, TokenFactory, UserFactory
 from uploads.models import Upload
 
 
@@ -22,7 +21,7 @@ class UploadFinalizeFixtureMixin:
         """Create a DM user (and Player/Token) for `game`, returning `(user, token)`."""
         dm_user = UserFactory(username=username, password='secret-password')
         PlayerFactory(game=game, user=dm_user, is_dm=True)
-        dm_token = Token.objects.create(user=dm_user)
+        dm_token = TokenFactory(user=dm_user)
         return dm_user, dm_token
 
     @classmethod
@@ -30,14 +29,14 @@ class UploadFinalizeFixtureMixin:
         """Create a non-DM player (and Player/Token) for `game`, returning `(user, token)`."""
         player_of_game_user = UserFactory(username=username, password='secret-password')
         PlayerFactory(name=name, user=player_of_game_user, game=game)
-        player_of_game_token = Token.objects.create(user=player_of_game_user)
+        player_of_game_token = TokenFactory(user=player_of_game_user)
         return player_of_game_user, player_of_game_token
 
     @classmethod
     def _create_staff_user(cls, username='staff_user'):
         """Create a staff user (and Token), returning `(user, token)`."""
         staff_user = UserFactory(username=username, password='secret-password', is_staff=True)
-        staff_token = Token.objects.create(user=staff_user)
+        staff_token = TokenFactory(user=staff_user)
         return staff_user, staff_token
 
     @classmethod

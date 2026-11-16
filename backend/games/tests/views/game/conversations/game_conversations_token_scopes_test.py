@@ -1,13 +1,13 @@
 """End-to-end tests for the `@token_scopes` declaration of the conversations view (#1630)."""
 
 import pytest
-from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
 from games.tests.factories import (
     ConversationFactory,
     ConversationParticipantFactory,
     GameFactory,
+    TokenFactory,
 )
 from games.tests.views.game._scoped_token_fixtures import ScopedTokenMixin
 
@@ -58,6 +58,6 @@ class TestGameConversationsTokenScopes(ScopedTokenMixin):
 
     def test_legacy_token_is_unaffected(self):
         """Test that alice's legacy Token still lists the shared conversation."""
-        token = Token.objects.create(user=self.alice.user)
+        token = TokenFactory(user=self.alice.user)
         response = self.client.get(self._url(), HTTP_AUTHORIZATION=f'Token {token.key}')
         assert response.status_code == 200

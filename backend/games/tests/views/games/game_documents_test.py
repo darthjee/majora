@@ -4,7 +4,6 @@ import json
 
 from django.test import TestCase
 from django.urls import reverse
-from rest_framework.authtoken.models import Token
 
 from games.models import CharacterDocument, GameDocument
 from games.tests.behaviors import TokenAuthRequestMixin
@@ -13,6 +12,7 @@ from games.tests.factories import (
     GameFactory,
     PlayerFactory,
     SuperUserFactory,
+    TokenFactory,
     UserFactory,
 )
 
@@ -151,7 +151,7 @@ class TestGameDocumentsCreate(TokenAuthRequestMixin, TestCase):
 
     def test_dm_can_create_document(self):
         """Test that the game's DM can create a bare GameDocument."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._post(
             self.client,
             {'name': 'Ancient Scroll', 'description': 'A crumbling scroll.', 'hidden': True},
@@ -166,7 +166,7 @@ class TestGameDocumentsCreate(TokenAuthRequestMixin, TestCase):
 
     def test_create_persists_only_game_document(self):
         """Test that the create endpoint persists a GameDocument and no CharacterDocument."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._post(
             self.client,
             {'name': 'Ancient Scroll', 'description': 'A crumbling scroll.'},
@@ -181,7 +181,7 @@ class TestGameDocumentsCreate(TokenAuthRequestMixin, TestCase):
 
     def test_create_defaults_description_and_hidden(self):
         """Test that description defaults to '' and hidden defaults to False."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._post(self.client, {'name': 'Ancient Scroll'}, token=token)
         data = json.loads(response.content)
         assert data['description'] == ''
@@ -190,7 +190,7 @@ class TestGameDocumentsCreate(TokenAuthRequestMixin, TestCase):
     def test_superuser_can_create_document(self):
         """Test that a superuser can create a bare GameDocument."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
-        token = Token.objects.create(user=superuser)
+        token = TokenFactory(user=superuser)
         response = self._post(self.client, {'name': 'Ancient Scroll'}, token=token)
         assert response.status_code == 201
 
@@ -199,7 +199,7 @@ class TestGameDocumentsCreate(TokenAuthRequestMixin, TestCase):
         staff_user = UserFactory(username='staff_user', password='secret-password')
         staff_user.is_staff = True
         staff_user.save()
-        token = Token.objects.create(user=staff_user)
+        token = TokenFactory(user=staff_user)
         response = self._post(self.client, {'name': 'Ancient Scroll'}, token=token)
         assert response.status_code == 201
 
@@ -210,19 +210,19 @@ class TestGameDocumentsCreate(TokenAuthRequestMixin, TestCase):
 
     def test_regular_player_can_create_document(self):
         """Test that a regular player of the game can create a bare GameDocument (#864)."""
-        token = Token.objects.create(user=self.player_user)
+        token = TokenFactory(user=self.player_user)
         response = self._post(self.client, {'name': 'Ancient Scroll'}, token=token)
         assert response.status_code == 201
 
     def test_unrelated_user_returns_403(self):
         """Test that an authenticated user unrelated to the game is rejected with 403."""
-        token = Token.objects.create(user=self.other_user)
+        token = TokenFactory(user=self.other_user)
         response = self._post(self.client, {'name': 'Ancient Scroll'}, token=token)
         assert response.status_code == 403
 
     def test_missing_name_returns_400(self):
         """Test that a missing name returns 400."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._post(self.client, {}, token=token)
         assert response.status_code == 400
         data = json.loads(response.content)
@@ -230,7 +230,7 @@ class TestGameDocumentsCreate(TokenAuthRequestMixin, TestCase):
 
     def test_blank_name_returns_400(self):
         """Test that a blank name returns 400."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._post(self.client, {'name': ''}, token=token)
         assert response.status_code == 400
         data = json.loads(response.content)
@@ -238,7 +238,7 @@ class TestGameDocumentsCreate(TokenAuthRequestMixin, TestCase):
 
     def test_name_too_long_returns_400(self):
         """Test that a name longer than 200 chars returns 400."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._post(self.client, {'name': 'x' * 201}, token=token)
         assert response.status_code == 400
         data = json.loads(response.content)
@@ -246,7 +246,7 @@ class TestGameDocumentsCreate(TokenAuthRequestMixin, TestCase):
 
     def test_returns_404_for_unknown_game_slug(self):
         """Test that a non-existent game slug returns 404."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self.post(
             self.client, self._url(game_slug='unknown-game'), {'name': 'Ancient Scroll'},
             token=token,

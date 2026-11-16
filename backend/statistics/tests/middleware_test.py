@@ -11,11 +11,9 @@ from django.http import HttpResponse
 from django.test import Client, RequestFactory, override_settings
 from django.test.utils import CaptureQueriesContext
 from django.utils import timezone
-from rest_framework.authtoken.models import Token
 
 from domains.tests.factories import DomainFactory
-from games.tests.factories import UserFactory
-from majora_project.cache import memory_cache
+from games.tests.factories import TokenFactory, UserFactory
 from statistics import cookies
 from statistics.middleware import StatisticsSessionMiddleware
 from statistics.models import Session, Visit
@@ -37,13 +35,12 @@ class TestStatisticsSessionMiddleware:
     """Tests for `StatisticsSessionMiddleware`."""
 
     def setup_method(self):
-        """Clear the shared memory cache and register 'testserver' as a known domain.
+        """Register 'testserver' as a known domain.
 
         Some tests below use `/games.json` only as a stand-in authenticated endpoint to
         exercise the session-backfill middleware, so it needs a registered domain matching
         the test client's default `Host: testserver` to resolve at all.
         """
-        memory_cache.clear()
         self.domain = DomainFactory(domain='testserver')
 
     def test_creates_session_when_no_cookie_present(self, client):
@@ -271,7 +268,7 @@ class TestStatisticsSessionMiddleware:
     def test_backfills_user_on_anonymous_session_when_request_is_authenticated(self, client):
         """Test that an authenticated request attaches the user to an anonymous session."""
         user = UserFactory(username='alice')
-        token = Token.objects.create(user=user)
+        token = TokenFactory(user=user)
         session = Session.objects.create(ip='1.2.3.4', domain=self.domain)
         client.cookies[cookies.COOKIE_NAME] = cookies.sign(session.token)
 
@@ -291,7 +288,7 @@ class TestStatisticsSessionMiddleware:
     def test_reuses_a_session_already_tied_to_the_same_user(self, client):
         """Test that an authenticated request reuses a session already tied to its user."""
         user = UserFactory(username='alice')
-        token = Token.objects.create(user=user)
+        token = TokenFactory(user=user)
         session = Session.objects.create(ip='1.2.3.4', domain=self.domain, user=user)
         client.cookies[cookies.COOKIE_NAME] = cookies.sign(session.token)
 
@@ -382,7 +379,7 @@ class TestStatisticsSessionMiddleware:
         client.cookies[cookies.COOKIE_NAME] = cookies.sign(existing_session.token)
 
         user = UserFactory(username='alice')
-        token = Token.objects.create(user=user)
+        token = TokenFactory(user=user)
 
         response = client.get(
             '/games.json',
@@ -562,7 +559,7 @@ class TestStatisticsSessionMiddleware:
         """Test that the skip header on an authenticated request does not crash `_backfill_user`."""
         monkeypatch.setenv('STATISTICS_SKIP_SECRET', 'shh')
         user = UserFactory(username='alice')
-        token = Token.objects.create(user=user)
+        token = TokenFactory(user=user)
 
         response = client.get(
             '/games.json',
@@ -687,7 +684,7 @@ class TestStatisticsSessionMiddleware:
     def _authenticated_get(self, client, **extra):
         """Issue an authenticated GET to `/games.json` as a fresh user stored on `self.user`."""
         self.user = UserFactory(username='alice')
-        token = Token.objects.create(user=self.user)
+        token = TokenFactory(user=self.user)
         return client.get('/games.json', HTTP_AUTHORIZATION=f'Token {token.key}', **extra)
 
     def _assert_single_user_session(self, response, ip):
@@ -704,8 +701,7 @@ class TestStatisticsSessionMiddlewareCreationTracking:
     """Tests for the creation reason, first path and logged state recorded on new sessions."""
 
     def setup_method(self):
-        """Clear the shared memory cache and register 'testserver' as a known domain."""
-        memory_cache.clear()
+        """Register 'testserver' as a known domain."""
         self.domain = DomainFactory(domain='testserver')
         self.factory = RequestFactory()
 
@@ -998,7 +994,7 @@ class TestStatisticsSessionMiddlewareCreationTracking:
 
     def _token_get(self, client, **extra):
         """Issue a token-authenticated GET to `/games.json` as a fresh user."""
-        token = Token.objects.create(user=UserFactory(username='alice'))
+        token = TokenFactory(user=UserFactory(username='alice'))
         return client.get('/games.json', HTTP_AUTHORIZATION=f'Token {token.key}', **extra)
 
     def _cookie_for(self, client, ip, domain):
@@ -1018,6 +1014,7 @@ class TestStatisticsSessionMiddlewareCreationTracking:
         return Session.objects.get(token=token)
 
 
+# transactional: threads use their own connections and must see committed rows
 @pytest.mark.django_db(transaction=True)
 class TestStatisticsSessionMiddlewareLoginBurst:
     """Tests for parallel authenticated requests carrying one anonymous cookie (race 2b)."""
@@ -1026,10 +1023,9 @@ class TestStatisticsSessionMiddlewareLoginBurst:
 
     def setup_method(self):
         """Register 'testserver', a user with a token, and one anonymous cookie session."""
-        memory_cache.clear()
         self.domain = DomainFactory(domain='testserver')
         self.user = UserFactory(username='alice')
-        self.token = Token.objects.create(user=self.user)
+        self.token = TokenFactory(user=self.user)
         self.session = Session.objects.create(ip='192.0.2.1', domain=self.domain)
         self.statuses = []
 

@@ -3,7 +3,6 @@
 import json
 
 from django.test import TestCase
-from rest_framework.authtoken.models import Token
 
 from games.models import GameTreasure
 from games.tests.behaviors import DetailNotFoundBehaviorMixin, TokenAuthRequestMixin
@@ -12,6 +11,7 @@ from games.tests.factories import (
     GameTreasureFactory,
     PlayerFactory,
     SuperUserFactory,
+    TokenFactory,
     TreasureFactory,
     UserFactory,
 )
@@ -74,15 +74,15 @@ class TestGameTreasureUpdateView(TokenAuthRequestMixin, TestCase):
         )
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
-        cls.dm_token = Token.objects.create(user=cls.dm_user)
+        cls.dm_token = TokenFactory(user=cls.dm_user)
         cls.superuser = SuperUserFactory(
             username='admin', password='secret-password'
         )
-        cls.superuser_token = Token.objects.create(user=cls.superuser)
+        cls.superuser_token = TokenFactory(user=cls.superuser)
         cls.regular_user = UserFactory(
             username='player', password='secret-password'
         )
-        cls.regular_token = Token.objects.create(user=cls.regular_user)
+        cls.regular_token = TokenFactory(user=cls.regular_user)
 
     def _patch(self, client, payload, token=None):
         """Issue a PATCH request to the game treasure detail endpoint, optionally with a token."""
@@ -277,20 +277,20 @@ class TestGameTreasureDetailHidden(TokenAuthRequestMixin, TestCase):
     def test_hidden_treasure_returns_404_for_regular_user(self):
         """Test that a non-DM authenticated user gets 404 for a hidden treasure."""
         other_user = UserFactory(username='other', password='secret-password')
-        token = Token.objects.create(user=other_user)
+        token = TokenFactory(user=other_user)
         response = self.get(self.client, self._url(), token=token)
         assert response.status_code == 404
 
     def test_hidden_treasure_returns_404_for_dm(self):
         """Test that a DM also gets 404 from the plain detail of a hidden treasure."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self.get(self.client, self._url(), token=token)
         assert response.status_code == 404
 
     def test_hidden_treasure_returns_404_for_superuser(self):
         """Test that a superuser also gets 404 from the plain detail of a hidden treasure."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
-        token = Token.objects.create(user=superuser)
+        token = TokenFactory(user=superuser)
         response = self.get(self.client, self._url(), token=token)
         assert response.status_code == 404
 
@@ -302,7 +302,7 @@ class TestGameTreasureDetailHidden(TokenAuthRequestMixin, TestCase):
 
     def test_hidden_treasure_404_response_includes_x_skip_cache_header_for_dm(self):
         """Test that a DM's 404 response for a hidden treasure includes X-Skip-Cache: true."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self.get(self.client, self._url(), token=token)
         assert response['X-Skip-Cache'] == 'true'
 
@@ -313,7 +313,7 @@ class TestGameTreasureDetailHidden(TokenAuthRequestMixin, TestCase):
 
     def test_patch_on_hidden_treasure_by_dm_still_succeeds(self):
         """Test that a DM can still PATCH a hidden treasure through the plain detail route."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self.patch(self.client, self._url(), {'name': 'Renamed'}, token=token)
         assert_json_response(response, 200, name='Renamed')
         assert response['X-Skip-Cache'] == 'true'
@@ -321,7 +321,7 @@ class TestGameTreasureDetailHidden(TokenAuthRequestMixin, TestCase):
     def test_patch_on_hidden_treasure_by_non_dm_returns_404(self):
         """Test that a non-DM's PATCH attempt on a hidden treasure gets 404, not 403."""
         other_user = UserFactory(username='other', password='secret-password')
-        token = Token.objects.create(user=other_user)
+        token = TokenFactory(user=other_user)
         response = self.patch(self.client, self._url(), {'name': 'Renamed'}, token=token)
         assert response.status_code == 404
         self.hidden_treasure.refresh_from_db()
@@ -337,9 +337,9 @@ class TestGameTreasureLinkedDetailView(TokenAuthRequestMixin, TestCase):
         cls.game = GameFactory(name='Test Game', game_slug='test-game')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
-        cls.dm_token = Token.objects.create(user=cls.dm_user)
+        cls.dm_token = TokenFactory(user=cls.dm_user)
         cls.regular_user = UserFactory(username='player', password='secret-password')
-        cls.regular_token = Token.objects.create(user=cls.regular_user)
+        cls.regular_token = TokenFactory(user=cls.regular_user)
         cls.treasure = TreasureFactory(name='Shared Gem', value=100)
         cls.game.treasures.add(cls.treasure, through_defaults={'value': cls.treasure.value})
 

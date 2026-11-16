@@ -30,7 +30,6 @@ class TestStaffStatisticsExportAccess:
 
     def setup_method(self):
         """Set up a staff owner and a regular user."""
-        memory_cache.clear()
         self.staff = UserFactory(is_staff=True)
         self.regular = UserFactory()
 
@@ -105,7 +104,7 @@ class TestStaffStatisticsExportAccess:
         self._assert(client.get(URL, RANGE), 200)
         self.staff.is_staff = False
         self.staff.save()
-        memory_cache.clear()
+        memory_cache.clear()  # test-policy: allow memory-cache-clear
         self._assert(client.get(URL, RANGE), 403, 'not_allowed')
         assert ApiToken.objects.get(owner=self.staff).scopes == ['statistics:read']
 
@@ -126,7 +125,6 @@ class TestStaffStatisticsExportTrackingAndCaching:
 
     def setup_method(self):
         """Set up a staff owner."""
-        memory_cache.clear()
         self.staff = UserFactory(is_staff=True)
 
     def _assert_untracked(self, response):
@@ -181,7 +179,6 @@ class TestStaffStatisticsExportInvalidToken:
 
     def setup_method(self):
         """Set up a staff owner."""
-        memory_cache.clear()
         self.staff = UserFactory(is_staff=True)
 
     def _assert_invalid(self, client):

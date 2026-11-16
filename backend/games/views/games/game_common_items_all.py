@@ -4,12 +4,11 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 
-from common.query_filters import filter_by_name
-
 from ...decorators import token_scopes
 from ...models import Game
 from ...serializers import GameCommonItemAllListSerializer
 from ..common import check_game_edit, paginated_list_response
+from ._common_item_filters import apply_common_item_filters
 
 
 @token_scopes(GET=['common_items:read'])
@@ -21,13 +20,14 @@ from ..common import check_game_edit, paginated_list_response
 def game_common_items_all(request, game_slug):
     """Return all common items (including hidden) for a game — DM/superuser only.
 
-    Accepts an optional ``name`` query param (case-insensitive substring match).
+    Accepts optional query params, combined with AND: ``name`` (case-insensitive substring),
+    ``category`` (exact match), ``min_price`` and ``max_price`` (integer price bounds).
     """
     game = get_object_or_404(Game, game_slug=game_slug)
     error_response = check_game_edit(request, game)
     if error_response:
         return error_response
-    common_items = filter_by_name(request, game.common_items.all())
+    common_items = apply_common_item_filters(request, game.common_items.all())
     response = paginated_list_response(request, common_items, GameCommonItemAllListSerializer)
     response['X-Skip-Cache'] = 'true'
     return response

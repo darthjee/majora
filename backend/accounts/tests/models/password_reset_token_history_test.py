@@ -1,11 +1,13 @@
 """Tests for PasswordResetToken's history tracking excluding the raw token."""
 
+import pytest
 from django.test import TestCase
 
 from accounts.models import PasswordResetToken
 from games.tests.factories import UserFactory
 
 
+@pytest.mark.history
 class TestPasswordResetTokenHistory(TestCase):
     """Tests for the `history` HistoricalRecords manager on PasswordResetToken."""
 

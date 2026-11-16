@@ -1,5 +1,6 @@
 """Tests for the GameRecipe model."""
 
+import pytest
 from django.test import TestCase
 
 from games.models import GameRecipe
@@ -82,6 +83,7 @@ class TestGameRecipe(TestCase):
         recipe = GameRecipeFactory(game=self.game)
         assert recipe.game_common_item.game == self.game
 
+    @pytest.mark.history
     def test_history_is_tracked(self):
         """Test that changes to a recipe are recorded in its history."""
         recipe = self._create_recipe(name='Brew')

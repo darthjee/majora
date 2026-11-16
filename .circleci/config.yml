@@ -3,15 +3,12 @@ workflows:
   version: 2
   test:
     jobs:
-      - pytest_views_characters:
+      - pytest_views:
           filters: &all_tags
             tags:
               only: /.*/
           requires: [release-circleci_majora-base, release-circleci_majora-base-arm64]
-      - pytest_views_rest:
-          filters: *all_tags
-          requires: [release-circleci_majora-base, release-circleci_majora-base-arm64]
-      - pytest_all:
+      - pytest_non_views:
           filters: *all_tags
           requires: [release-circleci_majora-base, release-circleci_majora-base-arm64]
       - jasmine:
@@ -34,7 +31,7 @@ workflows:
       - markdownlint:
           filters: *all_tags
       - coverage-final:
-          requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine, client_tests]
+          requires: [pytest_views, pytest_non_views, jasmine, client_tests]
           filters: *all_tags
       - release-image:
           name: release-majora-base
@@ -73,29 +70,29 @@ workflows:
           arch: arm64
           filters: *all_tags
       - build-and-release:
-          requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint, release-production_majora-base, release-production_majora-base-arm64]
+          requires: [pytest_views, pytest_non_views, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint, release-production_majora-base, release-production_majora-base-arm64]
           filters: &tags_only
             tags:
               only: /\d+\.\d+\.\d+/
             branches:
               ignore: /.*/
       - upload_proxy_files:
-          requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint]
+          requires: [pytest_views, pytest_non_views, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint]
           filters: *tags_only
       - upload_fe_files:
-          requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint, release-vite_majora-base, release-vite_majora-base-arm64]
+          requires: [pytest_views, pytest_non_views, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint, release-vite_majora-base, release-vite_majora-base-arm64]
           filters: *tags_only
       - link_photos:
-          requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint]
+          requires: [pytest_views, pytest_non_views, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint]
           filters: *tags_only
       - link_files:
-          requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint]
+          requires: [pytest_views, pytest_non_views, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint]
           filters: *tags_only
       - link_domain:
-          requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint]
+          requires: [pytest_views, pytest_non_views, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint]
           filters: *tags_only
       - upload_admin_assets:
-          requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint, release-circleci_majora-base]
+          requires: [pytest_views, pytest_non_views, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint, release-circleci_majora-base]
           filters: *tags_only
       - upload_extension:
           requires: [upload_proxy_files]
@@ -127,11 +124,84 @@ workflows:
           requires: [release]
           filters: *tags_only
       - wake-navi:
-          requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint]
+          requires: [pytest_views, pytest_non_views, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint]
           filters: *tags_only
       - client-release:
-          requires: [pytest_views_characters, pytest_views_rest, pytest_all, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint]
+          requires: [pytest_views, pytest_non_views, jasmine, frontend-checks, checks, proxy_extension_tests, crawler_extension_tests, client_tests, client_checks, markdownlint]
           filters: *tags_only
+commands:
+  # Splits the test files matching `include` (and not `exclude`) across the
+  # parallel containers by the per-file timings stored from the JUnit report,
+  # and exports this container's share as TEST_FILES.
+  split_test_files:
+    parameters:
+      include:
+        type: string
+      exclude:
+        type: string
+        default: '^$'
+    steps:
+      - run:
+          name: Split test files
+          command: |
+            mkdir -p test-reports
+            # Glob patterns are passed to `circleci tests glob`, not expanded by the shell.
+            set -f
+            patterns=""
+            # Every testpaths entry of pyproject.toml, so the list never drifts from it.
+            for testpath in $(sed -n '/^testpaths = \[/,/\]/p' pyproject.toml | grep -o '"[^"]*"' | tr -d '"'); do
+              patterns="$patterns $testpath/*_test.py $testpath/**/*_test.py"
+            done
+            circleci tests glob $patterns \
+              | sort -u \
+              | grep -E '<< parameters.include >>' \
+              | grep -Ev '<< parameters.exclude >>' \
+              | circleci tests split --split-by=timings --timings-type=filename \
+              > test-reports/test-files.txt
+            echo "Container $CIRCLE_NODE_INDEX/$CIRCLE_NODE_TOTAL runs $(wc -l < test-reports/test-files.txt) files"
+            if [ ! -s test-reports/test-files.txt ]; then
+              echo "No test files assigned to this container" >&2
+              exit 1
+            fi
+            echo "export TEST_FILES=\"$(tr '\n' ' ' < test-reports/test-files.txt)\"" >> "$BASH_ENV"
+
+  # Runs pytest on the given paths with coverage, uploads partial coverage to
+  # Codacy and publishes the durations reports (#1787): the full
+  # `--durations=0` list, a per-file/per-directory summary built by
+  # bin/junit_summary.py and the JUnit XML, as artifacts and test results.
+  pytest_with_reports:
+    parameters:
+      paths:
+        type: string
+    steps:
+      - run:
+          name: Tests
+          # --create-db: addopts has --reuse-db since #1794; CI always creates the database.
+          command: |
+            mkdir -p test-reports
+            poetry run pytest << parameters.paths >> --create-db --cov --cov-report=lcov:coverage/lcov.info \
+              --durations=0 --junitxml=test-reports/junit.xml -o junit_family=xunit1 \
+              | tee test-reports/pytest-output.txt
+      - run:
+          name: Upload coverage to Codacy (partial)
+          command: bash <(curl -Ls https://coverage.codacy.com/get.sh) report --partial -r coverage/lcov.info
+      - run:
+          name: Durations report
+          when: always
+          command: |
+            if [ -f test-reports/pytest-output.txt ]; then
+              awk '/slowest durations/ { found = 1 } found && /^====/ && !/slowest durations/ { exit } found { print }' \
+                test-reports/pytest-output.txt > test-reports/durations.txt
+            fi
+            if [ -f test-reports/junit.xml ]; then
+              poetry run python bin/junit_summary.py test-reports/junit.xml test-reports/durations-by-file.md
+            fi
+      - store_test_results:
+          path: test-reports
+      - store_artifacts:
+          path: test-reports
+          destination: test-reports
+
 jobs:
   release-image:
     parameters:
@@ -150,7 +220,10 @@ jobs:
           name: Release
           command: bin/image.sh push << parameters.image >> << parameters.arch >>
 
-  pytest_views_characters:
+  # Runs every test under games/tests/views/ (#1802), split across parallel
+  # containers by the per-file timings stored from the JUnit report.
+  pytest_views:
+    parallelism: 3
     docker:
       - image: darthjee/circleci_majora-base:0.1.0
         environment:
@@ -159,7 +232,7 @@ jobs:
           MAJORA_MYSQL_USER: root
           MAJORA_MYSQL_NAME: majora
           MAJORA_MYSQL_PASSWORD: majora
-      - image: cimg/mysql:8.0
+      - image: cimg/mysql:8.4.13
         name: mysql
         environment:
           MYSQL_DATABASE: majora
@@ -176,14 +249,15 @@ jobs:
       - run:
           name: wait for db
           command: bin/configure_database.sh wait
-      - run:
-          name: Tests
-          command: poetry run pytest games/tests/views/game/ --cov --cov-report=lcov:coverage/lcov.info
-      - run:
-          name: Upload coverage to Codacy (partial)
-          command: bash <(curl -Ls https://coverage.codacy.com/get.sh) report --partial -r coverage/lcov.info
+      - split_test_files:
+          include: '^games/tests/views/'
+      - pytest_with_reports:
+          paths: "$TEST_FILES"
 
-  pytest_views_rest:
+  # Runs every test outside games/tests/views/ (#1788), split across parallel
+  # containers by the per-file timings stored from the JUnit report.
+  pytest_non_views:
+    parallelism: 3
     docker:
       - image: darthjee/circleci_majora-base:0.1.0
         environment:
@@ -192,7 +266,7 @@ jobs:
           MAJORA_MYSQL_USER: root
           MAJORA_MYSQL_NAME: majora
           MAJORA_MYSQL_PASSWORD: majora
-      - image: cimg/mysql:8.0
+      - image: cimg/mysql:8.4.13
         name: mysql
         environment:
           MYSQL_DATABASE: majora
@@ -209,45 +283,11 @@ jobs:
       - run:
           name: wait for db
           command: bin/configure_database.sh wait
-      - run:
-          name: Tests
-          command: poetry run pytest games/tests/views/ --ignore=games/tests/views/game/ --cov --cov-report=lcov:coverage/lcov.info
-      - run:
-          name: Upload coverage to Codacy (partial)
-          command: bash <(curl -Ls https://coverage.codacy.com/get.sh) report --partial -r coverage/lcov.info
-
-  pytest_all:
-    docker:
-      - image: darthjee/circleci_majora-base:0.1.0
-        environment:
-          MAJORA_MYSQL_HOST: mysql
-          MAJORA_MYSQL_PORT: 3306
-          MAJORA_MYSQL_USER: root
-          MAJORA_MYSQL_NAME: majora
-          MAJORA_MYSQL_PASSWORD: majora
-      - image: cimg/mysql:8.0
-        name: mysql
-        environment:
-          MYSQL_DATABASE: majora
-          MYSQL_USER: majora
-          MYSQL_PASSWORD: majora
-          MYSQL_ROOT_PASSWORD: majora
-    working_directory: ~/project/backend
-    steps:
-      - checkout:
-          path: ~/project
-      - run:
-          name: Poetry Install
-          command: poetry install --no-root --no-interaction --no-ansi
-      - run:
-          name: wait for db
-          command: bin/configure_database.sh wait
-      - run:
-          name: Tests
-          command: poetry run pytest --ignore=games/tests/views/ --cov --cov-report=lcov:coverage/lcov.info
-      - run:
-          name: Upload coverage to Codacy (partial)
-          command: bash <(curl -Ls https://coverage.codacy.com/get.sh) report --partial -r coverage/lcov.info
+      - split_test_files:
+          include: '.'
+          exclude: '^games/tests/views/'
+      - pytest_with_reports:
+          paths: "$TEST_FILES"
 
   jasmine:
     docker:
@@ -289,6 +329,9 @@ jobs:
       - run:
           name: Check python Lint
           command: poetry run ruff check .
+      - run:
+          name: Check test policy
+          command: poetry run python bin/check_test_policy.py
       - run:
           name: Check Python complexity
           command: bin/reports.sh ci

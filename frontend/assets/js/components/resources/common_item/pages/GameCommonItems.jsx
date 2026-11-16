@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import GameCommonItemsHelper from './helpers/GameCommonItemsHelper.jsx';
 import GameCommonItemsController from './controllers/GameCommonItemsController.js';
 import BasePageController from '../../../common/base/controllers/BasePageController.js';
+import HashRouteResolver from '../../../../utils/routing/HashRouteResolver.js';
+import buildFilterQueryHash from '../../../../utils/routing/buildFilteredHref.js';
 import getCurrentHash from '../../../../utils/routing/currentHash.js';
 
 /**
@@ -15,6 +17,7 @@ import getCurrentHash from '../../../../utils/routing/currentHash.js';
  */
 export default function GameCommonItems() {
   const [canCreateCommonItem, setCanCreateCommonItem] = useState(false);
+  const [refreshToken, setRefreshToken] = useState(0);
 
   const currentHash = getCurrentHash();
   const gameSlug = BasePageController.extractParam('/games/:game_slug/common_items', 'game_slug', currentHash);
@@ -22,11 +25,26 @@ export default function GameCommonItems() {
   const backHref = `#/games/${gameSlug}`;
   const newHref = `#/games/${gameSlug}/common_items/new`;
 
+  const activeFilters = Object.fromEntries(new HashRouteResolver().getFilterParams());
+  const refresh = () => setRefreshToken((token) => token + 1);
+
   const controller = useMemo(() => new GameCommonItemsController(setCanCreateCommonItem), []);
 
   useEffect(() => controller.buildEffect()(), [controller]);
 
-  return GameCommonItemsHelper.render({
-    gameSlug, basePath, backHref, newHref, canCreateCommonItem,
-  });
+  return GameCommonItemsHelper.render(
+    {
+      gameSlug, basePath, backHref, newHref, canCreateCommonItem, refreshToken, activeFilters,
+    },
+    {
+      onFilterQuery: (filters) => {
+        window.location.hash = buildFilterQueryHash(basePath, filters);
+        refresh();
+      },
+      onFilterClear: () => {
+        window.location.hash = basePath;
+        refresh();
+      },
+    },
+  );
 }

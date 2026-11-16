@@ -6,11 +6,10 @@ from datetime import timedelta
 import pytest
 from django.utils import timezone
 from django.utils.crypto import get_random_string
-from rest_framework.authtoken.models import Token
 
 from accounts.models import AuthorizationRequest
 from games.tests.behaviors import TokenAuthRequestMixin
-from games.tests.factories import UserFactory
+from games.tests.factories import TokenFactory, UserFactory
 
 LIST_URL = '/account/authorization_requests.json'
 TEST_PASSWORD = get_random_string(20)
@@ -23,7 +22,7 @@ class TestAuthorizationRequestListView(TokenAuthRequestMixin):
     def setup_method(self):
         """Set up an authenticated user and another user."""
         self.user = UserFactory(username='alice', password=TEST_PASSWORD)
-        self.token = Token.objects.create(user=self.user)
+        self.token = TokenFactory(user=self.user)
         self.other_user = UserFactory(username='bob', password=TEST_PASSWORD)
 
     def test_returns_401_when_unauthenticated(self, client):

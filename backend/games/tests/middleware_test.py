@@ -4,12 +4,10 @@ import pytest
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser, User
 from django.http import HttpResponse
-from rest_framework.authtoken.models import Token
 
 from domains.tests.factories import DomainFactory
 from games.middleware import CacheControlMiddleware
-from games.tests.factories import GameFactory, UserFactory
-from majora_project.cache import memory_cache
+from games.tests.factories import GameFactory, TokenFactory, UserFactory
 from statistics import cookies
 
 COOKIE_SETTING_MIDDLEWARES = (
@@ -113,8 +111,7 @@ class TestCacheControlMiddlewareFullStackCookies:
     """Cache-Control of cookie-setting responses through the whole middleware stack."""
 
     def setup_method(self):
-        """Clear the shared memory cache and register 'testserver' as a known domain."""
-        memory_cache.clear()
+        """Register 'testserver' as a known domain."""
         DomainFactory(domain='testserver')
 
     def test_tracked_anonymous_response_is_never_public(self, client):
@@ -165,13 +162,12 @@ class TestCacheControlMiddlewareAnonymous:
     """Cache-Control header for unauthenticated requests."""
 
     def setup_method(self):
-        """Clear the shared memory cache and register 'testserver' as a known domain.
+        """Register 'testserver' as a known domain.
 
         `/games.json` is used here only as a stand-in "regular endpoint" to exercise the
         cache-control middleware, so it needs a registered domain matching the test
         client's default `Host: testserver` to resolve at all.
         """
-        memory_cache.clear()
         self.game_domain = DomainFactory(domain='testserver')
 
     def test_adds_anonymous_cache_control_header(self, client):
@@ -203,19 +199,18 @@ class TestCacheControlMiddlewareAuthenticated:
     """Cache-Control header for authenticated requests."""
 
     def setup_method(self):
-        """Clear the shared memory cache and register 'testserver' as a known domain.
+        """Register 'testserver' as a known domain.
 
         `/games.json` is used here only as a stand-in "regular endpoint" to exercise the
         cache-control middleware, so it needs a registered domain matching the test
         client's default `Host: testserver` to resolve at all.
         """
-        memory_cache.clear()
         DomainFactory(domain='testserver')
 
     def test_adds_private_cache_control_header(self, client):
         """Authenticated requests to a regular endpoint get private Cache-Control."""
         user = UserFactory(username='tester', password='secret')
-        token = Token.objects.create(user=user)
+        token = TokenFactory(user=user)
         client.credentials = None  # ensure we use header-based auth
         response = client.get(
             '/games.json',
@@ -228,7 +223,7 @@ class TestCacheControlMiddlewareAuthenticated:
         """Custom MAJORA_CACHE_CONTROL_AUTHENTICATED_SECONDS is reflected in the header."""
         monkeypatch.setenv('MAJORA_CACHE_CONTROL_AUTHENTICATED_SECONDS', '30')
         user = UserFactory(username='tester2', password='secret')
-        token = Token.objects.create(user=user)
+        token = TokenFactory(user=user)
         response = client.get(
             '/games.json',
             HTTP_AUTHORIZATION=f'Token {token.key}',
@@ -243,7 +238,7 @@ class TestCacheControlMiddlewareSkipCache:
     def test_no_store_cache_control_when_x_skip_cache_present(self, client):
         """Responses with X-Skip-Cache: true receive Cache-Control: no-store."""
         user = UserFactory(username='writer', password='secret')
-        token = Token.objects.create(user=user)
+        token = TokenFactory(user=user)
         game = GameFactory(name='Skip Game', game_slug='skip-game')
         # The game-access endpoint sets X-Skip-Cache: true
         response = client.get(
@@ -310,7 +305,7 @@ class TestCacheControlMiddlewarePermissionsPrefix:
     def test_anonymous_tier_for_authenticated_caller(self, client):
         """An authenticated caller still gets the anonymous max-age on a /permissions/ route."""
         user = UserFactory(username='dm_user', password='secret')
-        token = Token.objects.create(user=user)
+        token = TokenFactory(user=user)
         # Every /permissions/ route is role-simulated/identity-independent by construction.
         response = client.get(
             '/permissions/game.json?role=dm',

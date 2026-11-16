@@ -36,4 +36,45 @@ describe('GameCommonItems', function() {
     expect(capturedState.newHref).toBe('#/games/demo/common_items/new');
     expect(capturedState.canCreateCommonItem).toBe(false);
   });
+
+  describe('filters', function() {
+    const capture = () => {
+      const captured = {};
+      spyOn(GameCommonItemsHelper, 'render').and.callFake((state, handlers) => {
+        captured.state = state;
+        captured.handlers = handlers;
+        return React.createElement('div', null, 'page');
+      });
+      return captured;
+    };
+
+    it('passes the active filters from the hash', function() {
+      globalThis.window = { location: { hash: '#/games/demo/common_items?name=rope&page=2' } };
+      const captured = capture();
+
+      renderToStaticMarkup(React.createElement(GameCommonItems));
+
+      expect(captured.state.activeFilters).toEqual({ name: 'rope' });
+      expect(captured.state.refreshToken).toBe(0);
+    });
+
+    it('sets the filtered hash on page 1 when querying', function() {
+      const captured = capture();
+
+      renderToStaticMarkup(React.createElement(GameCommonItems));
+      captured.handlers.onFilterQuery({ name: 'rope' });
+
+      expect(globalThis.window.location.hash).toBe('#/games/demo/common_items?page=1&name=rope');
+    });
+
+    it('resets the hash to the base path when clearing', function() {
+      globalThis.window = { location: { hash: '#/games/demo/common_items?name=rope' } };
+      const captured = capture();
+
+      renderToStaticMarkup(React.createElement(GameCommonItems));
+      captured.handlers.onFilterClear();
+
+      expect(globalThis.window.location.hash).toBe('#/games/demo/common_items');
+    });
+  });
 });

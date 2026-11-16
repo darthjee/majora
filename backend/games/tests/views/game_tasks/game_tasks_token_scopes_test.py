@@ -1,11 +1,10 @@
 """End-to-end tests for the `@token_scopes` declarations of the task views (issue #1634)."""
 
 import pytest
-from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
 from games.models import GameSession, Task
-from games.tests.factories import GameFactory
+from games.tests.factories import GameFactory, TokenFactory
 from games.tests.views.game._scoped_token_fixtures import ScopedTokenMixin
 
 TASK_SCOPES = ['tasks:read', 'tasks:write']
@@ -142,7 +141,7 @@ class TestTaskTokenScopesOtherCredentials(TaskScopedTokenMixin):
 
     def test_legacy_token_player_is_forbidden(self):
         """Test that a player's legacy Token still gets 403 on tasks.json."""
-        token = Token.objects.create(user=self.player)
+        token = TokenFactory(user=self.player)
         response = self.client.get(
             '/games/test-game/tasks.json', HTTP_AUTHORIZATION=f'Token {token.key}',
         )

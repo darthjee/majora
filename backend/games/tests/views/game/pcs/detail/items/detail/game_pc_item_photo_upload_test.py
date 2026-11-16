@@ -3,7 +3,6 @@
 import json
 
 import pytest
-from rest_framework.authtoken.models import Token
 
 from games.models import CharacterItemPhoto
 from games.tests.behaviors import TokenAuthRequestMixin
@@ -13,6 +12,7 @@ from games.tests.factories import (
     GameFactory,
     PlayerFactory,
     SuperUserFactory,
+    TokenFactory,
     UserFactory,
 )
 from uploads.models import Upload
@@ -35,8 +35,8 @@ class TestGamePcItemPhotoUploadView(TokenAuthRequestMixin):
         self.item = CharacterItemFactory(character=self.character)
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
-        self.owner_token = Token.objects.create(user=self.owner)
-        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.owner_token = TokenFactory(user=self.owner)
+        self.dm_token = TokenFactory(user=self.dm_user)
 
     def _editor_token(self):
         """Return the owning player's user token."""
@@ -60,7 +60,7 @@ class TestGamePcItemPhotoUploadView(TokenAuthRequestMixin):
     def test_unrelated_user_returns_403(self, client):
         """Test that an authenticated user unrelated to the character is rejected with 403."""
         other = UserFactory(username='other', password='secret-password')
-        token = Token.objects.create(user=other)
+        token = TokenFactory(user=other)
         response = self._post(client, {'filename': 'photo.jpg'}, token=token)
         assert response.status_code == 403
 
@@ -164,7 +164,7 @@ class TestGamePcItemPhotoUploadView(TokenAuthRequestMixin):
     def test_superuser_can_upload(self, client):
         """Test that a superuser is allowed to upload a photo for any PC's item."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
-        token = Token.objects.create(user=superuser)
+        token = TokenFactory(user=superuser)
         response = self._post(client, {'filename': 'sword.jpg'}, token=token)
         assert response.status_code == 201
 
@@ -176,7 +176,7 @@ class TestGamePcItemPhotoUploadView(TokenAuthRequestMixin):
     def test_staff_user_returns_201(self, client):
         """Test that an is_staff=True user unrelated to the game can upload the item's photo."""
         staff_user = UserFactory(username='staff_user', password='secret-password', is_staff=True)
-        token = Token.objects.create(user=staff_user)
+        token = TokenFactory(user=staff_user)
         response = self._post(client, {'filename': 'photo.jpg'}, token=token)
         assert response.status_code == 201
 
@@ -184,7 +184,7 @@ class TestGamePcItemPhotoUploadView(TokenAuthRequestMixin):
         """Test that a non-owning, non-DM player of the game can upload the item's photo."""
         player_user = UserFactory(username='player_user', password='secret-password')
         PlayerFactory(name='Alice', user=player_user, game=self.game)
-        token = Token.objects.create(user=player_user)
+        token = TokenFactory(user=player_user)
 
         response = self._post(client, {'filename': 'photo.jpg'}, token=token)
 

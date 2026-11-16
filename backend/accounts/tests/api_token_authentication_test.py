@@ -6,7 +6,6 @@ from unittest.mock import patch
 import pytest
 from django.urls import ResolverMatch
 from django.utils import timezone
-from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import AuthenticationFailed, PermissionDenied
 from rest_framework.permissions import AllowAny, BasePermission
@@ -16,7 +15,7 @@ from rest_framework.test import APIClient, APIRequestFactory
 from accounts.authentication import BEARER_PATTERN, ApiTokenAuthentication
 from accounts.models import ApiToken, UserProfile
 from games.decorators import token_scopes
-from games.tests.factories import GameFactory, UserFactory
+from games.tests.factories import GameFactory, TokenFactory, UserFactory
 
 ACCOUNT_URL = '/account/account.json'
 INVALID_HEADER = 'Bearer realm="api", error="invalid_token"'
@@ -72,7 +71,7 @@ class TestApiTokenAuthenticationNotBearer(ApiTokenTestMixin):
 
     def test_legacy_token_header_returns_none(self):
         """Test that a legacy `Token <key>` header returns None."""
-        token = Token.objects.create(user=self.user)
+        token = TokenFactory(user=self.user)
         assert self.auth.authenticate(self._request(f'Token {token.key}')) is None
 
     def test_default_authenticate_header(self):
@@ -235,7 +234,7 @@ class TestApiTokenAuthenticationEndToEnd(ApiTokenTestMixin):
         session_user = UserFactory(username='bob', password='secret-password')
         self.client = APIClient()
         session = self.client.session
-        session['auth_token'] = Token.objects.create(user=session_user).key
+        session['auth_token'] = TokenFactory(user=session_user).key
         session.save()
 
     def test_session_alone_authenticates(self):
@@ -265,7 +264,7 @@ class TestApiTokenAuthenticationEndToEnd(ApiTokenTestMixin):
 
     def test_legacy_token_still_authenticates(self):
         """Test that a legacy `Token <key>` header still authenticates."""
-        token = Token.objects.create(user=self.user)
+        token = TokenFactory(user=self.user)
         response = APIClient().get(ACCOUNT_URL, HTTP_AUTHORIZATION=f'Token {token.key}')
         assert response.status_code == 200
 
@@ -430,14 +429,14 @@ class TestApiTokenScopeCheck(ApiTokenTestMixin):
     def test_session_request_ignores_declaration(self):
         """Test that a session request to an undeclared view is unaffected."""
         request = self.factory.get('/')
-        request.session = {'auth_token': Token.objects.create(user=self.user).key}
+        request.session = {'auth_token': TokenFactory(user=self.user).key}
         request.resolver_match = ResolverMatch(undeclared_view, (), {})
         response = undeclared_view(request)
         assert response.status_code == 200
 
     def test_legacy_token_ignores_declaration(self):
         """Test that a legacy `Token` request to an undeclared view is unaffected."""
-        token = Token.objects.create(user=self.user)
+        token = TokenFactory(user=self.user)
         request = self.factory.get('/', HTTP_AUTHORIZATION=f'Token {token.key}')
         request.resolver_match = ResolverMatch(undeclared_view, (), {})
         assert undeclared_view(request).status_code == 200

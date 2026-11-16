@@ -1,12 +1,12 @@
 """End-to-end tests for the `@token_scopes` declarations of the game treasure views (#1636)."""
 
 import pytest
-from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
 from games.tests.factories import (
     GameFactory,
     GameTreasureFactory,
+    TokenFactory,
     TreasureFactory,
     UserFactory,
 )
@@ -202,7 +202,7 @@ class TestGameTreasureTokenScopesOtherCredentials(GameTreasureScopedTokenMixin):
 
     def test_legacy_token_dm_creates_treasure(self):
         """Test that the DM's legacy Token still creates a treasure."""
-        token = Token.objects.create(user=self.dm)
+        token = TokenFactory(user=self.dm)
         response = self.client.post(
             self._url('.json'), {'name': 'Gem', 'value': 100}, format='json',
             HTTP_AUTHORIZATION=f'Token {token.key}',

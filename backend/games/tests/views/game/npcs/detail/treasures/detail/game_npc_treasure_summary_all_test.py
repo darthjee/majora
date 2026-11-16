@@ -4,7 +4,6 @@ import json
 
 import pytest
 from django.urls import reverse
-from rest_framework.authtoken.models import Token
 
 from games.models import CharacterTreasure
 from games.tests.behaviors import TokenAuthRequestMixin
@@ -14,6 +13,7 @@ from games.tests.factories import (
     GameTreasureFactory,
     PlayerFactory,
     SuperUserFactory,
+    TokenFactory,
     TreasureFactory,
     UserFactory,
 )
@@ -29,9 +29,9 @@ class TestGameNpcTreasureSummaryAllView(TokenAuthRequestMixin):
         self.character = CharacterFactory(name='Gandalf', game=self.game, npc=True)
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
-        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.dm_token = TokenFactory(user=self.dm_user)
         self.other_user = UserFactory(username='other', password='secret-password')
-        self.other_token = Token.objects.create(user=self.other_user)
+        self.other_token = TokenFactory(user=self.other_user)
         self.treasure = TreasureFactory(name='Potion of Healing', value=100, game=self.game)
 
     def _url(self, treasure_id=None, character_id=None, game_slug=None):
@@ -58,7 +58,7 @@ class TestGameNpcTreasureSummaryAllView(TokenAuthRequestMixin):
     def test_superuser_can_view_summary(self, client):
         """Test that a superuser can view the full summary."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
-        token = Token.objects.create(user=superuser)
+        token = TokenFactory(user=superuser)
         response = self.get(client, self._url(), token=token)
         assert response.status_code == 200
 
@@ -143,7 +143,7 @@ class TestGameNpcTreasureSummaryAllHiddenTreasure(TokenAuthRequestMixin):
         self.game = GameFactory(name='Test Game', game_slug='test-game')
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
-        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.dm_token = TokenFactory(user=self.dm_user)
         self.character = CharacterFactory(name='Gandalf', game=self.game, npc=True)
         self.treasure = TreasureFactory(name='Secret Gem', value=100, game=self.game)
         GameTreasureFactory(

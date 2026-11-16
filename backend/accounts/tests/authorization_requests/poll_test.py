@@ -15,7 +15,6 @@ from rest_framework.test import APIClient
 from accounts.models import ApiToken, AuthorizationRequest, UserProfile
 from accounts.serializers.api_token.create import NAME_MAX_LENGTH
 from games.tests.factories import UserFactory, UserProfileFactory
-from majora_project.cache import memory_cache
 from statistics import cookies
 from statistics.models import Session
 
@@ -189,6 +188,7 @@ class TestAuthorizationRequestPollView:
         assert second_response.status_code == 403
         assert json.loads(second_response.content) == {'error': 'not_found'}
 
+    # transactional: threads use their own connections and must see committed rows
     @pytest.mark.django_db(transaction=True)
     def test_only_one_of_two_concurrent_polls_wins_the_approved_to_logged_race(self):
         """Test that of two near-simultaneous polls on an approved request, only one wins."""
@@ -267,7 +267,6 @@ class TestAuthorizationRequestPollScopedToken:
 
     def setup_method(self):
         """Set up a staff user with an approved statistics:read request."""
-        memory_cache.clear()
         self.user = UserFactory(username='alice', password=TEST_PASSWORD, is_staff=True)
         self.authorization_request, self.raw_token = self._approved_request('test-agent')
 

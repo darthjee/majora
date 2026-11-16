@@ -4,11 +4,10 @@ import json
 
 from django.test import TestCase
 from django.utils import timezone
-from rest_framework.authtoken.models import Token
 
 from games.models import GamePhoto
 from games.models.base_photo import BasePhoto
-from games.tests.factories import GameFactory, PlayerFactory, UserFactory
+from games.tests.factories import GameFactory, PlayerFactory, TokenFactory, UserFactory
 from uploads.models import Upload
 from uploads.views import _PHOTO_HANDLERS
 
@@ -22,7 +21,7 @@ class TestUploadFinalizeGeneric(TestCase):
         cls.game = GameFactory(name='Epic Quest', game_slug='epic-quest')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
-        cls.dm_token = Token.objects.create(user=cls.dm_user)
+        cls.dm_token = TokenFactory(user=cls.dm_user)
 
         cls.upload = Upload.objects.create(
             user=cls.dm_user,
@@ -89,7 +88,7 @@ class TestUploadFinalizeGeneric(TestCase):
     def test_different_user_returns_403(self):
         """Test that an authenticated user who does not own the upload gets 403."""
         other_user = UserFactory(username='other', password='secret-password')
-        other_token = Token.objects.create(user=other_user)
+        other_token = TokenFactory(user=other_user)
         response = self._patch(
             self.client,
             self.upload.id,
@@ -117,7 +116,7 @@ class TestUploadFinalizeGeneric(TestCase):
     def test_non_game_master_user_returns_403(self):
         """Test that a user with no game master role returns 403 on game permission check."""
         non_dm = UserFactory(username='non_dm', password='secret-password')
-        non_dm_token = Token.objects.create(user=non_dm)
+        non_dm_token = TokenFactory(user=non_dm)
         self.upload.user = non_dm
         Upload.objects.filter(pk=self.upload.pk).update(user=non_dm)
         response = self._patch(
@@ -188,7 +187,7 @@ class TestUploadFinalizeGeneric(TestCase):
     def test_mismatched_upload_type_by_non_owner_returns_403(self):
         """Test that a non-owner (with a valid token) and a mismatched type returns 403."""
         other_user = UserFactory(username='other_type', password='secret-password')
-        other_token = Token.objects.create(user=other_user)
+        other_token = TokenFactory(user=other_user)
         response = self._patch(
             self.client,
             self.upload.id,

@@ -1,9 +1,14 @@
 """Shared fixtures for the PC/NPC recipe available/acquire/remove view tests (issue #1459)."""
 
-from rest_framework.authtoken.models import Token
 
 from games.models import CharacterRecipe
-from games.tests.factories import GameCommonItemFactory, GameFactory, GameRecipeFactory, UserFactory
+from games.tests.factories import (
+    GameCommonItemFactory,
+    GameFactory,
+    GameRecipeFactory,
+    TokenFactory,
+    UserFactory,
+)
 from games.tests.views.game._character_recipe_fixtures import CharacterRecipeViewFixtures
 
 UNKNOWN_RECIPE_ID = 999999
@@ -34,9 +39,9 @@ class CharacterRecipeExchangeFixtures(CharacterRecipeViewFixtures):
     def _setup_extra_users(self):
         """Create a staff user and a user who is not a member of the game, with tokens."""
         self.staff_user = UserFactory(username='staff_user', is_staff=True)
-        self.staff_token = Token.objects.create(user=self.staff_user)
+        self.staff_token = TokenFactory(user=self.staff_user)
         self.outsider = UserFactory(username='outsider')
-        self.outsider_token = Token.objects.create(user=self.outsider)
+        self.outsider_token = TokenFactory(user=self.outsider)
 
     def _setup_catalog(self):
         """Create the game recipes the character does not know yet."""

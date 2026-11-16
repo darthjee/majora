@@ -13,7 +13,6 @@ class TestCharacterEditorCachePc:
 
     def setup_method(self):
         """Set up a game, a DM, an owning player, a PC, and clear the shared memory cache."""
-        memory_cache.clear()
         self.game = GameFactory()
         self.dm_user = UserFactory()
         PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
@@ -56,7 +55,6 @@ class TestCharacterEditorCacheNpc:
 
     def setup_method(self):
         """Set up a game, a DM, an NPC, and clear the shared memory cache."""
-        memory_cache.clear()
         self.game = GameFactory()
         self.dm_user = UserFactory()
         PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)

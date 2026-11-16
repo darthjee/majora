@@ -4,11 +4,16 @@ import json
 
 import pytest
 from django.urls import reverse
-from rest_framework.authtoken.models import Token
 
 from games.models import CharacterItem
 from games.tests.behaviors import TokenAuthRequestMixin
-from games.tests.factories import CharacterFactory, GameFactory, GameItemFactory, UserFactory
+from games.tests.factories import (
+    CharacterFactory,
+    GameFactory,
+    GameItemFactory,
+    TokenFactory,
+    UserFactory,
+)
 
 
 @pytest.mark.django_db
@@ -21,7 +26,7 @@ class TestGameNpcItemSummaryView(TokenAuthRequestMixin):
         self.character = CharacterFactory(name='Gandalf', game=self.game, npc=True)
         self.game_item = GameItemFactory(game=self.game, name='Sting')
         self.other_user = UserFactory(username='other', password='secret-password')
-        self.other_token = Token.objects.create(user=self.other_user)
+        self.other_token = TokenFactory(user=self.other_user)
 
     def _url(self, item_id=None, character_id=None, game_slug=None):
         """Return the summary endpoint URL (defaults to fixtures)."""

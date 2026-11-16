@@ -3,6 +3,13 @@ const LIST_PREFIXES = {
   numbered_list: '1. ',
 };
 
+const TABLE_HEADER_PLACEHOLDER = 'Header 1';
+const TABLE_SKELETON = [
+  `| ${TABLE_HEADER_PLACEHOLDER} | Header 2 |`,
+  '| --- | --- |',
+  '| Cell | Cell |',
+].join('\n');
+
 /**
  * Pure, framework-free Markdown syntax-insertion logic for the `MarkdownEditor` toolbar.
  * Given the current textarea value and selection range, each supported action computes the
@@ -13,7 +20,7 @@ export default class MarkdownSyntax {
    * Apply a toolbar action to the current textarea value/selection.
    *
    * @param {string} action - One of `bold`, `italic`, `heading`, `bulleted_list`,
-   *   `numbered_list`, `link`.
+   *   `numbered_list`, `link`, `table`.
    * @param {string} value - Current textarea value.
    * @param {number} selectionStart - Current selection start offset.
    * @param {number} selectionEnd - Current selection end offset.
@@ -34,6 +41,8 @@ export default class MarkdownSyntax {
         return MarkdownSyntax.#prefixLine(value, selectionStart, selectionEnd, LIST_PREFIXES.numbered_list);
       case 'link':
         return MarkdownSyntax.#insertLink(value, selectionStart, selectionEnd);
+      case 'table':
+        return MarkdownSyntax.#insertTable(value, selectionEnd);
       default:
         return { value, selectionStart, selectionEnd };
     }
@@ -68,5 +77,28 @@ export default class MarkdownSyntax {
     const urlEnd = urlStart + 3;
 
     return { value: newValue, selectionStart: urlStart, selectionEnd: urlEnd };
+  }
+
+  static #insertTable(value, end) {
+    const before = value.slice(0, end);
+    const after = value.slice(end);
+    const prefix = MarkdownSyntax.#blockSeparator(before === '', before.endsWith('\n\n'), before.endsWith('\n'));
+    const suffix = MarkdownSyntax.#blockSeparator(after === '', after.startsWith('\n\n'), after.startsWith('\n'));
+    const newValue = before + prefix + TABLE_SKELETON + suffix + after;
+    const headerStart = end + prefix.length + 2;
+
+    return {
+      value: newValue,
+      selectionStart: headerStart,
+      selectionEnd: headerStart + TABLE_HEADER_PLACEHOLDER.length,
+    };
+  }
+
+  static #blockSeparator(isEmpty, hasBlankLine, hasNewline) {
+    if (isEmpty || hasBlankLine) {
+      return '';
+    }
+
+    return hasNewline ? '\n' : '\n\n';
   }
 }

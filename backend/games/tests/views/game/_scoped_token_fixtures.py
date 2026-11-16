@@ -1,9 +1,8 @@
 """Shared request helpers for the end-to-end `@token_scopes` tests of the character views."""
 
-from rest_framework.authtoken.models import Token
 
 from accounts.models import ApiToken
-from games.tests.factories import PlayerFactory, UserFactory
+from games.tests.factories import PlayerFactory, TokenFactory, UserFactory
 
 
 class ScopedTokenMixin:
@@ -38,7 +37,7 @@ class ScopedTokenMixin:
     def _log_in(self, user):
         """Store `user`'s auth token in the client session, as the login view does."""
         session = self.client.session
-        session['auth_token'] = Token.objects.create(user=user).key
+        session['auth_token'] = TokenFactory(user=user).key
         session.save()
 
     def _assert_refused(self, response, code):

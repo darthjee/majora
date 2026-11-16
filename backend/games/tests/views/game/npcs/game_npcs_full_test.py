@@ -7,11 +7,16 @@ Mirrors game_npcs_test.py's pre-#868 create tests verbatim — this is exactly t
 import json
 
 import pytest
-from rest_framework.authtoken.models import Token
 
 from games.models import Character
 from games.tests.behaviors import TokenAuthRequestMixin
-from games.tests.factories import GameFactory, PlayerFactory, SuperUserFactory, UserFactory
+from games.tests.factories import (
+    GameFactory,
+    PlayerFactory,
+    SuperUserFactory,
+    TokenFactory,
+    UserFactory,
+)
 
 
 @pytest.mark.django_db
@@ -24,11 +29,11 @@ class TestGameNpcsFullCreate(TokenAuthRequestMixin):
         self.player = PlayerFactory(name='Alice')
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
-        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.dm_token = TokenFactory(user=self.dm_user)
         self.superuser = SuperUserFactory(username='admin', password='secret-password')
-        self.superuser_token = Token.objects.create(user=self.superuser)
+        self.superuser_token = TokenFactory(user=self.superuser)
         self.regular_user = UserFactory(username='player', password='secret-password')
-        self.regular_token = Token.objects.create(user=self.regular_user)
+        self.regular_token = TokenFactory(user=self.regular_user)
 
     def _post(self, client, payload, token=None, game_slug=None):
         """Issue a POST request to the game NPCs full-create endpoint, optionally with a token."""

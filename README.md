@@ -8,9 +8,9 @@ Repository for information for RP games
 
 ![majora](https://raw.githubusercontent.com/darthjee/majora/master/majora.png)
 
-**Current Version:** [1.6.0](https://github.com/darthjee/majora/releases/tag/1.6.0)
+**Current Version:** [1.7.0](https://github.com/darthjee/majora/releases/tag/1.7.0)
 
-**Next Release:** [1.6.1](https://github.com/darthjee/majora/compare/1.6.0...main)
+**Next Release:** [1.7.1](https://github.com/darthjee/majora/compare/1.7.0...main)
 
 ## About
 
@@ -127,6 +127,11 @@ Inside the test shell (`make tests`):
 ```bash
 poetry run pytest
 ```
+
+Local runs reuse the `test_majora` database (`--reuse-db`). Pass `--create-db` after pulling or
+writing migrations, after switching to a branch with different migrations, and after an
+interrupted migration test. `make tests-fast` (optionally `make tests-fast ARGS="games/tests"`) is
+the fast local command; CI always passes `--create-db`.
 
 Frontend tests (from `frontend/`):
 ```bash

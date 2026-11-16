@@ -37,7 +37,7 @@ Before a PR is considered complete, all CI checks relevant to the modified parts
 
 | Modified folder | CI job(s) | Local commands |
 |------------------|-----------|-----------------|
-| `backend/` | `pytest_views_characters`, `pytest_views_rest`, `pytest_all`, `checks` | `cd backend && poetry run pytest --cov` and `poetry run ruff check .` |
+| `backend/` | `pytest_views`, `pytest_non_views`, `checks` | `cd backend && poetry run pytest --cov` `poetry run ruff check .` and `poetry run python bin/check_test_policy.py` |
 | `frontend/` | `jasmine`, `frontend-checks` | `cd frontend && npm run coverage` and `npm run lint` |
 | `proxy/` | `proxy_extension_tests` | `docker-compose run --rm proxy_tests` (see `.claude/scripts/check_proxy.sh` for the PHP lint step too) |
 | `client/` | `client_tests`, `client_checks` | `make client-tests` and `make client-lint` |

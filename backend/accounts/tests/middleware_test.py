@@ -5,7 +5,6 @@ from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.http import HttpResponse
 from django.test import RequestFactory
-from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
 from accounts.authentication import BEARER_PATTERN
@@ -13,8 +12,7 @@ from accounts.middleware import BearerNoCacheMiddleware
 from accounts.models import ApiToken
 from domains.tests.factories import DomainFactory
 from games.middleware import CacheControlMiddleware
-from games.tests.factories import UserFactory
-from majora_project.cache import memory_cache
+from games.tests.factories import TokenFactory, UserFactory
 
 ACCOUNT_URL = '/account/account.json'
 GAMES_URL = '/games.json'
@@ -143,11 +141,10 @@ class TestBearerNoCacheMiddlewareEndToEnd:
 
         `testserver` is registered so `/games.json` resolves as a regular endpoint.
         """
-        memory_cache.clear()
         DomainFactory(domain='testserver')
         self.user = UserFactory(username='alice', password='secret-password')
         _, self.plain = ApiToken.objects.create_token(self.user, 'automation', ['games:read'])
-        self.legacy = Token.objects.create(user=self.user)
+        self.legacy = TokenFactory(user=self.user)
         self.client = APIClient()
 
     def _get(self, url, header):

@@ -3,7 +3,6 @@
 import json
 
 from django.test import TestCase
-from rest_framework.authtoken.models import Token
 
 from games.models import CharacterItemPhoto
 from games.tests.factories import (
@@ -11,6 +10,7 @@ from games.tests.factories import (
     CharacterItemFactory,
     GameFactory,
     PlayerFactory,
+    TokenFactory,
     UserFactory,
 )
 from uploads.models import Upload
@@ -33,7 +33,7 @@ class TestUploadFinalizeCharacterItemPhoto(UploadFinalizeFixtureMixin, TestCase)
         cls.character = CharacterFactory(
             name='Aragorn', game=cls.game, player=cls.player, npc=False
         )
-        cls.owner_token = Token.objects.create(user=cls.owner)
+        cls.owner_token = TokenFactory(user=cls.owner)
 
         cls.staff_user, cls.staff_token = cls._create_staff_user()
 
@@ -105,7 +105,7 @@ class TestUploadFinalizeCharacterItemPhoto(UploadFinalizeFixtureMixin, TestCase)
     def test_unrelated_user_returns_403_for_character_item_upload(self):
         """Test that a user unrelated to the character is rejected on a CharacterItemPhoto."""
         other_user = UserFactory(username='other_char_item', password='secret-password')
-        other_token = Token.objects.create(user=other_user)
+        other_token = TokenFactory(user=other_user)
         self.character_item_upload.user = other_user
         Upload.objects.filter(pk=self.character_item_upload.pk).update(user=other_user)
         response = self._patch(

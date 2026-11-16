@@ -4,7 +4,6 @@ import json
 
 import pytest
 from django.urls import reverse
-from rest_framework.authtoken.models import Token
 
 from games.models import CharacterDocument
 from games.tests.behaviors import TokenAuthRequestMixin
@@ -14,6 +13,7 @@ from games.tests.factories import (
     GameFactory,
     PlayerFactory,
     SuperUserFactory,
+    TokenFactory,
     UserFactory,
 )
 
@@ -28,9 +28,9 @@ class TestGameNpcDocumentSummaryAllView(TokenAuthRequestMixin):
         self.character = CharacterFactory(name='Gandalf', game=self.game, npc=True)
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
-        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.dm_token = TokenFactory(user=self.dm_user)
         self.other_user = UserFactory(username='other', password='secret-password')
-        self.other_token = Token.objects.create(user=self.other_user)
+        self.other_token = TokenFactory(user=self.other_user)
         self.game_document = GameDocumentFactory(game=self.game, name='Elven Lore')
 
     def _url(self, document_id=None, character_id=None, game_slug=None):
@@ -55,7 +55,7 @@ class TestGameNpcDocumentSummaryAllView(TokenAuthRequestMixin):
     def test_superuser_can_view_summary(self, client):
         """Test that a superuser can view the full summary."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
-        token = Token.objects.create(user=superuser)
+        token = TokenFactory(user=superuser)
         response = self.get(client, self._url(), token=token)
         assert response.status_code == 200
 
@@ -140,7 +140,7 @@ class TestGameNpcDocumentSummaryAllHiddenDocument(TokenAuthRequestMixin):
         self.game = GameFactory(name='Test Game', game_slug='test-game')
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
-        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.dm_token = TokenFactory(user=self.dm_user)
         self.character = CharacterFactory(name='Gandalf', game=self.game, npc=True)
         self.game_document = GameDocumentFactory(game=self.game, name='Secret Tome', hidden=True)
         CharacterDocument.objects.create(character=self.character, game_document=self.game_document)
