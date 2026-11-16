@@ -11,10 +11,6 @@ from majora_project.cache import memory_cache
 class TestAdminOrStaffCache:
     """Tests for AdminOrStaffCache.is_admin_or_staff()."""
 
-    def setup_method(self):
-        """Clear the shared memory cache before each test for isolation."""
-        memory_cache.clear()
-
     def test_returns_true_for_staff_user(self):
         """Test that a staff user is reported as admin-or-staff."""
         user = UserFactory(is_staff=True)

@@ -9,7 +9,6 @@ from rest_framework.authtoken.models import Token
 from domains.tests.factories import DomainFactory
 from games.middleware import CacheControlMiddleware
 from games.tests.factories import GameFactory, UserFactory
-from majora_project.cache import memory_cache
 from statistics import cookies
 
 COOKIE_SETTING_MIDDLEWARES = (
@@ -113,8 +112,7 @@ class TestCacheControlMiddlewareFullStackCookies:
     """Cache-Control of cookie-setting responses through the whole middleware stack."""
 
     def setup_method(self):
-        """Clear the shared memory cache and register 'testserver' as a known domain."""
-        memory_cache.clear()
+        """Register 'testserver' as a known domain."""
         DomainFactory(domain='testserver')
 
     def test_tracked_anonymous_response_is_never_public(self, client):
@@ -165,13 +163,12 @@ class TestCacheControlMiddlewareAnonymous:
     """Cache-Control header for unauthenticated requests."""
 
     def setup_method(self):
-        """Clear the shared memory cache and register 'testserver' as a known domain.
+        """Register 'testserver' as a known domain.
 
         `/games.json` is used here only as a stand-in "regular endpoint" to exercise the
         cache-control middleware, so it needs a registered domain matching the test
         client's default `Host: testserver` to resolve at all.
         """
-        memory_cache.clear()
         self.game_domain = DomainFactory(domain='testserver')
 
     def test_adds_anonymous_cache_control_header(self, client):
@@ -203,13 +200,12 @@ class TestCacheControlMiddlewareAuthenticated:
     """Cache-Control header for authenticated requests."""
 
     def setup_method(self):
-        """Clear the shared memory cache and register 'testserver' as a known domain.
+        """Register 'testserver' as a known domain.
 
         `/games.json` is used here only as a stand-in "regular endpoint" to exercise the
         cache-control middleware, so it needs a registered domain matching the test
         client's default `Host: testserver` to resolve at all.
         """
-        memory_cache.clear()
         DomainFactory(domain='testserver')
 
     def test_adds_private_cache_control_header(self, client):

@@ -14,7 +14,6 @@ class TestStaffCacheSummaryView:
 
     def setup_method(self):
         """Set up staff, superuser, and regular user accounts, and prime the shared cache."""
-        memory_cache.clear()
         self.staff_user = UserFactory(is_staff=True)
         self.staff_token = Token.objects.create(user=self.staff_user)
         self.superuser = SuperUserFactory()

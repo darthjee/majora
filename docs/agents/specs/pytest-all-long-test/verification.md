@@ -25,6 +25,13 @@ conversions):
 
 - **#1788 (CI rebalancing):** the union of the collected tests of all pytest jobs equals the
   collected tests of a single full `pytest` run, with no test missing or run twice.
+- **Check script (#1789):** `bin/check_test_policy.py`, run from `backend/` with
+  `poetry run python bin/check_test_policy.py` (docker-compose: `docker-compose run --rm
+  majora_tests poetry run python bin/check_test_policy.py`). It reads `testpaths` from
+  `pyproject.toml`, prints `path:line: rule-id: message`, and exits `0` clean, `1` violations,
+  `2` configuration error. To add a rule, write a `rule(tree, path) -> list[Violation]` function
+  and append it to `RULES`. A line is allowed with `# test-policy: allow <rule-id>`; allowed
+  lines are printed as opt-outs.
 - **#1789 (cache fixture):** any test that starts failing once the cache is cleared
   automatically is fixed in the same PR, and the PR lists them.
 - **#1792 (history off):** the 13 history test files pass with the opt-in. A test asserts that
@@ -43,7 +50,7 @@ violation, so the script never fails on existing code.
 
 | Rule | Added by | Status |
 |------|----------|--------|
-| No `memory_cache.clear()` in test files (the autouse fixture handles it) | #1789 | not yet added |
+| No `memory_cache.clear()` in test files (the autouse fixture handles it) | #1789 | added |
 | No `Token.objects.create` in test files (use `TokenFactory`) | #1790 | not yet added |
 | Every `TransactionTestCase` or `django_db(transaction=True)` has a justification comment directly above it | #1793 | not yet added |
 | No fixture scoped to a class, module or session writes to the database | #1793 | not yet added |

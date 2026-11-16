@@ -15,7 +15,6 @@ from rest_framework.authtoken.models import Token
 
 from domains.tests.factories import DomainFactory
 from games.tests.factories import UserFactory
-from majora_project.cache import memory_cache
 from statistics import cookies
 from statistics.middleware import StatisticsSessionMiddleware
 from statistics.models import Session, Visit
@@ -37,13 +36,12 @@ class TestStatisticsSessionMiddleware:
     """Tests for `StatisticsSessionMiddleware`."""
 
     def setup_method(self):
-        """Clear the shared memory cache and register 'testserver' as a known domain.
+        """Register 'testserver' as a known domain.
 
         Some tests below use `/games.json` only as a stand-in authenticated endpoint to
         exercise the session-backfill middleware, so it needs a registered domain matching
         the test client's default `Host: testserver` to resolve at all.
         """
-        memory_cache.clear()
         self.domain = DomainFactory(domain='testserver')
 
     def test_creates_session_when_no_cookie_present(self, client):
@@ -704,8 +702,7 @@ class TestStatisticsSessionMiddlewareCreationTracking:
     """Tests for the creation reason, first path and logged state recorded on new sessions."""
 
     def setup_method(self):
-        """Clear the shared memory cache and register 'testserver' as a known domain."""
-        memory_cache.clear()
+        """Register 'testserver' as a known domain."""
         self.domain = DomainFactory(domain='testserver')
         self.factory = RequestFactory()
 
@@ -1026,7 +1023,6 @@ class TestStatisticsSessionMiddlewareLoginBurst:
 
     def setup_method(self):
         """Register 'testserver', a user with a token, and one anonymous cookie session."""
-        memory_cache.clear()
         self.domain = DomainFactory(domain='testserver')
         self.user = UserFactory(username='alice')
         self.token = Token.objects.create(user=self.user)

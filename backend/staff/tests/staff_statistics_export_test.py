@@ -10,7 +10,6 @@ from django.test.utils import CaptureQueriesContext
 from accounts.tests.api_tokens.support import session_client
 from domains.tests.factories import DomainFactory
 from games.tests.factories import UserFactory
-from majora_project.cache import memory_cache
 from staff.tests.statistics_export_support import RANGE, URL, at, make_session, make_visit
 from statistics.models import Session, Visit
 
@@ -29,7 +28,6 @@ class _ExportSetup:
 
     def setup_method(self):
         """Set up a staff client, two domains and sessions in and out of the range."""
-        memory_cache.clear()
         self.client = session_client(UserFactory(is_staff=True))
         self.zeta = DomainFactory(domain='zeta.example.com')
         self.alpha = DomainFactory(domain='alpha.example.com')

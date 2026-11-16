@@ -39,8 +39,8 @@ recorded test-style counts.
 5. **No reuse of the base object graph.** Each module rebuilds its game, player, user and domain
    per test. Addressed by #1793 and the module conversions.
 6. **Manual `memory_cache.clear()`.** The in-memory cache (`majora_project/cache/__init__.py`)
-   is process-wide. Only 16 test files clear it by hand; a test that forgets can pass or fail
-   depending on what ran before it. Addressed by #1789.
+   is process-wide. Only 16 test files cleared it by hand; a test that forgot could pass or fail
+   depending on what ran before it. Addressed by #1789 (autouse fixture in `backend/conftest.py`).
 7. **`simple_history` writes during tests.** Every save of a versioned model writes an extra
    history row, which only 13 test files assert on. Addressed by #1792.
 8. **Coverage always on.** All three CI jobs run with `--cov`, and there is no fast local
