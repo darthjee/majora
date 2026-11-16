@@ -12,5 +12,7 @@ class CommonConfig(AppConfig):
     def ready(self):
         """Warn at startup when production runs without the proxy shared secret."""
         from .client_ip import warn_if_proxy_secret_missing
+        from .proxy_trust import warn_if_enforce_without_secret
 
         warn_if_proxy_secret_missing()
+        warn_if_enforce_without_secret()

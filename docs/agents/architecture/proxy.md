@@ -93,7 +93,7 @@ Requests authenticated with a scoped API token (`Authorization: Bearer ...`) nev
 
 ## Signed client IP (`X-Forwarded-For` + `X-Proxy-Secret`)
 
-Every request Tent sends to the backend carries Tent's own view of the client (`$_SERVER['REMOTE_ADDR']`) in `X-Forwarded-For` and, when `$proxySecret` is non-empty, the secret in `X-Proxy-Secret`. Django trusts `X-Forwarded-For` only when the secret matches its `PROXY_SECRET` and otherwise records `REMOTE_ADDR` (see [Production Configuration](../production-configuration.md#pairing-rule-proxysecret-and-proxy_secret)). A client-supplied value of either header, in any casing, is always dropped and never appended to. An empty secret sends no `X-Proxy-Secret`.
+Every request Tent sends to the backend carries Tent's own view of the client (`$_SERVER['REMOTE_ADDR']`) in `X-Forwarded-For` and, when `$proxySecret` is non-empty, the secret in `X-Proxy-Secret`. Django trusts `X-Forwarded-For` only when the secret matches its `PROXY_SECRET` and otherwise records `REMOTE_ADDR` (see [Production Configuration](../production-configuration.md#pairing-rule-proxysecret-and-proxy_secret)). `X-Proxy-Secret` also gates `X-Forwarded-Host` and statistics: `ProxyTrustMiddleware` (#1750) drops `X-Forwarded-Host` and skips statistics for requests without a valid secret, and with `PROXY_ENFORCE=true` it answers them with a `403` (only `/ready.json` is exempt). A client-supplied value of either header, in any casing, is always dropped and never appended to. An empty secret sends no `X-Proxy-Secret`.
 
 Both paths to the backend build the headers with the same helper, `ClientIpHeaders` (`proxy/extension/lib/support/`):
 

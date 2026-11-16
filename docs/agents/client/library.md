@@ -18,6 +18,7 @@ the resource wrappers built on it. The npm-facing usage reference is
   `env` defaults to `process.env` and exists for tests and for the CLI, which injects its own.
 - A blank (`undefined`, `null` or `''`) `baseUrl` or `token` falls back to `MAJORA_URL` /
   `MAJORA_TOKEN` from `env`.
+- `baseUrl` / `MAJORA_URL` must be the public Majora URL served by the proxy, not the backend service's own hostname. Direct backend calls are untrusted and, once proxy enforcement is on, are rejected with `403 {"detail": "Forbidden"}`.
 - `core/Config.js` validates everything when the client is built, before any request, and
   throws `ConfigurationError` on failure:
   - `baseUrl` is required, must be an absolute `http:`/`https:` URL with no credentials, query

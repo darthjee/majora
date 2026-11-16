@@ -25,8 +25,10 @@ CSRF_TRUSTED_ORIGINS = [
 # `RenameHeaderMiddleware` always overwrites `X-Forwarded-Host` with whatever `Host` it
 # actually received, so a client cannot smuggle a spoofed value *through Tent*. Tent is not
 # the only way in, though: Django is a public Render service, so a direct caller can still
-# send any `X-Forwarded-Host`. Unlike `X-Forwarded-For` (gated by `PROXY_SECRET`, see
-# `common/client_ip.py`), this header is not yet gated; a follow-up raised from #1501.
+# send any `X-Forwarded-Host`. Like `X-Forwarded-For` (see `common/client_ip.py`), this header
+# is gated by `PROXY_SECRET`: `common.middleware.ProxyTrustMiddleware` removes it from requests
+# whose `X-Proxy-Secret` does not match. Any future trust of a forwarded header (e.g.
+# `SECURE_PROXY_SSL_HEADER`, `USE_X_FORWARDED_PORT`) must be gated by `request.via_proxy` too.
 #
 # `/games.json` (GET+POST) is always restricted to the games reachable from the requesting
 # domain, via `domains.Domain`/`domains.DomainGroup` (see `games/views/games/games_list.py`).
@@ -57,6 +59,10 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    # Order is load-bearing (#1750): ProxyTrustMiddleware must run before anything calls
+    # `request.get_host()` (CSRF, domain views, statistics), because it strips
+    # `X-Forwarded-Host` from requests that bypass the proxy.
+    'common.middleware.ProxyTrustMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     # Order is load-bearing (#1733): CacheControlMiddleware is listed above every middleware

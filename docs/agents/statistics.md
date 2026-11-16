@@ -580,8 +580,13 @@ trusted only through a shared secret (#1501):
 - Tent sends `X-Proxy-Secret` (and its own `X-Forwarded-For`) on the standard proxy rules,
   stripping any client-supplied copy. Django (`backend/common/client_ip.py`) trusts the
   leftmost valid `X-Forwarded-For` entry only when the header matches `PROXY_SECRET`
-  (constant-time compare); otherwise it falls back to `REMOTE_ADDR`. Requests are never
-  rejected, and an empty `PROXY_SECRET` disables the gate.
+  (constant-time compare); otherwise it falls back to `REMOTE_ADDR`. An empty `PROXY_SECRET`
+  disables the gate (every request counts as trusted, but `X-Forwarded-For` is ignored).
+- `common.middleware.ProxyTrustMiddleware` (first in `MIDDLEWARE`, #1750) sets
+  `request.via_proxy`. A request without a valid secret is **not tracked at all** (no session,
+  visit or cookie) and has its `X-Forwarded-Host` removed. Expect session counts to drop after
+  deploy, because direct traffic (including the `/ready.json` health check) is no longer
+  counted. With `PROXY_ENFORCE=true` such requests get a `403` instead, except `/ready.json`.
 - Rules served through custom `BackendClient` handlers (`cache.php`, `delete.php`,
   `uploads.php`) do not run the middleware; `BackendClient` sets the same two headers itself
   from the rule's `secret` handler attribute (#1738), so Django records the visitor's IP for
@@ -594,5 +599,5 @@ must hold the same non-empty value: see
 [Production Configuration](production-configuration.md#pairing-rule-proxysecret-and-proxy_secret)
 for the pairing rule, the guards on each side and the rotation procedure.
 
-Stored IPs are **best effort**: not client-chosen, but possibly less precise than the real client IP. `X-Forwarded-Host` is not
-covered by the secret gate (see [game access](access-control/game.md)).
+Stored IPs are **best effort**: not client-chosen, but possibly less precise than the real client IP. `X-Forwarded-Host` is
+covered by the same secret gate (see [game access](access-control/game.md)).

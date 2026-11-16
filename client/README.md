@@ -31,6 +31,7 @@ const client = new MajoraClient({
 });
 ```
 
+- `baseUrl` / `MAJORA_URL` must be the public Majora URL served by the proxy, not the backend service's own hostname. Direct backend calls are untrusted and, once proxy enforcement is on, are rejected with `403 {"detail": "Forbidden"}`.
 - Configuration is validated at construction: a missing or invalid `baseUrl`, or a missing
   token, throws `ConfigurationError` before any request.
 - **HTTPS only.** An `http://` URL is rejected unless the host is `localhost` / `127.0.0.1`,
