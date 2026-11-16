@@ -1,4 +1,4 @@
-.PHONY: build-base push-base build push build-fe-base push-fe-base build-fe push-fe build-circleci-base push-circleci-base build-production-base push-production-base dev dev-up setup tests stack-up client client-install client-tests client-lint client-coverage
+.PHONY: build-base push-base build push build-fe-base push-fe-base build-fe push-fe build-circleci-base push-circleci-base build-production-base push-production-base dev dev-up setup tests tests-fast stack-up client client-install client-tests client-lint client-coverage
 
 PROJECT?=majora
 IMAGE?=$(PROJECT)
@@ -92,6 +92,11 @@ stack-up:
 
 tests:
 	docker-compose run $(PROJECT)_tests /bin/bash
+
+# Fast local test run reusing the test database (no coverage). Usage: make tests-fast ARGS=common/tests
+ARGS ?=
+tests-fast:
+	docker-compose run --rm $(PROJECT)_tests poetry run pytest --reuse-db $(ARGS)
 
 # ── Environment files ─────────────────────────────────────────────────────────
 
