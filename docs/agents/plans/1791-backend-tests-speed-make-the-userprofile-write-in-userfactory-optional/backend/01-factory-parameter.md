@@ -1,6 +1,6 @@
 # Add the with_profile parameter
 
-Add `with_profile` to `UserFactory` as a factory-boy `class Params` entry with default `True`, so factory-boy strips it before the model kwargs reach `_create`. In `_create`, read it (via `kwargs.pop` is not needed with `Params`; read it from the resolved declarations, or, if simpler, implement it as a plain kwarg popped in `_create`) and call `_ensure_approved_profile(user)` only when it is true. `SuperUserFactory._create` must honor the same flag. Keep the default behavior byte-for-byte the same.
+Add a `with_profile` keyword (default `True`) to `UserFactory`. Factory-boy passes undeclared kwargs straight through to `_create`, so pop it there (`with_profile = kwargs.pop('with_profile', True)`) before calling `create_user`, and call `_ensure_approved_profile(user)` only when it is true. Do not use `class Params`: params are stripped before `_create` and cannot be read there. `SuperUserFactory._create` must pop and honor the same flag. Keep the default behavior byte-for-byte the same.
 
 Update the `UserFactory` docstring: explain the opt-out and the rule that a user who authenticates must keep the profile, because `is_approved()` would create a `pending` one and the request would be anonymous. Update the `UserProfileFactory` docstring, which says every user already has a profile.
 
