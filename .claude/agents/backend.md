@@ -74,6 +74,7 @@ backend/
 docker-compose run --rm majora_tests pytest              # run all tests
 docker-compose run --rm majora_tests ruff check .        # lint check (no file changes)
 docker-compose run --rm majora_tests ruff check --fix .  # optional: lint and auto-fix
+docker-compose run --rm majora_tests poetry run python bin/check_test_policy.py  # test-policy check (must pass)
 ```
 
 To open an interactive shell inside the test container:
@@ -108,6 +109,8 @@ Full policy: [isolation policy](../../docs/agents/specs/pytest-all-long-test/iso
 - Inside `TestCase`: `self.client` instead of the `client` fixture, `unittest.mock.patch` instead of
   `monkeypatch`, `self.assertNumQueries` instead of `django_assert_num_queries`, and `self.subTest`
   or separate methods instead of `@pytest.mark.parametrize` (not supported in `TestCase`).
+- Never call `memory_cache.clear()` in a test: the autouse fixture in `backend/conftest.py` clears
+  it before each test (opt-out for tests whose subject is clearing: `# test-policy: allow memory-cache-clear`).
 - Each test method has a one-line docstring.
 - Use plain `assert` (it works inside `TestCase` under pytest); no `unittest` `assert*` methods,
   except the `assertNumQueries` context manager.

@@ -54,12 +54,18 @@ move it into `docs/agents/testing.md` almost unchanged. Edge cases behind each r
   `assert*` methods, except the `assertNumQueries` context manager.
 - Each test method has a one-line docstring.
 
+## Cache
+
+- An autouse fixture (`clear_memory_cache` in `backend/conftest.py`) clears `memory_cache` before
+  each test (#1789). Tests never call `memory_cache.clear()`, except a test whose subject is
+  clearing, marked `# test-policy: allow memory-cache-clear`. `bin/check_test_policy.py` enforces it.
+- Cache warmed in `setUpTestData`/`setUpClass` is cleared before each test, so a test that needs it
+  builds or primes its own state.
+
 ## Rules added later
 
 *Placeholders, filled in by the sub-issue named.*
 
-- **Cache (#1789):** an autouse fixture clears `memory_cache` before each test; tests never call
-  `memory_cache.clear()` by hand.
 - **Tokens (#1790):** tests create tokens with `TokenFactory`, never `Token.objects.create`.
 - **History (#1792):** `simple_history` is off in tests; tests that assert on history use the
   opt-in.

@@ -49,7 +49,14 @@ this out, and the CI rebalancing (#1788) spreads them across jobs.
 ## Shared in-memory cache
 
 - `memory_cache` is a process-wide module object (`majora_project/cache/__init__.py`), cleared
-  by hand in only 16 test files.
+  before every test by the autouse `clear_memory_cache` fixture in `backend/conftest.py` (#1789).
+  Tests no longer call `memory_cache.clear()`; the only exceptions are tests whose subject is
+  clearing, marked `# test-policy: allow memory-cache-clear`
+  (`registered_domains_cache_test.py::test_cleared_by_memory_cache_clear` and
+  `staff_statistics_export_access_test.py::test_token_owner_demoted_after_granting`, which needs a
+  mid-test clear to drop a cached permission).
+- Tests fixed because they relied on cache state from an earlier test or class setup: none (see
+  the verification run recorded in the PR).
 - Adding an autouse clear fixture (#1789) can change outcomes: a test that passes today only
   because an earlier test warmed the cache starts failing. Those failures are real bugs in the
   test and are fixed in the same PR, not worked around.
