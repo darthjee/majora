@@ -14,7 +14,6 @@ from accounts.models import ApiToken
 from domains.tests.factories import DomainFactory
 from games.middleware import CacheControlMiddleware
 from games.tests.factories import UserFactory
-from majora_project.cache import memory_cache
 
 ACCOUNT_URL = '/account/account.json'
 GAMES_URL = '/games.json'
@@ -143,7 +142,6 @@ class TestBearerNoCacheMiddlewareEndToEnd:
 
         `testserver` is registered so `/games.json` resolves as a regular endpoint.
         """
-        memory_cache.clear()
         DomainFactory(domain='testserver')
         self.user = UserFactory(username='alice', password='secret-password')
         _, self.plain = ApiToken.objects.create_token(self.user, 'automation', ['games:read'])

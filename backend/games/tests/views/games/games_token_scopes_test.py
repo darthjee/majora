@@ -7,7 +7,6 @@ from rest_framework.test import APIClient
 from domains.tests.factories import DomainFactory
 from games.tests.factories import GameFactory, PlayerFactory, UserFactory
 from games.tests.views.game._scoped_token_fixtures import ScopedTokenMixin
-from majora_project.cache import memory_cache
 
 MY_GAMES_URL = '/my-games.json'
 PHOTOS_URL = '/games/test-game/photos.json'
@@ -20,7 +19,6 @@ class GamesScopedTokenMixin(ScopedTokenMixin):
 
     def setup_method(self):
         """Set up the domain, the games, their members and an outsider."""
-        memory_cache.clear()
         self.client = APIClient()
         self.domain = DomainFactory(domain='testserver')
         self.game = self._game('Test Game', 'test-game')

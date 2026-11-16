@@ -13,7 +13,6 @@ class TestGamePlayerCache:
 
     def setup_method(self):
         """Set up a game, a DM, a player, and clear the shared memory cache."""
-        memory_cache.clear()
         self.game = GameFactory()
         self.dm_user = UserFactory()
         PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)

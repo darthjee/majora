@@ -13,7 +13,6 @@ class TestRegisteredDomainsCacheDomains:
 
     def setup_method(self):
         """Set up two registered domains, and clear the shared memory cache."""
-        memory_cache.clear()
         self.first_domain = DomainFactory(domain='first.com')
         self.second_domain = DomainFactory(domain='second.com')
 
@@ -46,6 +45,6 @@ class TestRegisteredDomainsCacheDomains:
         RegisteredDomainsCache.domains()
 
         self.first_domain.delete()
-        memory_cache.clear()
+        memory_cache.clear()  # test-policy: allow memory-cache-clear
 
         assert RegisteredDomainsCache.domains() == {'second.com'}
