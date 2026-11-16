@@ -23,7 +23,9 @@ class TestGameNpcAccessView(TokenAuthRequestMixin):
         """Set up common test fixtures."""
         self.game = GameFactory(name='Test Game', game_slug='test-game')
         self.player = PlayerFactory(name='Alice')
-        self.pc_owner = UserFactory(username='pc_owner', password='secret-password')
+        self.pc_owner = UserFactory(
+            username='pc_owner', password='secret-password', with_profile=False,
+        )
         self.player.user = self.pc_owner
         self.player.save()
         self.dm_user = UserFactory(username='dm_user', password='secret-password')

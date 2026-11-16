@@ -14,6 +14,11 @@ class UserFactory(factory.django.DjangoModelFactory):
     `UserProfile.status` existed keep authenticating successfully by default. Tests that
     specifically exercise `pending`/`denied` behavior override the status explicitly, e.g.
     via `UserProfileFactory(user=user, status=UserProfile.STATUS_PENDING)`.
+
+    Pass `with_profile=False` to skip the profile row (one fewer insert per user). Only do
+    this for users that never authenticate: `is_approved()` would create a `pending` profile
+    for a profile-less user, so any request they send would be treated as anonymous. A user
+    that logs in, gets a token, is `force_authenticate`d or owns an `ApiToken` must keep it.
     """
 
     class Meta:
@@ -32,9 +37,11 @@ class UserFactory(factory.django.DjangoModelFactory):
     @classmethod
     def _create(cls, model_class, *args, **kwargs):
         """Create the user through `create_user`, then attach an approved profile."""
+        with_profile = kwargs.pop('with_profile', True)
         manager = cls._get_manager(model_class)
         user = manager.create_user(*args, **kwargs)
-        _ensure_approved_profile(user)
+        if with_profile:
+            _ensure_approved_profile(user)
         return user
 
 
@@ -44,9 +51,11 @@ class SuperUserFactory(UserFactory):
     @classmethod
     def _create(cls, model_class, *args, **kwargs):
         """Create the user through `create_superuser`, then attach an approved profile."""
+        with_profile = kwargs.pop('with_profile', True)
         manager = cls._get_manager(model_class)
         user = manager.create_superuser(*args, **kwargs)
-        _ensure_approved_profile(user)
+        if with_profile:
+            _ensure_approved_profile(user)
         return user
 
 
@@ -68,10 +77,11 @@ def _ensure_approved_profile(user):
 class UserProfileFactory(factory.django.DjangoModelFactory):
     """Factory for UserProfile, defaulting display_name to its linked user's username.
 
-    Uses `update_or_create` (rather than a plain insert) because `UserFactory` already
-    attaches an approved profile to every user it builds, so an explicit
+    Uses `update_or_create` (rather than a plain insert) because `UserFactory` attaches an
+    approved profile to every user it builds by default, so an explicit
     `UserProfileFactory(user=user, ...)` call updates that existing row instead of
-    colliding with it on the `user` OneToOneField's uniqueness constraint.
+    colliding with it on the `user` OneToOneField's uniqueness constraint. It also works for
+    users built with `with_profile=False`, creating the row.
     """
 
     class Meta:

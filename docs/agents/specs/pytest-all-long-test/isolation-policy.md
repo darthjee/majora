@@ -68,6 +68,13 @@ move it into `docs/agents/testing.md` almost unchanged. Edge cases behind each r
   `Token.objects.create`. Opt-out: `# test-policy: allow token-create`. `bin/check_test_policy.py`
   enforces it.
 
+## Users
+
+- `UserFactory(with_profile=False)` skips the `UserProfile` row (#1791). Use it only for users
+  that never authenticate (no login, token, `force_authenticate` or `ApiToken`) and whose
+  profile the endpoint under test does not read; a profile-less user that authenticates is
+  treated as anonymous because `is_approved()` creates a `pending` profile.
+
 ## Rules added later
 
 *Placeholders, filled in by the sub-issue named.*
