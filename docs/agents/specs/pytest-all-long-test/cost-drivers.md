@@ -33,7 +33,13 @@ recorded test-style counts.
    Addressed by the module conversions and the `base_game` builder (#1793).
 3. **`UserFactory` writes two rows per user.** `games/tests/factories/user.py` calls
    `manager.create_user(...)` (with a password hash) and then `_ensure_approved_profile(user)`,
-   for every authenticated test. Addressed by #1791.
+   for every authenticated test. Addressed by #1791: `UserFactory(with_profile=False)` (and
+   `SuperUserFactory`) skips the profile row. Safety rule: never opt out a user that
+   authenticates (login, token, `force_authenticate`, `ApiToken`), because `is_approved()`
+   would create a `pending` profile and the request would be anonymous. Applied conservatively
+   in `games/tests/views/game/` and `games/tests/views/games/`; only candidates that kept the
+   suite green were kept (`game_npc_access_test.py`, 1 call). Measured effect: negligible, the
+   opt-out is available for later conversions.
 4. **No `TokenFactory`.** Tests create tokens by hand with `Token.objects.create(user=...)`:
    1,337 call sites. Addressed by #1790.
 5. **No reuse of the base object graph.** Each module rebuilds its game, player, user and domain
