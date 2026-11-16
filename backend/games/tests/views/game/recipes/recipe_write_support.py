@@ -1,12 +1,12 @@
 """Shared role setup for the game recipe create/update view tests (issue #1446)."""
 
-from rest_framework.authtoken.models import Token
 
 from games.tests.factories import (
     GameCommonItemFactory,
     GameFactory,
     PlayerFactory,
     SuperUserFactory,
+    TokenFactory,
     UserFactory,
 )
 
@@ -37,4 +37,4 @@ class RecipeWriteSetupMixin:
 
     def _token(self, user):
         """Return a new auth token for `user`."""
-        return Token.objects.create(user=user)
+        return TokenFactory(user=user)

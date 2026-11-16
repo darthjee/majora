@@ -5,10 +5,9 @@ A concrete test module subclasses `EntityScopedTokenMixin`, sets `family`, `perm
 `Test*` names.
 """
 
-from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
-from games.tests.factories import GameFactory, UserFactory
+from games.tests.factories import GameFactory, TokenFactory, UserFactory
 from games.tests.views.game._scoped_token_fixtures import ScopedTokenMixin
 
 
@@ -189,7 +188,7 @@ class OtherCredentialsBehavior:
 
     def test_legacy_token_dm_creates_entity(self):
         """Test that the DM's legacy Token still creates an entity."""
-        token = Token.objects.create(user=self.dm)
+        token = TokenFactory(user=self.dm)
         response = self.client.post(
             self._list_url(), self.create_payload, format='json',
             HTTP_AUTHORIZATION=f'Token {token.key}',

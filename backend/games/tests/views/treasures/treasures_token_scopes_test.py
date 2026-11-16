@@ -1,10 +1,15 @@
 """End-to-end tests for the `@token_scopes` declarations of the top-level treasure views (#1636)."""
 
 import pytest
-from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
-from games.tests.factories import GameFactory, SuperUserFactory, TreasureFactory, UserFactory
+from games.tests.factories import (
+    GameFactory,
+    SuperUserFactory,
+    TokenFactory,
+    TreasureFactory,
+    UserFactory,
+)
 from games.tests.views.game._scoped_token_fixtures import ScopedTokenMixin
 
 READ = 'treasures:read'
@@ -199,7 +204,7 @@ class TestTreasureTokenScopesOtherCredentials(TreasureScopedTokenMixin):
 
     def test_legacy_token_superuser_creates_treasure(self):
         """Test that the superuser's legacy Token still creates a catalogue treasure."""
-        token = Token.objects.create(user=self.superuser)
+        token = TokenFactory(user=self.superuser)
         response = self.client.post(
             '/treasures.json', {'name': 'Dragon Gem', 'value': 1000}, format='json',
             HTTP_AUTHORIZATION=f'Token {token.key}',

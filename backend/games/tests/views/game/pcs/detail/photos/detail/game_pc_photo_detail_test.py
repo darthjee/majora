@@ -1,7 +1,6 @@
 """Tests for the PC photo detail (update-ready / delete) endpoint."""
 
 import pytest
-from rest_framework.authtoken.models import Token
 
 from games.models import CharacterPhoto
 from games.tests.behaviors import TokenAuthRequestMixin
@@ -10,6 +9,7 @@ from games.tests.factories import (
     GameFactory,
     PlayerFactory,
     SuperUserFactory,
+    TokenFactory,
     UserFactory,
 )
 
@@ -39,10 +39,10 @@ class TestGamePcPhotoDetailView(TokenAuthRequestMixin):
             username='staff_user', password='secret-password', is_staff=True,
         )
         self.superuser = SuperUserFactory(username='admin', password='secret-password')
-        self.owner_token = Token.objects.create(user=self.owner)
-        self.dm_token = Token.objects.create(user=self.dm_user)
-        self.staff_token = Token.objects.create(user=self.staff_user)
-        self.superuser_token = Token.objects.create(user=self.superuser)
+        self.owner_token = TokenFactory(user=self.owner)
+        self.dm_token = TokenFactory(user=self.dm_user)
+        self.staff_token = TokenFactory(user=self.staff_user)
+        self.superuser_token = TokenFactory(user=self.superuser)
 
     def _url(self, character_id=None, photo_id=None):
         """Return the photo detail endpoint URL for the given character/photo id."""
@@ -84,7 +84,7 @@ class TestGamePcPhotoDetailView(TokenAuthRequestMixin):
         """Test that a non-DM player of the game is rejected with 403 on PATCH."""
         player_user = UserFactory(username='player_user', password='secret-password')
         PlayerFactory(name='Alice', user=player_user, game=self.game)
-        token = Token.objects.create(user=player_user)
+        token = TokenFactory(user=player_user)
         response = self._patch(client, token=token)
         assert response.status_code == 403
 
@@ -92,7 +92,7 @@ class TestGamePcPhotoDetailView(TokenAuthRequestMixin):
         """Test that a non-DM player of the game is rejected with 403 on DELETE."""
         player_user = UserFactory(username='player_user', password='secret-password')
         PlayerFactory(name='Alice', user=player_user, game=self.game)
-        token = Token.objects.create(user=player_user)
+        token = TokenFactory(user=player_user)
         response = self._delete(client, token=token)
         assert response.status_code == 403
 

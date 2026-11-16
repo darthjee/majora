@@ -2,7 +2,9 @@
 
 Epic #1785 (backend tests speed) moves shared-state handling into the root
 ``conftest.py``. This script parses every test file with ``ast`` and reports the
-patterns the policy forbids, so they cannot come back unnoticed.
+patterns the policy forbids, so they cannot come back unnoticed. Every ``.py`` file under
+the pytest ``testpaths`` is scanned (test files, conftests and helper modules), plus the root
+``conftest.py``.
 
 A violation can be allowed on a single line with a comment such as
 ``# test-policy: allow memory-cache-clear``; allowed lines are listed as opt-outs.
@@ -51,12 +53,11 @@ def load_testpaths(pyproject):
 
 
 def iter_test_files(testpaths):
-    """Return the sorted test files and conftests under ``testpaths`` plus the root conftest."""
+    """Return the sorted ``.py`` files under ``testpaths`` plus the root conftest."""
     files = {ROOT_CONFTEST} if ROOT_CONFTEST.exists() else set()
     for testpath in testpaths:
         base = Path(testpath)
-        files.update(base.rglob("*_test.py"))
-        files.update(base.rglob("conftest.py"))
+        files.update(base.rglob("*.py"))
     return sorted(files)
 
 
@@ -104,7 +105,26 @@ def memory_cache_clear_rule(tree, path):
     ]
 
 
-RULES = [memory_cache_clear_rule]
+def _is_token_objects_create(node):
+    """Return whether ``node`` is a call to ``Token.objects.create(...)``."""
+    func = node.func if isinstance(node, ast.Call) else None
+    manager = func.value if isinstance(func, ast.Attribute) and func.attr == "create" else None
+    is_objects = isinstance(manager, ast.Attribute) and manager.attr == "objects"
+    owner = manager.value if is_objects else None
+    return isinstance(owner, ast.Name) and owner.id == "Token"
+
+
+def token_create_rule(tree, path):
+    """Flag ``Token.objects.create(...)`` calls; tests build tokens with ``TokenFactory``."""
+    message = "use TokenFactory instead of Token.objects.create"
+    return [
+        Violation(str(path), node.lineno, "token-create", message)
+        for node in ast.walk(tree)
+        if _is_token_objects_create(node)
+    ]
+
+
+RULES = [memory_cache_clear_rule, token_create_rule]
 
 
 def _split(found, allowed):

@@ -1,7 +1,6 @@
 """Regression tests: no plain (AllowAny) NPC GET serves a hidden NPC, editors included."""
 
 import pytest
-from rest_framework.authtoken.models import Token
 
 from games.models import CharacterPhoto
 from games.tests.behaviors import TokenAuthRequestMixin
@@ -16,6 +15,7 @@ from games.tests.factories import (
     GameTreasureFactory,
     PlayerFactory,
     SuperUserFactory,
+    TokenFactory,
     TreasureFactory,
     UserFactory,
 )
@@ -76,9 +76,9 @@ class TestHiddenNpcPlainRoutes(TokenAuthRequestMixin):
         superuser = SuperUserFactory(username='admin', password='secret-password')
         return {
             'anonymous': None,
-            'player': Token.objects.create(user=player),
-            'dm': Token.objects.create(user=dm_user),
-            'superuser': Token.objects.create(user=superuser),
+            'player': TokenFactory(user=player),
+            'dm': TokenFactory(user=dm_user),
+            'superuser': TokenFactory(user=superuser),
         }
 
     def _build_holdings(self):

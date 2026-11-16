@@ -1,7 +1,6 @@
 """End-to-end tests for the `@token_scopes` declarations of the NPC views (issue #1632)."""
 
 import pytest
-from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
 from games.models import CharacterItem
@@ -10,6 +9,7 @@ from games.tests.factories import (
     GameDocumentFactory,
     GameFactory,
     GameItemFactory,
+    TokenFactory,
 )
 from games.tests.views.game._permissions_token_scopes_behavior import (
     PermissionsTokenScopesBehavior,
@@ -357,7 +357,7 @@ class TestNpcTokenScopesOtherCredentials(NpcScopedTokenRequestMixin):
 
     def test_legacy_token_dm_reads_item_full(self):
         """Test that the DM's legacy Token still reads an item's full.json."""
-        token = Token.objects.create(user=self.dm)
+        token = TokenFactory(user=self.dm)
         response = self.client.get(
             self._npc_url(f'/items/{self.hidden_item.id}/full.json'),
             HTTP_AUTHORIZATION=f'Token {token.key}',
@@ -366,7 +366,7 @@ class TestNpcTokenScopesOtherCredentials(NpcScopedTokenRequestMixin):
 
     def test_legacy_token_player_is_forbidden(self):
         """Test that a player's legacy Token still gets 403 on full.json."""
-        token = Token.objects.create(user=self.player)
+        token = TokenFactory(user=self.player)
         response = self.client.get(
             self._npc_url('/full.json'), HTTP_AUTHORIZATION=f'Token {token.key}',
         )

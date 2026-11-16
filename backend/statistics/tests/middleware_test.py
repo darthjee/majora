@@ -11,10 +11,9 @@ from django.http import HttpResponse
 from django.test import Client, RequestFactory, override_settings
 from django.test.utils import CaptureQueriesContext
 from django.utils import timezone
-from rest_framework.authtoken.models import Token
 
 from domains.tests.factories import DomainFactory
-from games.tests.factories import UserFactory
+from games.tests.factories import TokenFactory, UserFactory
 from statistics import cookies
 from statistics.middleware import StatisticsSessionMiddleware
 from statistics.models import Session, Visit
@@ -269,7 +268,7 @@ class TestStatisticsSessionMiddleware:
     def test_backfills_user_on_anonymous_session_when_request_is_authenticated(self, client):
         """Test that an authenticated request attaches the user to an anonymous session."""
         user = UserFactory(username='alice')
-        token = Token.objects.create(user=user)
+        token = TokenFactory(user=user)
         session = Session.objects.create(ip='1.2.3.4', domain=self.domain)
         client.cookies[cookies.COOKIE_NAME] = cookies.sign(session.token)
 
@@ -289,7 +288,7 @@ class TestStatisticsSessionMiddleware:
     def test_reuses_a_session_already_tied_to_the_same_user(self, client):
         """Test that an authenticated request reuses a session already tied to its user."""
         user = UserFactory(username='alice')
-        token = Token.objects.create(user=user)
+        token = TokenFactory(user=user)
         session = Session.objects.create(ip='1.2.3.4', domain=self.domain, user=user)
         client.cookies[cookies.COOKIE_NAME] = cookies.sign(session.token)
 
@@ -380,7 +379,7 @@ class TestStatisticsSessionMiddleware:
         client.cookies[cookies.COOKIE_NAME] = cookies.sign(existing_session.token)
 
         user = UserFactory(username='alice')
-        token = Token.objects.create(user=user)
+        token = TokenFactory(user=user)
 
         response = client.get(
             '/games.json',
@@ -560,7 +559,7 @@ class TestStatisticsSessionMiddleware:
         """Test that the skip header on an authenticated request does not crash `_backfill_user`."""
         monkeypatch.setenv('STATISTICS_SKIP_SECRET', 'shh')
         user = UserFactory(username='alice')
-        token = Token.objects.create(user=user)
+        token = TokenFactory(user=user)
 
         response = client.get(
             '/games.json',
@@ -685,7 +684,7 @@ class TestStatisticsSessionMiddleware:
     def _authenticated_get(self, client, **extra):
         """Issue an authenticated GET to `/games.json` as a fresh user stored on `self.user`."""
         self.user = UserFactory(username='alice')
-        token = Token.objects.create(user=self.user)
+        token = TokenFactory(user=self.user)
         return client.get('/games.json', HTTP_AUTHORIZATION=f'Token {token.key}', **extra)
 
     def _assert_single_user_session(self, response, ip):
@@ -995,7 +994,7 @@ class TestStatisticsSessionMiddlewareCreationTracking:
 
     def _token_get(self, client, **extra):
         """Issue a token-authenticated GET to `/games.json` as a fresh user."""
-        token = Token.objects.create(user=UserFactory(username='alice'))
+        token = TokenFactory(user=UserFactory(username='alice'))
         return client.get('/games.json', HTTP_AUTHORIZATION=f'Token {token.key}', **extra)
 
     def _cookie_for(self, client, ip, domain):
@@ -1025,7 +1024,7 @@ class TestStatisticsSessionMiddlewareLoginBurst:
         """Register 'testserver', a user with a token, and one anonymous cookie session."""
         self.domain = DomainFactory(domain='testserver')
         self.user = UserFactory(username='alice')
-        self.token = Token.objects.create(user=self.user)
+        self.token = TokenFactory(user=self.user)
         self.session = Session.objects.create(ip='192.0.2.1', domain=self.domain)
         self.statuses = []
 

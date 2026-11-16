@@ -7,7 +7,6 @@ See `docs/agents/security-guidelines.md` section 8 for why
 import json
 
 import pytest
-from rest_framework.authtoken.models import Token
 
 from games.models import CharacterLink, CharacterTreasure
 from games.tests.behaviors import TokenAuthRequestMixin
@@ -16,6 +15,7 @@ from games.tests.factories import (
     GameFactory,
     PlayerFactory,
     SuperUserFactory,
+    TokenFactory,
     TreasureFactory,
     UserFactory,
 )
@@ -44,7 +44,7 @@ class TestGameNpcFullView(TokenAuthRequestMixin):
 
     def _editor_token(self):
         """Return the DM's token (a DM is the NPC's editor)."""
-        return Token.objects.create(user=self.dm_user)
+        return TokenFactory(user=self.dm_user)
 
     def _url(self, character_id=None):
         """Return the full-detail URL for the given character id (defaults to the fixture)."""
@@ -59,7 +59,7 @@ class TestGameNpcFullView(TokenAuthRequestMixin):
     def test_returns_403_for_non_editor(self, client):
         """Test that authenticated non-editor returns 403."""
         other_user = UserFactory(username='other', password='secret-password')
-        token = Token.objects.create(user=other_user)
+        token = TokenFactory(user=other_user)
         response = self.get(client, self._url(), token=token)
         assert response.status_code == 403
 
@@ -76,7 +76,7 @@ class TestGameNpcFullView(TokenAuthRequestMixin):
 
     def test_returns_200_with_descriptions_for_dm(self, client):
         """Test that a DM gets full detail including both descriptions."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self.get(client, self._url(), token=token)
         assert response.status_code == 200
         data = json.loads(response.content)
@@ -86,7 +86,7 @@ class TestGameNpcFullView(TokenAuthRequestMixin):
     def test_returns_200_with_descriptions_for_superuser(self, client):
         """Test that a superuser gets full detail including both descriptions."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
-        token = Token.objects.create(user=superuser)
+        token = TokenFactory(user=superuser)
         response = self.get(client, self._url(), token=token)
         assert response.status_code == 200
         data = json.loads(response.content)
@@ -111,7 +111,7 @@ class TestGameNpcFullView(TokenAuthRequestMixin):
         self.player.user = pc_user
         self.player.save()
         CharacterFactory(name='Frodo', game=self.game, player=self.player, npc=False)
-        token = Token.objects.create(user=pc_user)
+        token = TokenFactory(user=pc_user)
         response = self.get(client, self._url(), token=token)
         assert response.status_code == 403
 
@@ -159,7 +159,7 @@ class TestGameNpcFullUpdateView(TokenAuthRequestMixin):
 
     def _editor_token(self):
         """Return the DM's token (a DM is the NPC's editor)."""
-        return Token.objects.create(user=self.dm_user)
+        return TokenFactory(user=self.dm_user)
 
     def _url(self):
         """Return the full-detail update URL for the fixture character."""
@@ -177,7 +177,7 @@ class TestGameNpcFullUpdateView(TokenAuthRequestMixin):
     def test_patch_with_unrelated_user_returns_403(self, client):
         """Test that PATCH from an unrelated user's token is rejected with 403."""
         other_user = UserFactory(username='other', password='secret-password')
-        token = Token.objects.create(user=other_user)
+        token = TokenFactory(user=other_user)
 
         response = self._patch(client, {'name': 'Saruman'}, token=token)
 
@@ -350,7 +350,7 @@ class TestGameNpcFullUpdateView(TokenAuthRequestMixin):
         owner = UserFactory(username='owner', password='secret-password')
         self.player.user = owner
         self.player.save()
-        token = Token.objects.create(user=owner)
+        token = TokenFactory(user=owner)
 
         response = self._patch(client, {'name': 'Saruman'}, token=token)
 
@@ -361,7 +361,7 @@ class TestGameNpcFullUpdateView(TokenAuthRequestMixin):
     def test_patch_allegiance_with_unrelated_user_returns_403(self, client):
         """Test that a non-editor cannot set private_allegiance/public_allegiance via PATCH."""
         other_user = UserFactory(username='other', password='secret-password')
-        token = Token.objects.create(user=other_user)
+        token = TokenFactory(user=other_user)
 
         response = self._patch(
             client, {'private_allegiance': 'enemy', 'public_allegiance': 'ally'}, token=token

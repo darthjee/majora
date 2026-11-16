@@ -1,7 +1,6 @@
 """Tests for the NPC photo deletable-check endpoint."""
 
 import pytest
-from rest_framework.authtoken.models import Token
 
 from games.models import CharacterPhoto
 from games.tests.behaviors import TokenAuthRequestMixin
@@ -10,6 +9,7 @@ from games.tests.factories import (
     GameFactory,
     PlayerFactory,
     SuperUserFactory,
+    TokenFactory,
     UserFactory,
 )
 
@@ -33,9 +33,9 @@ class TestGameNpcPhotoDeletableView(TokenAuthRequestMixin):
             username='staff_user', password='secret-password', is_staff=True,
         )
         self.superuser = SuperUserFactory(username='admin', password='secret-password')
-        self.dm_token = Token.objects.create(user=self.dm_user)
-        self.staff_token = Token.objects.create(user=self.staff_user)
-        self.superuser_token = Token.objects.create(user=self.superuser)
+        self.dm_token = TokenFactory(user=self.dm_user)
+        self.staff_token = TokenFactory(user=self.staff_user)
+        self.superuser_token = TokenFactory(user=self.superuser)
 
     def _url(self, character_id=None, photo_id=None):
         """Return the deletable endpoint URL for the given character/photo id."""
@@ -56,7 +56,7 @@ class TestGameNpcPhotoDeletableView(TokenAuthRequestMixin):
         """Test that a non-DM player of the game is rejected with 403."""
         player_user = UserFactory(username='player_user', password='secret-password')
         PlayerFactory(name='Alice', user=player_user, game=self.game)
-        token = Token.objects.create(user=player_user)
+        token = TokenFactory(user=player_user)
         response = self._get(client, token=token)
         assert response.status_code == 403
 
@@ -67,7 +67,7 @@ class TestGameNpcPhotoDeletableView(TokenAuthRequestMixin):
         player.user = owner
         player.save()
         CharacterFactory(name='Aragorn', game=self.game, player=player, npc=False)
-        token = Token.objects.create(user=owner)
+        token = TokenFactory(user=owner)
         response = self._get(client, token=token)
         assert response.status_code == 403
 
@@ -147,7 +147,7 @@ class TestGameNpcPhotoDeletableHiddenCharacter(TokenAuthRequestMixin):
         self.game = GameFactory(name='Test Game', game_slug='test-game')
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
-        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.dm_token = TokenFactory(user=self.dm_user)
         self.character = CharacterFactory(
             name='Secret NPC', game=self.game, npc=True, hidden=True,
         )
@@ -170,7 +170,7 @@ class TestGameNpcPhotoDeletableHiddenCharacter(TokenAuthRequestMixin):
         """Test that a non-DM player of the game is rejected with 403 for a hidden NPC's photo."""
         player_user = UserFactory(username='player_user', password='secret-password')
         PlayerFactory(name='Alice', user=player_user, game=self.game)
-        token = Token.objects.create(user=player_user)
+        token = TokenFactory(user=player_user)
         response = self.get(client, self._url(), token=token)
         assert response.status_code == 403
 

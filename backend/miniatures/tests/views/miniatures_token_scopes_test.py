@@ -1,10 +1,9 @@
 """End-to-end tests for the `@token_scopes` declarations of the miniatures views (#1638)."""
 
 import pytest
-from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
-from games.tests.factories import GameFactory, UserFactory
+from games.tests.factories import GameFactory, TokenFactory, UserFactory
 from games.tests.views.game._scoped_token_fixtures import ScopedTokenMixin
 from miniatures.models import StlModel
 from miniatures.tests.factories import CollectionFactory, SourceFactory, StlModelFactory
@@ -177,7 +176,7 @@ class TestMiniaturesTokenScopesOtherCredentials(MiniaturesScopedTokenMixin):
 
     def test_legacy_token_reads_stl_models(self):
         """Test that a legacy Token still reads stl_models.json."""
-        token = Token.objects.create(user=self.regular)
+        token = TokenFactory(user=self.regular)
         response = self.client.get(
             self._read_url('stl_models'), HTTP_AUTHORIZATION=f'Token {token.key}',
         )
@@ -185,7 +184,7 @@ class TestMiniaturesTokenScopesOtherCredentials(MiniaturesScopedTokenMixin):
 
     def test_legacy_token_staff_creates_source(self):
         """Test that a staff legacy Token still creates a source."""
-        token = Token.objects.create(user=self.staff)
+        token = TokenFactory(user=self.staff)
         response = self.client.post(
             '/miniatures/sources.json', {'name': 'Thingiverse'}, format='json',
             HTTP_AUTHORIZATION=f'Token {token.key}',

@@ -5,7 +5,6 @@ from datetime import timedelta
 
 import pytest
 from django.utils import timezone
-from rest_framework.authtoken.models import Token
 
 from games.models import (
     GameCommonItemPhoto,
@@ -26,6 +25,7 @@ from games.tests.factories import (
     GamePossessionFactory,
     PlayerFactory,
     SuperUserFactory,
+    TokenFactory,
     UserFactory,
 )
 from staff import copy_links
@@ -39,12 +39,12 @@ class CopyFinalizeSupport:
         """Create a game, a staff user, a superuser and a game DM (non-staff)."""
         self.game = GameFactory(name='Target Game')
         self.staff_user = UserFactory(username='staffer', is_staff=True)
-        self.staff_token = Token.objects.create(user=self.staff_user)
+        self.staff_token = TokenFactory(user=self.staff_user)
         self.superuser = SuperUserFactory(username='admin')
-        self.superuser_token = Token.objects.create(user=self.superuser)
+        self.superuser_token = TokenFactory(user=self.superuser)
         self.dm_user = UserFactory(username='dm_user')
         PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
-        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.dm_token = TokenFactory(user=self.dm_user)
 
     def copy_upload(self, row, user=None, upload_type=Upload.UPLOAD_TYPE_IMAGE, **kwargs):
         """Create a copy-origin upload linking `row`."""

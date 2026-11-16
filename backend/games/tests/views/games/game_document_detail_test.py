@@ -5,7 +5,6 @@ import json
 import pytest
 from django.test import TestCase
 from django.urls import reverse
-from rest_framework.authtoken.models import Token
 
 from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import (
@@ -13,6 +12,7 @@ from games.tests.factories import (
     GameFactory,
     PlayerFactory,
     SuperUserFactory,
+    TokenFactory,
     UserFactory,
 )
 
@@ -93,12 +93,12 @@ class TestGameDocumentDetailPatchView(TokenAuthRequestMixin):
         self.game = GameFactory(name='Test Game', game_slug='test-game')
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
-        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.dm_token = TokenFactory(user=self.dm_user)
         self.player_user = UserFactory(username='player_user', password='secret-password')
         PlayerFactory(name='Bob', user=self.player_user, game=self.game)
-        self.player_token = Token.objects.create(user=self.player_user)
+        self.player_token = TokenFactory(user=self.player_user)
         self.other_user = UserFactory(username='other', password='secret-password')
-        self.other_token = Token.objects.create(user=self.other_user)
+        self.other_token = TokenFactory(user=self.other_user)
         self.document = GameDocumentFactory(
             game=self.game, name='Ancient Scroll', description='A crumbling scroll.',
         )
@@ -141,7 +141,7 @@ class TestGameDocumentDetailPatchView(TokenAuthRequestMixin):
     def test_patch_with_superuser_token_returns_200(self, client):
         """Test that PATCH from a superuser's token updates the document and returns 200."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
-        token = Token.objects.create(user=superuser)
+        token = TokenFactory(user=superuser)
         response = self.patch(client, self._url(), {'name': 'Super Scroll'}, token=token)
         assert response.status_code == 200
         self.document.refresh_from_db()
@@ -184,7 +184,7 @@ class TestGameDocumentDetailPatchView(TokenAuthRequestMixin):
     def test_staff_user_returns_200(self, client):
         """Test that an is_staff=True user unrelated to the game can PATCH the document."""
         staff_user = UserFactory(username='staff_user', password='secret-password', is_staff=True)
-        token = Token.objects.create(user=staff_user)
+        token = TokenFactory(user=staff_user)
         response = self.patch(client, self._url(), {'name': 'Staff Scroll'}, token=token)
         assert response.status_code == 200
         self.document.refresh_from_db()

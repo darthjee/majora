@@ -3,10 +3,9 @@
 import json
 
 import pytest
-from rest_framework.authtoken.models import Token
 
 from games.tests.behaviors import TokenAuthRequestMixin
-from games.tests.factories import UserFactory
+from games.tests.factories import TokenFactory, UserFactory
 from miniatures.tests.factories import CollectionFactory, SourceFactory, StlModelFactory
 
 
@@ -17,7 +16,7 @@ class TestCollectionDetailView(TokenAuthRequestMixin):
     def setup_method(self):
         """Set up an authenticated user."""
         self.user = UserFactory(username='alice', password='secret-password')
-        self.token = Token.objects.create(user=self.user)
+        self.token = TokenFactory(user=self.user)
 
     def test_returns_401_when_unauthenticated(self, client):
         """Test that an unauthenticated request is rejected."""

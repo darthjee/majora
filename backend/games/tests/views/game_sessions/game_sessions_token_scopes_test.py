@@ -1,11 +1,10 @@
 """End-to-end tests for the `@token_scopes` declarations of the session views (issue #1637)."""
 
 import pytest
-from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
 from games.models import GameSession
-from games.tests.factories import GameFactory, UserFactory
+from games.tests.factories import GameFactory, TokenFactory, UserFactory
 from games.tests.views.game._scoped_token_fixtures import ScopedTokenMixin
 
 SESSION_SCOPES = ['sessions:read', 'sessions:write']
@@ -184,7 +183,7 @@ class TestSessionTokenScopesOtherCredentials(SessionScopedTokenMixin):
 
     def test_legacy_token_outsider_is_forbidden(self):
         """Test that a non-member's legacy Token still gets 403 on messages.json."""
-        token = Token.objects.create(user=self.outsider)
+        token = TokenFactory(user=self.outsider)
         response = self.client.get(
             self._messages_url(), HTTP_AUTHORIZATION=f'Token {token.key}',
         )

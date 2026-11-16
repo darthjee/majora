@@ -3,7 +3,6 @@
 import json
 
 import pytest
-from rest_framework.authtoken.models import Token
 
 from games.models import CharacterItemPhoto
 from games.tests.behaviors import TokenAuthRequestMixin
@@ -13,6 +12,7 @@ from games.tests.factories import (
     GameFactory,
     PlayerFactory,
     SuperUserFactory,
+    TokenFactory,
     UserFactory,
 )
 from uploads.models import Upload
@@ -29,7 +29,7 @@ class TestGameNpcItemPhotoUploadView(TokenAuthRequestMixin):
         self.item = CharacterItemFactory(character=self.character)
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
-        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.dm_token = TokenFactory(user=self.dm_user)
 
     def _url(self, character_id=None, item_id=None):
         """Return the upload endpoint URL for the given character/item ids (default fixtures)."""
@@ -49,7 +49,7 @@ class TestGameNpcItemPhotoUploadView(TokenAuthRequestMixin):
     def test_unrelated_user_returns_403(self, client):
         """Test that an authenticated user unrelated to the game is rejected with 403."""
         other = UserFactory(username='other', password='secret-password')
-        token = Token.objects.create(user=other)
+        token = TokenFactory(user=other)
         response = self._post(client, {'filename': 'photo.jpg'}, token=token)
         assert response.status_code == 403
 
@@ -154,14 +154,14 @@ class TestGameNpcItemPhotoUploadView(TokenAuthRequestMixin):
     def test_superuser_can_upload(self, client):
         """Test that a superuser is allowed to upload a photo for any NPC's item."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
-        token = Token.objects.create(user=superuser)
+        token = TokenFactory(user=superuser)
         response = self._post(client, {'filename': 'sword.jpg'}, token=token)
         assert response.status_code == 201
 
     def test_staff_user_returns_403(self, client):
         """Test that a Staff account cannot upload an NPC item's photo (bypass narrowed, #864)."""
         staff_user = UserFactory(username='staff_user', password='secret-password', is_staff=True)
-        token = Token.objects.create(user=staff_user)
+        token = TokenFactory(user=staff_user)
         response = self._post(client, {'filename': 'photo.jpg'}, token=token)
         assert response.status_code == 403
 
@@ -169,7 +169,7 @@ class TestGameNpcItemPhotoUploadView(TokenAuthRequestMixin):
         """Test that a regular player of the game (no owner-equivalent on NPCs) gets 403."""
         player_user = UserFactory(username='player_user', password='secret-password')
         PlayerFactory(name='Alice', user=player_user, game=self.game)
-        token = Token.objects.create(user=player_user)
+        token = TokenFactory(user=player_user)
 
         response = self._post(client, {'filename': 'photo.jpg'}, token=token)
 

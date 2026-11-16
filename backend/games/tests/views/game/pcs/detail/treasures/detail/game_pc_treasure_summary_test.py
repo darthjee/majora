@@ -4,7 +4,6 @@ import json
 
 import pytest
 from django.urls import reverse
-from rest_framework.authtoken.models import Token
 
 from games.models import CharacterTreasure
 from games.tests.behaviors import TokenAuthRequestMixin
@@ -13,6 +12,7 @@ from games.tests.factories import (
     GameFactory,
     GameTreasureFactory,
     PlayerFactory,
+    TokenFactory,
     TreasureFactory,
     UserFactory,
 )
@@ -105,7 +105,7 @@ class TestGamePcTreasureSummaryHiddenTreasure(TokenAuthRequestMixin):
         self.game = GameFactory(name='Test Game', game_slug='test-game')
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
-        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.dm_token = TokenFactory(user=self.dm_user)
         self.character = CharacterFactory(name='Aragorn', game=self.game, npc=False)
         self.treasure = TreasureFactory(name='Secret Gem', value=100, game=self.game)
         GameTreasureFactory(

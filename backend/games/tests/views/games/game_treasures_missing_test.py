@@ -3,7 +3,6 @@
 import json
 
 from django.test import TestCase
-from rest_framework.authtoken.models import Token
 
 from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import (
@@ -11,6 +10,7 @@ from games.tests.factories import (
     GameTreasureFactory,
     PlayerFactory,
     SuperUserFactory,
+    TokenFactory,
     TreasureFactory,
     UserFactory,
 )
@@ -40,26 +40,26 @@ class TestGameTreasuresMissingView(TokenAuthRequestMixin, TestCase):
     def test_returns_403_for_non_dm_authenticated_user(self):
         """Test that an authenticated user who is not a DM gets 403."""
         other_user = UserFactory(username='other', password='secret-password')
-        token = Token.objects.create(user=other_user)
+        token = TokenFactory(user=other_user)
         response = self._get(self.client, token=token)
         assert response.status_code == 403
 
     def test_returns_200_for_dm(self):
         """Test that a DM of the game gets 200."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._get(self.client, token=token)
         assert response.status_code == 200
 
     def test_returns_200_for_superuser(self):
         """Test that a superuser gets 200."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
-        token = Token.objects.create(user=superuser)
+        token = TokenFactory(user=superuser)
         response = self._get(self.client, token=token)
         assert response.status_code == 200
 
     def test_returns_404_for_unknown_game(self):
         """Test that 404 is returned for a non-existent game_slug."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._get(
             self.client, token=token, url='/games/unknown-game/treasures/missing.json',
         )
@@ -68,7 +68,7 @@ class TestGameTreasuresMissingView(TokenAuthRequestMixin, TestCase):
     def test_includes_unlinked_catalog_treasure_with_matching_game_type(self):
         """Test that an unlinked catalog treasure with a matching game_type is included."""
         TreasureFactory(name='Catalog Gem', value=100, game_type=self.game.game_type)
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._get(self.client, token=token)
         data = json.loads(response.content)
         names = [item['name'] for item in data]
@@ -78,7 +78,7 @@ class TestGameTreasuresMissingView(TokenAuthRequestMixin, TestCase):
         """Test that a treasure with an existing GameTreasure row for this game is excluded."""
         treasure = TreasureFactory(name='Linked Gem', value=100, game_type=self.game.game_type)
         GameTreasureFactory(game=self.game, treasure=treasure, value=treasure.value)
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._get(self.client, token=token)
         data = json.loads(response.content)
         names = [item['name'] for item in data]
@@ -92,7 +92,7 @@ class TestGameTreasuresMissingView(TokenAuthRequestMixin, TestCase):
         TreasureFactory(
             name='Other Exclusive Gem', value=100, game_type=self.game.game_type, game=other_game,
         )
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._get(self.client, token=token)
         data = json.loads(response.content)
         names = [item['name'] for item in data]
@@ -101,7 +101,7 @@ class TestGameTreasuresMissingView(TokenAuthRequestMixin, TestCase):
     def test_excludes_treasure_of_a_different_game_type(self):
         """Test that a catalog treasure of a different game_type is excluded."""
         TreasureFactory(name='Deadlands Gem', value=100, game_type='deadlands')
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._get(self.client, token=token)
         data = json.loads(response.content)
         names = [item['name'] for item in data]
@@ -110,7 +110,7 @@ class TestGameTreasuresMissingView(TokenAuthRequestMixin, TestCase):
     def test_response_includes_pagination_headers(self):
         """Test that the response includes page/pages/per_page/total headers."""
         TreasureFactory(name='Catalog Gem', value=100, game_type=self.game.game_type)
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._get(self.client, token=token)
         assert response['page'] == '1'
         assert response['pages'] == '1'
@@ -123,7 +123,7 @@ class TestGameTreasuresMissingView(TokenAuthRequestMixin, TestCase):
             TreasureFactory(
                 name=f'Catalog Gem {i}', value=100, game_type=self.game.game_type,
             )
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._get(
             self.client, token=token, url=f'{TREASURES_MISSING_URL}?per_page=2',
         )
@@ -132,6 +132,6 @@ class TestGameTreasuresMissingView(TokenAuthRequestMixin, TestCase):
 
     def test_response_includes_x_skip_cache_header(self):
         """Test that the response includes the X-Skip-Cache: true header."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._get(self.client, token=token)
         assert response['X-Skip-Cache'] == 'true'

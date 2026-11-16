@@ -2,9 +2,8 @@
 
 import pytest
 from django.urls import reverse
-from rest_framework.authtoken.models import Token
 
-from games.tests.factories import SuperUserFactory, UserFactory
+from games.tests.factories import SuperUserFactory, TokenFactory, UserFactory
 from staff.models import CrawlerDebugEmission
 
 
@@ -15,11 +14,11 @@ class TestStaffCrawlerSummaryView:
     def setup_method(self):
         """Set up staff, superuser, and regular user accounts, each with a token."""
         self.staff_user = UserFactory(is_staff=True)
-        self.staff_token = Token.objects.create(user=self.staff_user)
+        self.staff_token = TokenFactory(user=self.staff_user)
         self.superuser = SuperUserFactory()
-        self.superuser_token = Token.objects.create(user=self.superuser)
+        self.superuser_token = TokenFactory(user=self.superuser)
         self.regular_user = UserFactory()
-        self.regular_token = Token.objects.create(user=self.regular_user)
+        self.regular_token = TokenFactory(user=self.regular_user)
 
     def _get(self, client, token=None):
         """Issue a GET request to the staff crawler-summary endpoint, optionally with a token."""

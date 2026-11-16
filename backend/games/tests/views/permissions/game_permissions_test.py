@@ -3,10 +3,9 @@
 import json
 
 from django.test import TestCase
-from rest_framework.authtoken.models import Token
 
 from games.tests.behaviors import TokenAuthRequestMixin
-from games.tests.factories import GameFactory, PlayerFactory, UserFactory
+from games.tests.factories import GameFactory, PlayerFactory, TokenFactory, UserFactory
 
 
 class TestGamePermissionsView(TokenAuthRequestMixin, TestCase):
@@ -79,7 +78,7 @@ class TestGamePermissionsView(TokenAuthRequestMixin, TestCase):
     def test_non_dm_authenticated_user_gets_all_false_without_role(self):
         """Test that an authenticated real identity has no effect without a role param."""
         other = UserFactory(username='other', password='secret-password')
-        token = Token.objects.create(user=other)
+        token = TokenFactory(user=other)
         response = self._get(self.client, token=token)
         data = json.loads(response.content)
         assert data == self._all_false()
@@ -133,7 +132,7 @@ class TestGamePermissionsView(TokenAuthRequestMixin, TestCase):
     def test_role_dm_overrides_authenticated_non_dm_real_identity(self):
         """Test that ?role=dm grants every permission True even when real caller isn't a DM."""
         other = UserFactory(username='other2', password='secret-password')
-        token = Token.objects.create(user=other)
+        token = TokenFactory(user=other)
         response = self._get(self.client, token=token, query='role=dm')
         data = json.loads(response.content)
         assert data == self._all_true()
@@ -151,7 +150,7 @@ class TestGamePermissionsView(TokenAuthRequestMixin, TestCase):
 
     def test_response_gets_anonymous_tier_for_authenticated_caller(self):
         """Test that an authenticated caller keeps the anonymous tier (private: cookie set)."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._get(self.client, token=token, query='role=owner')
         assert response['Cache-Control'] == 'private, max-age=3600'
 

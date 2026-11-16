@@ -293,3 +293,4 @@ the comparison fair.
 | #1788 | CircleCI 5900 → 5913 | pytest jobs / workflow (`pytest_all` → `pytest_non_views`, `pytest_views_characters` → `pytest_views_game`, `pytest_views_rest`) | 8m 08s / 4m 58s / 2m 55s / 8m 54s | 2m 33s / 4m 56s / 2m 58s / 5m 12s (split by name, no timing history; includes #1798) |
 | #1798 | local docker (macOS host, MySQL 8), each file alone, `--durations=0` | `game_treasure_hidden_backfill_migration_test.py` call / teardown | 17.85s / 11.19s | 0.38s / 0.32s |
 | #1798 | local docker (macOS host, MySQL 8), each file alone, `--durations=0` | `character_public_slain_migration_test.py` call (both tests) / teardown | 19.98s / 12.70s | 3.53s / 0.31s |
+| #1790 | CircleCI, pending the PR pipeline | `pytest_views` / `pytest_non_views` | see previous rows | to be filled in from the PR pipeline (no speed change expected: still one `INSERT` per token) |

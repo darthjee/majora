@@ -4,7 +4,6 @@ import json
 
 import pytest
 from django.urls import reverse
-from rest_framework.authtoken.models import Token
 
 from games.models import GameDocumentPage, GameDocumentPageHistory
 from games.tests.behaviors import TokenAuthRequestMixin
@@ -12,6 +11,7 @@ from games.tests.factories import (
     GameDocumentFactory,
     GameFactory,
     PlayerFactory,
+    TokenFactory,
     UserFactory,
 )
 
@@ -145,12 +145,12 @@ class TestGameDocumentPagesCreate(TokenAuthRequestMixin):
         self.document = GameDocumentFactory(game=self.game, name='Ancient Scroll')
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
-        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.dm_token = TokenFactory(user=self.dm_user)
         self.player_user = UserFactory(username='player_user', password='secret-password')
         PlayerFactory(name='Bob', user=self.player_user, game=self.game)
-        self.player_token = Token.objects.create(user=self.player_user)
+        self.player_token = TokenFactory(user=self.player_user)
         self.other_user = UserFactory(username='other', password='secret-password')
-        self.other_token = Token.objects.create(user=self.other_user)
+        self.other_token = TokenFactory(user=self.other_user)
 
     def _url(self, document_id=None, game_slug='epic-quest'):
         """Return the pages create URL for the given document (defaults to fixture)."""
@@ -258,12 +258,12 @@ class TestGameDocumentPagesTrim(TokenAuthRequestMixin):
         ]
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
-        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.dm_token = TokenFactory(user=self.dm_user)
         self.player_user = UserFactory(username='player_user', password='secret-password')
         PlayerFactory(name='Bob', user=self.player_user, game=self.game)
-        self.player_token = Token.objects.create(user=self.player_user)
+        self.player_token = TokenFactory(user=self.player_user)
         self.other_user = UserFactory(username='other', password='secret-password')
-        self.other_token = Token.objects.create(user=self.other_user)
+        self.other_token = TokenFactory(user=self.other_user)
 
     def _url(self, document_id=None, game_slug='epic-quest'):
         """Return the pages trim URL for the given document (defaults to fixture)."""

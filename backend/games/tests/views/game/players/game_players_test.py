@@ -4,13 +4,13 @@ import json
 
 from django.test import TestCase
 from django.urls import reverse
-from rest_framework.authtoken.models import Token
 
 from games.tests.factories import (
     CharacterFactory,
     GameFactory,
     PlayerFactory,
     SuperUserFactory,
+    TokenFactory,
     UserFactory,
 )
 
@@ -24,11 +24,11 @@ class TestGamePlayersView(TestCase):
         cls.game = GameFactory(name='Test Game', game_slug='test-game')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
         cls.dm = PlayerFactory(name='Dungeon Master', game=cls.game, user=cls.dm_user, is_dm=True)
-        cls.dm_token = Token.objects.create(user=cls.dm_user)
+        cls.dm_token = TokenFactory(user=cls.dm_user)
 
         cls.player_user = UserFactory(username='player_user', password='secret-password')
         cls.player = PlayerFactory(name='Bob', game=cls.game, user=cls.player_user)
-        cls.player_token = Token.objects.create(user=cls.player_user)
+        cls.player_token = TokenFactory(user=cls.player_user)
         cls.pc = CharacterFactory(
             name='Aragorn', game=cls.game, player=cls.player, npc=False,
         )
@@ -36,13 +36,13 @@ class TestGamePlayersView(TestCase):
         cls.no_user_player = PlayerFactory(name='NPC-run Player', game=cls.game, user=None)
 
         cls.superuser = SuperUserFactory(username='admin', password='secret-password')
-        cls.superuser_token = Token.objects.create(user=cls.superuser)
+        cls.superuser_token = TokenFactory(user=cls.superuser)
         cls.staff_user = UserFactory(
             username='staff_user', password='secret-password', is_staff=True,
         )
-        cls.staff_token = Token.objects.create(user=cls.staff_user)
+        cls.staff_token = TokenFactory(user=cls.staff_user)
         cls.outsider = UserFactory(username='outsider', password='secret-password')
-        cls.outsider_token = Token.objects.create(user=cls.outsider)
+        cls.outsider_token = TokenFactory(user=cls.outsider)
 
     def _get(self, token=None, game_slug=None, query=''):
         """Issue a GET request to the game players list endpoint, optionally with a token."""

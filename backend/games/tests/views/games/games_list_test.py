@@ -5,11 +5,10 @@ import json
 import pytest
 from django.test import TestCase, override_settings
 from django.urls import reverse
-from rest_framework.authtoken.models import Token
 
 from domains.tests.factories import DomainFactory
 from games.models import Game, Player
-from games.tests.factories import GameFactory, UserFactory
+from games.tests.factories import GameFactory, TokenFactory, UserFactory
 
 
 @pytest.mark.django_db
@@ -105,7 +104,7 @@ class TestGamesCreateView(TestCase):
         required for POST requests to resolve through the domain-scoped creation path.
         """
         cls.user = UserFactory(username='creator', password='secret-password')
-        cls.token = Token.objects.create(user=cls.user)
+        cls.token = TokenFactory(user=cls.user)
         cls.game_domain = DomainFactory(domain='testserver')
 
     def _post(self, client, payload, token=None):
@@ -261,7 +260,7 @@ class TestGamesListViewPerDomainPost:
         """Set up a recognized domain, an authenticated user, and clear the memory cache."""
         self.game_domain = DomainFactory(domain='tenant-create.example.com')
         self.user = UserFactory(username='domain-creator', password='secret-password')
-        self.token = Token.objects.create(user=self.user)
+        self.token = TokenFactory(user=self.user)
 
     def _post(self, client, payload, host):
         """Issue an authenticated POST to /games.json against the given host."""

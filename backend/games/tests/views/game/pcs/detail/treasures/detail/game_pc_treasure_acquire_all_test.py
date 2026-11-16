@@ -4,7 +4,6 @@ import json
 
 import pytest
 from django.urls import reverse
-from rest_framework.authtoken.models import Token
 
 from games.models import CharacterTreasure
 from games.tests.behaviors import TokenAuthRequestMixin
@@ -14,6 +13,7 @@ from games.tests.factories import (
     GameTreasureFactory,
     PlayerFactory,
     SuperUserFactory,
+    TokenFactory,
     TreasureFactory,
     UserFactory,
 )
@@ -28,17 +28,17 @@ class TestGamePcTreasureAcquireAllView(TokenAuthRequestMixin):
         self.game = GameFactory(name='Test Game', game_slug='test-game')
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
-        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.dm_token = TokenFactory(user=self.dm_user)
         self.player = PlayerFactory(name='Aragorn Player')
         self.owner = UserFactory(username='owner', password='secret-password')
         self.player.user = self.owner
         self.player.save()
-        self.owner_token = Token.objects.create(user=self.owner)
+        self.owner_token = TokenFactory(user=self.owner)
         self.character = CharacterFactory(
             name='Aragorn', game=self.game, npc=False, player=self.player, money=1000,
         )
         self.other_user = UserFactory(username='other', password='secret-password')
-        self.other_token = Token.objects.create(user=self.other_user)
+        self.other_token = TokenFactory(user=self.other_user)
         self.treasure = TreasureFactory(name='Secret Gem', value=100, game=self.game)
         GameTreasureFactory(
             game=self.game, treasure=self.treasure, value=self.treasure.value, hidden=True,
@@ -66,7 +66,7 @@ class TestGamePcTreasureAcquireAllView(TokenAuthRequestMixin):
     def test_superuser_can_acquire_a_hidden_treasure(self, client):
         """Test that a superuser can acquire a hidden treasure via the all-variant."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
-        token = Token.objects.create(user=superuser)
+        token = TokenFactory(user=superuser)
         response = self._post(client, token=token)
         assert response.status_code == 200
 
@@ -98,7 +98,7 @@ class TestGamePcTreasureAcquireAllView(TokenAuthRequestMixin):
         staff_user = UserFactory(username='staff_user', password='secret-password')
         staff_user.is_staff = True
         staff_user.save()
-        staff_token = Token.objects.create(user=staff_user)
+        staff_token = TokenFactory(user=staff_user)
         response = self._post(client, token=staff_token)
         assert response.status_code == 403
 

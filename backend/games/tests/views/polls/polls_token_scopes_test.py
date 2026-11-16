@@ -1,11 +1,16 @@
 """End-to-end tests for the `@token_scopes` declarations of the poll views (issue #1637)."""
 
 import pytest
-from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
 from games.models import GameSession, Poll
-from games.tests.factories import GameFactory, PollFactory, PollOptionFactory, UserFactory
+from games.tests.factories import (
+    GameFactory,
+    PollFactory,
+    PollOptionFactory,
+    TokenFactory,
+    UserFactory,
+)
 from games.tests.views.game._scoped_token_fixtures import ScopedTokenMixin
 
 POLL_SCOPES = ['polls:read', 'polls:write']
@@ -184,7 +189,7 @@ class TestPollTokenScopesOtherCredentials(PollScopedTokenMixin):
 
     def test_legacy_token_player_close_is_forbidden(self):
         """Test that a player's legacy Token still gets 403 on close."""
-        token = Token.objects.create(user=self.player)
+        token = TokenFactory(user=self.player)
         response = self.client.patch(
             self._poll_url('/close'), {}, format='json', HTTP_AUTHORIZATION=f'Token {token.key}',
         )

@@ -4,7 +4,6 @@ import json
 
 from django.test import TestCase
 from django.urls import reverse
-from rest_framework.authtoken.models import Token
 
 from games.models import GameSession, GameSessionMessage
 from games.session_message_paginator import PAGE_SIZE
@@ -12,6 +11,7 @@ from games.tests.factories import (
     GameFactory,
     PlayerFactory,
     SuperUserFactory,
+    TokenFactory,
     UserFactory,
     UserProfileFactory,
 )
@@ -29,14 +29,14 @@ class TestSessionMessagesListView(TestCase):
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
         UserProfileFactory(user=cls.dm_user, display_name='dm_display')
         PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
-        cls.dm_token = Token.objects.create(user=cls.dm_user)
+        cls.dm_token = TokenFactory(user=cls.dm_user)
         cls.player_user = UserFactory(username='player_user', password='secret-password')
         cls.player = PlayerFactory(name='Bob', user=cls.player_user, game=cls.game)
-        cls.player_token = Token.objects.create(user=cls.player_user)
+        cls.player_token = TokenFactory(user=cls.player_user)
         cls.superuser = SuperUserFactory(username='admin', password='secret-password')
-        cls.superuser_token = Token.objects.create(user=cls.superuser)
+        cls.superuser_token = TokenFactory(user=cls.superuser)
         cls.outsider = UserFactory(username='outsider', password='secret-password')
-        cls.outsider_token = Token.objects.create(user=cls.outsider)
+        cls.outsider_token = TokenFactory(user=cls.outsider)
 
     def _get(self, token=None, game_slug=None, session_id=None, query=''):
         """Issue a GET request to the session messages list endpoint, optionally with a token."""
@@ -210,14 +210,14 @@ class TestSessionMessagesCreateView(TestCase):
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
         UserProfileFactory(user=cls.dm_user, display_name='dm_display')
         cls.dm_player = PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
-        cls.dm_token = Token.objects.create(user=cls.dm_user)
+        cls.dm_token = TokenFactory(user=cls.dm_user)
         cls.player_user = UserFactory(username='player_user', password='secret-password')
         cls.player = PlayerFactory(name='Bob', user=cls.player_user, game=cls.game)
-        cls.player_token = Token.objects.create(user=cls.player_user)
+        cls.player_token = TokenFactory(user=cls.player_user)
         cls.superuser = SuperUserFactory(username='admin', password='secret-password')
-        cls.superuser_token = Token.objects.create(user=cls.superuser)
+        cls.superuser_token = TokenFactory(user=cls.superuser)
         cls.outsider = UserFactory(username='outsider', password='secret-password')
-        cls.outsider_token = Token.objects.create(user=cls.outsider)
+        cls.outsider_token = TokenFactory(user=cls.outsider)
 
     def _post(self, payload, token=None, game_slug=None, session_id=None):
         """Issue a POST request to the session messages list endpoint, optionally with a token."""

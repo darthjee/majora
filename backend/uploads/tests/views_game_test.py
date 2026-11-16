@@ -3,10 +3,9 @@
 import json
 
 from django.test import TestCase
-from rest_framework.authtoken.models import Token
 
 from games.models import GamePhoto
-from games.tests.factories import GameFactory, PlayerFactory, UserFactory
+from games.tests.factories import GameFactory, PlayerFactory, TokenFactory, UserFactory
 from uploads.models import Upload
 
 
@@ -19,7 +18,7 @@ class TestUploadFinalizeGamePhoto(TestCase):
         cls.game = GameFactory(name='Epic Quest', game_slug='epic-quest')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
-        cls.dm_token = Token.objects.create(user=cls.dm_user)
+        cls.dm_token = TokenFactory(user=cls.dm_user)
 
         cls.upload = Upload.objects.create(
             user=cls.dm_user,

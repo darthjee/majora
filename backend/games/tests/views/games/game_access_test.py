@@ -3,10 +3,15 @@
 import json
 
 from django.test import TestCase
-from rest_framework.authtoken.models import Token
 
 from games.tests.behaviors import TokenAuthRequestMixin
-from games.tests.factories import GameFactory, PlayerFactory, SuperUserFactory, UserFactory
+from games.tests.factories import (
+    GameFactory,
+    PlayerFactory,
+    SuperUserFactory,
+    TokenFactory,
+    UserFactory,
+)
 
 
 class TestGameAccessView(TokenAuthRequestMixin, TestCase):
@@ -32,7 +37,7 @@ class TestGameAccessView(TokenAuthRequestMixin, TestCase):
 
     def test_response_does_not_include_can_edit(self):
         """Test that the response never includes can_edit (moved to permissions.json)."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._get(self.client, token=token)
         assert response.status_code == 200
         data = json.loads(response.content)
@@ -60,7 +65,7 @@ class TestGameAccessView(TokenAuthRequestMixin, TestCase):
         The DM is also a Player of the game (Player.is_dm=True is the single source of
         truth for DM status), so is_player is True too.
         """
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._get(self.client, token=token)
         data = json.loads(response.content)
         assert data['username'] == 'dm_user'
@@ -73,7 +78,7 @@ class TestGameAccessView(TokenAuthRequestMixin, TestCase):
     def test_superuser_returns_correct_user_context_fields(self):
         """Test that superuser request returns correct username, is_superuser=True, is_dm=False."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
-        token = Token.objects.create(user=superuser)
+        token = TokenFactory(user=superuser)
         response = self._get(self.client, token=token)
         data = json.loads(response.content)
         assert data['username'] == 'admin'
@@ -86,7 +91,7 @@ class TestGameAccessView(TokenAuthRequestMixin, TestCase):
     def test_non_dm_user_returns_correct_user_context_fields(self):
         """Test non-DM user returns correct username, is_superuser=False, is_dm=False."""
         other = UserFactory(username='other', password='secret-password')
-        token = Token.objects.create(user=other)
+        token = TokenFactory(user=other)
         response = self._get(self.client, token=token)
         data = json.loads(response.content)
         assert data['username'] == 'other'
@@ -98,7 +103,7 @@ class TestGameAccessView(TokenAuthRequestMixin, TestCase):
 
     def test_dm_via_session_returns_is_dm_true(self):
         """Test that the game DM authenticated via session cookie returns is_dm true."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         session = self.client.session
         session['auth_token'] = token.key
         session.save()
@@ -110,7 +115,7 @@ class TestGameAccessView(TokenAuthRequestMixin, TestCase):
     def test_non_dm_user_via_session_returns_is_dm_false(self):
         """Test that a non-DM user authenticated via session cookie returns is_dm false."""
         other = UserFactory(username='other', password='secret-password')
-        token = Token.objects.create(user=other)
+        token = TokenFactory(user=other)
         session = self.client.session
         session['auth_token'] = token.key
         session.save()

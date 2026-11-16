@@ -1,7 +1,6 @@
 """End-to-end tests for the `@token_scopes` declarations of the recipe views (issue #1635)."""
 
 import pytest
-from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
 from games.tests.factories import (
@@ -10,6 +9,7 @@ from games.tests.factories import (
     GameCommonItemFactory,
     GameFactory,
     GameRecipeFactory,
+    TokenFactory,
     UserFactory,
 )
 from games.tests.views.game._scoped_token_fixtures import ScopedTokenMixin
@@ -223,7 +223,7 @@ class TestRecipeTokenScopesOtherCredentials(RecipeScopedTokenMixin):
 
     def test_legacy_token_dm_creates_recipe(self):
         """Test that the DM's legacy Token still creates a recipe."""
-        token = Token.objects.create(user=self.dm)
+        token = TokenFactory(user=self.dm)
         response = self.client.post(
             '/games/test-game/recipes.json', self._create_payload(), format='json',
             HTTP_AUTHORIZATION=f'Token {token.key}',

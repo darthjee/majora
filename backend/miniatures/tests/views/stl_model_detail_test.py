@@ -3,10 +3,9 @@
 import json
 
 import pytest
-from rest_framework.authtoken.models import Token
 
 from games.tests.behaviors import TokenAuthRequestMixin
-from games.tests.factories import SuperUserFactory, UserFactory
+from games.tests.factories import SuperUserFactory, TokenFactory, UserFactory
 from miniatures.models import StlModel
 from miniatures.tests.factories import (
     SourceFactory,
@@ -23,7 +22,7 @@ class TestStlModelDetailView(TokenAuthRequestMixin):
     def setup_method(self):
         """Set up an authenticated user."""
         self.user = UserFactory(username='alice', password='secret-password')
-        self.token = Token.objects.create(user=self.user)
+        self.token = TokenFactory(user=self.user)
 
     def test_returns_401_when_unauthenticated(self, client):
         """Test that an unauthenticated request is rejected."""
@@ -95,13 +94,13 @@ class TestStlModelUpdateView(TokenAuthRequestMixin):
     def setup_method(self):
         """Set up a superuser, a staff user, and a regular authenticated user."""
         self.superuser = SuperUserFactory(username='admin', password='secret-password')
-        self.superuser_token = Token.objects.create(user=self.superuser)
+        self.superuser_token = TokenFactory(user=self.superuser)
         self.staff_user = UserFactory(
             username='staffer', password='secret-password', is_staff=True,
         )
-        self.staff_token = Token.objects.create(user=self.staff_user)
+        self.staff_token = TokenFactory(user=self.staff_user)
         self.regular_user = UserFactory(username='player', password='secret-password')
-        self.regular_token = Token.objects.create(user=self.regular_user)
+        self.regular_token = TokenFactory(user=self.regular_user)
 
     def test_returns_401_when_unauthenticated(self, client):
         """Test that an unauthenticated PATCH is rejected with 401."""

@@ -4,7 +4,6 @@ import json
 
 import pytest
 from django.urls import reverse
-from rest_framework.authtoken.models import Token
 
 from games.models import CharacterPossession
 from games.tests.behaviors import TokenAuthRequestMixin
@@ -14,6 +13,7 @@ from games.tests.factories import (
     GamePossessionFactory,
     PlayerFactory,
     SuperUserFactory,
+    TokenFactory,
     UserFactory,
 )
 
@@ -27,9 +27,9 @@ class TestGameNpcPossessionDetailFullView(TokenAuthRequestMixin):
         self.game = GameFactory(name='Test Game', game_slug='test-game')
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
-        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.dm_token = TokenFactory(user=self.dm_user)
         self.other_user = UserFactory(username='other', password='secret-password')
-        self.other_token = Token.objects.create(user=self.other_user)
+        self.other_token = TokenFactory(user=self.other_user)
         self.character = CharacterFactory(name='Gandalf', game=self.game, npc=True)
         game_possession = GamePossessionFactory(
             game=self.game, name='Hidden Vault', description='A secret cellar.',
@@ -58,7 +58,7 @@ class TestGameNpcPossessionDetailFullView(TokenAuthRequestMixin):
         """Test that a mere player of the game (no relation to the NPC) is rejected with 403."""
         player_user = UserFactory(username='player_only', password='secret-password')
         PlayerFactory(game=self.game, user=player_user)
-        token = Token.objects.create(user=player_user)
+        token = TokenFactory(user=player_user)
         response = self.get(client, self._url(), token=token)
         assert response.status_code == 403
 
@@ -72,7 +72,7 @@ class TestGameNpcPossessionDetailFullView(TokenAuthRequestMixin):
     def test_superuser_gets_200_for_hidden_possession(self, client):
         """Test that a superuser gets 200 for a hidden possession."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
-        token = Token.objects.create(user=superuser)
+        token = TokenFactory(user=superuser)
         response = self.get(client, self._url(), token=token)
         assert response.status_code == 200
 

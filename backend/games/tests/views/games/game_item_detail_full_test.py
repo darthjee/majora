@@ -4,7 +4,6 @@ import json
 
 import pytest
 from django.urls import reverse
-from rest_framework.authtoken.models import Token
 
 from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import (
@@ -12,6 +11,7 @@ from games.tests.factories import (
     GameItemFactory,
     PlayerFactory,
     SuperUserFactory,
+    TokenFactory,
     UserFactory,
 )
 
@@ -25,9 +25,9 @@ class TestGameItemDetailFullView(TokenAuthRequestMixin):
         self.game = GameFactory(name='Test Game', game_slug='test-game')
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
-        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.dm_token = TokenFactory(user=self.dm_user)
         self.other_user = UserFactory(username='other', password='secret-password')
-        self.other_token = Token.objects.create(user=self.other_user)
+        self.other_token = TokenFactory(user=self.other_user)
         self.hidden_item = GameItemFactory(
             game=self.game, name='Hidden Gem', hidden=True, description='A rare gem.',
         )
@@ -57,7 +57,7 @@ class TestGameItemDetailFullView(TokenAuthRequestMixin):
     def test_superuser_gets_200_for_hidden_item(self, client):
         """Test that a superuser gets 200 for a hidden item."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
-        token = Token.objects.create(user=superuser)
+        token = TokenFactory(user=superuser)
         response = self.get(client, self._url(), token=token)
         assert response.status_code == 200
 

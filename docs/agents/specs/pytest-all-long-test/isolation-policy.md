@@ -62,11 +62,16 @@ move it into `docs/agents/testing.md` almost unchanged. Edge cases behind each r
 - Cache warmed in `setUpTestData`/`setUpClass` is cleared before each test, so a test that needs it
   builds or primes its own state.
 
+## Tokens
+
+- Tests and helper modules create tokens with `TokenFactory` (#1790), never
+  `Token.objects.create`. Opt-out: `# test-policy: allow token-create`. `bin/check_test_policy.py`
+  enforces it.
+
 ## Rules added later
 
 *Placeholders, filled in by the sub-issue named.*
 
-- **Tokens (#1790):** tests create tokens with `TokenFactory`, never `Token.objects.create`.
 - **History (#1792):** `simple_history` is off in tests; tests that assert on history use the
   opt-in.
 - **Base object graph (#1793):** `setUpTestData` builds the common game, player, user and domain

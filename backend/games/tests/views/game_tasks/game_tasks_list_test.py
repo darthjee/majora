@@ -4,10 +4,15 @@ import json
 
 from django.test import TestCase
 from django.urls import reverse
-from rest_framework.authtoken.models import Token
 
 from games.models import GameSession, Task
-from games.tests.factories import GameFactory, PlayerFactory, SuperUserFactory, UserFactory
+from games.tests.factories import (
+    GameFactory,
+    PlayerFactory,
+    SuperUserFactory,
+    TokenFactory,
+    UserFactory,
+)
 
 
 class TestGameTasksListView(TestCase):
@@ -20,11 +25,11 @@ class TestGameTasksListView(TestCase):
         cls.other_game = GameFactory(name='Other Game', game_slug='other-game')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
-        cls.dm_token = Token.objects.create(user=cls.dm_user)
+        cls.dm_token = TokenFactory(user=cls.dm_user)
         cls.superuser = SuperUserFactory(username='admin', password='secret-password')
-        cls.superuser_token = Token.objects.create(user=cls.superuser)
+        cls.superuser_token = TokenFactory(user=cls.superuser)
         cls.regular_user = UserFactory(username='player', password='secret-password')
-        cls.regular_token = Token.objects.create(user=cls.regular_user)
+        cls.regular_token = TokenFactory(user=cls.regular_user)
 
     def _get(self, client, token=None, game_slug=None, query=''):
         """Issue a GET request to the game tasks list endpoint, optionally with a token."""
@@ -157,7 +162,7 @@ class TestGameTasksListFiltersView(TestCase):
         cls.other_game = GameFactory(name='Other Game', game_slug='other-game')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
-        cls.dm_token = Token.objects.create(user=cls.dm_user)
+        cls.dm_token = TokenFactory(user=cls.dm_user)
         cls.painting_done = Task.objects.create(
             game=cls.game, short_description='Paint done', category='painting', completed=True,
         )
@@ -253,7 +258,7 @@ class TestGameTasksListSessionFilterView(TestCase):
         cls.game = GameFactory(name='Test Game', game_slug='test-game')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
-        cls.dm_token = Token.objects.create(user=cls.dm_user)
+        cls.dm_token = TokenFactory(user=cls.dm_user)
         cls.session = GameSession.objects.create(game=cls.game, title='Session One')
         cls.other_session = GameSession.objects.create(game=cls.game, title='Session Two')
         cls.session_done = Task.objects.create(
@@ -325,11 +330,11 @@ class TestGameTasksCreateView(TestCase):
         cls.game = GameFactory(name='Test Game', game_slug='test-game')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
-        cls.dm_token = Token.objects.create(user=cls.dm_user)
+        cls.dm_token = TokenFactory(user=cls.dm_user)
         cls.superuser = SuperUserFactory(username='admin', password='secret-password')
-        cls.superuser_token = Token.objects.create(user=cls.superuser)
+        cls.superuser_token = TokenFactory(user=cls.superuser)
         cls.regular_user = UserFactory(username='player', password='secret-password')
-        cls.regular_token = Token.objects.create(user=cls.regular_user)
+        cls.regular_token = TokenFactory(user=cls.regular_user)
 
     def _post(self, client, payload, token=None, game_slug=None):
         """Issue a POST request to the game tasks list endpoint, optionally with a token."""

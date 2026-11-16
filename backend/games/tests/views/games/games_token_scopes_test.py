@@ -1,11 +1,10 @@
 """End-to-end tests for the `@token_scopes` declarations of the games views (issue #1630)."""
 
 import pytest
-from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
 from domains.tests.factories import DomainFactory
-from games.tests.factories import GameFactory, PlayerFactory, UserFactory
+from games.tests.factories import GameFactory, PlayerFactory, TokenFactory, UserFactory
 from games.tests.views.game._scoped_token_fixtures import ScopedTokenMixin
 
 MY_GAMES_URL = '/my-games.json'
@@ -173,13 +172,13 @@ class TestGamesTokenScopesOtherCredentials(GamesScopedTokenMixin):
 
     def test_legacy_token_lists_every_game(self):
         """Test that the DM's legacy Token still sees every game on my-games.json."""
-        token = Token.objects.create(user=self.dm)
+        token = TokenFactory(user=self.dm)
         response = self.client.get(MY_GAMES_URL, HTTP_AUTHORIZATION=f'Token {token.key}')
         assert self._slugs(response) == {'test-game', 'other-game'}
 
     def test_legacy_token_updates_game(self):
         """Test that the DM's legacy Token still updates the game."""
-        token = Token.objects.create(user=self.dm)
+        token = TokenFactory(user=self.dm)
         response = self.client.patch(
             '/games/test-game.json', {'name': 'Renamed'}, format='json',
             HTTP_AUTHORIZATION=f'Token {token.key}',
@@ -194,7 +193,7 @@ class TestGamesTokenScopesOtherCredentials(GamesScopedTokenMixin):
 
     def test_legacy_token_uploads_photo(self):
         """Test that the DM's legacy Token still initialises a game photo upload (#1665)."""
-        token = Token.objects.create(user=self.dm)
+        token = TokenFactory(user=self.dm)
         response = self.client.post(
             PHOTO_UPLOAD_URL, PHOTO_PAYLOAD, format='json',
             HTTP_AUTHORIZATION=f'Token {token.key}',

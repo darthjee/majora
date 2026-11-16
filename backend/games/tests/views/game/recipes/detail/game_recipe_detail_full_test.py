@@ -3,7 +3,6 @@
 import json
 
 import pytest
-from rest_framework.authtoken.models import Token
 
 from games.tests.behaviors import TokenAuthRequestMixin
 from games.tests.factories import (
@@ -11,6 +10,7 @@ from games.tests.factories import (
     GameFactory,
     GameRecipeFactory,
     PlayerFactory,
+    TokenFactory,
     UserFactory,
 )
 
@@ -33,7 +33,7 @@ class TestGameRecipeDetailFullView(TokenAuthRequestMixin):
         """Create a game member and return their auth token."""
         user = UserFactory(username=username, password='secret-password')
         PlayerFactory(game=self.game, user=user, is_dm=is_dm)
-        return Token.objects.create(user=user)
+        return TokenFactory(user=user)
 
     def _url(self, recipe_id=None):
         """Return the recipe full URL for the given id (defaults to the fixture)."""

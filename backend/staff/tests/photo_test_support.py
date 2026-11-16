@@ -2,9 +2,7 @@
 
 import json
 
-from rest_framework.authtoken.models import Token
-
-from games.tests.factories import SuperUserFactory, UserFactory
+from games.tests.factories import SuperUserFactory, TokenFactory, UserFactory
 from staff.tests.photo_builders import PhotoBuilder
 
 
@@ -14,11 +12,11 @@ class StaffPhotoActorsMixin:
     def setup_actors(self):
         """Create the users, their tokens, and the photo builder."""
         self.staff_user = UserFactory(username='staffer', is_staff=True)
-        self.staff_token = Token.objects.create(user=self.staff_user)
+        self.staff_token = TokenFactory(user=self.staff_user)
         self.superuser = SuperUserFactory(username='admin')
-        self.superuser_token = Token.objects.create(user=self.superuser)
+        self.superuser_token = TokenFactory(user=self.superuser)
         self.regular_user = UserFactory(username='player')
-        self.regular_token = Token.objects.create(user=self.regular_user)
+        self.regular_token = TokenFactory(user=self.regular_user)
         self.builder = PhotoBuilder()
 
     @staticmethod

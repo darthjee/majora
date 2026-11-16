@@ -6,11 +6,10 @@ import json
 from django.test import TestCase
 from django.urls import reverse
 from django.utils.crypto import get_random_string
-from rest_framework.authtoken.models import Token
 
 from games.settings import Settings
 from games.tests.behaviors import TokenAuthRequestMixin
-from games.tests.factories import UserFactory, UserProfileFactory
+from games.tests.factories import TokenFactory, UserFactory, UserProfileFactory
 
 
 def _avatar_url_for(email):
@@ -34,7 +33,7 @@ class TestAccountView(TokenAuthRequestMixin, TestCase):
             username='alice', password=TEST_PASSWORD, email='alice@example.com'
         )
         cls.profile = UserProfileFactory(user=cls.user, display_name='alice-display')
-        cls.token = Token.objects.create(user=cls.user)
+        cls.token = TokenFactory(user=cls.user)
         cls.other_user = UserFactory(
             username='bob', password=TEST_PASSWORD, email='bob@example.com'
         )
@@ -88,7 +87,7 @@ class TestAccountPatchView(TokenAuthRequestMixin, TestCase):
             username='alice', password=TEST_PASSWORD, email='alice@example.com'
         )
         cls.profile = UserProfileFactory(user=cls.user, display_name='alice-display')
-        cls.token = Token.objects.create(user=cls.user)
+        cls.token = TokenFactory(user=cls.user)
         cls.other_user = UserFactory(
             username='bob', password=TEST_PASSWORD, email='bob@example.com'
         )

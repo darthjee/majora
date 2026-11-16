@@ -3,7 +3,6 @@
 import json
 
 from django.test import TestCase
-from rest_framework.authtoken.models import Token
 
 from games.models import GameTreasure
 from games.tests.behaviors import TokenAuthRequestMixin
@@ -12,6 +11,7 @@ from games.tests.factories import (
     GameTreasureFactory,
     PlayerFactory,
     SuperUserFactory,
+    TokenFactory,
     TreasureFactory,
     UserFactory,
 )
@@ -26,11 +26,11 @@ class TestGameTreasureLinkView(TokenAuthRequestMixin, TestCase):
         cls.game = GameFactory(name='Test Game', game_slug='test-game')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
-        cls.dm_token = Token.objects.create(user=cls.dm_user)
+        cls.dm_token = TokenFactory(user=cls.dm_user)
         cls.superuser = SuperUserFactory(username='admin', password='secret-password')
-        cls.superuser_token = Token.objects.create(user=cls.superuser)
+        cls.superuser_token = TokenFactory(user=cls.superuser)
         cls.regular_user = UserFactory(username='player', password='secret-password')
-        cls.regular_token = Token.objects.create(user=cls.regular_user)
+        cls.regular_token = TokenFactory(user=cls.regular_user)
 
     def _post(self, payload, token=None, game_slug=None):
         """Issue a POST request to the game treasure link endpoint, optionally with a token."""

@@ -4,9 +4,8 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 from django.urls import reverse
-from rest_framework.authtoken.models import Token
 
-from games.tests.factories import PlayerFactory, SuperUserFactory, UserFactory
+from games.tests.factories import PlayerFactory, SuperUserFactory, TokenFactory, UserFactory
 from statistics.models import Session, Visit
 
 URL = '/staff/statistics/duration.json'
@@ -41,12 +40,12 @@ class TestStaffStatisticsDurationView:
 
     def setup_method(self):
         """Set up staff, superuser, DM and regular accounts, and a few visits."""
-        self.staff_token = Token.objects.create(user=UserFactory(is_staff=True))
-        self.superuser_token = Token.objects.create(user=SuperUserFactory())
-        self.regular_token = Token.objects.create(user=UserFactory())
+        self.staff_token = TokenFactory(user=UserFactory(is_staff=True))
+        self.superuser_token = TokenFactory(user=SuperUserFactory())
+        self.regular_token = TokenFactory(user=UserFactory())
         dm_user = UserFactory()
         PlayerFactory(user=dm_user, is_dm=True)
-        self.dm_token = Token.objects.create(user=dm_user)
+        self.dm_token = TokenFactory(user=dm_user)
         anonymous = Session.objects.create(ip='127.0.0.1')
         logged_in = Session.objects.create(ip='127.0.0.1', user=UserFactory())
         _visit(anonymous, 1, seconds=10, hits=1)

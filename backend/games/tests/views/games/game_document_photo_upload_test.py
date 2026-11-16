@@ -3,7 +3,6 @@
 import json
 
 import pytest
-from rest_framework.authtoken.models import Token
 
 from games.models import GameDocumentPhoto
 from games.tests.behaviors import TokenAuthRequestMixin
@@ -12,6 +11,7 @@ from games.tests.factories import (
     GameFactory,
     PlayerFactory,
     SuperUserFactory,
+    TokenFactory,
     UserFactory,
 )
 from uploads.models import Upload
@@ -27,10 +27,10 @@ class TestGameDocumentPhotoUploadView(TokenAuthRequestMixin):
         self.document = GameDocumentFactory(game=self.game, name='Ancient Scroll')
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
-        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.dm_token = TokenFactory(user=self.dm_user)
         self.player_user = UserFactory(username='player_user', password='secret-password')
         PlayerFactory(name='Bob', user=self.player_user, game=self.game)
-        self.player_token = Token.objects.create(user=self.player_user)
+        self.player_token = TokenFactory(user=self.player_user)
 
     def _url(self, game_slug=None, document_id=None):
         """Return the upload endpoint URL for the given game_slug/document_id (default fixtures)."""
@@ -50,7 +50,7 @@ class TestGameDocumentPhotoUploadView(TokenAuthRequestMixin):
     def test_unrelated_user_returns_403(self, client):
         """Test that an authenticated user unrelated to the game is rejected with 403."""
         other = UserFactory(username='other', password='secret-password')
-        token = Token.objects.create(user=other)
+        token = TokenFactory(user=other)
         response = self._post(client, {'filename': 'photo.jpg'}, token=token)
         assert response.status_code == 403
 
@@ -140,14 +140,14 @@ class TestGameDocumentPhotoUploadView(TokenAuthRequestMixin):
     def test_superuser_can_upload(self, client):
         """Test that a superuser is allowed to upload a photo for any document."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
-        token = Token.objects.create(user=superuser)
+        token = TokenFactory(user=superuser)
         response = self._post(client, {'filename': 'scroll.jpg'}, token=token)
         assert response.status_code == 201
 
     def test_staff_user_returns_201(self, client):
         """Test that an is_staff=True user unrelated to the game can upload the document's photo."""
         staff_user = UserFactory(username='staff_user', password='secret-password', is_staff=True)
-        token = Token.objects.create(user=staff_user)
+        token = TokenFactory(user=staff_user)
         response = self._post(client, {'filename': 'scroll.jpg'}, token=token)
         assert response.status_code == 201
 

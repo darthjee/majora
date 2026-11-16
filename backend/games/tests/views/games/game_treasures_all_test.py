@@ -3,7 +3,6 @@
 import json
 
 from django.test import TestCase
-from rest_framework.authtoken.models import Token
 
 from games.models import GameTreasure
 from games.tests.behaviors import TokenAuthRequestMixin
@@ -12,6 +11,7 @@ from games.tests.factories import (
     GameTreasureFactory,
     PlayerFactory,
     SuperUserFactory,
+    TokenFactory,
     TreasureFactory,
     UserFactory,
 )
@@ -50,13 +50,13 @@ class TestGameTreasuresAllView(TokenAuthRequestMixin, TestCase):
     def test_returns_403_for_non_dm_authenticated_user(self):
         """Test that an authenticated user who is not a DM gets 403."""
         other_user = UserFactory(username='other', password='secret-password')
-        token = Token.objects.create(user=other_user)
+        token = TokenFactory(user=other_user)
         response = self._get(self.client, token=token)
         assert response.status_code == 403
 
     def test_returns_200_for_dm_with_all_treasures(self):
         """Test that a DM gets 200 with both visible and hidden treasures."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._get(self.client, token=token)
         assert response.status_code == 200
         data = json.loads(response.content)
@@ -67,7 +67,7 @@ class TestGameTreasuresAllView(TokenAuthRequestMixin, TestCase):
     def test_returns_200_for_superuser_with_all_treasures(self):
         """Test that a superuser gets 200 with both visible and hidden treasures."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
-        token = Token.objects.create(user=superuser)
+        token = TokenFactory(user=superuser)
         response = self._get(self.client, token=token)
         assert response.status_code == 200
         data = json.loads(response.content)
@@ -75,13 +75,13 @@ class TestGameTreasuresAllView(TokenAuthRequestMixin, TestCase):
 
     def test_returns_404_for_unknown_game(self):
         """Test that 404 is returned for a non-existent game_slug."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self.get(self.client, '/games/unknown-game/treasures/all.json', token=token)
         assert response.status_code == 404
 
     def test_response_includes_pagination_headers(self):
         """Test that the response includes page/pages/per_page/total headers."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._get(self.client, token=token)
         assert response['page'] == '1'
         assert response['pages'] == '1'
@@ -90,7 +90,7 @@ class TestGameTreasuresAllView(TokenAuthRequestMixin, TestCase):
 
     def test_response_includes_x_skip_cache_header(self):
         """Test that the response includes the X-Skip-Cache: true header."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._get(self.client, token=token)
         assert response['X-Skip-Cache'] == 'true'
 
@@ -101,7 +101,7 @@ class TestGameTreasuresAllView(TokenAuthRequestMixin, TestCase):
         GameTreasure.objects.filter(game=self.game, treasure=linked_treasure).update(
             max_units=5, acquired_units=2,
         )
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._get(self.client, token=token)
         data = json.loads(response.content)
         item = next(item for item in data if item['name'] == 'Limited Gem')
@@ -115,7 +115,7 @@ class TestGameTreasuresAllView(TokenAuthRequestMixin, TestCase):
         GameTreasureFactory(
             game=other_game, treasure=other_treasure, value=other_treasure.value, hidden=True,
         )
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._get(self.client, token=token)
         assert response.status_code == 200
         data = json.loads(response.content)
@@ -124,7 +124,7 @@ class TestGameTreasuresAllView(TokenAuthRequestMixin, TestCase):
 
     def test_response_includes_hidden_field_per_item(self):
         """Test that each item in the response carries its own hidden flag."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self._get(self.client, token=token)
         data = json.loads(response.content)
         by_name = {item['name']: item['hidden'] for item in data}
@@ -133,7 +133,7 @@ class TestGameTreasuresAllView(TokenAuthRequestMixin, TestCase):
 
     def test_filters_by_min_value(self):
         """Test that only treasures with value >= min_value are returned."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self.get(
             self.client, f'{TREASURES_ALL_URL}?min_value=150', token=token,
         )
@@ -142,7 +142,7 @@ class TestGameTreasuresAllView(TokenAuthRequestMixin, TestCase):
 
     def test_filters_by_max_value(self):
         """Test that only treasures with value <= max_value are returned."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self.get(
             self.client, f'{TREASURES_ALL_URL}?max_value=50', token=token,
         )
@@ -151,7 +151,7 @@ class TestGameTreasuresAllView(TokenAuthRequestMixin, TestCase):
 
     def test_min_and_max_value_combined(self):
         """Test that min_value and max_value filters both apply together."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self.get(
             self.client, f'{TREASURES_ALL_URL}?min_value=50&max_value=150', token=token,
         )
@@ -162,7 +162,7 @@ class TestGameTreasuresAllView(TokenAuthRequestMixin, TestCase):
 
     def test_filters_by_name(self):
         """Test that only treasures whose name contains the name term are returned."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self.get(
             self.client, f'{TREASURES_ALL_URL}?name=Visible', token=token,
         )
@@ -172,7 +172,7 @@ class TestGameTreasuresAllView(TokenAuthRequestMixin, TestCase):
 
     def test_name_filter_is_case_insensitive(self):
         """Test that the name filter matches regardless of case."""
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self.get(
             self.client, f'{TREASURES_ALL_URL}?name=visible gem', token=token,
         )
@@ -184,7 +184,7 @@ class TestGameTreasuresAllView(TokenAuthRequestMixin, TestCase):
         """Test that min_value/max_value filter on GameTreasure.value, not Treasure.value."""
         treasure = TreasureFactory(name='Discounted Gem', value=500, game=self.game)
         GameTreasureFactory(game=self.game, treasure=treasure, value=50)
-        token = Token.objects.create(user=self.dm_user)
+        token = TokenFactory(user=self.dm_user)
         response = self.get(
             self.client, f'{TREASURES_ALL_URL}?max_value=60', token=token,
         )

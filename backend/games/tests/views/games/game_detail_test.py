@@ -4,11 +4,16 @@ import json
 
 from django.test import TestCase
 from django.utils import timezone
-from rest_framework.authtoken.models import Token
 
 from games.models import GameLink, GameSession
 from games.tests.behaviors import DetailNotFoundBehaviorMixin, TokenAuthRequestMixin
-from games.tests.factories import GameFactory, PlayerFactory, SuperUserFactory, UserFactory
+from games.tests.factories import (
+    GameFactory,
+    PlayerFactory,
+    SuperUserFactory,
+    TokenFactory,
+    UserFactory,
+)
 
 
 class TestGameDetailView(DetailNotFoundBehaviorMixin, TestCase):
@@ -89,7 +94,7 @@ class TestGameDetailPatchView(TokenAuthRequestMixin, TestCase):
         )
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
-        cls.dm_token = Token.objects.create(user=cls.dm_user)
+        cls.dm_token = TokenFactory(user=cls.dm_user)
 
     def _patch(self, client, payload, token=None):
         """Issue a PATCH request to the game detail endpoint, optionally with a token."""
@@ -103,7 +108,7 @@ class TestGameDetailPatchView(TokenAuthRequestMixin, TestCase):
     def test_patch_with_non_dm_user_returns_403(self):
         """Test that PATCH from a regular non-DM user is rejected with 403."""
         other = UserFactory(username='other', password='secret-password')
-        token = Token.objects.create(user=other)
+        token = TokenFactory(user=other)
         response = self._patch(self.client, {'name': 'New Name'}, token=token)
         assert response.status_code == 403
         self.game.refresh_from_db()
@@ -129,7 +134,7 @@ class TestGameDetailPatchView(TokenAuthRequestMixin, TestCase):
     def test_patch_with_superuser_token_returns_200(self):
         """Test that PATCH from a superuser's token updates the game and returns 200."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
-        token = Token.objects.create(user=superuser)
+        token = TokenFactory(user=superuser)
         response = self._patch(self.client, {'name': 'Super Quest'}, token=token)
         assert response.status_code == 200
         self.game.refresh_from_db()
@@ -188,14 +193,14 @@ class TestGameDetailPatchRegularTierView(TokenAuthRequestMixin, TestCase):
         cls.staff_user = UserFactory(
             username='staff_user', password='secret-password', is_staff=True,
         )
-        cls.staff_token = Token.objects.create(user=cls.staff_user)
+        cls.staff_token = TokenFactory(user=cls.staff_user)
 
         cls.player_user = UserFactory(username='player_user', password='secret-password')
         PlayerFactory(game=cls.game, user=cls.player_user, is_dm=False)
-        cls.player_token = Token.objects.create(user=cls.player_user)
+        cls.player_token = TokenFactory(user=cls.player_user)
 
         cls.outsider = UserFactory(username='outsider', password='secret-password')
-        cls.outsider_token = Token.objects.create(user=cls.outsider)
+        cls.outsider_token = TokenFactory(user=cls.outsider)
 
     def _patch(self, client, payload, token=None):
         """Issue a PATCH request to the game detail endpoint, optionally with a token."""

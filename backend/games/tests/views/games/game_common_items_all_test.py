@@ -4,7 +4,6 @@ import json
 
 import pytest
 from django.urls import reverse
-from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
 from games.tests.behaviors import TokenAuthRequestMixin
@@ -13,6 +12,7 @@ from games.tests.factories import (
     GameFactory,
     PlayerFactory,
     SuperUserFactory,
+    TokenFactory,
     UserFactory,
 )
 from games.tests.views.games._common_items_filters_behavior import CommonItemsFiltersBehavior
@@ -27,9 +27,9 @@ class TestGameCommonItemsAllView(TokenAuthRequestMixin):
         self.game = GameFactory(name='Test Game', game_slug='test-game')
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
-        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.dm_token = TokenFactory(user=self.dm_user)
         self.other_user = UserFactory(username='other', password='secret-password')
-        self.other_token = Token.objects.create(user=self.other_user)
+        self.other_token = TokenFactory(user=self.other_user)
         self.visible_common_item = GameCommonItemFactory(game=self.game, name='Visible Potion')
         self.hidden_common_item = GameCommonItemFactory(
             game=self.game, name='Secret Poison', hidden=True,
@@ -61,7 +61,7 @@ class TestGameCommonItemsAllView(TokenAuthRequestMixin):
     def test_superuser_gets_200_with_both_visible_and_hidden_common_items(self, client):
         """Test that a superuser gets 200 with both visible and hidden common items."""
         superuser = SuperUserFactory(username='admin', password='secret-password')
-        token = Token.objects.create(user=superuser)
+        token = TokenFactory(user=superuser)
         response = self.get(client, self._url(), token=token)
         assert response.status_code == 200
         data = json.loads(response.content)
@@ -107,9 +107,9 @@ class TestGameCommonItemsAllNameFilter(TokenAuthRequestMixin):
         self.game = GameFactory(name='Test Game', game_slug='test-game')
         self.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=self.game, user=self.dm_user, is_dm=True)
-        self.dm_token = Token.objects.create(user=self.dm_user)
+        self.dm_token = TokenFactory(user=self.dm_user)
         self.other_user = UserFactory(username='other', password='secret-password')
-        self.other_token = Token.objects.create(user=self.other_user)
+        self.other_token = TokenFactory(user=self.other_user)
         GameCommonItemFactory(game=self.game, name='Healing Potion')
         GameCommonItemFactory(game=self.game, name='Silver Arrow')
         GameCommonItemFactory(game=self.game, name='Secret POTION', hidden=True)
@@ -164,7 +164,7 @@ class TestGameCommonItemsAllFilters(TokenAuthRequestMixin, CommonItemsFiltersBeh
         self._create_items()
         dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=self.game, user=dm_user, is_dm=True)
-        self.dm_token = Token.objects.create(user=dm_user)
+        self.dm_token = TokenFactory(user=dm_user)
 
     def _fetch(self, query='', game_slug='test-game'):
         """Return the DM's all.json response for the given query string."""

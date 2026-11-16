@@ -3,10 +3,15 @@
 import json
 
 from django.test import TestCase
-from rest_framework.authtoken.models import Token
 
 from games.models import GameDocumentFile
-from games.tests.factories import GameDocumentFactory, GameFactory, PlayerFactory, UserFactory
+from games.tests.factories import (
+    GameDocumentFactory,
+    GameFactory,
+    PlayerFactory,
+    TokenFactory,
+    UserFactory,
+)
 from uploads.models import Upload
 
 
@@ -19,7 +24,7 @@ class TestUploadFinalizeGameDocumentFile(TestCase):
         cls.game = GameFactory(name='Epic Quest', game_slug='epic-quest')
         cls.dm_user = UserFactory(username='dm_user', password='secret-password')
         PlayerFactory(game=cls.game, user=cls.dm_user, is_dm=True)
-        cls.dm_token = Token.objects.create(user=cls.dm_user)
+        cls.dm_token = TokenFactory(user=cls.dm_user)
 
         cls.game_document = GameDocumentFactory(game=cls.game, name='Ancient Scroll')
 
@@ -79,7 +84,7 @@ class TestUploadFinalizeGameDocumentFile(TestCase):
     def test_unrelated_user_returns_403_for_document_file_upload(self):
         """Test that a user unrelated to the game is rejected on a GameDocumentFile upload."""
         other_user = UserFactory(username='other_document_file', password='secret-password')
-        other_token = Token.objects.create(user=other_user)
+        other_token = TokenFactory(user=other_user)
         self.document_file_upload.user = other_user
         Upload.objects.filter(pk=self.document_file_upload.pk).update(user=other_user)
         response = self._patch(

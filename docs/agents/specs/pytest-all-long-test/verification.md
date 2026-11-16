@@ -44,6 +44,10 @@ conversions):
 
 ## Check-script rules
 
+The script scans every `.py` file under the `testpaths` (test files, conftests and helper
+modules), plus the root `conftest.py`. Rules so far: `memory-cache-clear` (#1789) and
+`token-create` (#1790).
+
 "No new test violates the policy" is enforced by a small check script run in the existing
 `checks` CI job, created by #1789. Each rule is added by the sub-issue that removes the last
 violation, so the script never fails on existing code.
@@ -51,7 +55,7 @@ violation, so the script never fails on existing code.
 | Rule | Added by | Status |
 |------|----------|--------|
 | No `memory_cache.clear()` in test files (the autouse fixture handles it) | #1789 | added |
-| No `Token.objects.create` in test files (use `TokenFactory`) | #1790 | not yet added |
+| No `Token.objects.create` in test files (use `TokenFactory`) | #1790 | added |
 | Every `TransactionTestCase` or `django_db(transaction=True)` has a justification comment directly above it | #1793 | not yet added |
 | No fixture scoped to a class, module or session writes to the database | #1793 | not yet added |
 

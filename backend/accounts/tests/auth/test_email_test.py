@@ -6,9 +6,8 @@ import pytest
 from django.core import mail
 from django.test import TestCase
 from django.utils.crypto import get_random_string
-from rest_framework.authtoken.models import Token
 
-from games.tests.factories import UserFactory
+from games.tests.factories import TokenFactory, UserFactory
 
 TEST_PASSWORD = get_random_string(20)
 
@@ -28,7 +27,7 @@ class TestTestEmailView(TestCase):
             username='alice', password=TEST_PASSWORD, email='alice@example.com',
             is_staff=True,
         )
-        token = Token.objects.create(user=user)
+        token = TokenFactory(user=user)
 
         with self.assertLogs('accounts.views.auth._shared', level='INFO') as log_ctx:
             response = self.client.post(
@@ -51,7 +50,7 @@ class TestTestEmailView(TestCase):
             username='alice', password=TEST_PASSWORD, email='alice@example.com',
             is_staff=True,
         )
-        token = Token.objects.create(user=user)
+        token = TokenFactory(user=user)
 
         with self.assertLogs('accounts.views.auth._shared', level='INFO') as log_ctx:
             response = self.client.post(
@@ -71,7 +70,7 @@ class TestTestEmailView(TestCase):
             username='alice', password=TEST_PASSWORD, email='alice@example.com',
             is_staff=True,
         )
-        token = Token.objects.create(user=user)
+        token = TokenFactory(user=user)
 
         def _raise(*args, **kwargs):
             raise RuntimeError('smtp boom')
@@ -92,7 +91,7 @@ class TestTestEmailView(TestCase):
         user = UserFactory(
             username='bob', password=TEST_PASSWORD, email='', is_staff=True
         )
-        token = Token.objects.create(user=user)
+        token = TokenFactory(user=user)
 
         response = self.client.post(
             '/staff/test-email.json',
@@ -117,7 +116,7 @@ class TestTestEmailView(TestCase):
         user = UserFactory(
             username='carol', password=TEST_PASSWORD, email='carol@example.com'
         )
-        token = Token.objects.create(user=user)
+        token = TokenFactory(user=user)
 
         response = self.client.post(
             '/staff/test-email.json',
